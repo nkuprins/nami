@@ -1,0 +1,13 @@
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.iml
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Environment Secrets (Very important for security)
+.env
+.env.local
