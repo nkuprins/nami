@@ -3,5 +3,5 @@
 </script>
 
 <template>
-  <RouterView></RouterView>
+  Not found 404
 </template>

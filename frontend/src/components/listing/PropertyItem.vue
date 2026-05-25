@@ -37,7 +37,11 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-  <article class="group card-lift relative bg-bg border border-line rounded-xl overflow-hidden">
+  <RouterLink
+      :to="`/listing/${property.id}`"
+      class="focus-ring block group"
+  >
+    <article class="card-lift relative bg-bg border border-line rounded-xl overflow-hidden">
     <div class="relative aspect-4/3 overflow-hidden">
       <CardCarousel :photos="property.photos" :alt="property.title"/>
 
@@ -75,4 +79,5 @@ const typeLabel = computed(() => {
       </div>
     </div>
   </article>
+  </RouterLink>
 </template>
