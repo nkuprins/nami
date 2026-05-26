@@ -10,6 +10,11 @@ const props = defineProps<{
 const index = ref(0);
 const direction = ref<'forward' | 'backward'>('forward');
 
+// Touch tracking state
+let touchStartX = 0;
+let touchEndX = 0;
+const SWIPE_THRESHOLD = 50; // Minimum swipe distance in pixels
+
 watch(() => props.photos, () => {
   index.value = 0;
 });
@@ -36,13 +41,42 @@ function goto(i: number, e?: Event) {
   direction.value = i > index.value ? 'forward' : 'backward';
   index.value = i;
 }
+
+// Touch Event Handlers
+function handleTouchStart(e: TouchEvent) {
+  touchStartX = e.touches[0].clientX;
+}
+
+function handleTouchMove(e: TouchEvent) {
+  touchEndX = e.touches[0].clientX;
+}
+
+function handleTouchEnd() {
+  const swipeDistance = touchStartX - touchEndX;
+
+  // Ignore tiny movements or cases where touchMove didn't fire
+  if (!touchEndX || Math.abs(swipeDistance) < SWIPE_THRESHOLD) return;
+
+  if (swipeDistance > 0) {
+    next(); // Swiped left -> Show next photo
+  } else {
+    prev(); // Swiped right -> Show previous photo
+  }
+
+  // Reset values
+  touchStartX = 0;
+  touchEndX = 0;
+}
 </script>
 
 <template>
   <div
-      class="relative size-full overflow-hidden bg-surface group/carousel"
+      class="relative size-full overflow-hidden bg-surface group/carousel touch-pan-y"
       role="region"
       aria-label="Listing photos"
+      @touchstart="handleTouchStart"
+      @touchmove="handleTouchMove"
+      @touchend="handleTouchEnd"
   >
     <transition
         :name="direction === 'forward' ? 'carousel-fwd' : 'carousel-bwd'"
@@ -52,9 +86,9 @@ function goto(i: number, e?: Event) {
           :key="index"
           :src="photos[index]"
           :alt="`${alt} — photo ${index + 1} of ${photos.length}`"
-          class="absolute inset-0 size-full object-cover"
+          class="absolute inset-0 size-full object-cover select-none pointer-events-none"
           loading="lazy"
-          decoding="async"
+          disabled-drag
       />
     </transition>
 
@@ -74,7 +108,7 @@ function goto(i: number, e?: Event) {
              bg-bg/85 backdrop-blur text-ink
              opacity-0 group-hover/carousel:opacity-100
              focus-visible:opacity-100
-             transition-opacity duration-200 hover:bg-bg"
+             transition-opacity duration-200 hover:bg-bg hidden md:grid"
     >
       <span class="size-4 inline-block"><IconChevron dir="left"/></span>
     </button>
@@ -88,7 +122,7 @@ function goto(i: number, e?: Event) {
              bg-bg/85 backdrop-blur text-ink
              opacity-0 group-hover/carousel:opacity-100
              focus-visible:opacity-100
-             transition-opacity duration-200 hover:bg-bg"
+             transition-opacity duration-200 hover:bg-bg hidden md:grid"
     >
       <span class="size-4 inline-block"><IconChevron dir="right"/></span>
     </button>
