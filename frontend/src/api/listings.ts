@@ -9,9 +9,9 @@ function inRange(value: number, min?: number, max?: number): boolean {
 
 
 function matches(p: PropertyItem, f: FilterState): boolean {
-    if (p.type !== f.type) return false;
-    if (!f.loc.includes(p.district)) return false;
 
+    if (p.type !== f.type) return false;
+    // if (f.loc !== undefined && !f.loc.includes(p.district)) return false;
     if (!inRange(p.price, f.priceMin, f.priceMax)) return false;
     if (!inRange(p.m2, f.m2Min, f.m2Max)) return false;
     if (!inRange(p.floor ?? 0, f.floorMin, f.floorMax)) return false;
@@ -59,4 +59,9 @@ export async function listProperties(f: FilterState): Promise<{ items: PropertyI
     const start = (f.page - 1) * PAGE_SIZE;
     const items = sorted.slice(start, start + PAGE_SIZE);
     return delay({items, total: sorted.length});
+}
+
+export async function countProperties(f: FilterState): Promise<number> {
+    const filtered = mockListings.filter((p) => matches(p, f));
+    return delay(filtered.length);
 }
