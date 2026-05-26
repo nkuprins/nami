@@ -151,7 +151,9 @@ function handleTouchEnd() {
              bg-ink/40 backdrop-blur px-2 h-6 inline-flex items-center rounded-sm"
         v-if="photos.length > 1"
     >
-      {{ index + 1 }} / {{ photos.length }}
+      <span>{{ index + 1 }}</span>
+      <span class="mx-0.5">/</span>
+      <span>{{ photos.length }}</span>
     </div>
   </div>
 </template>

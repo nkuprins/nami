@@ -5,9 +5,12 @@ import {useListings} from '../composables/useListings';
 import ResultsHeader from "../components/listing/ResultsHeader.vue";
 import PropertyGrid from "../components/listing/PropertyGrid.vue";
 import Pagination from "../components/listing/Pagination.vue";
+import HeroSection from "../components/hero/HeroSection.vue";
 
 const {state, setPage, resetAll} = useFilters();
 const {items, total, pageCount, loading} = useListings(() => state);
+
+const drawerOpen = ref(false);
 const gridRef = ref<HTMLElement | null>(null);
 
 function scrollToGrid() {
@@ -21,6 +24,11 @@ function goToPage(p: number) {
 </script>
 
 <template>
+  <HeroSection
+      @search="scrollToGrid"
+      @open-more="drawerOpen = true"
+  />
+
   <section
       ref="gridRef"
       class="mx-auto max-w-360 px-6 lg:px-10 pt-16 sm:pt-20 scroll-mt-20"
