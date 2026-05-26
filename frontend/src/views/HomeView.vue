@@ -4,10 +4,20 @@ import {useFilters} from '../composables/useFilters';
 import {useListings} from '../composables/useListings';
 import ResultsHeader from "../components/listing/ResultsHeader.vue";
 import PropertyGrid from "../components/listing/PropertyGrid.vue";
+import Pagination from "../components/listing/Pagination.vue";
 
-const {state, resetAll} = useFilters();
-const {items, total, loading} = useListings(() => state);
+const {state, setPage, resetAll} = useFilters();
+const {items, total, pageCount, loading} = useListings(() => state);
 const gridRef = ref<HTMLElement | null>(null);
+
+function scrollToGrid() {
+  gridRef.value?.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+function goToPage(p: number) {
+  setPage(p);
+  scrollToGrid();
+}
 </script>
 
 <template>
@@ -41,5 +51,11 @@ const gridRef = ref<HTMLElement | null>(null);
         </div>
       </template>
     </PropertyGrid>
+
+    <Pagination
+        :page="state.page"
+        :page-count="pageCount"
+        @change="goToPage"
+    />
   </section>
 </template>
