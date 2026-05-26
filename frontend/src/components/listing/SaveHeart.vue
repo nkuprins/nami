@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import {ref} from 'vue';
+import {computed} from 'vue';
 import IconHeart from "../ui/IconHeart.vue";
+import {useSaved} from "../../composables/useSaved";
 
 const props = defineProps<{ propertyId: string }>();
-const saved = ref(false);
+const {isSaved, toggle} = useSaved();
+
+const saved = computed(() => isSaved(props.propertyId));
 
 function handle(e: Event) {
   e.preventDefault();
   e.stopPropagation();
-  saved.value = !saved.value;
+  toggle(props.propertyId);
 }
 </script>
 
