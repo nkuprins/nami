@@ -113,7 +113,7 @@ function goto(i: number, e?: Event) {
     </div>
 
     <div
-        class="absolute top-3 right-3 z-10 micro-label text-cream/85! tabular
+        class="absolute bottom-3 right-3 z-10 micro-label text-cream/85! tabular
              bg-ink/40 backdrop-blur px-2 h-6 inline-flex items-center rounded-sm"
         v-if="photos.length > 1"
     >
