@@ -65,3 +65,7 @@ export async function countProperties(f: FilterState): Promise<number> {
     const filtered = mockListings.filter((p) => matches(p, f));
     return delay(filtered.length);
 }
+
+export async function getProperty(id: string): Promise<PropertyItem | undefined> {
+    return delay(mockListings.find((p) => p.id === id));
+}

@@ -42,7 +42,7 @@ const typeLabel = computed(() => {
 
 <template>
   <RouterLink
-      :to="`/listing/${property.id}`"
+      :to="`/property/${property.id}`"
       class="focus-ring block group"
   >
     <article class="card-lift relative bg-bg border border-line rounded-xl overflow-hidden">
