@@ -12,7 +12,7 @@ export interface FilterState {
     loc: string[];
     priceMin?: number;
     priceMax?: number;
-    rooms?: number;
+    rooms: number[];
     m2Min?: number;
     m2Max?: number;
     floorMin?: number;
@@ -30,6 +30,7 @@ export interface FilterState {
 export const DEFAULT_FILTER_STATE: FilterState = {
     type: 'buy',
     loc: [],
+    rooms: [],
     features: [],
     sort: 'newest',
     page: 1,
