@@ -30,5 +30,7 @@ export function useSaved() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify([...saved]));
     }
 
-    return {count, isSaved, toggle};
+    const ids = computed(() => [...saved]);
+
+    return {count, ids, isSaved, toggle};
 }

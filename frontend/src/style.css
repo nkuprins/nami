@@ -159,3 +159,28 @@
         scroll-snap-align: start;
     }
 }
+
+/* Vue named transitions */
+.scrim-enter-active, .scrim-leave-active {
+    transition: opacity 0.25s ease-out;
+}
+
+.scrim-enter-from, .scrim-leave-to {
+    opacity: 0;
+}
+
+.drawer-right-enter-active, .drawer-right-leave-active {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-right-enter-from, .drawer-right-leave-to {
+    transform: translateX(100%);
+}
+
+.drawer-bottom-enter-active, .drawer-bottom-leave-active {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-bottom-enter-from, .drawer-bottom-leave-to {
+    transform: translateY(100%);
+}

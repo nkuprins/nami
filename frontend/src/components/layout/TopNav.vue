@@ -21,7 +21,6 @@ const savedOpen = ref(false);
       <RouterLink
           to="/"
           class="focus-ring flex items-baseline gap-2 group"
-          aria-label="Baltnami home"
       >
         <span class="display-headline text-[1.6rem] leading-none text-ink"
               style="font-variation-settings: 'opsz' 96, 'SOFT' 30, 'WONK' 1;">
@@ -34,7 +33,6 @@ const savedOpen = ref(false);
         <button
             class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full
                  text-ink-2 hover:text-ink text-sm transition-colors"
-            aria-label="Saved listings"
             @click="savedOpen = true"
         >
           <span class="size-4 inline-block" :class="{ 'text-accent-2': savedCount > 0 }">
