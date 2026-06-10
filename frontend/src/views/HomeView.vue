@@ -6,6 +6,7 @@ import ResultsHeader from "../components/listing/ResultsHeader.vue";
 import PropertyGrid from "../components/listing/PropertyGrid.vue";
 import Pagination from "../components/listing/Pagination.vue";
 import HeroSection from "../components/hero/HeroSection.vue";
+import MoreFiltersDrawer from "../components/filters/MoreFiltersDrawer.vue";
 
 const {state, setPage, resetAll} = useFilters();
 const {items, total, pageCount, loading} = useListings(() => state);
@@ -27,6 +28,10 @@ function goToPage(p: number) {
   <HeroSection
       @search="scrollToGrid"
       @open-more="drawerOpen = true"
+  />
+  <MoreFiltersDrawer
+      :open="drawerOpen"
+      @update:open="(v) => (drawerOpen = v)"
   />
 
   <section

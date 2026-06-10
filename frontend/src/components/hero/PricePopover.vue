@@ -1,0 +1,115 @@
+<script setup lang="ts">
+import {computed, ref, watch} from 'vue';
+import type {PropertyType} from '../../types/propertyItem';
+
+const props = defineProps<{
+  min: number | undefined;
+  max: number | undefined;
+  type: PropertyType;
+}>();
+const emit = defineEmits<{ 'update:range': [min: number | undefined, max: number | undefined] }>();
+
+const localMin = ref<string>(props.min !== undefined ? String(props.min) : '');
+const localMax = ref<string>(props.max !== undefined ? String(props.max) : '');
+
+watch(() => [props.min, props.max], ([mn, mx]) => {
+  localMin.value = mn !== undefined ? String(mn) : '';
+  localMax.value = mx !== undefined ? String(mx) : '';
+});
+
+const suggestions = computed<Array<[number | undefined, number | undefined, string]>>(() => {
+  if (props.type === 'rent') {
+    return [
+      [undefined, 500, 'Under €500'],
+      [500, 900, '€500 – €900'],
+      [900, 1500, '€900 – €1,500'],
+      [1500, undefined, '€1,500+'],
+    ];
+  }
+  return [
+    [undefined, 150_000, 'Under €150k'],
+    [150_000, 300_000, '€150k – €300k'],
+    [300_000, 600_000, '€300k – €600k'],
+    [600_000, undefined, '€600k+'],
+  ];
+});
+
+let timer: number | null = null;
+
+function commit() {
+  if (timer !== null) window.clearTimeout(timer);
+  timer = window.setTimeout(() => {
+    const mn = localMin.value === '' ? undefined : Math.max(0, parseInt(localMin.value, 10));
+    const mx = localMax.value === '' ? undefined : Math.max(0, parseInt(localMax.value, 10));
+    emit('update:range', Number.isFinite(mn as number) ? mn : undefined,
+        Number.isFinite(mx as number) ? mx : undefined);
+  }, 280);
+}
+
+function pickPreset(mn: number | undefined, mx: number | undefined) {
+  localMin.value = mn !== undefined ? String(mn) : '';
+  localMax.value = mx !== undefined ? String(mx) : '';
+  emit('update:range', mn, mx);
+}
+
+function clear() {
+  localMin.value = '';
+  localMax.value = '';
+  emit('update:range', undefined, undefined);
+}
+</script>
+
+<template>
+  <div class="space-y-4 min-w-70">
+    <div class="grid grid-cols-2 gap-2">
+      <label class="flex flex-col gap-1">
+        <span class="micro-label">Min {{ type === 'rent' ? '€ / mo' : '€' }}</span>
+        <input
+            v-model="localMin"
+            @input="commit"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            placeholder="Any"
+            class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular
+                 placeholder:text-ink-3"
+        />
+      </label>
+      <label class="flex flex-col gap-1">
+        <span class="micro-label">Max {{ type === 'rent' ? '€ / mo' : '€' }}</span>
+        <input
+            v-model="localMax"
+            @input="commit"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            placeholder="Any"
+            class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular
+                 placeholder:text-ink-3"
+        />
+      </label>
+    </div>
+    <div>
+      <p class="micro-label mb-2">Quick picks</p>
+      <div class="flex flex-wrap gap-1.5">
+        <button
+            v-for="[mn, mx, label] in suggestions"
+            :key="label"
+            type="button"
+            class="focus-ring px-3 h-8 rounded-full border border-line text-xs text-ink-2
+                 hover:text-ink hover:border-line-2 transition-colors"
+            @click="pickPreset(mn, mx)"
+        >
+          {{ label }}
+        </button>
+      </div>
+    </div>
+    <div class="flex items-center justify-end pt-3 border-t border-line">
+      <button
+          type="button"
+          class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
+          @click="clear"
+      >
+        Clear
+      </button>
+    </div>
+  </div>
+</template>
