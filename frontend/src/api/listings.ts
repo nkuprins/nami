@@ -77,6 +77,31 @@ export async function getProperty(id: string): Promise<PropertyItem | undefined>
     return delay(mockListings.find((p) => p.id === id));
 }
 
+export async function requestPresignedUrls(
+    filenames: string[]
+): Promise<{ uploadUrl: string; fileUrl: string }[]> {
+    // TODO: replace with real API call: POST /api/uploads/presign
+    return delay(filenames.map((name) => ({uploadUrl: `mock:${name}`, fileUrl: `mock:${name}`})));
+}
+
+export async function uploadFilesToS3(
+    files: File[],
+    slots: { uploadUrl: string; fileUrl: string }[]
+): Promise<string[]> {
+    return Promise.all(
+        files.map((file, i) => {
+            if (slots[i].uploadUrl.startsWith('mock:')) {
+                return Promise.resolve(URL.createObjectURL(file));
+            }
+            return fetch(slots[i].uploadUrl, {
+                method: 'PUT',
+                body: file,
+                headers: {'Content-Type': file.type},
+            }).then(() => slots[i].fileUrl);
+        })
+    );
+}
+
 let nextId = 1000;
 
 export async function addProperty(data: Omit<PropertyItem, 'id' | 'postedAt'>): Promise<PropertyItem> {

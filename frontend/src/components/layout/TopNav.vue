@@ -70,7 +70,7 @@ const savedOpen = ref(false);
         <button
             class="focus-ring inline-flex items-center h-9 px-3 sm:px-4 rounded-full
                  text-sm bg-ink text-bg hover:bg-accent-2 transition-colors"
-            @click="router.push('/add-property')"
+            @click="isAuthenticated ? router.push('/add-property') : authOpen = true"
         >
           <span class="inline md:hidden">Add</span>
           <span class="hidden md:inline">Add a property</span>
