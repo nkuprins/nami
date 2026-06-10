@@ -3,7 +3,7 @@ import {ref} from 'vue';
 import {useFilters} from '../../composables/useFilters';
 import type {SortKey} from '../../types/filter';
 import IconChevron from '../ui/IconChevron.vue';
-import Popover from '../ui/PopOver.vue';
+import Popover from '../ui/Popover.vue';
 
 defineProps<{ total: number; loading: boolean }>();
 
@@ -13,7 +13,7 @@ const SORT_OPTIONS: Array<{ id: SortKey; label: string; hint: string }> = [
   {id: 'newest', label: 'Newest first', hint: 'Most recently listed'},
   {id: 'price-asc', label: 'Price - low to high', hint: '€ ascending'},
   {id: 'price-desc', label: 'Price - high to low', hint: '€ descending'},
-  {id: 'm2-asc', label: 'Best € / m²', hint: 'Lowest price per m²'},
+  {id: 'price-per-m2-asc', label: 'Best € / m²', hint: 'Lowest price per m²'},
   {id: 'm2-desc', label: 'Largest first', hint: 'm² descending'},
 ];
 

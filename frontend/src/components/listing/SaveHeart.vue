@@ -20,7 +20,6 @@ function handle(e: Event) {
       type="button"
       @click="handle"
       :aria-pressed="saved"
-      :aria-label="saved ? 'Remove from saved' : 'Save listing'"
       class="focus-ring relative size-9 grid place-items-center rounded-full
            bg-bg/90 backdrop-blur transition-all duration-200
            hover:bg-bg hover:scale-105 active:scale-95"

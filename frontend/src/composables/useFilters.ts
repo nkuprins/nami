@@ -36,6 +36,10 @@ function parseFromQuery(q: LocationQuery): FilterState {
         ? (sortRaw as SortKey)
         : DEFAULT_FILTER_STATE.sort;
 
+    const rooms = parseList(q.rooms)
+        .map((s) => parseInt0(s))
+        .filter((n): n is number => n !== undefined);
+
     const features = parseList(q.features).filter((s): s is Feature =>
         (KNOWN_FEATURES as string[]).includes(s),
     );
@@ -50,6 +54,7 @@ function parseFromQuery(q: LocationQuery): FilterState {
         loc: parseList(q.loc),
         priceMin: parseInt0(q.priceMin),
         priceMax: parseInt0(q.priceMax),
+        rooms,
         m2Min: parseInt0(q.m2Min),
         m2Max: parseInt0(q.m2Max),
         floorMin: parseInt0(q.floorMin),
@@ -71,7 +76,7 @@ function toQuery(state: FilterState): LocationQuery {
     if (state.loc.length) q.loc = state.loc.join(',');
     if (state.priceMin !== undefined) q.priceMin = String(state.priceMin);
     if (state.priceMax !== undefined) q.priceMax = String(state.priceMax);
-    //if (state.rooms.length) q.rooms = state.rooms.join(',');
+    if (state.rooms.length) q.rooms = state.rooms.join(',');
     if (state.m2Min !== undefined) q.m2Min = String(state.m2Min);
     if (state.m2Max !== undefined) q.m2Max = String(state.m2Max);
     if (state.floorMin !== undefined) q.floorMin = String(state.floorMin);
@@ -146,8 +151,8 @@ export function useFilters() {
         state.page = 1;
     }
 
-    function setRoom(rooms: number) {
-        state.rooms = rooms;
+    function setRooms(rooms: number[]) {
+        state.rooms = [...rooms];
         state.page = 1;
     }
 
@@ -185,7 +190,7 @@ export function useFilters() {
 
     return {
         state,
-        setType, setLoc, setPriceRange, setRoom, setSort, setPage,
+        setType, setLoc, setPriceRange, setRooms, setSort, setPage,
         applyAdvanced, resetAdvanced, resetAll,
     };
 }

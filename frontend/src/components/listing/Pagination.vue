@@ -32,7 +32,6 @@ function go(p: number) {
   <nav
       v-if="pageCount > 1"
       class="flex items-center justify-center gap-1 pt-12 mt-12 border-t border-line"
-      aria-label="Pagination"
   >
     <button
         type="button"
@@ -41,7 +40,6 @@ function go(p: number) {
         class="focus-ring size-10 grid place-items-center rounded-md text-ink-2
              hover:text-ink hover:bg-surface disabled:opacity-30
              transition-colors"
-        aria-label="Previous page"
     >
       <span class="size-4"><IconChevron dir="left"/></span>
     </button>
@@ -74,7 +72,6 @@ function go(p: number) {
         class="focus-ring size-10 grid place-items-center rounded-md text-ink-2
              hover:text-ink hover:bg-surface disabled:opacity-30
              transition-colors"
-        aria-label="Next page"
     >
       <span class="size-4"><IconChevron dir="right"/></span>
     </button>
