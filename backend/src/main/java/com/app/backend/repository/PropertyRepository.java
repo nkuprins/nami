@@ -6,12 +6,13 @@ import com.app.backend.enums.ListingType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-public interface PropertyRepository extends JpaRepository<Property, UUID> {
+public interface PropertyRepository extends JpaRepository<Property, UUID>, JpaSpecificationExecutor<Property> {
     List<Property> findByOwner(User owner);
     List<Property> findByCitySlug(String citySlug);
     List<Property> findByCitySlugAndListingType(String citySlug, ListingType listingType);

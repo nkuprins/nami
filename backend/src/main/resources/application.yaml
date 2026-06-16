@@ -14,3 +14,11 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_batch_fetch_size: 16
+
+app:
+  s3:
+    bucket: ${S3_BUCKET:baltnami-uploads}
+    region: ${AWS_REGION:eu-north-1}
+    presign-ttl-minutes: 15
+    cdn-url: ${CDN_URL:https://d1id7q5hh5gcqc.cloudfront.net}
