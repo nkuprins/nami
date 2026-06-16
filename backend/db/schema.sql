@@ -8,9 +8,9 @@ CREATE EXTENSION IF NOT EXISTS "earthdistance";
 -- ─────────────────────────────────────────────
 -- Enum types
 -- ─────────────────────────────────────────────
-CREATE TYPE listing_type        AS ENUM ('buy', 'rent', 'new-project');
+CREATE TYPE listing_type        AS ENUM ('buy', 'rent', 'new_project');
 CREATE TYPE property_category   AS ENUM ('apartment', 'house');
-CREATE TYPE property_completion AS ENUM ('ready', 'not-ready');
+CREATE TYPE property_completion AS ENUM ('ready', 'not_ready');
 CREATE TYPE property_status     AS ENUM ('active', 'inactive');
 CREATE TYPE property_feature    AS ENUM (
     'balcony',
@@ -63,7 +63,7 @@ CREATE TABLE properties (
     total_floors      SMALLINT             CHECK (total_floors > 0),
     year_built        SMALLINT             CHECK (year_built BETWEEN 1800 AND 2200),
 
-    -- New-project specific
+    -- new_project specific
     completion        property_completion,
 
     -- Location: slugs validated at API layer; mapping owned by frontend locations.ts
@@ -83,12 +83,12 @@ CREATE TABLE properties (
     CONSTRAINT chk_floor_lte_total
         CHECK (floor IS NULL OR floor <= total_floors),
 
-	-- completion field is only valid on new-project listings
+	-- completion field is only valid on new_project listings
     CONSTRAINT chk_completion_new_project_only
-        CHECK (listing_type = 'new-project' OR completion IS NULL),
-	-- completion field when 'not-ready' can not have year_built
+        CHECK (listing_type = 'new_project' OR completion IS NULL),
+	-- completion field when 'not_ready' can not have year_built
   	CONSTRAINT chk_year_built_not_ready
-        CHECK (completion IS DISTINCT FROM 'not-ready' OR year_built IS NULL),
+        CHECK (completion IS DISTINCT FROM 'not_ready' OR year_built IS NULL),
 
     -- Timestamps
     posted_at         TIMESTAMPTZ          NOT NULL DEFAULT now(),
@@ -169,4 +169,3 @@ CREATE TRIGGER trg_users_updated_at
 CREATE TRIGGER trg_properties_updated_at
     BEFORE UPDATE ON properties
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
