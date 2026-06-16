@@ -25,7 +25,7 @@ const landM2 = ref('');
 const floor = ref('');
 const totalFloors = ref('');
 const yearBuilt = ref('');
-const completion = ref<'ready' | 'not-ready' | ''>('');
+const completion = ref<'ready' | 'not_ready' | ''>('');
 const features = ref<Feature[]>([]);
 const photoFiles = ref<File[]>([]);
 const photoPreviews = ref<string[]>([]);
@@ -41,7 +41,7 @@ const FEATURE_OPTIONS: { value: Feature; label: string }[] = [
   {value: 'elevator', label: 'Elevator'},
   {value: 'furnished', label: 'Furnished'},
   {value: 'pets', label: 'Pets allowed'},
-  {value: 'new-building', label: 'New building'},
+  {value: 'new_building', label: 'New building'},
 ];
 
 function onFilesSelected(e: Event) {
@@ -84,7 +84,7 @@ const errors = computed(() => {
   if (!rooms.value || isNaN(Number(rooms.value)) || Number(rooms.value) < 1) e.rooms = 'Enter number of rooms';
   if (!m2.value || isNaN(Number(m2.value)) || Number(m2.value) <= 0) e.m2 = 'Enter area in m²';
   if (photoFiles.value.length === 0) e.photos = 'At least one photo required';
-  if (type.value === 'new-project' && !completion.value) e.completion = 'Required for new projects';
+  if (type.value === 'new_project' && !completion.value) e.completion = 'Required for new projects';
   return e;
 });
 
@@ -121,7 +121,7 @@ async function submit() {
       address: address.value.trim(),
       coords: {lat: 56.946, lng: 24.105},
       photos: photoList,
-      completion: type.value === 'new-project' && completion.value ? completion.value : undefined,
+      completion: type.value === 'new_project' && completion.value ? completion.value : undefined,
     });
     await router.push(`/property/${item.id}`);
   } catch {
@@ -149,7 +149,7 @@ async function submit() {
             <p class="text-sm font-medium text-ink">Transaction type</p>
             <div class="flex gap-2 flex-wrap">
               <button
-                  v-for="opt in [{id: 'buy', label: 'For sale'}, {id: 'rent', label: 'For rent'}, {id: 'new-project', label: 'New project'}]"
+                  v-for="opt in [{id: 'buy', label: 'For sale'}, {id: 'rent', label: 'For rent'}, {id: 'new_project', label: 'New project'}]"
                   :key="opt.id"
                   type="button"
                   class="h-9 px-4 rounded-full text-sm font-medium border transition-colors"
@@ -239,20 +239,20 @@ async function submit() {
           <p v-if="fieldError('price')" class="text-xs text-red-500">{{ fieldError('price') }}</p>
         </div>
 
-        <div v-if="type === 'new-project'" class="flex flex-col gap-1.5">
+        <div v-if="type === 'new_project'" class="flex flex-col gap-1.5">
           <p class="text-sm font-medium text-ink">
             Completion status <span class="text-red-500">*</span>
           </p>
           <div class="flex gap-2">
             <button
-                v-for="opt in [{id: 'ready', label: 'Ready'}, {id: 'not-ready', label: 'Under construction'}]"
+                v-for="opt in [{id: 'ready', label: 'Ready'}, {id: 'not_ready', label: 'Under construction'}]"
                 :key="opt.id"
                 type="button"
                 class="h-9 px-4 rounded-full text-sm font-medium border transition-colors"
                 :class="completion === opt.id
                   ? 'bg-ink text-bg border-ink'
                   : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'"
-                @click="completion = opt.id as 'ready' | 'not-ready'"
+                @click="completion = opt.id as 'ready' | 'not_ready'"
             >
               {{ opt.label }}
             </button>

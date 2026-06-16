@@ -50,12 +50,12 @@ const FEATURE_OPTIONS: Array<{ id: Feature; label: string; hint: string }> = [
   {id: 'elevator', label: 'Elevator', hint: 'Accessible upper floors'},
   {id: 'furnished', label: 'Furnished', hint: 'Move-in ready'},
   {id: 'pets', label: 'Pets allowed', hint: 'Animals welcome'},
-  {id: 'new-building', label: 'New building', hint: 'Built since 2010'},
+  {id: 'new_building', label: 'New building', hint: 'Built since 2010'},
 ];
 
-const COMPLETION_OPTIONS: Array<{ id: 'ready' | 'not-ready'; label: string }> = [
+const COMPLETION_OPTIONS: Array<{ id: 'ready' | 'not_ready'; label: string }> = [
   {id: 'ready', label: 'Ready to move in'},
-  {id: 'not-ready', label: 'Not yet completed'},
+  {id: 'not_ready', label: 'Not yet completed'},
 ];
 
 function toggleFeature(f: Feature) {
@@ -217,7 +217,7 @@ function reset() {
         </div>
       </section>
 
-      <section v-if="state.type === 'new-project'">
+      <section v-if="state.type === 'new_project'">
         <p class="micro-label mb-3">Completion</p>
         <div class="flex flex-wrap gap-2">
           <button

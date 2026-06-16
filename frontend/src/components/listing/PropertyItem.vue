@@ -31,7 +31,7 @@ const typeLabel = computed(() => {
   switch (props.property.type) {
     case 'rent':
       return 'For rent';
-    case 'new-project':
+    case 'new_project':
       return 'New project';
     default:
       return 'For sale';

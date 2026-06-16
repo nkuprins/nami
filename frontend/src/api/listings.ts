@@ -1,87 +1,78 @@
-import {mockListings} from '../mock/listings';
-import {PropertyItem} from "../types/propertyItem";
-import {FilterState, PAGE_SIZE} from "../types/filter";
-import {DISTRICTS} from "../data/locations";
+import {PropertyItem, PropertyType, Feature} from '../types/propertyItem';
+import {FilterState} from '../types/filter';
+import {DISTRICTS} from '../data/locations';
 
-const districtNameToSlug = new Map(DISTRICTS.map((d) => [d.name, d.slug]));
+const BASE = import.meta.env.VITE_API_BASE_URL as string;
+const DEV_USER_ID = '10000000-0000-0000-0000-000000000001';
 
-function inRange(value: number, min?: number, max?: number): boolean {
-    if (min !== undefined && value < min) return false;
-    return !(max !== undefined && value > max);
+const districtBySlug = new Map(DISTRICTS.map(d => [d.slug, d]));
+const citySlugMap: Record<string, string> = {'Rīga': 'riga', 'Jūrmala': 'jurmala', 'Sigulda': 'sigulda'};
+
+function resolveLocation(slug: string): { district: string; city: string } {
+    const entry = districtBySlug.get(slug);
+    return entry ? {district: entry.name, city: entry.city} : {district: slug, city: slug};
 }
 
-function matches(p: PropertyItem, f: FilterState): boolean {
-
-    if (p.type !== f.type) return false;
-    if (f.loc.length && !f.loc.includes(districtNameToSlug.get(p.district) ?? '')) return false;
-
-    if (!inRange(p.price, f.priceMin, f.priceMax)) return false;
-    if (!inRange(p.m2, f.m2Min, f.m2Max)) return false;
-    if (!inRange(p.floor ?? 0, f.floorMin, f.floorMax)) return false;
-    if (!inRange(p.yearBuilt ?? 0, f.yearMin, f.yearMax)) return false;
-
-    if (f.rooms.length) {
-        const hit = p.rooms >= 5 ? f.rooms.includes(5) : f.rooms.includes(p.rooms);
-        if (!hit) return false;
-    }
-
-    if (f.notGround && p.floor === 1) return false;
-    if (f.notTop && p.floor === p.totalFloors && p.floor != null) return false;
-    if (f.features.length && !f.features.every((feat) => p.features.includes(feat))) return false;
-
-    return !(f.type === 'new-project' && f.completion && p.completion !== f.completion);
+function mapDto(dto: any): PropertyItem {
+    const {district, city: _city, ...rest} = dto;
+    const loc = resolveLocation(district);
+    return {...rest, district: loc.district, city: loc.city};
 }
 
-function sortListings(items: PropertyItem[], sort: FilterState['sort']): PropertyItem[] {
-    const out = [...items];
-    switch (sort) {
-        case 'price-asc':
-            out.sort((a, b) => a.price - b.price);
-            break;
-        case 'price-desc':
-            out.sort((a, b) => b.price - a.price);
-            break;
-        case 'price-per-m2-asc':
-            out.sort((a, b) => (a.price / a.m2) - (b.price / b.m2));
-            break;
-        case 'm2-desc':
-            out.sort((a, b) => b.m2 - a.m2);
-            break;
-        case 'newest':
-        default:
-            out.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime());
-    }
-    return out;
-}
-
-const ARTIFICIAL_DELAY_MS = 120;
-
-function delay<T>(value: T): Promise<T> {
-    return new Promise((resolve) => setTimeout(() => resolve(value), ARTIFICIAL_DELAY_MS));
+function buildParams(f: FilterState): URLSearchParams {
+    const p = new URLSearchParams();
+    p.set('type', f.type);
+    f.loc.forEach(s => p.append('loc', s));
+    if (f.priceMin != null) p.set('priceMin', String(f.priceMin));
+    if (f.priceMax != null) p.set('priceMax', String(f.priceMax));
+    f.rooms.forEach(r => p.append('rooms', String(r)));
+    if (f.m2Min != null) p.set('m2Min', String(f.m2Min));
+    if (f.m2Max != null) p.set('m2Max', String(f.m2Max));
+    if (f.floorMin != null) p.set('floorMin', String(f.floorMin));
+    if (f.floorMax != null) p.set('floorMax', String(f.floorMax));
+    if (f.notGround) p.set('notGround', 'true');
+    if (f.notTop) p.set('notTop', 'true');
+    if (f.yearMin != null) p.set('yearMin', String(f.yearMin));
+    if (f.yearMax != null) p.set('yearMax', String(f.yearMax));
+    f.features.forEach(ft => p.append('features', ft));
+    if (f.completion) p.set('completion', f.completion);
+    p.set('sort', f.sort);
+    p.set('page', String(f.page));
+    return p;
 }
 
 export async function listProperties(f: FilterState): Promise<{ items: PropertyItem[]; total: number }> {
-    const filtered = mockListings.filter((p) => matches(p, f));
-    const sorted = sortListings(filtered, f.sort);
-    const start = (f.page - 1) * PAGE_SIZE;
-    const items = sorted.slice(start, start + PAGE_SIZE);
-    return delay({items, total: sorted.length});
+    const res = await fetch(`${BASE}/api/properties?${buildParams(f)}`);
+    if (!res.ok) throw new Error(`listProperties: ${res.status}`);
+    const data = await res.json();
+    return {items: data.items.map(mapDto), total: data.total};
 }
 
 export async function countProperties(f: FilterState): Promise<number> {
-    const filtered = mockListings.filter((p) => matches(p, f));
-    return delay(filtered.length);
+    const params = buildParams(f);
+    params.set('page', '1');
+    const res = await fetch(`${BASE}/api/properties?${params}`);
+    if (!res.ok) throw new Error(`countProperties: ${res.status}`);
+    return (await res.json()).total;
 }
 
 export async function getProperty(id: string): Promise<PropertyItem | undefined> {
-    return delay(mockListings.find((p) => p.id === id));
+    const res = await fetch(`${BASE}/api/properties/${id}`);
+    if (res.status === 404) return undefined;
+    if (!res.ok) throw new Error(`getProperty: ${res.status}`);
+    return mapDto(await res.json());
 }
 
 export async function requestPresignedUrls(
     filenames: string[]
 ): Promise<{ uploadUrl: string; fileUrl: string }[]> {
-    // TODO: replace with real API call: POST /api/uploads/presign
-    return delay(filenames.map((name) => ({uploadUrl: `mock:${name}`, fileUrl: `mock:${name}`})));
+    const res = await fetch(`${BASE}/api/uploads/presign`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({filenames}),
+    });
+    if (!res.ok) throw new Error(`requestPresignedUrls: ${res.status}`);
+    return res.json();
 }
 
 export async function uploadFilesToS3(
@@ -89,27 +80,28 @@ export async function uploadFilesToS3(
     slots: { uploadUrl: string; fileUrl: string }[]
 ): Promise<string[]> {
     return Promise.all(
-        files.map((file, i) => {
-            if (slots[i].uploadUrl.startsWith('mock:')) {
-                return Promise.resolve(URL.createObjectURL(file));
-            }
-            return fetch(slots[i].uploadUrl, {
+        files.map((file, i) =>
+            fetch(slots[i].uploadUrl, {
                 method: 'PUT',
                 body: file,
                 headers: {'Content-Type': file.type},
-            }).then(() => slots[i].fileUrl);
-        })
+            }).then(() => slots[i].fileUrl)
+        )
     );
 }
 
-let nextId = 1000;
-
 export async function addProperty(data: Omit<PropertyItem, 'id' | 'postedAt'>): Promise<PropertyItem> {
-    const item: PropertyItem = {
-        ...data,
-        id: `lst-user-${++nextId}`,
-        postedAt: new Date().toISOString(),
-    };
-    mockListings.unshift(item);
-    return delay(item);
+    const districtEntry = DISTRICTS.find(d => d.name === data.district);
+    const districtSlug = districtEntry?.slug ?? data.district;
+    const citySlug = districtEntry
+        ? (citySlugMap[districtEntry.city] ?? districtEntry.city.toLowerCase())
+        : data.city.toLowerCase();
+
+    const res = await fetch(`${BASE}/api/properties`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-User-Id': DEV_USER_ID},
+        body: JSON.stringify({...data, district: districtSlug, city: citySlug}),
+    });
+    if (!res.ok) throw new Error(`addProperty: ${res.status}`);
+    return mapDto(await res.json());
 }

@@ -1,4 +1,4 @@
-export type PropertyType = 'buy' | 'rent' | 'new-project';
+export type PropertyType = 'buy' | 'rent' | 'new_project';
 export type PropertyKind = 'apartment' | 'house';
 export type Feature =
     | 'balcony'
@@ -6,7 +6,7 @@ export type Feature =
     | 'elevator'
     | 'furnished'
     | 'pets'
-    | 'new-building';
+    | 'new_building';
 
 export interface PropertyItem {
     id: string;
@@ -28,5 +28,5 @@ export interface PropertyItem {
     coords: { lat: number; lng: number };
     photos: string[];
     postedAt: string;
-    completion?: 'ready' | 'not-ready';
+    completion?: 'ready' | 'not_ready';
 }

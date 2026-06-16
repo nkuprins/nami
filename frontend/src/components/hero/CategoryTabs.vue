@@ -7,7 +7,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: PropertyType] }>();
 const tabs: Array<{ id: PropertyType; label: string; hint: string }> = [
   {id: 'buy', label: 'Buy', hint: 'For sale'},
   {id: 'rent', label: 'Rent', hint: 'Monthly'},
-  {id: 'new-project', label: 'New projects', hint: ''},
+  {id: 'new_project', label: 'New projects', hint: ''},
 ];
 
 function pick(id: PropertyType) {

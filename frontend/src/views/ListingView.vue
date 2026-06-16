@@ -39,7 +39,7 @@ const featureLabels: Record<Feature, string> = {
   elevator: 'Elevator',
   furnished: 'Furnished',
   pets: 'Pets allowed',
-  'new-building': 'New building',
+  'new_building': 'New building',
 }
 
 const phoneRevealed = ref(false);

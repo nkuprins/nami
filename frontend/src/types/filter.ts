@@ -22,7 +22,7 @@ export interface FilterState {
     yearMin?: number;
     yearMax?: number;
     features: Feature[];
-    completion?: 'ready' | 'not-ready';
+    completion?: 'ready' | 'not_ready';
     sort: SortKey;
     page: number;
 }

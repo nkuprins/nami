@@ -6,13 +6,13 @@ import {Feature, PropertyType} from "../types/propertyItem";
 
 
 const KNOWN_FEATURES: Feature[] = [
-    'balcony', 'parking', 'elevator', 'furnished', 'pets', 'new-building',
+    'balcony', 'parking', 'elevator', 'furnished', 'pets', 'new_building',
 ];
 const KNOWN_SORTS: SortKey[] = [
     'newest', 'price-asc', 'price-desc', 'price-per-m2-asc', 'm2-desc',
 ];
-const KNOWN_TYPES: PropertyType[] = ['buy', 'rent', 'new-project'];
-const KNOWN_COMPLETION: Array<'ready' | 'not-ready'> = ['ready', 'not-ready'];
+const KNOWN_TYPES: PropertyType[] = ['buy', 'rent', 'new_project'];
+const KNOWN_COMPLETION: Array<'ready' | 'not_ready'> = ['ready', 'not_ready'];
 
 function parseInt0(v: unknown): number | undefined {
     if (v === undefined || v === null || v === '') return undefined;
@@ -46,7 +46,7 @@ function parseFromQuery(q: LocationQuery): FilterState {
 
     const completionRaw = String(q.completion ?? '');
     const completion = (KNOWN_COMPLETION as string[]).includes(completionRaw)
-        ? (completionRaw as 'ready' | 'not-ready')
+        ? (completionRaw as 'ready' | 'not_ready')
         : undefined;
 
     return {
@@ -137,7 +137,7 @@ export function useFilters() {
         if (state.type === type) return;
         state.type = type;
         state.page = 1;
-        if (type !== 'new-project') state.completion = undefined;
+        if (type !== 'new_project') state.completion = undefined;
     }
 
     function setLoc(loc: string[]) {
