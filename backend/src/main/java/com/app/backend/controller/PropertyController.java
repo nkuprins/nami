@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,6 +24,11 @@ public class PropertyController {
             @RequestParam(defaultValue = "1") int page
     ) {
         return propertyService.list(filter, sort, page);
+    }
+
+    @GetMapping("/mine")
+    public List<PropertyItemDto> mine(@RequestHeader("X-User-Id") UUID ownerId) {
+        return propertyService.listByOwner(ownerId);
     }
 
     @GetMapping("/{id}")

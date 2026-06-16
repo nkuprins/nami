@@ -75,6 +75,15 @@ public class PropertyService {
     }
 
     @Transactional(readOnly = true)
+    public List<PropertyItemDto> listByOwner(UUID ownerId) {
+        User owner = userRepository.findById(ownerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        return propertyRepository.findByOwner(owner).stream()
+                .map(propertyMapper::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public PropertyItemDto getById(UUID id) {
         return propertyRepository.findById(id)
                 .filter(p -> p.getStatus() == PropertyStatus.ACTIVE)
