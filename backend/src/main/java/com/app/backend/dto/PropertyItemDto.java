@@ -3,11 +3,13 @@ package com.app.backend.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record PropertyItemDto(
-        String id,
+        UUID id,
         String type,
         String propertyKind,
         String title,
@@ -25,6 +27,6 @@ public record PropertyItemDto(
         String address,
         CoordsDto coords,
         List<String> photos,
-        String postedAt,
+        OffsetDateTime postedAt,
         String completion
 ) {}

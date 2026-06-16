@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
 
@@ -29,11 +30,7 @@ public class SavedProperty {
     @JoinColumn(name = "property_id")
     private Property property;
 
+    @CreationTimestamp
     @Column(name = "saved_at", nullable = false, updatable = false)
     private OffsetDateTime savedAt;
-
-    @PrePersist
-    void prePersist() {
-        savedAt = OffsetDateTime.now();
-    }
 }

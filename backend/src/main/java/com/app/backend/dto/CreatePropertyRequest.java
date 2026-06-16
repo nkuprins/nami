@@ -1,25 +1,31 @@
 package com.app.backend.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 public record CreatePropertyRequest(
-        String type,
-        String propertyKind,
-        String title,
-        String description,
-        BigDecimal price,
-        Short rooms,
-        BigDecimal m2,
+        @NotBlank String type,
+        @NotBlank String propertyKind,
+        @NotBlank String title,
+        @NotBlank String description,
+        @NotNull @DecimalMin("0.01") BigDecimal price,
+        @NotNull @Min(0) Short rooms,
+        @NotNull @DecimalMin("1.00") BigDecimal m2,
         BigDecimal landM2,
         Short floor,
         Short totalFloors,
         Short yearBuilt,
         List<String> features,
-        String district,
-        String city,
-        String address,
-        CoordsDto coords,
+        @NotBlank String district,
+        @NotBlank String city,
+        @NotBlank String address,
+        @NotNull @Valid CoordsDto coords,
         List<String> photos,
         String completion
 ) {}

@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
@@ -96,9 +98,11 @@ public class Property {
     @Column(name = "lng", nullable = false)
     private Double lng;
 
+    @CreationTimestamp
     @Column(name = "posted_at", nullable = false, updatable = false)
     private OffsetDateTime postedAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
@@ -116,14 +120,4 @@ public class Property {
     @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
     private List<SavedProperty> savedByUsers = new ArrayList<>();
 
-    @PrePersist
-    void prePersist() {
-        postedAt = OffsetDateTime.now();
-        updatedAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    void preUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
 }

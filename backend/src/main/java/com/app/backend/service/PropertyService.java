@@ -1,9 +1,16 @@
 package com.app.backend.service;
 
-import com.app.backend.dto.*;
-import com.app.backend.entity.*;
+import com.app.backend.dto.CreatePropertyRequest;
+import com.app.backend.dto.PropertyFilter;
+import com.app.backend.dto.PropertyItemDto;
+import com.app.backend.dto.PropertyPageResponse;
+import com.app.backend.entity.Property;
+import com.app.backend.entity.PropertyPhoto;
+import com.app.backend.entity.User;
 import com.app.backend.enums.*;
-import com.app.backend.repository.*;
+import com.app.backend.mapper.PropertyMapper;
+import com.app.backend.repository.PropertyRepository;
+import com.app.backend.repository.UserRepository;
 import com.app.backend.spec.PropertySpec;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -15,7 +22,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,36 +36,25 @@ public class PropertyService {
 
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
+    private final PropertyMapper propertyMapper;
 
     @Transactional(readOnly = true)
-    public PropertyPageResponse list(
-            String type,
-            List<String> loc,
-            BigDecimal priceMin, BigDecimal priceMax,
-            List<Integer> rooms,
-            BigDecimal m2Min, BigDecimal m2Max,
-            Integer floorMin, Integer floorMax,
-            Boolean notGround, Boolean notTop,
-            Integer yearMin, Integer yearMax,
-            List<String> features,
-            String completion,
-            String sort,
-            int page
-    ) {
-        ListingType listingType = ListingType.fromDbValue(type);
+    public PropertyPageResponse list(PropertyFilter filter, String sort, int page) {
+        ListingType listingType = ListingType.fromDbValue(filter.type());
 
-        List<PropertyFeature> featureEnums = (features == null || features.isEmpty())
+        List<PropertyFeature> featureEnums = (filter.features() == null || filter.features().isEmpty())
                 ? List.of()
-                : features.stream().map(PropertyFeature::fromDbValue).toList();
+                : filter.features().stream().map(PropertyFeature::fromDbValue).toList();
 
-        PropertyCompletion completionEnum = (completion != null && !completion.isBlank())
-                ? PropertyCompletion.fromDbValue(completion)
+        PropertyCompletion completionEnum = (filter.completion() != null && !filter.completion().isBlank())
+                ? PropertyCompletion.fromDbValue(filter.completion())
                 : null;
 
         Specification<Property> spec = PropertySpec.build(
-                listingType, loc, priceMin, priceMax, rooms,
-                m2Min, m2Max, floorMin, floorMax, notGround, notTop,
-                yearMin, yearMax, featureEnums, completionEnum
+                listingType, filter.loc(), filter.priceMin(), filter.priceMax(), filter.rooms(),
+                filter.m2Min(), filter.m2Max(), filter.floorMin(), filter.floorMax(),
+                filter.notGround(), filter.notTop(), filter.yearMin(), filter.yearMax(),
+                featureEnums, completionEnum
         );
 
         if ("price-per-m2-asc".equals(sort)) {
@@ -65,13 +64,13 @@ public class PropertyService {
             int end = Math.min(start + PAGE_SIZE, all.size());
             List<PropertyItemDto> items = (start >= all.size())
                     ? List.of()
-                    : all.subList(start, end).stream().map(this::toDto).toList();
+                    : all.subList(start, end).stream().map(propertyMapper::toDto).toList();
             return new PropertyPageResponse(items, all.size());
         }
 
         PageRequest pageRequest = PageRequest.of(page - 1, PAGE_SIZE, buildSort(sort));
         Page<Property> result = propertyRepository.findAll(spec, pageRequest);
-        List<PropertyItemDto> items = result.getContent().stream().map(this::toDto).toList();
+        List<PropertyItemDto> items = result.getContent().stream().map(propertyMapper::toDto).toList();
         return new PropertyPageResponse(items, result.getTotalElements());
     }
 
@@ -79,7 +78,7 @@ public class PropertyService {
     public PropertyItemDto getById(UUID id) {
         return propertyRepository.findById(id)
                 .filter(p -> p.getStatus() == PropertyStatus.ACTIVE)
-                .map(this::toDto)
+                .map(propertyMapper::toDto)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
@@ -129,7 +128,7 @@ public class PropertyService {
             }
         }
 
-        return toDto(propertyRepository.save(property));
+        return propertyMapper.toDto(propertyRepository.save(property));
     }
 
     private Sort buildSort(String sort) {
@@ -139,36 +138,5 @@ public class PropertyService {
             case "m2-desc" -> Sort.by(Sort.Direction.DESC, "m2");
             default -> Sort.by(Sort.Direction.DESC, "postedAt");
         };
-    }
-
-    private PropertyItemDto toDto(Property p) {
-        List<String> photos = p.getPhotos().stream()
-                .map(PropertyPhoto::getUrl)
-                .toList();
-        List<String> features = p.getFeatures().stream()
-                .map(PropertyFeature::getDbValue)
-                .toList();
-        return new PropertyItemDto(
-                p.getId().toString(),
-                p.getListingType().getDbValue(),
-                p.getPropertyCategory().getDbValue(),
-                p.getTitle(),
-                p.getDescription(),
-                p.getPrice(),
-                p.getRooms(),
-                p.getM2(),
-                p.getLandM2(),
-                p.getFloor(),
-                p.getTotalFloors(),
-                p.getYearBuilt(),
-                features,
-                p.getDistrictSlug(),
-                p.getCitySlug(),
-                p.getAddress(),
-                new CoordsDto(p.getLat(), p.getLng()),
-                photos,
-                p.getPostedAt().toString(),
-                p.getCompletion() != null ? p.getCompletion().getDbValue() : null
-        );
     }
 }
