@@ -1,5 +1,6 @@
 package com.app.backend.enums;
 
+import jakarta.persistence.EnumeratedValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -8,8 +9,9 @@ import lombok.RequiredArgsConstructor;
 public enum ListingType {
     BUY("buy"),
     RENT("rent"),
-    NEW_PROJECT("new-project");
+    NEW_PROJECT("new_project");
 
+    @EnumeratedValue
     private final String dbValue;
 
     public static ListingType fromDbValue(String value) {

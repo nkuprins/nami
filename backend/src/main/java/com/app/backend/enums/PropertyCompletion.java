@@ -1,5 +1,6 @@
 package com.app.backend.enums;
 
+import jakarta.persistence.EnumeratedValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -7,8 +8,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum PropertyCompletion {
     READY("ready"),
-    NOT_READY("not-ready");
+    NOT_READY("not_ready");
 
+    @EnumeratedValue
     private final String dbValue;
 
     public static PropertyCompletion fromDbValue(String value) {

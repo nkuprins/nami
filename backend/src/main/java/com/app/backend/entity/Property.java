@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -32,13 +34,19 @@ public class Property {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    @Column(name = "listing_type", nullable = false, columnDefinition = "listing_type")
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "listing_type", nullable = false)
     private ListingType listingType;
 
-    @Column(name = "property_category", nullable = false, columnDefinition = "property_category")
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "property_category", nullable = false)
     private PropertyCategory propertyCategory;
 
-    @Column(name = "status", columnDefinition = "property_status")
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", nullable = false)
     private PropertyStatus status;
 
     @Column(name = "title", nullable = false)
@@ -68,7 +76,9 @@ public class Property {
     @Column(name = "year_built")
     private Short yearBuilt;
 
-    @Column(name = "completion", columnDefinition = "property_completion")
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "completion")
     private PropertyCompletion completion;
 
     @Column(name = "district_slug", nullable = false)
@@ -94,8 +104,9 @@ public class Property {
 
     @ElementCollection
     @CollectionTable(name = "property_features", joinColumns = @JoinColumn(name = "property_id"))
-    @Column(name = "feature", columnDefinition = "property_feature")
-    @Convert(converter = com.app.backend.converter.PropertyFeatureConverter.class)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "feature")
     private Set<PropertyFeature> features = new HashSet<>();
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)

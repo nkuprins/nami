@@ -1,5 +1,6 @@
 package com.app.backend.enums;
 
+import jakarta.persistence.EnumeratedValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -9,6 +10,7 @@ public enum PropertyStatus {
     ACTIVE("active"),
     INACTIVE("inactive");
 
+    @EnumeratedValue
     private final String dbValue;
 
     public static PropertyStatus fromDbValue(String value) {

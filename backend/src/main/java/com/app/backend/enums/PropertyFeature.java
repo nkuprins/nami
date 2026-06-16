@@ -1,5 +1,6 @@
 package com.app.backend.enums;
 
+import jakarta.persistence.EnumeratedValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -11,8 +12,9 @@ public enum PropertyFeature {
     ELEVATOR("elevator"),
     FURNISHED("furnished"),
     PETS("pets"),
-    NEW_BUILDING("new-building");
+    NEW_BUILDING("new_building");
 
+    @EnumeratedValue
     private final String dbValue;
 
     public static PropertyFeature fromDbValue(String value) {
