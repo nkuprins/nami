@@ -1,4 +1,4 @@
-import {PropertyItem, PropertyType, Feature} from '../types/propertyItem';
+import {PropertyItem} from '../types/propertyItem';
 import {FilterState} from '../types/filter';
 import {DISTRICTS} from '../data/locations';
 
@@ -54,6 +54,14 @@ export async function countProperties(f: FilterState): Promise<number> {
     const res = await fetch(`${BASE}/api/properties?${params}`);
     if (!res.ok) throw new Error(`countProperties: ${res.status}`);
     return (await res.json()).total;
+}
+
+export async function getMyProperties(): Promise<PropertyItem[]> {
+    const res = await fetch(`${BASE}/api/properties/mine`, {
+        headers: {'X-User-Id': DEV_USER_ID},
+    });
+    if (!res.ok) throw new Error(`getMyProperties: ${res.status}`);
+    return (await res.json()).map(mapDto);
 }
 
 export async function getProperty(id: string): Promise<PropertyItem | undefined> {

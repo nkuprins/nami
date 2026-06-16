@@ -6,6 +6,7 @@ import {useSaved} from '../../composables/useSaved';
 import {useAuth} from '../../composables/useAuth';
 import AuthModal from '../auth/AuthModal.vue';
 import SavedDrawer from '../saved/SavedDrawer.vue';
+import MyPropertiesDrawer from '../listing/MyPropertiesDrawer.vue';
 
 const router = useRouter();
 const {count: savedCount} = useSaved();
@@ -13,6 +14,7 @@ const {isAuthenticated, user, logout} = useAuth();
 
 const authOpen = ref(false);
 const savedOpen = ref(false);
+const myPropertiesOpen = ref(false);
 </script>
 
 <template>
@@ -30,6 +32,15 @@ const savedOpen = ref(false);
       </RouterLink>
 
       <div class="flex items-center gap-1 sm:gap-3">
+        <button
+            class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full
+                 text-ink-2 hover:text-ink text-sm transition-colors"
+            @click="isAuthenticated ? myPropertiesOpen = true : authOpen = true"
+        >
+          <i class="ti ti-building-estate text-base" aria-hidden="true"/>
+          <span class="hidden sm:inline">My listings</span>
+        </button>
+
         <button
             class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full
                  text-ink-2 hover:text-ink text-sm transition-colors"
@@ -81,4 +92,5 @@ const savedOpen = ref(false);
 
   <AuthModal v-model:open="authOpen"/>
   <SavedDrawer v-model:open="savedOpen"/>
+  <MyPropertiesDrawer v-model:open="myPropertiesOpen"/>
 </template>
