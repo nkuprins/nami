@@ -83,11 +83,11 @@ INSERT INTO properties (
 
 ('20000000-0000-0000-0000-000000000005',
  '10000000-0000-0000-0000-000000000002',
- 'new-project', 'apartment',
+ 'new_project', 'apartment',
  'Новостройка в Агенскалнсе — сдача 2027', 'Панорамные окна, закрытый двор, машиноместо в паркинге включено.',
  145000.00,
  2, 58.00, NULL, 3, 8, NULL,
- 'not-ready',
+ 'not_ready',
  'agenskalns', 'riga', 'Nometņu iela 74-3', 56.9375, 24.0714,
  '2026-05-30 16:45:00+03'),
 
@@ -127,7 +127,7 @@ INSERT INTO properties (
 
 ('20000000-0000-0000-0000-000000000009',
  '10000000-0000-0000-0000-000000000004',
- 'new-project', 'apartment',
+ 'new_project', 'apartment',
  'Готовая новостройка в Центре — ключи сейчас', 'Класс А, умный дом, подземный паркинг, консьерж.',
  220000.00,
  2, 62.00, NULL, 5, 12, 2024,
@@ -192,7 +192,7 @@ INSERT INTO property_features (property_id, feature) VALUES
     -- p04: purvciems studio
     ('20000000-0000-0000-0000-000000000004', 'elevator'),
     ('20000000-0000-0000-0000-000000000004', 'balcony'),
-    -- p05: agenskalns new-project
+    -- p05: agenskalns new_project
     ('20000000-0000-0000-0000-000000000005', 'new-building'),
     ('20000000-0000-0000-0000-000000000005', 'elevator'),
     ('20000000-0000-0000-0000-000000000005', 'balcony'),
@@ -204,7 +204,7 @@ INSERT INTO property_features (property_id, feature) VALUES
     ('20000000-0000-0000-0000-000000000007', 'pets'),
     -- p08: mezciems apartment
     ('20000000-0000-0000-0000-000000000008', 'balcony'),
-    -- p09: centrs new-project ready
+    -- p09: centrs new_project ready
     ('20000000-0000-0000-0000-000000000009', 'new-building'),
     ('20000000-0000-0000-0000-000000000009', 'elevator'),
     ('20000000-0000-0000-0000-000000000009', 'balcony'),
@@ -276,12 +276,12 @@ INSERT INTO property_photos (property_id, url, position) VALUES
 -- Saved listings
 -- ─────────────────────────────────────────────
 INSERT INTO saved_properties (user_id, property_id) VALUES
-    -- u1 (Jānis) saved the new-project and the Jugla house
+    -- u1 (Jānis) saved the new_project and the Jugla house
     ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000009'),
     ('10000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000011'),
     -- u2 (Anna) saved the centrs apartment
     ('10000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001'),
-    -- u3 (Māris) saved the centrs new-project and the centrs stalinka
+    -- u3 (Māris) saved the centrs new_project and the centrs stalinka
     ('10000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000009'),
     ('10000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000001'),
     -- u4 (Laura) saved the Imanta house
