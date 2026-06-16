@@ -18,7 +18,7 @@ CREATE TYPE property_feature    AS ENUM (
     'elevator',
     'furnished',
     'pets',
-    'new-building'
+    'new_building'
 );
 
 -- ─────────────────────────────────────────────
