@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref} from 'vue';
-import {useFilters} from '../composables/useFilters';
+import {useFiltersStore} from '../stores/filters';
 import {useListings} from '../composables/useListings';
 import ResultsHeader from "../components/listing/ResultsHeader.vue";
 import PropertyGrid from "../components/listing/PropertyGrid.vue";
@@ -8,7 +8,7 @@ import Pagination from "../components/listing/Pagination.vue";
 import HeroSection from "../components/hero/HeroSection.vue";
 import MoreFiltersDrawer from "../components/filters/MoreFiltersDrawer.vue";
 
-const {state, setPage, resetAll} = useFilters();
+const {state, setPage, resetAll} = useFiltersStore();
 const {items, total, pageCount, loading} = useListings(() => state);
 
 const drawerOpen = ref(false);

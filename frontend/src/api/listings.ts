@@ -1,11 +1,12 @@
 import {PropertyItem} from '../types/propertyItem';
 import {FilterState} from '../types/filter';
-import {DISTRICTS} from '../data/locations';
+import {districtByName, districtBySlug} from '../data/locations';
 import {fetchApi} from './fetchApi';
 
 const BASE = import.meta.env.VITE_API_BASE_URL as string;
 
-const districtBySlug = new Map(DISTRICTS.map(d => [d.slug, d]));
+type PropertyItemDto = Omit<PropertyItem, 'district' | 'city'> & { district: string; city: string };
+
 const citySlugMap: Record<string, string> = {'Rīga': 'riga', 'Jūrmala': 'jurmala', 'Sigulda': 'sigulda'};
 
 function resolveLocation(slug: string): { district: string; city: string } {
@@ -13,7 +14,7 @@ function resolveLocation(slug: string): { district: string; city: string } {
     return entry ? {district: entry.name, city: entry.city} : {district: slug, city: slug};
 }
 
-function mapDto(dto: any): PropertyItem {
+function mapDto(dto: PropertyItemDto): PropertyItem {
     const {district, city: _city, ...rest} = dto;
     const loc = resolveLocation(district);
     return {...rest, district: loc.district, city: loc.city};
@@ -42,7 +43,7 @@ function buildParams(f: FilterState): URLSearchParams {
 }
 
 export async function listProperties(f: FilterState): Promise<{ items: PropertyItem[]; total: number }> {
-    const res = await fetch(`${BASE}/api/properties?${buildParams(f)}`);
+    const res = await fetchApi(`${BASE}/api/properties?${buildParams(f)}`);
     if (!res.ok) throw new Error(`listProperties: ${res.status}`);
     const data = await res.json();
     return {items: data.items.map(mapDto), total: data.total};
@@ -51,7 +52,7 @@ export async function listProperties(f: FilterState): Promise<{ items: PropertyI
 export async function countProperties(f: FilterState): Promise<number> {
     const params = buildParams(f);
     params.set('page', '1');
-    const res = await fetch(`${BASE}/api/properties?${params}`);
+    const res = await fetchApi(`${BASE}/api/properties?${params}`);
     if (!res.ok) throw new Error(`countProperties: ${res.status}`);
     return (await res.json()).total;
 }
@@ -97,7 +98,7 @@ export async function uploadFilesToS3(
 }
 
 export async function addProperty(data: Omit<PropertyItem, 'id' | 'postedAt'>): Promise<PropertyItem> {
-    const districtEntry = DISTRICTS.find(d => d.name === data.district);
+    const districtEntry = districtByName.get(data.district);
     const districtSlug = districtEntry?.slug ?? data.district;
     const citySlug = districtEntry
         ? (citySlugMap[districtEntry.city] ?? districtEntry.city.toLowerCase())

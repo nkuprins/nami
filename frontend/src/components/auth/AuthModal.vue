@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 import Drawer from '../ui/Drawer.vue';
-import {useAuth} from '../../composables/useAuth';
+import {useAuthStore} from '../../stores/auth';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
-const {login, signup, forgotPassword, resendVerification} = useAuth();
+const auth = useAuthStore();
+const {login, signup, forgotPassword, resendVerification} = auth;
 
 type Mode = 'signin' | 'signup' | 'forgot';
 const tab = ref<'signin' | 'signup'>('signin');

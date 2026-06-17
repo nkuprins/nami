@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {ref} from 'vue';
-import {useFilters} from '../../composables/useFilters';
+import {useFiltersStore} from '../../stores/filters';
 import type {SortKey} from '../../types/filter';
 import IconChevron from '../ui/IconChevron.vue';
 import Popover from '../ui/Popover.vue';
 
 defineProps<{ total: number; loading: boolean }>();
 
-const {state, setSort} = useFilters();
+const {state, setSort} = useFiltersStore();
 
 const SORT_OPTIONS: Array<{ id: SortKey; label: string; hint: string }> = [
   {id: 'newest', label: 'Newest first', hint: 'Most recently listed'},

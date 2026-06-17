@@ -1,27 +1,21 @@
-import {createRouter, createWebHistory} from "vue-router";
-import HomeView from "./views/HomeView.vue";
-import NotFoundView from "./views/NotFoundView.vue";
-import ListingView from "./views/ListingView.vue";
-import AddPropertyView from "./views/AddPropertyView.vue";
-import VerifyEmailView from "./views/VerifyEmailView.vue";
-import ResetPasswordView from "./views/ResetPasswordView.vue";
-import {useAuth} from "./composables/useAuth";
+import {createRouter, createWebHistory} from 'vue-router';
+import {useAuthStore} from './stores/auth';
 
 export const router = createRouter({
     history: createWebHistory(),
     routes: [
-        {path: '/', name: 'home', component: HomeView},
-        {path: '/property/:id', name: 'property', component: ListingView, props: true},
-        {path: '/add-property', name: 'add-property', component: AddPropertyView},
-        {path: '/verify-email', name: 'verify-email', component: VerifyEmailView},
-        {path: '/reset-password', name: 'reset-password', component: ResetPasswordView},
-        {path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView}
+        {path: '/', name: 'home', component: () => import('./views/HomeView.vue')},
+        {path: '/property/:id', name: 'property', component: () => import('./views/PropertyView.vue'), props: true},
+        {path: '/add-property', name: 'add-property', component: () => import('./views/AddPropertyView.vue')},
+        {path: '/verify-email', name: 'verify-email', component: () => import('./views/VerifyEmailView.vue')},
+        {path: '/reset-password', name: 'reset-password', component: () => import('./views/ResetPasswordView.vue')},
+        {path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('./views/NotFoundView.vue')},
     ],
 });
 
 router.beforeEach((to) => {
-    const {isAuthenticated} = useAuth();
-    if (to.name === 'add-property' && !isAuthenticated.value) {
+    const auth = useAuthStore();
+    if (to.name === 'add-property' && !auth.isAuthenticated) {
         return {name: 'home'};
     }
 });

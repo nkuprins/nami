@@ -1,13 +1,13 @@
 import {http, HttpResponse} from 'msw';
 import {mockListings} from './listings';
-import {DISTRICTS} from '../data/locations';
+import {districtByName} from '../data/locations';
+import {logger} from "../utils/logger";
 
 const PAGE_SIZE = 12;
-const nameToSlug = new Map(DISTRICTS.map(d => [d.name, d.slug]));
 
 const dtoCatalog = mockListings.map(item => ({
     ...item,
-    district: nameToSlug.get(item.district) ?? item.district.toLowerCase(),
+    district: districtByName.get(item.district)?.slug ?? item.district.toLowerCase(),
 }));
 
 // In-memory mock auth state
@@ -143,7 +143,7 @@ export const handlers = [
     http.all('/mock-upload/*', () => new HttpResponse(null, {status: 200})),
 
     http.all('/api/*', ({request}) => {
-        console.error(`[mock] Frontend called an unhandled URL: ${request.url}`);
+        logger.error(`[mock] Frontend called an unhandled URL: ${request.url}`);
         return HttpResponse.json({message: `Mock endpoint missing for ${request.url}`}, {status: 404});
     }),
 ];

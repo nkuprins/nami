@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import {ref} from 'vue';
-import {useRoute, useRouter} from 'vue-router';
-import {useAuth} from '../composables/useAuth';
+import {useRoute} from 'vue-router';
+import {useAuthStore} from '../stores/auth';
+import IconCheck from "../components/ui/IconCheck.vue";
 
 const route = useRoute();
-const router = useRouter();
-const {resetPassword} = useAuth();
+const {resetPassword} = useAuthStore();
 
 const password = ref('');
 const confirm = ref('');
@@ -50,11 +50,11 @@ async function submit() {
   <div class="max-w-md mx-auto px-4 py-20">
     <div v-if="done" class="text-center flex flex-col items-center gap-4">
       <div class="size-12 rounded-full bg-surface border border-line flex items-center justify-center">
-        <i class="ti ti-check text-xl text-ink"/>
+        <IconCheck/>
       </div>
       <h1 class="text-lg font-medium text-ink">Password updated</h1>
       <p class="text-sm text-ink-2">You can now sign in with your new password.</p>
-      <a href="/" class="text-sm text-ink underline underline-offset-2">Go to home</a>
+      <RouterLink to="/" class="text-sm text-ink underline underline-offset-2">Go to home</RouterLink>
     </div>
 
     <div v-else>

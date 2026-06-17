@@ -3,7 +3,7 @@ import {ref, watch} from 'vue';
 import {RouterLink} from 'vue-router';
 import Drawer from '../ui/Drawer.vue';
 import IconHeart from '../ui/IconHeart.vue';
-import {useSaved} from '../../composables/useSaved';
+import {useSavedStore} from '../../stores/saved';
 import {getProperty} from '../../api/listings';
 import {formatPrice} from '../../utils/format';
 import type {PropertyItem} from '../../types/propertyItem';
@@ -11,20 +11,20 @@ import type {PropertyItem} from '../../types/propertyItem';
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
-const {ids, isSaved, toggle} = useSaved();
+const savedStore = useSavedStore();
 const items = ref<PropertyItem[]>([]);
 const loading = ref(false);
 
 async function loadSaved() {
   if (!props.open) return;
-  if (ids.value.length === 0) {
+  if (savedStore.ids.length === 0) {
     items.value = [];
     return;
   }
 
   loading.value = true;
   try {
-    const results = await Promise.all(ids.value.map((id) => getProperty(id)));
+    const results = await Promise.all(savedStore.ids.map((id) => getProperty(id)));
     items.value = results.filter((p): p is PropertyItem => p !== undefined);
   } catch {
     items.value = [];
@@ -39,7 +39,7 @@ watch(() => props.open, loadSaved);
   <Drawer :open="open" title="Saved properties" @update:open="emit('update:open', $event)">
 
     <div v-if="loading" class="flex flex-col gap-3">
-      <div v-for="i in ids.length" :key="i" class="h-20 rounded-xl bg-surface animate-pulse"/>
+      <div v-for="i in savedStore.ids.length" :key="i" class="h-20 rounded-xl bg-surface animate-pulse"/>
     </div>
 
     <div v-else-if="items.length === 0" class="flex flex-col items-center justify-center gap-3 py-16 text-center">
@@ -92,9 +92,9 @@ watch(() => props.open, loadSaved);
         <button
             type="button"
             class="shrink-0 w-10 grid place-items-center text-accent-2 hover:text-ink-2 transition-colors"
-            @click="toggle(item.id)"
+            @click="savedStore.toggle(item.id)"
         >
-          <span class="size-5"><IconHeart :filled="isSaved(item.id)"/></span>
+          <span class="size-5"><IconHeart :filled="savedStore.isSaved(item.id)"/></span>
         </button>
       </div>
     </div>

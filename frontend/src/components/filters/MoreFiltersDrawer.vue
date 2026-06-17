@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {reactive, watch} from 'vue';
 import Drawer from '../ui/Drawer.vue';
-import {useFilters} from '../../composables/useFilters';
+import {useFiltersStore} from '../../stores/filters';
 import {useListingCount} from '../../composables/useListings';
 import type {FilterState} from '../../types/filter';
 import {Feature} from "../../types/propertyItem";
@@ -9,7 +9,7 @@ import {Feature} from "../../types/propertyItem";
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
-const {state, applyAdvanced, resetAdvanced} = useFilters();
+const {state, applyAdvanced, resetAdvanced} = useFiltersStore();
 
 type Draft = Pick<
     FilterState,

@@ -2,15 +2,15 @@
 import {ref} from 'vue';
 import {RouterLink, useRouter} from 'vue-router';
 import IconHeart from '../ui/IconHeart.vue';
-import {useSaved} from '../../composables/useSaved';
-import {useAuth} from '../../composables/useAuth';
+import {useSavedStore} from '../../stores/saved';
+import {useAuthStore} from '../../stores/auth';
 import AuthModal from '../auth/AuthModal.vue';
 import SavedDrawer from '../saved/SavedDrawer.vue';
 import MyPropertiesDrawer from '../listing/MyPropertiesDrawer.vue';
 
 const router = useRouter();
-const {count: savedCount} = useSaved();
-const {isAuthenticated, user, logout} = useAuth();
+const savedStore = useSavedStore();
+const auth = useAuthStore();
 
 const authOpen = ref(false);
 const savedOpen = ref(false);
@@ -35,7 +35,7 @@ const myPropertiesOpen = ref(false);
         <button
             class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full
                  text-ink-2 hover:text-ink text-sm transition-colors"
-            @click="isAuthenticated ? myPropertiesOpen = true : authOpen = true"
+            @click="auth.isAuthenticated ? myPropertiesOpen = true : authOpen = true"
         >
           <i class="ti ti-building-estate text-base" aria-hidden="true"/>
           <span class="hidden sm:inline">My listings</span>
@@ -46,25 +46,25 @@ const myPropertiesOpen = ref(false);
                  text-ink-2 hover:text-ink text-sm transition-colors"
             @click="savedOpen = true"
         >
-          <span class="size-4 inline-block" :class="{ 'text-accent-2': savedCount > 0 }">
-            <IconHeart :filled="savedCount > 0"/>
+          <span class="size-4 inline-block" :class="{ 'text-accent-2': savedStore.count > 0 }">
+            <IconHeart :filled="savedStore.count > 0"/>
           </span>
           <span class="hidden sm:inline">Saved</span>
           <span
-              v-if="savedCount > 0"
+              v-if="savedStore.count > 0"
               class="tabular text-[0.6875rem] font-medium px-1.5 h-4.5 inline-flex items-center
                    rounded-full bg-ink text-cream"
           >
-            {{ savedCount }}
+            {{ savedStore.count }}
           </span>
         </button>
 
-        <template v-if="isAuthenticated">
-          <span class="hidden sm:inline text-sm text-ink-2 max-w-32 truncate">{{ user?.name }}</span>
+        <template v-if="auth.isAuthenticated">
+          <span class="hidden sm:inline text-sm text-ink-2 max-w-32 truncate">{{ auth.user?.name }}</span>
           <button
               class="focus-ring inline-flex items-center h-9 px-3 sm:px-4 rounded-full
                    text-sm text-ink hover:bg-surface transition-colors"
-              @click="logout"
+              @click="auth.logout"
           >
             Sign out
           </button>
@@ -81,7 +81,7 @@ const myPropertiesOpen = ref(false);
         <button
             class="focus-ring inline-flex items-center h-9 px-3 sm:px-4 rounded-full
                  text-sm bg-ink text-bg hover:bg-accent-2 transition-colors"
-            @click="isAuthenticated ? router.push('/add-property') : authOpen = true"
+            @click="auth.isAuthenticated ? router.push('/add-property') : authOpen = true"
         >
           <span class="inline md:hidden">Add</span>
           <span class="hidden md:inline">Add a property</span>

@@ -7,17 +7,16 @@ import PricePopover from './PricePopover.vue';
 import RoomsPopover from './RoomsPopover.vue';
 import IconSearch from '../ui/IconSearch.vue';
 import IconSliders from '../ui/IconSliders.vue';
-import {useFilters} from '../../composables/useFilters';
-import {DISTRICTS} from "../../data/locations";
+import {useFiltersStore} from '../../stores/filters';
+import {districtBySlug} from "../../data/locations";
 
 const emit = defineEmits<{ search: []; openMore: [] }>();
 
-const {state, setType, setLoc, setPriceRange, setRooms} = useFilters();
+const {state, setType, setLoc, setPriceRange, setRooms} = useFiltersStore();
 
-const districtNames = computed(() => {
-  const map = new Map(DISTRICTS.map((d) => [d.slug, d.name]));
-  return state.loc.map((s) => map.get(s) ?? s);
-});
+const districtNames = computed(() =>
+    state.loc.map((s) => districtBySlug.get(s)?.name ?? s)
+);
 
 const locSummary = computed(() => {
   if (!state.loc.length) return '';
