@@ -5,6 +5,7 @@ import com.app.backend.service.PropertyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,8 +28,8 @@ public class PropertyController {
     }
 
     @GetMapping("/mine")
-    public List<PropertyItemDto> mine(@RequestHeader("X-User-Id") UUID ownerId) {
-        return propertyService.listByOwner(ownerId);
+    public List<PropertyItemDto> mine(@AuthenticationPrincipal UUID userId) {
+        return propertyService.listByOwner(userId);
     }
 
     @GetMapping("/{id}")
@@ -39,9 +40,9 @@ public class PropertyController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PropertyItemDto create(
-            @RequestHeader("X-User-Id") UUID ownerId,
+            @AuthenticationPrincipal UUID userId,
             @RequestBody @Valid CreatePropertyRequest request
     ) {
-        return propertyService.create(request, ownerId);
+        return propertyService.create(request, userId);
     }
 }

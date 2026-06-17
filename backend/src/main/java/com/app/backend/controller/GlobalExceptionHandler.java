@@ -1,5 +1,6 @@
 package com.app.backend.controller;
 
+import com.app.backend.exception.AuthException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -30,6 +31,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         }
         body.setProperty("errors", errors);
         return ResponseEntity.status(status).headers(headers).body(body);
+    }
+
+    @ExceptionHandler(AuthException.class)
+    ResponseEntity<ProblemDetail> handleAuthException(AuthException ex) {
+        ProblemDetail body = ProblemDetail.forStatusAndDetail(ex.getStatus(), ex.getMessage());
+        body.setProperty("code", ex.getCode());
+        return ResponseEntity.status(ex.getStatus()).body(body);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
