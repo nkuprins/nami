@@ -3,7 +3,6 @@ import {FilterState} from '../types/filter';
 import {districtByName, districtBySlug} from '../data/locations';
 import {fetchApi} from './fetchApi';
 
-const BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 type PropertyItemDto = Omit<PropertyItem, 'district' | 'city'> & { district: string; city: string };
 
@@ -43,7 +42,7 @@ function buildParams(f: FilterState): URLSearchParams {
 }
 
 export async function listProperties(f: FilterState): Promise<{ items: PropertyItem[]; total: number }> {
-    const res = await fetchApi(`${BASE}/api/properties?${buildParams(f)}`);
+    const res = await fetchApi(`/api/properties?${buildParams(f)}`);
     if (!res.ok) throw new Error(`listProperties: ${res.status}`);
     const data = await res.json();
     return {items: data.items.map(mapDto), total: data.total};
@@ -52,19 +51,19 @@ export async function listProperties(f: FilterState): Promise<{ items: PropertyI
 export async function countProperties(f: FilterState): Promise<number> {
     const params = buildParams(f);
     params.set('page', '1');
-    const res = await fetchApi(`${BASE}/api/properties?${params}`);
+    const res = await fetchApi(`/api/properties?${params}`);
     if (!res.ok) throw new Error(`countProperties: ${res.status}`);
     return (await res.json()).total;
 }
 
 export async function getMyProperties(): Promise<PropertyItem[]> {
-    const res = await fetchApi(`${BASE}/api/properties/mine`);
+    const res = await fetchApi(`/api/properties/mine`);
     if (!res.ok) throw new Error(`getMyProperties: ${res.status}`);
     return (await res.json()).map(mapDto);
 }
 
 export async function getProperty(id: string): Promise<PropertyItem | undefined> {
-    const res = await fetch(`${BASE}/api/properties/${id}`);
+    const res = await fetch(`/api/properties/${id}`);
     if (res.status === 404) return undefined;
     if (!res.ok) throw new Error(`getProperty: ${res.status}`);
     return mapDto(await res.json());
@@ -73,7 +72,7 @@ export async function getProperty(id: string): Promise<PropertyItem | undefined>
 export async function requestPresignedUrls(
     filenames: string[]
 ): Promise<{ uploadUrl: string; fileUrl: string }[]> {
-    const res = await fetchApi(`${BASE}/api/uploads/presign`, {
+    const res = await fetchApi(`/api/uploads/presign`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({filenames}),
@@ -104,7 +103,7 @@ export async function addProperty(data: Omit<PropertyItem, 'id' | 'postedAt'>): 
         ? (citySlugMap[districtEntry.city] ?? districtEntry.city.toLowerCase())
         : data.city.toLowerCase();
 
-    const res = await fetchApi(`${BASE}/api/properties`, {
+    const res = await fetchApi(`/api/properties`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({...data, district: districtSlug, city: citySlug}),

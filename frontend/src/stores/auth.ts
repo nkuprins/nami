@@ -3,7 +3,6 @@ import {defineStore} from 'pinia';
 import {logger} from '../utils/logger';
 import {fetchApi} from "../api/fetchApi";
 
-const BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 interface AuthUser {
     id: string;
@@ -26,7 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function init(): Promise<void> {
         logger.info('[AuthStore] Initializing auth session checking...');
         try {
-            const res = await fetchApi(`${BASE}/api/auth/me`);
+            const res = await fetchApi(`/api/auth/me`);
             if (res.ok) {
                 user.value = await res.json();
                 logger.info(`[AuthStore] Session restored successfully for: ${user.value?.email}`);
@@ -45,7 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function login(email: string, password: string): Promise<string | null> {
         logger.info(`[AuthStore] Inbound login attempt for: ${email}`);
         try {
-            const res = await fetch(`${BASE}/api/auth/me`, {
+            const res = await fetch(`/api/auth/login`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({email, password}),
@@ -75,7 +74,7 @@ export const useAuthStore = defineStore('auth', () => {
     ): Promise<{ pendingVerification: true } | string> {
         logger.info(`[AuthStore] Attempting registration for: ${email}`);
         try {
-            const res = await fetch(`${BASE}/api/auth/register`, {
+            const res = await fetch(`/api/auth/register`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({name, email, password}),
@@ -108,7 +107,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function logout(): Promise<void> {
         logger.info('[AuthStore] Instigating explicit user logout sequence.');
         try {
-            await fetch(`${BASE}/api/auth/logout`, {method: 'POST'});
+            await fetch(`/api/auth/logout`, {method: 'POST'});
             logger.info('[AuthStore] Server-side session cleared successfully.');
         } catch (e) {
             logger.warn('[AuthStore] Non-fatal endpoint failure during logout:', e);
@@ -121,7 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function forgotPassword(email: string): Promise<void> {
         logger.info(`[AuthStore] Requesting password recovery link for: ${email}`);
         try {
-            await fetch(`${BASE}/api/auth/forgot-password`, {
+            await fetch(`/api/auth/forgot-password`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({email}),
@@ -135,7 +134,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function resetPassword(token: string, password: string): Promise<string | null> {
         logger.info('[AuthStore] Attempting token-based credential reset.');
         try {
-            const res = await fetch(`${BASE}/api/auth/reset-password`, {
+            const res = await fetch(`/api/auth/reset-password`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({token, newPassword: password}),
@@ -163,7 +162,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function verifyEmail(token: string): Promise<string | null> {
         logger.info('[AuthStore] Processing email confirmation token token...');
         try {
-            const res = await fetch(`${BASE}/api/auth/verify-email`, {
+            const res = await fetch(`/api/auth/verify-email`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({token}),
@@ -191,7 +190,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function resendVerification(email: string): Promise<void> {
         logger.info(`[AuthStore] Requesting verification link duplicate for: ${email}`);
         try {
-            await fetch(`${BASE}/api/auth/resend-verification`, {
+            await fetch(`/api/auth/resend-verification`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({email}),
