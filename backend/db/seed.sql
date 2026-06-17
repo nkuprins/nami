@@ -7,22 +7,22 @@ BEGIN;
 -- ─────────────────────────────────────────────
 -- Users
 -- ─────────────────────────────────────────────
-INSERT INTO users (id, name, email, password_hash) VALUES
+INSERT INTO users (id, name, email, password_hash, email_verified) VALUES
     ('10000000-0000-0000-0000-000000000001',
      'Jānis Bērziņš',   'janis.berzins@gmail.com',
-     '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uJNi'),
+     '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/RK.s5uJNi', true),
     ('10000000-0000-0000-0000-000000000002',
      'Anna Kalniņa',    'anna.kalnina@inbox.lv',
-     '$2b$12$eImiTXuWVxfM37uY4JANjOe5XdmkxMBvbMoAhvAKMZniTOVKAi0hi'),
-    ('10000000-0000-0000-0000-000000000003',
+     '$2b$12$eImiTXuWVxfM37uY4JANjOe5XdmkxMBvbMoAhvAKMZniTOVKAi0hi', true),
+     ('10000000-0000-0000-0000-000000000003',
      'Māris Ozoliņš',   'maris.ozolins@gmail.com',
-     '$2b$12$WApznUOJfkEGSmYRfnkrPOr6fKlbwnYrQnFPJNuGGcR7qOJnuF/Aq'),
+     '$2b$12$WApznUOJfkEGSmYRfnkrPOr6fKlbwnYrQnFPJNuGGcR7qOJnuF/Aq', true),
     ('10000000-0000-0000-0000-000000000004',
      'Laura Liepiņa',   'laura.liepina@draugiem.lv',
-     '$2b$12$VfZnO3FkxAUe2m5PxuIq5u0A3vU5NpG2XiT1iIRhFbJhCq3w3YSmy'),
+     '$2b$12$VfZnO3FkxAUe2m5PxuIq5u0A3vU5NpG2XiT1iIRhFbJhCq3w3YSmy', true),
     ('10000000-0000-0000-0000-000000000005',
      'Pēteris Krūmiņš', 'peteris.krumins@gmail.com',
-     '$2b$12$92In5/RuASAH5A3HNMCIGeDXPfSfmJBWZgNgK2aWdnVPqSJ4G5CpO');
+     '$2b$12$92In5/RuASAH5A3HNMCIGeDXPfSfmJBWZgNgK2aWdnVPqSJ4G5CpO', true);
 
 -- ─────────────────────────────────────────────
 -- Properties
