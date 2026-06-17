@@ -6,6 +6,7 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.utility.MountableFile;
 
 @SpringBootTest
 @Testcontainers
@@ -14,7 +15,10 @@ class BackendApplicationTests {
     @Container
     @ServiceConnection
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17")
-            .withInitScript("schema.sql");
+            .withCopyFileToContainer(
+                    MountableFile.forHostPath("db/schema.sql"),
+                    "/docker-entrypoint-initdb.d/schema.sql"
+            );
 
     @Test
     void contextLoads() {
