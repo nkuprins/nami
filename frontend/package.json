@@ -18,7 +18,13 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.7",
+    "msw": "^2.14.6",
     "typescript": "^6.0.3",
     "vite": "^8.0.14"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
