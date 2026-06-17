@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import {onMounted} from 'vue';
 import TopNav from './components/layout/TopNav.vue';
+import {initAuth} from './composables/useAuth';
+
+onMounted(initAuth);
 </script>
 
 <template>

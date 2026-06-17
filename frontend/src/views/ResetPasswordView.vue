@@ -1,0 +1,100 @@
+<script setup lang="ts">
+import {ref} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {useAuth} from '../composables/useAuth';
+
+const route = useRoute();
+const router = useRouter();
+const {resetPassword} = useAuth();
+
+const password = ref('');
+const confirm = ref('');
+const error = ref('');
+const submitting = ref(false);
+const done = ref(false);
+
+const token = route.query.token as string | undefined;
+
+async function submit() {
+  error.value = '';
+  if (!password.value) {
+    error.value = 'Please enter a new password.';
+    return;
+  }
+  if (password.value.length < 15) {
+    error.value = 'Password must be at least 15 characters.';
+    return;
+  }
+  if (password.value !== confirm.value) {
+    error.value = 'Passwords do not match.';
+    return;
+  }
+  if (!token) {
+    error.value = 'Invalid reset link.';
+    return;
+  }
+
+  submitting.value = true;
+  const err = await resetPassword(token, password.value);
+  submitting.value = false;
+
+  if (err) {
+    error.value = err;
+    return;
+  }
+  done.value = true;
+}
+</script>
+
+<template>
+  <div class="max-w-md mx-auto px-4 py-20">
+    <div v-if="done" class="text-center flex flex-col items-center gap-4">
+      <div class="size-12 rounded-full bg-surface border border-line flex items-center justify-center">
+        <i class="ti ti-check text-xl text-ink"/>
+      </div>
+      <h1 class="text-lg font-medium text-ink">Password updated</h1>
+      <p class="text-sm text-ink-2">You can now sign in with your new password.</p>
+      <a href="/" class="text-sm text-ink underline underline-offset-2">Go to home</a>
+    </div>
+
+    <div v-else>
+      <h1 class="text-lg font-medium text-ink mb-6">Set new password</h1>
+      <form class="flex flex-col gap-4" @submit.prevent="submit">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-ink" for="rp-password">New password</label>
+          <input
+              id="rp-password"
+              v-model="password"
+              type="password"
+              autocomplete="new-password"
+              placeholder="••••••••••••••••"
+              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink
+                     placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20
+                     focus:border-ink transition-colors"
+          />
+        </div>
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-ink" for="rp-confirm">Confirm password</label>
+          <input
+              id="rp-confirm"
+              v-model="confirm"
+              type="password"
+              autocomplete="new-password"
+              placeholder="••••••••••••••••"
+              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink
+                     placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20
+                     focus:border-ink transition-colors"
+          />
+        </div>
+        <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
+        <button
+            type="submit"
+            :disabled="submitting"
+            class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
+        >
+          Update password
+        </button>
+      </form>
+    </div>
+  </div>
+</template>

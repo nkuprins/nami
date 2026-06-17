@@ -1,9 +1,9 @@
 import {PropertyItem} from '../types/propertyItem';
 import {FilterState} from '../types/filter';
 import {DISTRICTS} from '../data/locations';
+import {fetchApi} from './fetchApi';
 
 const BASE = import.meta.env.VITE_API_BASE_URL as string;
-const DEV_USER_ID = '10000000-0000-0000-0000-000000000001';
 
 const districtBySlug = new Map(DISTRICTS.map(d => [d.slug, d]));
 const citySlugMap: Record<string, string> = {'Rīga': 'riga', 'Jūrmala': 'jurmala', 'Sigulda': 'sigulda'};
@@ -57,9 +57,7 @@ export async function countProperties(f: FilterState): Promise<number> {
 }
 
 export async function getMyProperties(): Promise<PropertyItem[]> {
-    const res = await fetch(`${BASE}/api/properties/mine`, {
-        headers: {'X-User-Id': DEV_USER_ID},
-    });
+    const res = await fetchApi(`${BASE}/api/properties/mine`);
     if (!res.ok) throw new Error(`getMyProperties: ${res.status}`);
     return (await res.json()).map(mapDto);
 }
@@ -74,7 +72,7 @@ export async function getProperty(id: string): Promise<PropertyItem | undefined>
 export async function requestPresignedUrls(
     filenames: string[]
 ): Promise<{ uploadUrl: string; fileUrl: string }[]> {
-    const res = await fetch(`${BASE}/api/uploads/presign`, {
+    const res = await fetchApi(`${BASE}/api/uploads/presign`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({filenames}),
@@ -105,9 +103,9 @@ export async function addProperty(data: Omit<PropertyItem, 'id' | 'postedAt'>): 
         ? (citySlugMap[districtEntry.city] ?? districtEntry.city.toLowerCase())
         : data.city.toLowerCase();
 
-    const res = await fetch(`${BASE}/api/properties`, {
+    const res = await fetchApi(`${BASE}/api/properties`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json', 'X-User-Id': DEV_USER_ID},
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({...data, district: districtSlug, city: citySlug}),
     });
     if (!res.ok) throw new Error(`addProperty: ${res.status}`);
