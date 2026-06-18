@@ -1,23 +1,13 @@
 import {computed, reactive, watch} from 'vue';
 import {defineStore} from 'pinia';
 import {useRoute, useRouter} from 'vue-router';
-import {
-    ALL_FILTER_KEYS,
-    DEFAULT_FILTER_STATE,
-    FilterKey,
-    type FilterState,
-} from '../types/filter';
+import {ALL_FILTER_KEYS, DEFAULT_FILTER_STATE, FilterKey, type FilterState,} from '../types/filter';
 import {PropertyType} from '../types/propertyItem';
 import {logger} from '../utils/logger';
 import {FilterCodec} from '../utils/filterCodec';
 import {SortKey} from '../types/sort';
 import {Location} from '../data/rawLocations';
-import {
-    cityByName,
-    cityBySlug,
-    districtNameBySlug,
-    districtSlugByName,
-} from '../data/locations';
+import {cityByName, cityBySlug, districtNameBySlug, districtSlugByName,} from '../data/locations';
 
 export const useFiltersStore = defineStore('filters', () => {
     const route = useRoute();
@@ -46,34 +36,18 @@ export const useFiltersStore = defineStore('filters', () => {
         ...new Set(locations.value.map((l) => l.city)),
     ]);
 
-    // Handles when a user clicks the browser's Back button or lands on the site from a bookmarked link
-    // watch(
-    //     () => route.query,
-    //     (newQuery) => {
-    //         alert("HANDLE 1")
-    //         const nextState = FilterCodec.fromQuery(newQuery);
-    //         if (FilterCodec.isEqual(FilterCodec.toQuery(state), FilterCodec.toQuery(nextState)))
-    //             return;
-    //
-    //         logger.debug('[FiltersStore] Browser URL alteration detected. Syncing store state.');
-    //         Object.assign(state, nextState);
-    //     }
-    // );
+    function syncUrl() {
+        if (route.path !== '/') return;
+        const nextQuery = FilterCodec.toQuery(state);
+        if (FilterCodec.isEqual(route.query, nextQuery)) return;
+        void router.replace({path: '/', query: nextQuery});
+    }
 
     // Handles when a user is interacting with checkboxes, dropdowns, and inputs on screen
-    watch(
-        state,
-        () => {
-            const nextQuery = FilterCodec.toQuery(state);
-            if (FilterCodec.isEqual(route.query, nextQuery)) return;
+    watch(state, syncUrl, {deep: true});
 
-            logger.debug(
-                '[FiltersStore] UI filter mutation detected. Replacing URL query variables.'
-            );
-            void router.replace({path: route.path, query: nextQuery});
-        },
-        {deep: true}
-    );
+    // Re-syncs URL when navigating back to HomeView with stale params (e.g. from /add-property)
+    watch(() => route.path, syncUrl);
 
     // --- Actions ---
 
