@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {computed} from 'vue';
+import {storeToRefs} from 'pinia'; // 1. Import storeToRefs
 import CategoryTabs from './CategoryTabs.vue';
 import FilterPill from './FilterPill.vue';
 import LocationPopover from './LocationPopover.vue';
@@ -7,22 +8,20 @@ import PricePopover from './PricePopover.vue';
 import RoomsPopover from './RoomsPopover.vue';
 import IconSearch from '../ui/IconSearch.vue';
 import IconSliders from '../ui/IconSliders.vue';
-import {useFiltersStore} from '../../stores/filters';
-import {districtBySlug} from '../../data/locations';
+import {useFiltersStore} from '../../stores/filterStore';
 
 const emit = defineEmits<{ search: []; openMore: [] }>();
 
-const {state, setType, setLoc, setPriceRange, setRooms} = useFiltersStore();
-
-const districtNames = computed(() =>
-    state.loc.map((s) => districtBySlug.get(s)?.name ?? s)
-);
+const store = useFiltersStore();
+const {districts, locations} = storeToRefs(store);
+const {state, setType, setLocations, setPriceRange, setRooms} =
+    useFiltersStore();
 
 const locSummary = computed(() => {
   if (!state.loc.length) return '';
-  if (state.loc.length === 1) return districtNames.value[0];
-  if (state.loc.length === 2) return districtNames.value.join(', ');
-  return `${districtNames.value[0]} +${state.loc.length - 1}`;
+  if (state.loc.length === 1) return districts.value[0];
+  if (state.loc.length === 2) return districts.value.join(',');
+  return `${districts.value[0]} +${state.loc.length - 1}`;
 });
 
 const priceSummary = computed(() => {
@@ -85,8 +84,8 @@ const advancedCount = computed(() => {
             :width="380"
         >
           <LocationPopover
-              :model-value="state.loc"
-              @update:model-value="setLoc"
+              :model-value="locations"
+              @update:model-value="setLocations"
           />
         </FilterPill>
 

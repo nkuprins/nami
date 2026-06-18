@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 import {useRoute} from 'vue-router';
-import {useAuthStore} from '../stores/auth';
+import {useAuthStore} from '../stores/authStore';
 import IconCheck from '../components/ui/IconCheck.vue';
 
 const route = useRoute();
@@ -60,8 +60,7 @@ async function submit() {
       </p>
       <RouterLink to="/" class="text-sm text-ink underline underline-offset-2"
       >Go to home
-      </RouterLink
-      >
+      </RouterLink>
     </div>
 
     <div v-else>

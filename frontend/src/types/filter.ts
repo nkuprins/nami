@@ -1,15 +1,10 @@
-import {Feature, PropertyType} from './propertyItem';
-
-export type SortKey =
-    | 'newest'
-    | 'price-asc'
-    | 'price-desc'
-    | 'price-per-m2-asc'
-    | 'm2-desc';
+import {Feature, PropertyCompletion, PropertyType} from './propertyItem';
+import {SortKey} from './sort';
+import {Location} from '../data/rawLocations';
 
 export interface FilterState {
     type: PropertyType;
-    loc: string[];
+    loc: Location[];
     priceMin?: number;
     priceMax?: number;
     rooms: number[];
@@ -22,10 +17,31 @@ export interface FilterState {
     yearMin?: number;
     yearMax?: number;
     features: Feature[];
-    completion?: 'ready' | 'not_ready';
+    completion?: PropertyCompletion;
     sort: SortKey;
     page: number;
 }
+
+export type FilterKey = keyof FilterState;
+export const ALL_FILTER_KEYS = Object.keys({
+    type: 0,
+    loc: 0,
+    priceMin: 0,
+    priceMax: 0,
+    rooms: 0,
+    m2Min: 0,
+    m2Max: 0,
+    floorMin: 0,
+    floorMax: 0,
+    notGround: 0,
+    notTop: 0,
+    yearMin: 0,
+    yearMax: 0,
+    features: 0,
+    completion: 0,
+    sort: 0,
+    page: 0,
+} satisfies Record<FilterKey, 0>) as FilterKey[];
 
 export const DEFAULT_FILTER_STATE: FilterState = {
     type: 'buy',

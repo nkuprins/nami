@@ -55,8 +55,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await fetch(`/api/auth/login`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, password}),
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, password}),
       });
       if (res.ok) {
         user.value = await res.json();
@@ -97,15 +97,15 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await fetch(`/api/auth/register`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({name, email, password}),
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name, email, password}),
       });
 
       if (res.status === 201) {
         logger.info(
             `[AuthStore] Account created successfully for: ${email}. Awaiting verification.`
         );
-        return {pendingVerification: true};
+          return {pendingVerification: true};
       }
 
       const body = (await res.json().catch(() => ({}))) as {
@@ -141,7 +141,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout(): Promise<void> {
     logger.info('[AuthStore] Instigating explicit user logout sequence.');
     try {
-      await fetch(`/api/auth/logout`, {method: 'POST'});
+        await fetch(`/api/auth/logout`, {method: 'POST'});
       logger.info('[AuthStore] Server-side session cleared successfully.');
     } catch (e) {
       logger.warn('[AuthStore] Non-fatal endpoint failure during logout:', e);
@@ -156,8 +156,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await fetch(`/api/auth/forgot-password`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email}),
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email}),
       });
       logger.info(
           `[AuthStore] Password reset request dispatched for: ${email}`
@@ -178,8 +178,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await fetch(`/api/auth/reset-password`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({token, newPassword: password}),
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({token, newPassword: password}),
       });
 
       if (res.ok) {
@@ -208,8 +208,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await fetch(`/api/auth/verify-email`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({token}),
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({token}),
       });
 
       if (res.ok) {
@@ -243,8 +243,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await fetch(`/api/auth/resend-verification`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email}),
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email}),
       });
       logger.info(`[AuthStore] Verification link resent to: ${email}`);
     } catch (e) {

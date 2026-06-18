@@ -2,7 +2,7 @@
 import {ref, watch} from 'vue';
 import {RouterLink} from 'vue-router';
 import Drawer from '../ui/Drawer.vue';
-import {getMyProperties} from '../../api/listings';
+import {getMyProperties} from '../../api/properties';
 import {formatPrice} from '../../utils/format';
 import type {PropertyItem} from '../../types/propertyItem';
 

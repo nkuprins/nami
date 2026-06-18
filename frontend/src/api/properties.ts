@@ -1,36 +1,30 @@
 import {PropertyItem} from '../types/propertyItem';
 import {FilterState} from '../types/filter';
-import {districtByName, districtBySlug} from '../data/locations';
 import {fetchApi} from './fetchApi';
+import {
+    cityBySlug,
+    cityByName,
+    districtNameBySlug,
+    districtSlugByName,
+} from '../data/locations';
 
 type PropertyItemDto = Omit<PropertyItem, 'district' | 'city'> & {
     district: string;
     city: string;
 };
 
-const citySlugMap: Record<string, string> = {
-    Rīga: 'riga',
-    Jūrmala: 'jurmala',
-    Sigulda: 'sigulda',
-};
-
-function resolveLocation(slug: string): { district: string; city: string } {
-    const entry = districtBySlug.get(slug);
-    return entry
-        ? {district: entry.name, city: entry.city}
-        : {district: slug, city: slug};
-}
-
 function mapDto(dto: PropertyItemDto): PropertyItem {
-    const {district, city: _city, ...rest} = dto;
-    const loc = resolveLocation(district);
-    return {...rest, district: loc.district, city: loc.city};
+    return {
+        ...dto,
+        district: districtNameBySlug.get(dto.district) ?? dto.district,
+        city: cityBySlug.get(dto.city) ?? dto.city,
+    };
 }
 
 function buildParams(f: FilterState): URLSearchParams {
     const p = new URLSearchParams();
     p.set('type', f.type);
-    f.loc.forEach((s) => p.append('loc', s));
+    f.loc.forEach((l) => p.append('loc', `${l.city}:${l.district}`));
     if (f.priceMin != null) p.set('priceMin', String(f.priceMin));
     if (f.priceMax != null) p.set('priceMax', String(f.priceMax));
     f.rooms.forEach((r) => p.append('rooms', String(r)));
@@ -50,9 +44,13 @@ function buildParams(f: FilterState): URLSearchParams {
 }
 
 export async function listProperties(
-    f: FilterState
+    f: FilterState,
+    options?: { signal?: AbortSignal }
 ): Promise<{ items: PropertyItem[]; total: number }> {
-    const res = await fetchApi(`/api/properties?${buildParams(f)}`);
+    const res = await fetchApi(`/api/properties?${buildParams(f)}`, {
+        signal: options?.signal,
+    });
+
     if (!res.ok) throw new Error(`listProperties: ${res.status}`);
     const data = await res.json();
     return {items: data.items.map(mapDto), total: data.total};
@@ -111,11 +109,9 @@ export async function uploadFilesToS3(
 export async function addProperty(
     data: Omit<PropertyItem, 'id' | 'postedAt'>
 ): Promise<PropertyItem> {
-    const districtEntry = districtByName.get(data.district);
-    const districtSlug = districtEntry?.slug ?? data.district;
-    const citySlug = districtEntry
-        ? (citySlugMap[districtEntry.city] ?? districtEntry.city.toLowerCase())
-        : data.city.toLowerCase();
+    const districtSlug =
+        districtSlugByName.get(data.district) ?? data.district.toLowerCase();
+    const citySlug = cityByName.get(data.city) ?? data.city.toLowerCase();
 
     const res = await fetchApi(`/api/properties`, {
         method: 'POST',

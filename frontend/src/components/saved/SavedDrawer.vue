@@ -3,8 +3,8 @@ import {ref, watch} from 'vue';
 import {RouterLink} from 'vue-router';
 import Drawer from '../ui/Drawer.vue';
 import IconHeart from '../ui/IconHeart.vue';
-import {useSavedStore} from '../../stores/saved';
-import {getProperty} from '../../api/listings';
+import {useSavedStore} from '../../stores/savedStore';
+import {getProperty} from '../../api/properties';
 import {formatPrice} from '../../utils/format';
 import type {PropertyItem} from '../../types/propertyItem';
 

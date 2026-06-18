@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref} from 'vue';
-import {useFiltersStore} from '../stores/filters';
+import {useFiltersStore} from '../stores/filterStore';
 import {useListings} from '../composables/useListings';
 import ResultsHeader from '../components/listing/ResultsHeader.vue';
 import PropertyGrid from '../components/listing/PropertyGrid.vue';

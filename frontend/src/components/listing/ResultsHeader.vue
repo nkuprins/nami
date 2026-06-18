@@ -1,24 +1,20 @@
 <script setup lang="ts">
-import {ref} from 'vue';
-import {useFiltersStore} from '../../stores/filters';
-import type {SortKey} from '../../types/filter';
+import {computed, ref} from 'vue';
+import {useFiltersStore} from '../../stores/filterStore';
 import IconChevron from '../ui/IconChevron.vue';
 import Popover from '../ui/Popover.vue';
+import {SORT_OPTIONS, SortKey} from '../../types/sort';
 
 defineProps<{ total: number; loading: boolean }>();
 
 const {state, setSort} = useFiltersStore();
 
-const SORT_OPTIONS: Array<{ id: SortKey; label: string; hint: string }> = [
-  {id: 'newest', label: 'Newest first', hint: 'Most recently listed'},
-  {id: 'price-asc', label: 'Price - low to high', hint: '€ ascending'},
-  {id: 'price-desc', label: 'Price - high to low', hint: '€ descending'},
-  {id: 'price-per-m2-asc', label: 'Best € / m²', hint: 'Lowest price per m²'},
-  {id: 'm2-desc', label: 'Largest first', hint: 'm² descending'},
-];
-
 const open = ref(false);
 const anchor = ref<HTMLButtonElement | null>(null);
+
+const currentSortLabel = computed(() => {
+  return SORT_OPTIONS.find((s) => s.id === state.sort)?.label ?? 'Sort';
+});
 
 function pick(id: SortKey) {
   setSort(id);
@@ -50,9 +46,7 @@ function pick(id: SortKey) {
           class="focus-ring inline-flex items-center gap-3 h-11 px-4 rounded-md border border-line bg-bg hover:border-line-2 transition-colors text-sm"
       >
         <span class="micro-label">Sort</span>
-        <span class="text-ink">{{
-            SORT_OPTIONS.find((s) => s.id === state.sort)?.label
-          }}</span>
+        <span class="text-ink">{{ currentSortLabel }}</span>
         <span class="size-4 text-ink-2"
         ><IconChevron :dir="open ? 'up' : 'down'"
         /></span>

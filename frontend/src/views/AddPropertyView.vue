@@ -5,13 +5,14 @@ import {
   addProperty,
   requestPresignedUrls,
   uploadFilesToS3,
-} from '../api/listings';
-import {DISTRICTS} from '../data/locations';
+} from '../api/properties';
 import type {
   Feature,
   PropertyKind,
   PropertyType,
 } from '../types/propertyItem';
+import LocationPopover from '../components/hero/LocationPopover.vue';
+import type {Location} from '../data/rawLocations';
 
 const router = useRouter();
 
@@ -25,7 +26,7 @@ const propertyKind = ref<PropertyKind>('apartment');
 const title = ref('');
 const description = ref('');
 const price = ref('');
-const districtSlug = ref('');
+const selectedLocation = ref<Location | null>(null);
 const address = ref('');
 const rooms = ref('');
 const m2 = ref('');
@@ -39,8 +40,12 @@ const photoFiles = ref<File[]>([]);
 const photoPreviews = ref<string[]>([]);
 const fileInputRef = ref<HTMLInputElement | null>(null);
 
-const districtData = computed(() =>
-    DISTRICTS.find((d) => d.slug === districtSlug.value)
+const isOpenDistrict = ref(false);
+
+const selectedDistrictName = computed(() =>
+    selectedLocation.value
+        ? `${selectedLocation.value.district}, ${selectedLocation.value.city}`
+        : ''
 );
 
 const FEATURE_OPTIONS: { value: Feature; label: string }[] = [
@@ -88,7 +93,7 @@ const errors = computed(() => {
   if (!title.value.trim()) e.title = 'Required';
   if (!price.value || isNaN(Number(price.value)) || Number(price.value) <= 0)
     e.price = 'Enter a valid price';
-  if (!districtSlug.value) e.district = 'Required';
+  if (!selectedLocation.value) e.district = 'Required';
   if (!address.value.trim()) e.address = 'Required';
   if (!rooms.value || isNaN(Number(rooms.value)) || Number(rooms.value) < 1)
     e.rooms = 'Enter number of rooms';
@@ -116,7 +121,6 @@ async function submit() {
         photoFiles.value.map((f) => f.name)
     );
     const photoList = await uploadFilesToS3(photoFiles.value, slots);
-    const district = districtData.value;
     const item = await addProperty({
       type: type.value,
       propertyKind: propertyKind.value,
@@ -133,8 +137,8 @@ async function submit() {
       totalFloors: totalFloors.value ? Number(totalFloors.value) : undefined,
       yearBuilt: yearBuilt.value ? Number(yearBuilt.value) : undefined,
       features: features.value,
-      district: district?.name ?? districtSlug.value,
-      city: district?.city ?? '',
+      district: selectedLocation.value!.district,
+      city: selectedLocation.value!.city,
       address: address.value.trim(),
       coords: {lat: 56.946, lng: 24.105},
       photos: photoList,
@@ -161,7 +165,6 @@ async function submit() {
     </div>
 
     <form class="flex flex-col gap-10" @submit.prevent="submit">
-      <!-- Section: Listing type -->
       <section class="flex flex-col gap-4">
         <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
           Listing type
@@ -217,7 +220,6 @@ async function submit() {
         </div>
       </section>
 
-      <!-- Section: Basic info -->
       <section class="flex flex-col gap-4">
         <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
           Basic info
@@ -258,7 +260,6 @@ async function submit() {
         </div>
       </section>
 
-      <!-- Section: Pricing -->
       <section class="flex flex-col gap-4">
         <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
           Pricing
@@ -316,32 +317,69 @@ async function submit() {
         </div>
       </section>
 
-      <!-- Section: Location -->
       <section class="flex flex-col gap-4">
         <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
           Location
         </h2>
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="ap-district">
+        <div class="flex flex-col gap-1.5 relative">
+          <label class="text-sm font-medium text-ink" for="ap-district-toggle">
             District <span class="text-red-500">*</span>
           </label>
-          <select
-              id="ap-district"
-              v-model="districtSlug"
-              class="h-10 px-3 rounded-lg border text-sm text-ink bg-bg focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+
+          <button
+              id="ap-district-toggle"
+              type="button"
+              class="h-10 px-3 rounded-lg border text-sm text-ink bg-bg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-all text-left"
               :class="
               fieldError('district')
                 ? 'border-red-400 bg-red-50'
                 : 'border-line'
             "
+              @click="isOpenDistrict = !isOpenDistrict"
           >
-            <option value="" disabled>Select a district</option>
-            <option v-for="d in DISTRICTS" :key="d.slug" :value="d.slug">
-              {{ d.name }} — {{ d.city }}
-            </option>
-          </select>
-          <p v-if="fieldError('district')" class="text-xs text-red-500">
+            <span v-if="selectedLocation" class="text-ink font-medium">
+              {{ selectedDistrictName }}
+            </span>
+            <span v-else class="text-ink-3">Select a district…</span>
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                class="size-4 text-ink-3 transition-transform duration-200"
+                :class="{ 'rotate-180': isOpenDistrict }"
+            >
+              <path
+                  fill-rule="evenodd"
+                  d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                  clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <div
+              v-if="isOpenDistrict"
+              class="fixed inset-0 z-40"
+              @click="isOpenDistrict = false"
+          ></div>
+
+          <div
+              v-if="isOpenDistrict"
+              class="absolute top-[calc(100%+4px)] left-0 z-50 w-full bg-bg border border-line rounded-lg shadow-xl p-3"
+          >
+            <LocationPopover
+                :model-value="selectedLocation ? [selectedLocation] : []"
+                :multiple="false"
+                @update:model-value="
+                (locs) => {
+                  selectedLocation = locs[0] ?? null;
+                  isOpenDistrict = false;
+                }
+              "
+            />
+          </div>
+
+          <p v-if="fieldError('district')" class="text-xs text-red-500 mt-1">
             {{ fieldError('district') }}
           </p>
         </div>
@@ -368,7 +406,6 @@ async function submit() {
         </div>
       </section>
 
-      <!-- Section: Details -->
       <section class="flex flex-col gap-4">
         <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
           Details
@@ -485,7 +522,6 @@ async function submit() {
         </div>
       </section>
 
-      <!-- Section: Features -->
       <section class="flex flex-col gap-4">
         <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
           Features
@@ -508,7 +544,6 @@ async function submit() {
         </div>
       </section>
 
-      <!-- Section: Photos -->
       <section class="flex flex-col gap-4">
         <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
           Photos
@@ -559,7 +594,6 @@ async function submit() {
         </div>
       </section>
 
-      <!-- Submit -->
       <div class="flex items-center gap-4 pt-2">
         <button
             type="submit"

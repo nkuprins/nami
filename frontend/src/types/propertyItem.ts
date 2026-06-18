@@ -1,12 +1,21 @@
-export type PropertyType = 'buy' | 'rent' | 'new_project';
-export type PropertyKind = 'apartment' | 'house';
-export type Feature =
-    | 'balcony'
-    | 'parking'
-    | 'elevator'
-    | 'furnished'
-    | 'pets'
-    | 'new_building';
+import type {FilterState} from './filter';
+
+export const KNOWN_TYPES = ['buy', 'rent', 'new_project'] as const;
+export const KNOWN_KINDS = ['apartment', 'house'] as const;
+export const KNOWN_COMPLETION = ['ready', 'not_ready'] as const;
+export const KNOWN_FEATURES = [
+    'balcony',
+    'parking',
+    'elevator',
+    'furnished',
+    'pets',
+    'new_building',
+] as const;
+
+export type PropertyType = (typeof KNOWN_TYPES)[number];
+export type PropertyKind = (typeof KNOWN_KINDS)[number];
+export type PropertyCompletion = (typeof KNOWN_COMPLETION)[number];
+export type Feature = (typeof KNOWN_FEATURES)[number];
 
 export interface PropertyItem {
     id: string;
@@ -28,5 +37,5 @@ export interface PropertyItem {
     coords: { lat: number; lng: number };
     photos: string[];
     postedAt: string;
-    completion?: 'ready' | 'not_ready';
+    completion?: PropertyCompletion;
 }

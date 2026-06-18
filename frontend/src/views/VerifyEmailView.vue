@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {onMounted, ref} from 'vue';
 import {useRoute} from 'vue-router';
-import {useAuthStore} from '../stores/auth';
+import {useAuthStore} from '../stores/authStore';
 import IconFail from '../components/ui/IconFail.vue';
 import IconCheck from '../components/ui/IconCheck.vue';
 

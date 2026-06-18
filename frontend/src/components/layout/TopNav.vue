@@ -2,8 +2,8 @@
 import {ref} from 'vue';
 import {RouterLink, useRouter} from 'vue-router';
 import IconHeart from '../ui/IconHeart.vue';
-import {useSavedStore} from '../../stores/saved';
-import {useAuthStore} from '../../stores/auth';
+import {useSavedStore} from '../../stores/savedStore';
+import {useAuthStore} from '../../stores/authStore';
 import AuthModal from '../auth/AuthModal.vue';
 import SavedDrawer from '../saved/SavedDrawer.vue';
 import MyPropertiesDrawer from '../listing/MyPropertiesDrawer.vue';

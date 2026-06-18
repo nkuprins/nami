@@ -5,7 +5,7 @@ import type {Feature, PropertyItem} from '../types/propertyItem';
 import {formatFloor, formatPrice, formatPricePerM2} from '../utils/format';
 import SaveHeart from '../components/listing/SaveHeart.vue';
 import CardCarousel from '../components/listing/CardCarousel.vue';
-import {getProperty} from '../api/listings';
+import {getProperty} from '../api/properties';
 
 const props = defineProps<{ id: string }>();
 const router = useRouter();

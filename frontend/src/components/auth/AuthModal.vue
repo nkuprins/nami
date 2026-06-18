@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 import Drawer from '../ui/Drawer.vue';
-import {useAuthStore} from '../../stores/auth';
+import {useAuthStore} from '../../stores/authStore';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();

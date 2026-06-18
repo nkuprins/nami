@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import {reactive, watch} from 'vue';
 import Drawer from '../ui/Drawer.vue';
-import {useFiltersStore} from '../../stores/filters';
-import {useListingCount} from '../../composables/useListings';
+import {useFiltersStore} from '../../stores/filterStore';
 import type {FilterState} from '../../types/filter';
 import {Feature} from '../../types/propertyItem';
 
@@ -92,20 +91,6 @@ const floorMin = bindNumber('floorMin');
 const floorMax = bindNumber('floorMax');
 const yearMin = bindNumber('yearMin');
 const yearMax = bindNumber('yearMax');
-
-const {count} = useListingCount(
-    () => ({
-      ...draft,
-      type: state.type,
-      loc: state.loc,
-      priceMin: state.priceMin,
-      priceMax: state.priceMax,
-      rooms: state.rooms,
-      sort: state.sort,
-      page: 1,
-    }),
-    () => state
-);
 
 function apply() {
   applyAdvanced({...draft});
@@ -277,9 +262,6 @@ function reset() {
             class="focus-ring inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors min-w-44"
         >
           <span>Apply</span>
-          <span class="tabular text-bg/80"
-          >— {{ count }} {{ count === 1 ? 'listing' : 'listings' }}</span
-          >
         </button>
       </div>
     </template>

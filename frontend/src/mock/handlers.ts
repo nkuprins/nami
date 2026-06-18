@@ -1,14 +1,15 @@
 import {http, HttpResponse} from 'msw';
-import {mockListings} from './listings';
-import {districtByName} from '../data/locations';
+import {mockListings} from './properties';
 import {logger} from '../utils/logger';
+import {cityByName, districtSlugByName} from '../data/locations';
 
 const PAGE_SIZE = 12;
 
 const dtoCatalog = mockListings.map((item) => ({
     ...item,
     district:
-        districtByName.get(item.district)?.slug ?? item.district.toLowerCase(),
+        districtSlugByName.get(item.district) ?? item.district.toLowerCase(),
+    city: cityByName.get(item.city) ?? item.city.toLowerCase(),
 }));
 
 // In-memory mock auth state
@@ -33,7 +34,17 @@ function applyFilters(params: URLSearchParams) {
     if (type) items = items.filter((i) => i.type === type);
 
     const locs = params.getAll('loc');
-    if (locs.length) items = items.filter((i) => locs.includes(i.district));
+    if (locs.length) {
+        items = items.filter((i) =>
+            locs.some((loc) => {
+                const colon = loc.indexOf(':');
+                if (colon === -1) return false;
+                return (
+                    i.city === loc.slice(0, colon) && i.district === loc.slice(colon + 1)
+                );
+            })
+        );
+    }
 
     const priceMin = params.get('priceMin');
     const priceMax = params.get('priceMax');
