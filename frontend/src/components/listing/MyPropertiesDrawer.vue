@@ -2,10 +2,12 @@
 import { ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import Drawer from '../ui/Drawer.vue';
+import ConfirmDialog from '../ui/ConfirmDialog.vue';
 import { getMyProperties, deleteProperty } from '../../api/properties';
 import { formatPrice } from '../../utils/format';
 import type { PropertyItem } from '../../types/propertyItem';
-import {logger} from "../../utils/logger";
+import IconTrash from "../ui/IconTrash.vue";
+import IconSpinner from "../ui/IconSpinner.vue";
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
@@ -15,6 +17,7 @@ const loading = ref(false);
 const error = ref(false);
 const confirmId = ref<string | null>(null);
 const deletingId = ref<string | null>(null);
+const deleteError = ref(false);
 
 async function load() {
   if (!props.open) return;
@@ -35,22 +38,17 @@ function requestDelete(event: MouseEvent, id: string) {
   confirmId.value = id;
 }
 
-function cancelDelete(event: MouseEvent) {
-  event.preventDefault();
-  event.stopPropagation();
-  confirmId.value = null;
-}
-
-async function confirmDelete(event: MouseEvent, id: string) {
-  event.preventDefault();
-  event.stopPropagation();
+async function confirmDelete() {
+  const id = confirmId.value;
+  if (!id) return;
   confirmId.value = null;
   deletingId.value = id;
   try {
     await deleteProperty(id);
-    items.value = items.value.filter(item => item.id !== id);
+    items.value = items.value.filter((item) => item.id !== id);
   } catch {
-    logger.error("[MyPropertiesDrawer] Could not delete: ", id)
+    deleteError.value = true;
+    setTimeout(() => (deleteError.value = false), 3000);
   } finally {
     deletingId.value = null;
   }
@@ -92,36 +90,17 @@ watch(() => props.open, load);
     </div>
 
     <div v-else class="flex flex-col gap-3">
+      <Transition name="fade">
+        <p v-if="deleteError" class="text-xs text-warn text-center py-1">
+          Failed to delete. Try again.
+        </p>
+      </Transition>
+
       <div
           v-for="item in items"
           :key="item.id"
-          class="relative flex rounded-xl border overflow-hidden transition-colors"
-          :class="confirmId === item.id ? 'border-warn/40' : 'border-line hover:border-ink/30'"
+          class="relative flex rounded-xl border border-line overflow-hidden hover:border-ink/30 transition-colors"
       >
-        <Transition name="fade">
-          <div
-              v-if="confirmId === item.id"
-              class="absolute inset-0 z-10 flex items-center justify-between gap-2 px-4 bg-bg/95 backdrop-blur-sm"
-          >
-            <p class="text-sm text-ink bold"><span class="font-bold">Delete this listing?</span><br>
-              You will not be able to recover it</p>
-            <div class="flex gap-2">
-              <button
-                  class="text-xs px-3 py-1.5 rounded-lg border border-line text-ink-2 hover:bg-surface transition-colors"
-                  @click="cancelDelete($event)"
-              >
-                Cancel
-              </button>
-              <button
-                  class="text-xs px-3 py-1.5 rounded-lg bg-warn text-bg font-medium hover:bg-warn/90 transition-colors"
-                  @click="confirmDelete($event, item.id)"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </Transition>
-
         <RouterLink
             :to="`/property/${item.id}`"
             class="flex flex-1 min-w-0 gap-3"
@@ -158,39 +137,21 @@ watch(() => props.open, load);
             :aria-label="`Delete ${item.title}`"
             @click="requestDelete($event, item.id)"
         >
-          <svg
-              v-if="deletingId !== item.id"
-              xmlns="http://www.w3.org/2000/svg"
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-          >
-            <path d="M3 6h18" />
-            <path d="M19 6l-1 14H6L5 6" />
-            <path d="M8 6V4h8v2" />
-          </svg>
-          <svg
-              v-else
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="animate-spin"
-          >
-            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-          </svg>
+          <IconTrash v-if="deletingId !== item.id" />
+          <IconSpinner v-else />
         </button>
       </div>
     </div>
   </Drawer>
+
+  <!-- Reuses ConfirmDialog — renders via Teleport outside the Drawer -->
+  <ConfirmDialog
+      :open="confirmId !== null"
+      title="Delete listing?"
+      description="This listing will be permanently removed and cannot be recovered."
+      confirm-label="Delete"
+      danger
+      @update:open="confirmId = null"
+      @confirm="confirmDelete"
+  />
 </template>
