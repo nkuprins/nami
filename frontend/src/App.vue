@@ -4,9 +4,9 @@ import TopNav from './components/layout/TopNav.vue';
 
 <template>
   <div class="min-h-screen flex flex-col bg-bg text-ink font-sans">
-    <TopNav/>
+    <TopNav />
     <main class="flex-1">
-      <RouterView/>
+      <RouterView />
     </main>
   </div>
 </template>

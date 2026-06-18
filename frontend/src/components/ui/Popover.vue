@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {nextTick, onBeforeUnmount, ref, watch} from 'vue';
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import IconClose from './IconClose.vue';
 
 const props = defineProps<{
@@ -51,22 +51,22 @@ function onKey(e: KeyboardEvent) {
 }
 
 watch(
-    () => props.open,
-    async (val) => {
-      if (val) {
-        await nextTick();
-        position();
-        document.addEventListener('mousedown', onDocClick, true);
-        document.addEventListener('keydown', onKey, true);
-        window.addEventListener('resize', position);
-        window.addEventListener('scroll', position, true);
-      } else {
-        document.removeEventListener('mousedown', onDocClick, true);
-        document.removeEventListener('keydown', onKey, true);
-        window.removeEventListener('resize', position);
-        window.removeEventListener('scroll', position, true);
-      }
+  () => props.open,
+  async (val) => {
+    if (val) {
+      await nextTick();
+      position();
+      document.addEventListener('mousedown', onDocClick, true);
+      document.addEventListener('keydown', onKey, true);
+      window.addEventListener('resize', position);
+      window.addEventListener('scroll', position, true);
+    } else {
+      document.removeEventListener('mousedown', onDocClick, true);
+      document.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('resize', position);
+      window.removeEventListener('scroll', position, true);
     }
+  }
 );
 
 onBeforeUnmount(() => {
@@ -81,38 +81,38 @@ onBeforeUnmount(() => {
   <Teleport to="body">
     <transition name="fade">
       <div
-          v-if="open"
-          ref="sheetRef"
-          class="md:hidden fixed inset-0 z-50 flex flex-col justify-end bg-ink/40 backdrop-blur-sm"
-          @click.self="close"
+        v-if="open"
+        ref="sheetRef"
+        class="md:hidden fixed inset-0 z-50 flex flex-col justify-end bg-ink/40 backdrop-blur-sm"
+        @click.self="close"
       >
         <div class="bg-bg rounded-t-2xl shadow-lift max-h-[80vh] flex flex-col">
           <div
-              class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-line"
+            class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-line"
           >
             <p class="micro-label">{{ title ?? 'Filter' }}</p>
             <button
-                class="focus-ring size-9 grid place-items-center -mr-2 text-ink-2 hover:text-ink"
-                @click="close"
+              class="focus-ring size-9 grid place-items-center -mr-2 text-ink-2 hover:text-ink"
+              @click="close"
             >
-              <span class="size-4 inline-block"><IconClose/></span>
+              <span class="size-4 inline-block"><IconClose /></span>
             </button>
           </div>
           <div class="overflow-y-auto p-5">
-            <slot/>
+            <slot />
           </div>
         </div>
       </div>
     </transition>
     <transition name="pop">
       <div
-          v-if="open"
-          ref="popRef"
-          :style="styleObj"
-          class="hidden md:block bg-bg border border-line rounded-xl shadow-lift p-4"
+        v-if="open"
+        ref="popRef"
+        :style="styleObj"
+        class="hidden md:block bg-bg border border-line rounded-xl shadow-lift p-4"
       >
         <p v-if="title" class="micro-label mb-3">{{ title }}</p>
-        <slot/>
+        <slot />
       </div>
     </transition>
   </Teleport>

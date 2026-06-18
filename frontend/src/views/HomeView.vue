@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import {ref} from 'vue';
-import {useFiltersStore} from '../stores/filterStore';
-import {useListings} from '../composables/useListings';
+import { ref } from 'vue';
+import { useFiltersStore } from '../stores/filterStore';
+import { useListings } from '../composables/useListings';
 import ResultsHeader from '../components/listing/ResultsHeader.vue';
 import PropertyGrid from '../components/listing/PropertyGrid.vue';
 import Pagination from '../components/listing/Pagination.vue';
 import HeroSection from '../components/hero/HeroSection.vue';
 import MoreFiltersDrawer from '../components/filters/MoreFiltersDrawer.vue';
 
-const {state, setPage, resetAll} = useFiltersStore();
-const {items, total, pageCount, loading} = useListings(() => state);
+const { state, setPage, resetAll } = useFiltersStore();
+const { items, total, pageCount, loading } = useListings(() => state);
 
 const drawerOpen = ref(false);
 const gridRef = ref<HTMLElement | null>(null);
 
 function scrollToGrid() {
-  gridRef.value?.scrollIntoView({behavior: 'smooth', block: 'start'});
+  gridRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function goToPage(p: number) {
@@ -25,22 +25,22 @@ function goToPage(p: number) {
 </script>
 
 <template>
-  <HeroSection @search="scrollToGrid" @open-more="drawerOpen = true"/>
+  <HeroSection @search="scrollToGrid" @open-more="drawerOpen = true" />
   <MoreFiltersDrawer
-      :open="drawerOpen"
-      @update:open="(v) => (drawerOpen = v)"
+    :open="drawerOpen"
+    @update:open="(v) => (drawerOpen = v)"
   />
 
   <section
-      ref="gridRef"
-      class="mx-auto max-w-360 px-6 lg:px-10 pt-16 sm:pt-20 scroll-mt-20"
+    ref="gridRef"
+    class="mx-auto max-w-360 px-6 lg:px-10 pt-16 sm:pt-20 scroll-mt-20"
   >
-    <ResultsHeader :total="total" :loading="loading"/>
+    <ResultsHeader :total="total" :loading="loading" />
 
     <PropertyGrid :items="items" :loading="loading">
       <template #empty>
         <div
-            class="border border-dashed border-line rounded-2xl py-24 px-8 text-center bg-cream/40"
+          class="border border-dashed border-line rounded-2xl py-24 px-8 text-center bg-cream/40"
         >
           <p class="micro-label mb-4">No matches</p>
           <h3 class="display-headline text-3xl text-ink mb-3">
@@ -51,9 +51,9 @@ function goToPage(p: number) {
             Loosen one of the filters above, or start over with a fresh search.
           </p>
           <button
-              type="button"
-              @click="resetAll"
-              class="focus-ring inline-flex items-center gap-2 h-11 px-5 rounded-full bg-ink text-bg text-sm hover:bg-accent-2 transition-colors"
+            type="button"
+            @click="resetAll"
+            class="focus-ring inline-flex items-center gap-2 h-11 px-5 rounded-full bg-ink text-bg text-sm hover:bg-accent-2 transition-colors"
           >
             Clear all filters
           </button>
@@ -61,6 +61,6 @@ function goToPage(p: number) {
       </template>
     </PropertyGrid>
 
-    <Pagination :page="state.page" :page-count="pageCount" @change="goToPage"/>
+    <Pagination :page="state.page" :page-count="pageCount" @change="goToPage" />
   </section>
 </template>

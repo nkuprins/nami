@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed} from 'vue';
+import { computed } from 'vue';
 import IconChevron from '../ui/IconChevron.vue';
 
 const props = defineProps<{
@@ -11,7 +11,7 @@ const emit = defineEmits<{ change: [page: number] }>();
 const pages = computed<Array<number | '…'>>(() => {
   const total = props.pageCount;
   const cur = props.page;
-  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const out: Array<number | '…'> = [1];
   const start = Math.max(2, cur - 1);
   const end = Math.min(total - 1, cur + 1);
@@ -30,32 +30,32 @@ function go(p: number) {
 
 <template>
   <nav
-      v-if="pageCount > 1"
-      class="flex items-center justify-center gap-1 pt-12 mt-12 border-t border-line"
+    v-if="pageCount > 1"
+    class="flex items-center justify-center gap-1 pt-12 mt-12 border-t border-line"
   >
     <button
-        type="button"
-        @click="go(page - 1)"
-        :disabled="page === 1"
-        class="focus-ring size-10 grid place-items-center rounded-md text-ink-2 hover:text-ink hover:bg-surface disabled:opacity-30 transition-colors"
+      type="button"
+      @click="go(page - 1)"
+      :disabled="page === 1"
+      class="focus-ring size-10 grid place-items-center rounded-md text-ink-2 hover:text-ink hover:bg-surface disabled:opacity-30 transition-colors"
     >
-      <span class="size-4"><IconChevron dir="left"/></span>
+      <span class="size-4"><IconChevron dir="left" /></span>
     </button>
 
     <template v-for="(p, i) in pages" :key="i">
       <span
-          v-if="p === '…'"
-          class="px-1 text-ink-3 select-none"
-          aria-hidden="true"
-      >…</span
+        v-if="p === '…'"
+        class="px-1 text-ink-3 select-none"
+        aria-hidden="true"
+        >…</span
       >
       <button
-          v-else
-          type="button"
-          @click="go(p)"
-          :aria-current="p === page ? 'page' : undefined"
-          class="focus-ring size-10 grid place-items-center rounded-md tabular text-sm transition-colors"
-          :class="
+        v-else
+        type="button"
+        @click="go(p)"
+        :aria-current="p === page ? 'page' : undefined"
+        class="focus-ring size-10 grid place-items-center rounded-md tabular text-sm transition-colors"
+        :class="
           p === page
             ? 'bg-ink text-bg'
             : 'text-ink-2 hover:text-ink hover:bg-surface'
@@ -66,12 +66,12 @@ function go(p: number) {
     </template>
 
     <button
-        type="button"
-        @click="go(page + 1)"
-        :disabled="page === pageCount"
-        class="focus-ring size-10 grid place-items-center rounded-md text-ink-2 hover:text-ink hover:bg-surface disabled:opacity-30 transition-colors"
+      type="button"
+      @click="go(page + 1)"
+      :disabled="page === pageCount"
+      class="focus-ring size-10 grid place-items-center rounded-md text-ink-2 hover:text-ink hover:bg-surface disabled:opacity-30 transition-colors"
     >
-      <span class="size-4"><IconChevron dir="right"/></span>
+      <span class="size-4"><IconChevron dir="right" /></span>
     </button>
   </nav>
 </template>

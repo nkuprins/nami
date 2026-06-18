@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import {ref} from 'vue';
+import { ref } from 'vue';
 import Drawer from '../ui/Drawer.vue';
-import {useAuthStore} from '../../stores/authStore';
+import { useAuthStore } from '../../stores/authStore';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
 const auth = useAuthStore();
-const {login, signup, forgotPassword, resendVerification} = auth;
+const { login, signup, forgotPassword, resendVerification } = auth;
 
 type Mode = 'signin' | 'signup' | 'forgot';
 const tab = ref<'signin' | 'signup'>('signin');
@@ -105,8 +105,8 @@ async function handleResend() {
 
 <template>
   <Drawer
-      :open="open"
-      :title="
+    :open="open"
+    :title="
       pendingVerification
         ? 'Check your email'
         : mode === 'forgot'
@@ -115,12 +115,12 @@ async function handleResend() {
             ? 'Sign in'
             : 'Create account'
     "
-      @update:open="close"
+    @update:open="close"
   >
     <!-- Verification pending -->
     <div
-        v-if="pendingVerification"
-        class="flex flex-col gap-4 text-sm text-ink-2"
+      v-if="pendingVerification"
+      class="flex flex-col gap-4 text-sm text-ink-2"
     >
       <p>
         We sent a verification link to
@@ -129,9 +129,9 @@ async function handleResend() {
       </p>
       <p>Click the link in the email to activate your account, then sign in.</p>
       <button
-          type="button"
-          class="text-ink underline underline-offset-2 self-start"
-          @click="switchTab('signin')"
+        type="button"
+        class="text-ink underline underline-offset-2 self-start"
+        @click="switchTab('signin')"
       >
         Back to sign in
       </button>
@@ -145,9 +145,9 @@ async function handleResend() {
           inbox.
         </p>
         <button
-            type="button"
-            class="mt-4 text-ink underline underline-offset-2"
-            @click="switchTab('signin')"
+          type="button"
+          class="mt-4 text-ink underline underline-offset-2"
+          @click="switchTab('signin')"
         >
           Back to sign in
         </button>
@@ -155,29 +155,29 @@ async function handleResend() {
       <form v-else class="flex flex-col gap-4" @submit.prevent="submit">
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="forgot-email"
-          >Email</label
+            >Email</label
           >
           <input
-              id="forgot-email"
-              v-model="email"
-              type="email"
-              autocomplete="email"
-              placeholder="you@example.com"
-              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+            id="forgot-email"
+            v-model="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
         <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
         <button
-            type="submit"
-            :disabled="submitting"
-            class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
+          type="submit"
+          :disabled="submitting"
+          class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
         >
           Send reset link
         </button>
         <button
-            type="button"
-            class="text-sm text-ink-3 underline underline-offset-2"
-            @click="switchTab('signin')"
+          type="button"
+          class="text-sm text-ink-3 underline underline-offset-2"
+          @click="switchTab('signin')"
         >
           Back to sign in
         </button>
@@ -189,26 +189,26 @@ async function handleResend() {
       <!-- Tab switcher -->
       <div class="flex rounded-lg border border-line overflow-hidden text-sm">
         <button
-            type="button"
-            class="flex-1 h-9 font-medium transition-colors"
-            :class="
+          type="button"
+          class="flex-1 h-9 font-medium transition-colors"
+          :class="
             tab === 'signin'
               ? 'bg-ink text-bg'
               : 'text-ink-2 hover:text-ink hover:bg-surface'
           "
-            @click="switchTab('signin')"
+          @click="switchTab('signin')"
         >
           Sign in
         </button>
         <button
-            type="button"
-            class="flex-1 h-9 font-medium transition-colors"
-            :class="
+          type="button"
+          class="flex-1 h-9 font-medium transition-colors"
+          :class="
             tab === 'signup'
               ? 'bg-ink text-bg'
               : 'text-ink-2 hover:text-ink hover:bg-surface'
           "
-            @click="switchTab('signup')"
+          @click="switchTab('signup')"
         >
           Create account
         </button>
@@ -217,42 +217,42 @@ async function handleResend() {
       <form class="flex flex-col gap-4" @submit.prevent="submit">
         <div v-if="tab === 'signup'" class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="auth-name"
-          >Full name</label
+            >Full name</label
           >
           <input
-              id="auth-name"
-              v-model="name"
-              type="text"
-              autocomplete="name"
-              placeholder="Your name"
-              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+            id="auth-name"
+            v-model="name"
+            type="text"
+            autocomplete="name"
+            placeholder="Your name"
+            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
 
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="auth-email"
-          >Email</label
+            >Email</label
           >
           <input
-              id="auth-email"
-              v-model="email"
-              type="email"
-              autocomplete="email"
-              placeholder="you@example.com"
-              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+            id="auth-email"
+            v-model="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
 
         <div class="flex flex-col gap-1.5">
           <div class="flex items-center justify-between">
             <label class="text-sm font-medium text-ink" for="auth-password"
-            >Password</label
+              >Password</label
             >
             <button
-                v-if="tab === 'signin'"
-                type="button"
-                class="text-xs text-ink-3 hover:text-ink underline underline-offset-2"
-                @click="
+              v-if="tab === 'signin'"
+              type="button"
+              class="text-xs text-ink-3 hover:text-ink underline underline-offset-2"
+              @click="
                 mode = 'forgot';
                 error = '';
               "
@@ -261,29 +261,29 @@ async function handleResend() {
             </button>
           </div>
           <input
-              id="auth-password"
-              v-model="password"
-              type="password"
-              :autocomplete="
+            id="auth-password"
+            v-model="password"
+            type="password"
+            :autocomplete="
               tab === 'signin' ? 'current-password' : 'new-password'
             "
-              placeholder="••••••••••••••••"
-              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+            placeholder="••••••••••••••••"
+            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
 
         <!-- EMAIL_NOT_VERIFIED state -->
         <div
-            v-if="error === 'EMAIL_NOT_VERIFIED'"
-            class="flex flex-col gap-2 rounded-lg bg-surface border border-line p-3"
+          v-if="error === 'EMAIL_NOT_VERIFIED'"
+          class="flex flex-col gap-2 rounded-lg bg-surface border border-line p-3"
         >
           <p class="text-sm text-ink-2">
             Please verify your email before signing in.
           </p>
           <button
-              type="button"
-              class="text-sm text-ink underline underline-offset-2 self-start"
-              @click="handleResend"
+            type="button"
+            class="text-sm text-ink underline underline-offset-2 self-start"
+            @click="handleResend"
           >
             {{ verificationResent ? 'Sent!' : 'Resend verification email' }}
           </button>
@@ -291,9 +291,9 @@ async function handleResend() {
         <p v-else-if="error" class="text-sm text-red-500">{{ error }}</p>
 
         <button
-            type="submit"
-            :disabled="submitting"
-            class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
+          type="submit"
+          :disabled="submitting"
+          class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
         >
           {{ tab === 'signin' ? 'Sign in' : 'Create account' }}
         </button>
@@ -303,9 +303,9 @@ async function handleResend() {
         <template v-if="tab === 'signin'">
           No account?
           <button
-              type="button"
-              class="text-ink underline underline-offset-2"
-              @click="switchTab('signup')"
+            type="button"
+            class="text-ink underline underline-offset-2"
+            @click="switchTab('signup')"
           >
             Sign up
           </button>
@@ -313,9 +313,9 @@ async function handleResend() {
         <template v-else>
           Already have an account?
           <button
-              type="button"
-              class="text-ink underline underline-offset-2"
-              @click="switchTab('signin')"
+            type="button"
+            class="text-ink underline underline-offset-2"
+            @click="switchTab('signin')"
           >
             Sign in
           </button>

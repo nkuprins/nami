@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, watch} from 'vue';
+import { ref, watch } from 'vue';
 import IconChevron from '../ui/IconChevron.vue';
 
 const props = defineProps<{
@@ -16,10 +16,10 @@ let touchEndX = 0;
 const SWIPE_THRESHOLD = 50; // Minimum swipe distance in pixels
 
 watch(
-    () => props.photos,
-    () => {
-      index.value = 0;
-    }
+  () => props.photos,
+  () => {
+    index.value = 0;
+  }
 );
 
 function next(e?: Event) {
@@ -66,50 +66,50 @@ function handleTouchEnd() {
 
 <template>
   <div
-      class="relative size-full overflow-hidden bg-surface group/carousel touch-pan-y"
-      role="region"
-      @touchstart="handleTouchStart"
-      @touchmove="handleTouchMove"
-      @touchend="handleTouchEnd"
+    class="relative size-full overflow-hidden bg-surface group/carousel touch-pan-y"
+    role="region"
+    @touchstart="handleTouchStart"
+    @touchmove="handleTouchMove"
+    @touchend="handleTouchEnd"
   >
     <transition
-        :name="direction === 'forward' ? 'carousel-fwd' : 'carousel-bwd'"
-        mode="out-in"
+      :name="direction === 'forward' ? 'carousel-fwd' : 'carousel-bwd'"
+      mode="out-in"
     >
       <img
-          :key="index"
-          :src="photos[index]"
-          :alt="`${alt} — photo ${index + 1} of ${photos.length}`"
-          class="absolute inset-0 size-full object-cover select-none pointer-events-none"
-          loading="lazy"
+        :key="index"
+        :src="photos[index]"
+        :alt="`${alt} — photo ${index + 1} of ${photos.length}`"
+        class="absolute inset-0 size-full object-cover select-none pointer-events-none"
+        loading="lazy"
       />
     </transition>
 
     <div
-        class="absolute inset-0 pointer-events-none bg-linear-to-t from-ink/30 via-ink/0 to-ink/0"
-        aria-hidden="true"
+      class="absolute inset-0 pointer-events-none bg-linear-to-t from-ink/30 via-ink/0 to-ink/0"
+      aria-hidden="true"
     />
 
     <button
-        v-if="photos.length > 1"
-        type="button"
-        @click="prev"
-        class="focus-ring absolute left-3 top-1/2 -translate-y-1/2 z-10 size-9 grid place-items-center rounded-full bg-bg/85 backdrop-blur text-ink opacity-0 group-hover/carousel:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 hover:bg-bg md:grid"
+      v-if="photos.length > 1"
+      type="button"
+      @click="prev"
+      class="focus-ring absolute left-3 top-1/2 -translate-y-1/2 z-10 size-9 grid place-items-center rounded-full bg-bg/85 backdrop-blur text-ink opacity-0 group-hover/carousel:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 hover:bg-bg md:grid"
     >
-      <span class="size-4 inline-block"><IconChevron dir="left"/></span>
+      <span class="size-4 inline-block"><IconChevron dir="left" /></span>
     </button>
     <button
-        v-if="photos.length > 1"
-        type="button"
-        @click="next"
-        class="focus-ring absolute right-3 top-1/2 -translate-y-1/2 z-10 size-9 grid place-items-center rounded-full bg-bg/85 backdrop-blur text-ink opacity-0 group-hover/carousel:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 hover:bg-bg md:grid"
+      v-if="photos.length > 1"
+      type="button"
+      @click="next"
+      class="focus-ring absolute right-3 top-1/2 -translate-y-1/2 z-10 size-9 grid place-items-center rounded-full bg-bg/85 backdrop-blur text-ink opacity-0 group-hover/carousel:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 hover:bg-bg md:grid"
     >
-      <span class="size-4 inline-block"><IconChevron dir="right"/></span>
+      <span class="size-4 inline-block"><IconChevron dir="right" /></span>
     </button>
 
     <div
-        class="absolute bottom-3 right-3 z-10 micro-label text-cream/85! tabular bg-ink/40 backdrop-blur px-2 h-6 inline-flex items-center rounded-sm"
-        v-if="photos.length > 1"
+      class="absolute bottom-3 right-3 z-10 micro-label text-cream/85! tabular bg-ink/40 backdrop-blur px-2 h-6 inline-flex items-center rounded-sm"
+      v-if="photos.length > 1"
     >
       <span>{{ index + 1 }}</span>
       <span class="mx-0.5">/</span>

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import {onMounted, ref} from 'vue';
-import {useRoute} from 'vue-router';
-import {useAuthStore} from '../stores/authStore';
+import { onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
+import { useAuthStore } from '../stores/authStore';
 import IconFail from '../components/ui/IconFail.vue';
 import IconCheck from '../components/ui/IconCheck.vue';
 
 const route = useRoute();
-const {verifyEmail} = useAuthStore();
+const { verifyEmail } = useAuthStore();
 
 const status = ref<'loading' | 'success' | 'error'>('loading');
 const errorMsg = ref('');
@@ -33,33 +33,33 @@ onMounted(async () => {
     <p v-if="status === 'loading'" class="text-sm text-ink-2">Verifying…</p>
 
     <div
-        v-else-if="status === 'success'"
-        class="flex flex-col items-center gap-4"
+      v-else-if="status === 'success'"
+      class="flex flex-col items-center gap-4"
     >
       <div
-          class="size-12 rounded-full bg-surface border border-line flex items-center justify-center"
+        class="size-12 rounded-full bg-surface border border-line flex items-center justify-center"
       >
-        <IconCheck/>
+        <IconCheck />
       </div>
       <h1 class="text-lg font-medium text-ink">Email verified</h1>
       <p class="text-sm text-ink-2">
         Your email has been confirmed. You can now sign in.
       </p>
       <a href="/" class="text-sm text-ink underline underline-offset-2"
-      >Go to home</a
+        >Go to home</a
       >
     </div>
 
     <div v-else class="flex flex-col items-center gap-4">
       <div
-          class="size-12 rounded-full bg-surface border border-line flex items-center justify-center"
+        class="size-12 rounded-full bg-surface border border-line flex items-center justify-center"
       >
-        <IconFail/>
+        <IconFail />
       </div>
       <h1 class="text-lg font-medium text-ink">Verification FAILED</h1>
       <p class="text-sm text-ink-2">{{ errorMsg }}</p>
       <a href="/" class="text-sm text-ink underline underline-offset-2"
-      >Go to home</a
+        >Go to home</a
       >
     </div>
   </div>

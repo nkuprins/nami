@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue';
-import {useFiltersStore} from '../../stores/filterStore';
+import { computed, ref } from 'vue';
+import { useFiltersStore } from '../../stores/filterStore';
 import IconChevron from '../ui/IconChevron.vue';
 import Popover from '../ui/Popover.vue';
-import {SORT_OPTIONS, SortKey} from '../../types/sort';
+import { SORT_OPTIONS, SortKey } from '../../types/sort';
 
 defineProps<{ total: number; loading: boolean }>();
 
-const {state, setSort} = useFiltersStore();
+const { state, setSort } = useFiltersStore();
 
 const open = ref(false);
 const anchor = ref<HTMLButtonElement | null>(null);
@@ -24,7 +24,7 @@ function pick(id: SortKey) {
 
 <template>
   <div
-      class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8"
+    class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8"
   >
     <div class="space-y-1">
       <p class="micro-label">Results</p>
@@ -39,35 +39,35 @@ function pick(id: SortKey) {
 
     <div class="relative">
       <button
-          ref="anchor"
-          type="button"
-          @click="open = !open"
-          :aria-expanded="open"
-          class="focus-ring inline-flex items-center gap-3 h-11 px-4 rounded-md border border-line bg-bg hover:border-line-2 transition-colors text-sm"
+        ref="anchor"
+        type="button"
+        @click="open = !open"
+        :aria-expanded="open"
+        class="focus-ring inline-flex items-center gap-3 h-11 px-4 rounded-md border border-line bg-bg hover:border-line-2 transition-colors text-sm"
       >
         <span class="micro-label">Sort</span>
         <span class="text-ink">{{ currentSortLabel }}</span>
         <span class="size-4 text-ink-2"
-        ><IconChevron :dir="open ? 'up' : 'down'"
+          ><IconChevron :dir="open ? 'up' : 'down'"
         /></span>
       </button>
 
       <Popover
-          :open="open"
-          :anchor-el="anchor"
-          title="Sort listings"
-          align="end"
-          :width="280"
-          @update:open="(v) => (open = v)"
+        :open="open"
+        :anchor-el="anchor"
+        title="Sort listings"
+        align="end"
+        :width="280"
+        @update:open="(v) => (open = v)"
       >
         <div class="space-y-1">
           <button
-              v-for="opt in SORT_OPTIONS"
-              :key="opt.id"
-              type="button"
-              @click="pick(opt.id)"
-              class="focus-ring w-full text-left px-3 py-2 rounded-md hover:bg-surface transition-colors flex items-center justify-between gap-3"
-              :class="state.sort === opt.id ? 'bg-cream/60' : ''"
+            v-for="opt in SORT_OPTIONS"
+            :key="opt.id"
+            type="button"
+            @click="pick(opt.id)"
+            class="focus-ring w-full text-left px-3 py-2 rounded-md hover:bg-surface transition-colors flex items-center justify-between gap-3"
+            :class="state.sort === opt.id ? 'bg-cream/60' : ''"
           >
             <div class="space-y-0.5">
               <span class="text-sm text-ink block">{{ opt.label }}</span>
@@ -75,9 +75,9 @@ function pick(id: SortKey) {
             </div>
 
             <span
-                v-if="state.sort === opt.id"
-                class="size-1.5 rounded-full bg-accent shrink-0"
-                aria-hidden="true"
+              v-if="state.sort === opt.id"
+              class="size-1.5 rounded-full bg-accent shrink-0"
+              aria-hidden="true"
             />
           </button>
         </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {computed, ref} from 'vue';
-import {districtSlugByName, slugify} from '../../data/locations';
+import { computed, ref } from 'vue';
+import { districtSlugByName, slugify } from '../../data/locations';
 import {
   City,
   District,
@@ -9,13 +9,13 @@ import {
 } from '../../data/rawLocations';
 
 const props = withDefaults(
-    defineProps<{
-      modelValue: Location[];
-      multiple?: boolean;
-    }>(),
-    {
-      multiple: true,
-    }
+  defineProps<{
+    modelValue: Location[];
+    multiple?: boolean;
+  }>(),
+  {
+    multiple: true,
+  }
 );
 const emit = defineEmits<{ 'update:modelValue': [value: Location[]] }>();
 
@@ -28,7 +28,7 @@ const grouped = computed(() => {
   const filteredMap = new Map<City, readonly District[]>();
   for (const [cityName, districts] of LOCATION_MAP) {
     const matchingDistricts = districts.filter((districtName) =>
-        districtSlugByName.get(districtName)?.includes(normalizedQuery)
+      districtSlugByName.get(districtName)?.includes(normalizedQuery)
     );
 
     if (matchingDistricts.length > 0) {
@@ -41,14 +41,14 @@ const grouped = computed(() => {
 
 function isSelected(cityName: string, districtName: string): boolean {
   return props.modelValue.some(
-      (l) => l.city === cityName && l.district === districtName
+    (l) => l.city === cityName && l.district === districtName
   );
 }
 
 function handleSelect(cityName: string, districtName: string) {
   let nextValue: Location[];
   const index = props.modelValue.findIndex(
-      (l) => l.city === cityName && l.district === districtName
+    (l) => l.city === cityName && l.district === districtName
   );
 
   if (props.multiple) {
@@ -57,10 +57,10 @@ function handleSelect(cityName: string, districtName: string) {
     if (index > -1) {
       nextValue.splice(index, 1);
     } else {
-      nextValue.push({city: cityName, district: districtName});
+      nextValue.push({ city: cityName, district: districtName });
     }
   } else {
-    nextValue = [{city: cityName, district: districtName}];
+    nextValue = [{ city: cityName, district: districtName }];
   }
   emit('update:modelValue', nextValue);
 }
@@ -74,23 +74,23 @@ function clear() {
 <template>
   <div class="space-y-4 min-w-70">
     <input
-        v-model="query"
-        type="search"
-        placeholder="Find a district…"
-        class="focus-ring w-full h-10 px-3 rounded-md border border-line bg-bg text-sm placeholder:text-ink-3"
+      v-model="query"
+      type="search"
+      placeholder="Find a district…"
+      class="focus-ring w-full h-10 px-3 rounded-md border border-line bg-bg text-sm placeholder:text-ink-3"
     />
     <div class="space-y-4 max-h-72 overflow-y-auto pr-1">
       <div
-          v-for="[cityName, districts] in grouped"
-          :key="cityName"
-          class="space-y-1.5"
+        v-for="[cityName, districts] in grouped"
+        :key="cityName"
+        class="space-y-1.5"
       >
         <p class="micro-label">{{ cityName }}</p>
         <div class="grid grid-cols-2 gap-1">
           <template v-if="multiple">
             <label
-                v-for="d in districts"
-                :key="d"
+              v-for="d in districts"
+              :key="d"
               class="focus-ring flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-ink cursor-pointer hover:bg-surface"
             >
               <input
@@ -105,21 +105,21 @@ function clear() {
 
           <template v-else>
             <button
-                v-for="d in districts"
-                :key="d"
-                type="button"
-                class="focus-ring flex items-center justify-between px-2.5 py-1.5 rounded-md text-sm text-left transition-colors group"
-                :class="
+              v-for="d in districts"
+              :key="d"
+              type="button"
+              class="focus-ring flex items-center justify-between px-2.5 py-1.5 rounded-md text-sm text-left transition-colors group"
+              :class="
                 isSelected(cityName, d)
                   ? 'bg-surface text-ink font-semibold'
                   : 'text-ink hover:bg-surface/70'
               "
-                @click="handleSelect(cityName, d)"
+              @click="handleSelect(cityName, d)"
             >
               <span>{{ d }}</span>
               <span
-                  v-if="isSelected(cityName, d)"
-                  class="text-ink text-xs font-bold"
+                v-if="isSelected(cityName, d)"
+                class="text-ink text-xs font-bold"
               >
                 ✓
               </span>
@@ -133,13 +133,13 @@ function clear() {
     </div>
 
     <div
-        v-if="multiple"
-        class="flex items-center justify-between pt-3 border-t border-line"
+      v-if="multiple"
+      class="flex items-center justify-between pt-3 border-t border-line"
     >
       <button
-          type="button"
-          class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
-          @click="clear"
+        type="button"
+        class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
+        @click="clear"
       >
         Clear
       </button>

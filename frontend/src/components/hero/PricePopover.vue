@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {computed, ref, watch} from 'vue';
-import type {PropertyType} from '../../types/propertyItem';
+import { computed, ref, watch } from 'vue';
+import type { PropertyType } from '../../types/propertyItem';
 
 const props = defineProps<{
   min: number | undefined;
@@ -15,15 +15,15 @@ const localMin = ref<string>(props.min !== undefined ? String(props.min) : '');
 const localMax = ref<string>(props.max !== undefined ? String(props.max) : '');
 
 watch(
-    () => [props.min, props.max],
-    ([mn, mx]) => {
-      localMin.value = mn !== undefined ? String(mn) : '';
-      localMax.value = mx !== undefined ? String(mx) : '';
-    }
+  () => [props.min, props.max],
+  ([mn, mx]) => {
+    localMin.value = mn !== undefined ? String(mn) : '';
+    localMax.value = mx !== undefined ? String(mx) : '';
+  }
 );
 
 const suggestions = computed<
-    Array<[number | undefined, number | undefined, string]>
+  Array<[number | undefined, number | undefined, string]>
 >(() => {
   if (props.type === 'rent') {
     return [
@@ -47,17 +47,17 @@ function commit() {
   if (timer !== null) window.clearTimeout(timer);
   timer = window.setTimeout(() => {
     const mn =
-        localMin.value === ''
-            ? undefined
-            : Math.max(0, parseInt(localMin.value, 10));
+      localMin.value === ''
+        ? undefined
+        : Math.max(0, parseInt(localMin.value, 10));
     const mx =
-        localMax.value === ''
-            ? undefined
-            : Math.max(0, parseInt(localMax.value, 10));
+      localMax.value === ''
+        ? undefined
+        : Math.max(0, parseInt(localMax.value, 10));
     emit(
-        'update:range',
-        Number.isFinite(mn as number) ? mn : undefined,
-        Number.isFinite(mx as number) ? mx : undefined
+      'update:range',
+      Number.isFinite(mn as number) ? mn : undefined,
+      Number.isFinite(mx as number) ? mx : undefined
     );
   }, 280);
 }
@@ -80,28 +80,28 @@ function clear() {
     <div class="grid grid-cols-2 gap-2">
       <label class="flex flex-col gap-1">
         <span class="micro-label"
-        >Min {{ type === 'rent' ? '€ / mo' : '€' }}</span
+          >Min {{ type === 'rent' ? '€ / mo' : '€' }}</span
         >
         <input
-            v-model="localMin"
-            @input="commit"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            placeholder="Any"
-            class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
+          v-model="localMin"
+          @input="commit"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          placeholder="Any"
+          class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
         />
       </label>
       <label class="flex flex-col gap-1">
         <span class="micro-label"
-        >Max {{ type === 'rent' ? '€ / mo' : '€' }}</span
+          >Max {{ type === 'rent' ? '€ / mo' : '€' }}</span
         >
         <input
-            v-model="localMax"
-            @input="commit"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            placeholder="Any"
-            class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
+          v-model="localMax"
+          @input="commit"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          placeholder="Any"
+          class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
         />
       </label>
     </div>
@@ -109,11 +109,11 @@ function clear() {
       <p class="micro-label mb-2">Quick picks</p>
       <div class="flex flex-wrap gap-1.5">
         <button
-            v-for="[mn, mx, label] in suggestions"
-            :key="label"
-            type="button"
-            class="focus-ring px-3 h-8 rounded-full border border-line text-xs text-ink-2 hover:text-ink hover:border-line-2 transition-colors"
-            @click="pickPreset(mn, mx)"
+          v-for="[mn, mx, label] in suggestions"
+          :key="label"
+          type="button"
+          class="focus-ring px-3 h-8 rounded-full border border-line text-xs text-ink-2 hover:text-ink hover:border-line-2 transition-colors"
+          @click="pickPreset(mn, mx)"
         >
           {{ label }}
         </button>
@@ -121,9 +121,9 @@ function clear() {
     </div>
     <div class="flex items-center justify-end pt-3 border-t border-line">
       <button
-          type="button"
-          class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
-          @click="clear"
+        type="button"
+        class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
+        @click="clear"
       >
         Clear
       </button>
