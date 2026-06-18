@@ -7,6 +7,7 @@ import { useAuthStore } from '../../stores/authStore';
 import AuthModal from '../auth/AuthModal.vue';
 import SavedDrawer from '../saved/SavedDrawer.vue';
 import MyPropertiesDrawer from '../listing/MyPropertiesDrawer.vue';
+import IconBuilding from '../ui/IconBuilding.vue';
 
 const router = useRouter();
 const savedStore = useSavedStore();
@@ -46,7 +47,9 @@ const myPropertiesOpen = ref(false);
             auth.isAuthenticated ? (myPropertiesOpen = true) : (authOpen = true)
           "
         >
-          <i class="ti ti-building-estate text-base" aria-hidden="true" />
+          <span class="size-4 inline-block">
+            <IconBuilding />
+          </span>
           <span class="hidden sm:inline">My listings</span>
         </button>
 

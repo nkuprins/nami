@@ -41,9 +41,7 @@ export const useSavedStore = defineStore('saved', () => {
 
   async function toggle(id: string): Promise<void> {
     const saving = !asSet.value.has(id);
-    ids.value = saving
-      ? [...ids.value, id]
-      : ids.value.filter((x) => x !== id);
+    ids.value = saving ? [...ids.value, id] : ids.value.filter((x) => x !== id);
 
     if (authStore.isAuthenticated) {
       if (saving) {
