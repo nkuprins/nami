@@ -2,8 +2,8 @@
 import {onMounted, ref} from 'vue';
 import {useRoute} from 'vue-router';
 import {useAuthStore} from '../stores/auth';
-import IconFail from "../components/ui/IconFail.vue";
-import IconCheck from "../components/ui/IconCheck.vue";
+import IconFail from '../components/ui/IconFail.vue';
+import IconCheck from '../components/ui/IconCheck.vue';
 
 const route = useRoute();
 const {verifyEmail} = useAuthStore();
@@ -32,22 +32,35 @@ onMounted(async () => {
   <div class="max-w-md mx-auto px-4 py-20 text-center">
     <p v-if="status === 'loading'" class="text-sm text-ink-2">Verifying…</p>
 
-    <div v-else-if="status === 'success'" class="flex flex-col items-center gap-4">
-      <div class="size-12 rounded-full bg-surface border border-line flex items-center justify-center">
+    <div
+        v-else-if="status === 'success'"
+        class="flex flex-col items-center gap-4"
+    >
+      <div
+          class="size-12 rounded-full bg-surface border border-line flex items-center justify-center"
+      >
         <IconCheck/>
       </div>
       <h1 class="text-lg font-medium text-ink">Email verified</h1>
-      <p class="text-sm text-ink-2">Your email has been confirmed. You can now sign in.</p>
-      <a href="/" class="text-sm text-ink underline underline-offset-2">Go to home</a>
+      <p class="text-sm text-ink-2">
+        Your email has been confirmed. You can now sign in.
+      </p>
+      <a href="/" class="text-sm text-ink underline underline-offset-2"
+      >Go to home</a
+      >
     </div>
 
     <div v-else class="flex flex-col items-center gap-4">
-      <div class="size-12 rounded-full bg-surface border border-line flex items-center justify-center">
+      <div
+          class="size-12 rounded-full bg-surface border border-line flex items-center justify-center"
+      >
         <IconFail/>
       </div>
       <h1 class="text-lg font-medium text-ink">Verification FAILED</h1>
       <p class="text-sm text-ink-2">{{ errorMsg }}</p>
-      <a href="/" class="text-sm text-ink underline underline-offset-2">Go to home</a>
+      <a href="/" class="text-sm text-ink underline underline-offset-2"
+      >Go to home</a
+      >
     </div>
   </div>
 </template>

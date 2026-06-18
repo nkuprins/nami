@@ -1,6 +1,6 @@
 import {setupWorker} from 'msw/browser';
 import {handlers} from './handlers';
-import {logger} from "../utils/logger";
+import {logger} from '../utils/logger';
 
 export const worker = setupWorker(...handlers);
 

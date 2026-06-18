@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {type PropertyItem as PropertyItemType} from "../../types/propertyItem";
-import PropertyItem from "../../components/listing/PropertyItem.vue";
+import {type PropertyItem as PropertyItemType} from '../../types/propertyItem';
+import PropertyItem from '../../components/listing/PropertyItem.vue';
 
 defineProps<{
   items: PropertyItemType[];

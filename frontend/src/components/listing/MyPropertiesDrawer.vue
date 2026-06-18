@@ -30,17 +30,27 @@ watch(() => props.open, load);
 </script>
 
 <template>
-  <Drawer :open="open" title="My properties" @update:open="emit('update:open', $event)">
-
+  <Drawer
+      :open="open"
+      title="My properties"
+      @update:open="emit('update:open', $event)"
+  >
     <div v-if="loading" class="flex flex-col gap-3">
-      <div v-for="i in 3" :key="i" class="h-20 rounded-xl bg-surface animate-pulse"/>
+      <div
+          v-for="i in 3"
+          :key="i"
+          class="h-20 rounded-xl bg-surface animate-pulse"
+      />
     </div>
 
     <div v-else-if="error" class="py-16 text-center">
       <p class="text-sm text-ink-2">Failed to load properties.</p>
     </div>
 
-    <div v-else-if="items.length === 0" class="flex flex-col items-center justify-center gap-3 py-16 text-center">
+    <div
+        v-else-if="items.length === 0"
+        class="flex flex-col items-center justify-center gap-3 py-16 text-center"
+    >
       <p class="text-sm text-ink-2">You haven't listed any properties yet.</p>
       <RouterLink
           to="/add-property"
@@ -70,13 +80,18 @@ watch(() => props.open, load);
 
         <div class="flex-1 min-w-0 py-3 pr-3 flex flex-col justify-between">
           <div>
-            <p class="text-sm font-medium text-ink line-clamp-1">{{ item.title }}</p>
-            <p class="text-xs text-ink-3 mt-0.5 line-clamp-1">{{ item.district }}, {{ item.city }}</p>
+            <p class="text-sm font-medium text-ink line-clamp-1">
+              {{ item.title }}
+            </p>
+            <p class="text-xs text-ink-3 mt-0.5 line-clamp-1">
+              {{ item.district }}, {{ item.city }}
+            </p>
           </div>
-          <p class="text-sm font-semibold text-ink">{{ formatPrice(item.price, item.type) }}</p>
+          <p class="text-sm font-semibold text-ink">
+            {{ formatPrice(item.price, item.type) }}
+          </p>
         </div>
       </RouterLink>
     </div>
-
   </Drawer>
 </template>

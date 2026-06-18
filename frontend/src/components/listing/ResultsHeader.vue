@@ -27,12 +27,16 @@ function pick(id: SortKey) {
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+  <div
+      class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8"
+  >
     <div class="space-y-1">
       <p class="micro-label">Results</p>
       <h2 class="display-headline text-3xl sm:text-4xl text-ink">
         <span class="tabular">{{ total }}</span>
-        <span class="text-ink-2"> {{ total === 1 ? ' listing' : ' listings' }}</span>
+        <span class="text-ink-2">
+          {{ total === 1 ? ' listing' : ' listings' }}</span
+        >
       </h2>
       <p v-if="loading" class="text-xs text-ink-3">Updating…</p>
     </div>
@@ -43,12 +47,15 @@ function pick(id: SortKey) {
           type="button"
           @click="open = !open"
           :aria-expanded="open"
-          class="focus-ring inline-flex items-center gap-3 h-11 px-4 rounded-md
-               border border-line bg-bg hover:border-line-2 transition-colors text-sm"
+          class="focus-ring inline-flex items-center gap-3 h-11 px-4 rounded-md border border-line bg-bg hover:border-line-2 transition-colors text-sm"
       >
         <span class="micro-label">Sort</span>
-        <span class="text-ink">{{ SORT_OPTIONS.find((s) => s.id === state.sort)?.label }}</span>
-        <span class="size-4 text-ink-2"><IconChevron :dir="open ? 'up' : 'down'"/></span>
+        <span class="text-ink">{{
+            SORT_OPTIONS.find((s) => s.id === state.sort)?.label
+          }}</span>
+        <span class="size-4 text-ink-2"
+        ><IconChevron :dir="open ? 'up' : 'down'"
+        /></span>
       </button>
 
       <Popover
@@ -65,8 +72,7 @@ function pick(id: SortKey) {
               :key="opt.id"
               type="button"
               @click="pick(opt.id)"
-              class="focus-ring w-full text-left px-3 py-2 rounded-md hover:bg-surface transition-colors
-           flex items-center justify-between gap-3"
+              class="focus-ring w-full text-left px-3 py-2 rounded-md hover:bg-surface transition-colors flex items-center justify-between gap-3"
               :class="state.sort === opt.id ? 'bg-cream/60' : ''"
           >
             <div class="space-y-0.5">

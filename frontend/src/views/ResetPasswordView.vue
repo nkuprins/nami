@@ -2,7 +2,7 @@
 import {ref} from 'vue';
 import {useRoute} from 'vue-router';
 import {useAuthStore} from '../stores/auth';
-import IconCheck from "../components/ui/IconCheck.vue";
+import IconCheck from '../components/ui/IconCheck.vue';
 
 const route = useRoute();
 const {resetPassword} = useAuthStore();
@@ -49,41 +49,48 @@ async function submit() {
 <template>
   <div class="max-w-md mx-auto px-4 py-20">
     <div v-if="done" class="text-center flex flex-col items-center gap-4">
-      <div class="size-12 rounded-full bg-surface border border-line flex items-center justify-center">
+      <div
+          class="size-12 rounded-full bg-surface border border-line flex items-center justify-center"
+      >
         <IconCheck/>
       </div>
       <h1 class="text-lg font-medium text-ink">Password updated</h1>
-      <p class="text-sm text-ink-2">You can now sign in with your new password.</p>
-      <RouterLink to="/" class="text-sm text-ink underline underline-offset-2">Go to home</RouterLink>
+      <p class="text-sm text-ink-2">
+        You can now sign in with your new password.
+      </p>
+      <RouterLink to="/" class="text-sm text-ink underline underline-offset-2"
+      >Go to home
+      </RouterLink
+      >
     </div>
 
     <div v-else>
       <h1 class="text-lg font-medium text-ink mb-6">Set new password</h1>
       <form class="flex flex-col gap-4" @submit.prevent="submit">
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="rp-password">New password</label>
+          <label class="text-sm font-medium text-ink" for="rp-password"
+          >New password</label
+          >
           <input
               id="rp-password"
               v-model="password"
               type="password"
               autocomplete="new-password"
               placeholder="••••••••••••••••"
-              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink
-                     placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20
-                     focus:border-ink transition-colors"
+              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="rp-confirm">Confirm password</label>
+          <label class="text-sm font-medium text-ink" for="rp-confirm"
+          >Confirm password</label
+          >
           <input
               id="rp-confirm"
               v-model="confirm"
               type="password"
               autocomplete="new-password"
               placeholder="••••••••••••••••"
-              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink
-                     placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20
-                     focus:border-ink transition-colors"
+              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
         <p v-if="error" class="text-sm text-red-500">{{ error }}</p>

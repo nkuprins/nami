@@ -14,7 +14,10 @@ function toggle(v: number) {
   const set = new Set(props.modelValue);
   if (set.has(v)) set.delete(v);
   else set.add(v);
-  emit('update:modelValue', [...set].sort((a, b) => a - b));
+  emit(
+      'update:modelValue',
+      [...set].sort((a, b) => a - b)
+  );
 }
 
 function clear() {
@@ -30,11 +33,12 @@ function clear() {
           :key="opt.value"
           type="button"
           @click="toggle(opt.value)"
-          class="focus-ring inline-flex items-center justify-center min-w-11 h-10 px-3 rounded-md
-               border text-sm transition-colors"
-          :class="modelValue.includes(opt.value)
-          ? 'border-ink bg-ink text-bg'
-          : 'border-line text-ink hover:border-line-2'"
+          class="focus-ring inline-flex items-center justify-center min-w-11 h-10 px-3 rounded-md border text-sm transition-colors"
+          :class="
+          modelValue.includes(opt.value)
+            ? 'border-ink bg-ink text-bg'
+            : 'border-line text-ink hover:border-line-2'
+        "
       >
         {{ opt.label }} rm
       </button>

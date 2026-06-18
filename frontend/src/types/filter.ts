@@ -1,4 +1,4 @@
-import {Feature, PropertyType} from "./propertyItem";
+import {Feature, PropertyType} from './propertyItem';
 
 export type SortKey =
     | 'newest'

@@ -8,7 +8,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "format": "npx prettier . --write"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",

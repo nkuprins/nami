@@ -1,4 +1,4 @@
-import {PropertyType} from "../types/propertyItem";
+import {PropertyType} from '../types/propertyItem';
 
 export function isNew(postedAt: string): boolean {
     const posted = new Date(postedAt).getTime();
@@ -13,7 +13,9 @@ const euroFmt = new Intl.NumberFormat('en-IE', {
 });
 
 export function formatPrice(value: number, type: PropertyType): string {
-    return type === 'rent' ? `${euroFmt.format(value)} / mo` : euroFmt.format(value);
+    return type === 'rent'
+        ? `${euroFmt.format(value)} / mo`
+        : euroFmt.format(value);
 }
 
 export function formatPricePerM2(value: number): string {

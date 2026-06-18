@@ -23,7 +23,7 @@ watch(
         document.removeEventListener('keydown', onKey);
         document.body.style.overflow = '';
       }
-    },
+    }
 );
 
 onBeforeUnmount(() => {
@@ -46,10 +46,11 @@ onBeforeUnmount(() => {
     <transition name="drawer-right">
       <aside
           v-if="open"
-          class="hidden md:flex fixed inset-y-0 right-0 w-120 z-50 bg-bg shadow-lift
-               border-l border-line flex-col"
+          class="hidden md:flex fixed inset-y-0 right-0 w-120 z-50 bg-bg shadow-lift border-l border-line flex-col"
       >
-        <header class="flex items-center justify-between px-6 h-16 border-b border-line">
+        <header
+            class="flex items-center justify-between px-6 h-16 border-b border-line"
+        >
           <div>
             <p class="micro-label">{{ title }}</p>
             <p class="text-xs text-ink-3 mt-0.5">Esc to close</p>
@@ -77,10 +78,11 @@ onBeforeUnmount(() => {
     <transition name="drawer-bottom">
       <aside
           v-if="open"
-          class="md:hidden fixed inset-x-0 bottom-0 z-50 max-h-[90vh] bg-bg rounded-t-2xl
-               shadow-lift flex flex-col"
+          class="md:hidden fixed inset-x-0 bottom-0 z-50 max-h-[90vh] bg-bg rounded-t-2xl shadow-lift flex flex-col"
       >
-        <header class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-line">
+        <header
+            class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-line"
+        >
           <p class="micro-label">{{ title }}</p>
           <button
               type="button"

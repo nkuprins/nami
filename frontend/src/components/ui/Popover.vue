@@ -66,7 +66,7 @@ watch(
         window.removeEventListener('resize', position);
         window.removeEventListener('scroll', position, true);
       }
-    },
+    }
 );
 
 onBeforeUnmount(() => {
@@ -87,7 +87,9 @@ onBeforeUnmount(() => {
           @click.self="close"
       >
         <div class="bg-bg rounded-t-2xl shadow-lift max-h-[80vh] flex flex-col">
-          <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-line">
+          <div
+              class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-line"
+          >
             <p class="micro-label">{{ title ?? 'Filter' }}</p>
             <button
                 class="focus-ring size-9 grid place-items-center -mr-2 text-ink-2 hover:text-ink"

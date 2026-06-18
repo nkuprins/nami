@@ -4,7 +4,7 @@ import Drawer from '../ui/Drawer.vue';
 import {useFiltersStore} from '../../stores/filters';
 import {useListingCount} from '../../composables/useListings';
 import type {FilterState} from '../../types/filter';
-import {Feature} from "../../types/propertyItem";
+import {Feature} from '../../types/propertyItem';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
@@ -13,9 +13,14 @@ const {state, applyAdvanced, resetAdvanced} = useFiltersStore();
 
 type Draft = Pick<
     FilterState,
-    | 'm2Min' | 'm2Max'
-    | 'floorMin' | 'floorMax' | 'notGround' | 'notTop'
-    | 'yearMin' | 'yearMax'
+    | 'm2Min'
+    | 'm2Max'
+    | 'floorMin'
+    | 'floorMax'
+    | 'notGround'
+    | 'notTop'
+    | 'yearMin'
+    | 'yearMax'
     | 'features'
     | 'completion'
 >;
@@ -41,7 +46,7 @@ watch(
     () => props.open,
     (val) => {
       if (val) Object.assign(draft, makeDraftFromState());
-    },
+    }
 );
 
 const FEATURE_OPTIONS: Array<{ id: Feature; label: string; hint: string }> = [
@@ -53,10 +58,11 @@ const FEATURE_OPTIONS: Array<{ id: Feature; label: string; hint: string }> = [
   {id: 'new_building', label: 'New building', hint: 'Built since 2010'},
 ];
 
-const COMPLETION_OPTIONS: Array<{ id: 'ready' | 'not_ready'; label: string }> = [
-  {id: 'ready', label: 'Ready to move in'},
-  {id: 'not_ready', label: 'Not yet completed'},
-];
+const COMPLETION_OPTIONS: Array<{ id: 'ready' | 'not_ready'; label: string }> =
+    [
+      {id: 'ready', label: 'Ready to move in'},
+      {id: 'not_ready', label: 'Not yet completed'},
+    ];
 
 function toggleFeature(f: Feature) {
   const set = new Set(draft.features);
@@ -65,7 +71,9 @@ function toggleFeature(f: Feature) {
   draft.features = [...set];
 }
 
-function bindNumber(key: 'm2Min' | 'm2Max' | 'floorMin' | 'floorMax' | 'yearMin' | 'yearMax') {
+function bindNumber(
+    key: 'm2Min' | 'm2Max' | 'floorMin' | 'floorMax' | 'yearMin' | 'yearMax'
+) {
   return {
     get value() {
       const v = draft[key];
@@ -94,9 +102,9 @@ const {count} = useListingCount(
       priceMax: state.priceMax,
       rooms: state.rooms,
       sort: state.sort,
-      page: 1
+      page: 1,
     }),
-    () => state,
+    () => state
 );
 
 function apply() {
@@ -122,13 +130,15 @@ function reset() {
         <div class="grid grid-cols-2 gap-2">
           <input
               v-model="m2Min.value"
-              type="number" min="0"
+              type="number"
+              min="0"
               placeholder="Min"
               class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
           <input
               v-model="m2Max.value"
-              type="number" min="0"
+              type="number"
+              min="0"
               placeholder="Max"
               class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
@@ -140,19 +150,23 @@ function reset() {
         <div class="grid grid-cols-2 gap-2 mb-2">
           <input
               v-model="floorMin.value"
-              type="number" min="0"
+              type="number"
+              min="0"
               placeholder="Min"
               class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
           <input
               v-model="floorMax.value"
-              type="number" min="0"
+              type="number"
+              min="0"
               placeholder="Max"
               class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
         </div>
         <div class="flex flex-wrap gap-2">
-          <label class="inline-flex items-center gap-2 text-sm text-ink-2 cursor-pointer">
+          <label
+              class="inline-flex items-center gap-2 text-sm text-ink-2 cursor-pointer"
+          >
             <input
                 type="checkbox"
                 :checked="!!draft.notGround"
@@ -161,7 +175,9 @@ function reset() {
             />
             Not ground floor
           </label>
-          <label class="inline-flex items-center gap-2 text-sm text-ink-2 cursor-pointer">
+          <label
+              class="inline-flex items-center gap-2 text-sm text-ink-2 cursor-pointer"
+          >
             <input
                 type="checkbox"
                 :checked="!!draft.notTop"
@@ -178,13 +194,17 @@ function reset() {
         <div class="grid grid-cols-2 gap-2">
           <input
               v-model="yearMin.value"
-              type="number" min="1800" max="2030"
+              type="number"
+              min="1800"
+              max="2030"
               placeholder="From"
               class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
           <input
               v-model="yearMax.value"
-              type="number" min="1800" max="2030"
+              type="number"
+              min="1800"
+              max="2030"
               placeholder="To"
               class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
@@ -197,9 +217,10 @@ function reset() {
           <label
               v-for="opt in FEATURE_OPTIONS"
               :key="opt.id"
-              class="focus-ring flex items-center justify-between gap-3 px-3 py-2.5 rounded-md
-                   border border-line hover:border-line-2 cursor-pointer transition-colors"
-              :class="draft.features.includes(opt.id) ? 'bg-cream/70 border-line-2' : ''"
+              class="focus-ring flex items-center justify-between gap-3 px-3 py-2.5 rounded-md border border-line hover:border-line-2 cursor-pointer transition-colors"
+              :class="
+              draft.features.includes(opt.id) ? 'bg-cream/70 border-line-2' : ''
+            "
           >
             <div class="flex items-center gap-3">
               <input
@@ -224,11 +245,16 @@ function reset() {
               v-for="opt in COMPLETION_OPTIONS"
               :key="opt.id"
               type="button"
-              @click="draft.completion = draft.completion === opt.id ? undefined : opt.id"
+              @click="
+              draft.completion =
+                draft.completion === opt.id ? undefined : opt.id
+            "
               class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
-              :class="draft.completion === opt.id
-              ? 'border-ink bg-ink text-bg'
-              : 'border-line text-ink hover:border-line-2'"
+              :class="
+              draft.completion === opt.id
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line text-ink hover:border-line-2'
+            "
           >
             {{ opt.label }}
           </button>
@@ -248,12 +274,12 @@ function reset() {
         <button
             type="button"
             @click="apply"
-            class="focus-ring inline-flex items-center justify-center gap-2 h-11 px-5
-                 rounded-md bg-ink text-bg text-sm font-medium hover:bg-accent-2
-                 transition-colors min-w-44"
+            class="focus-ring inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors min-w-44"
         >
           <span>Apply</span>
-          <span class="tabular text-bg/80">— {{ count }} {{ count === 1 ? 'listing' : 'listings' }}</span>
+          <span class="tabular text-bg/80"
+          >— {{ count }} {{ count === 1 ? 'listing' : 'listings' }}</span
+          >
         </button>
       </div>
     </template>

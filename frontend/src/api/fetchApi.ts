@@ -1,25 +1,30 @@
-import {logger} from "../utils/logger";
+import {logger} from '../utils/logger';
 
 let refreshPromise: Promise<boolean> | null = null;
 
 /**
  * Enhanced fetch wrapper with automatic token refresh
  */
-export async function fetchApi(input: string, init?: RequestInit): Promise<Response> {
+export async function fetchApi(
+    input: string,
+    init?: RequestInit
+): Promise<Response> {
     const res = await fetch(input, init);
     if (res.status !== 401) return res;
 
     logger.info(`[fetchApi] 401 Unauthorized encountered for: ${input}`);
 
     if (!refreshPromise) {
-        logger.debug('[fetchApi] No active refresh cycle found. Starting token refresh POST...');
+        logger.debug(
+            '[fetchApi] No active refresh cycle found. Starting token refresh POST...'
+        );
 
         refreshPromise = fetch('/api/auth/refresh', {method: 'POST'})
-            .then(r => {
+            .then((r) => {
                 logger.debug(`[fetchApi] Refresh network response status: ${r.status}`);
                 return r.ok;
             })
-            .catch(err => {
+            .catch((err) => {
                 logger.error('[fetchApi] Critical error during refresh fetch:', err);
                 return false;
             })
@@ -28,17 +33,23 @@ export async function fetchApi(input: string, init?: RequestInit): Promise<Respo
                 refreshPromise = null;
             });
     } else {
-        logger.debug(`[fetchApi] Refresh already in progress. Queueing request for: ${input}`);
+        logger.debug(
+            `[fetchApi] Refresh already in progress. Queueing request for: ${input}`
+        );
     }
 
     const refreshed = await refreshPromise;
 
     if (!refreshed) {
-        logger.warn(`[fetchApi] Refresh rejected. Session invalid. Dispatching logout event.`);
+        logger.warn(
+            `[fetchApi] Refresh rejected. Session invalid. Dispatching logout event.`
+        );
         window.dispatchEvent(new Event('auth:logout'));
         return res;
     }
 
-    logger.info(`[fetchApi] Refresh successful. Retrying original request: ${input}`);
+    logger.info(
+        `[fetchApi] Refresh successful. Retrying original request: ${input}`
+    );
     return fetch(input, init);
 }

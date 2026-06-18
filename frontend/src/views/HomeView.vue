@@ -2,11 +2,11 @@
 import {ref} from 'vue';
 import {useFiltersStore} from '../stores/filters';
 import {useListings} from '../composables/useListings';
-import ResultsHeader from "../components/listing/ResultsHeader.vue";
-import PropertyGrid from "../components/listing/PropertyGrid.vue";
-import Pagination from "../components/listing/Pagination.vue";
-import HeroSection from "../components/hero/HeroSection.vue";
-import MoreFiltersDrawer from "../components/filters/MoreFiltersDrawer.vue";
+import ResultsHeader from '../components/listing/ResultsHeader.vue';
+import PropertyGrid from '../components/listing/PropertyGrid.vue';
+import Pagination from '../components/listing/Pagination.vue';
+import HeroSection from '../components/hero/HeroSection.vue';
+import MoreFiltersDrawer from '../components/filters/MoreFiltersDrawer.vue';
 
 const {state, setPage, resetAll} = useFiltersStore();
 const {items, total, pageCount, loading} = useListings(() => state);
@@ -25,10 +25,7 @@ function goToPage(p: number) {
 </script>
 
 <template>
-  <HeroSection
-      @search="scrollToGrid"
-      @open-more="drawerOpen = true"
-  />
+  <HeroSection @search="scrollToGrid" @open-more="drawerOpen = true"/>
   <MoreFiltersDrawer
       :open="drawerOpen"
       @update:open="(v) => (drawerOpen = v)"
@@ -56,8 +53,7 @@ function goToPage(p: number) {
           <button
               type="button"
               @click="resetAll"
-              class="focus-ring inline-flex items-center gap-2 h-11 px-5 rounded-full
-                   bg-ink text-bg text-sm hover:bg-accent-2 transition-colors"
+              class="focus-ring inline-flex items-center gap-2 h-11 px-5 rounded-full bg-ink text-bg text-sm hover:bg-accent-2 transition-colors"
           >
             Clear all filters
           </button>
@@ -65,10 +61,6 @@ function goToPage(p: number) {
       </template>
     </PropertyGrid>
 
-    <Pagination
-        :page="state.page"
-        :page-count="pageCount"
-        @change="goToPage"
-    />
+    <Pagination :page="state.page" :page-count="pageCount" @change="goToPage"/>
   </section>
 </template>

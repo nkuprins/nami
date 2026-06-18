@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref, watch} from 'vue';
-import IconChevron from "../ui/IconChevron.vue";
+import IconChevron from '../ui/IconChevron.vue';
 
 const props = defineProps<{
   photos: string[];
@@ -15,9 +15,12 @@ let touchStartX = 0;
 let touchEndX = 0;
 const SWIPE_THRESHOLD = 50; // Minimum swipe distance in pixels
 
-watch(() => props.photos, () => {
-  index.value = 0;
-});
+watch(
+    () => props.photos,
+    () => {
+      index.value = 0;
+    }
+);
 
 function next(e?: Event) {
   e?.preventDefault();
@@ -83,8 +86,7 @@ function handleTouchEnd() {
     </transition>
 
     <div
-        class="absolute inset-0 pointer-events-none
-             bg-linear-to-t from-ink/30 via-ink/0 to-ink/0"
+        class="absolute inset-0 pointer-events-none bg-linear-to-t from-ink/30 via-ink/0 to-ink/0"
         aria-hidden="true"
     />
 
@@ -92,12 +94,7 @@ function handleTouchEnd() {
         v-if="photos.length > 1"
         type="button"
         @click="prev"
-        class="focus-ring absolute left-3 top-1/2 -translate-y-1/2 z-10
-             size-9 grid place-items-center rounded-full
-             bg-bg/85 backdrop-blur text-ink
-             opacity-0 group-hover/carousel:opacity-100
-             focus-visible:opacity-100
-             transition-opacity duration-200 hover:bg-bg md:grid"
+        class="focus-ring absolute left-3 top-1/2 -translate-y-1/2 z-10 size-9 grid place-items-center rounded-full bg-bg/85 backdrop-blur text-ink opacity-0 group-hover/carousel:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 hover:bg-bg md:grid"
     >
       <span class="size-4 inline-block"><IconChevron dir="left"/></span>
     </button>
@@ -105,19 +102,13 @@ function handleTouchEnd() {
         v-if="photos.length > 1"
         type="button"
         @click="next"
-        class="focus-ring absolute right-3 top-1/2 -translate-y-1/2 z-10
-             size-9 grid place-items-center rounded-full
-             bg-bg/85 backdrop-blur text-ink
-             opacity-0 group-hover/carousel:opacity-100
-             focus-visible:opacity-100
-             transition-opacity duration-200 hover:bg-bg md:grid"
+        class="focus-ring absolute right-3 top-1/2 -translate-y-1/2 z-10 size-9 grid place-items-center rounded-full bg-bg/85 backdrop-blur text-ink opacity-0 group-hover/carousel:opacity-100 focus-visible:opacity-100 transition-opacity duration-200 hover:bg-bg md:grid"
     >
       <span class="size-4 inline-block"><IconChevron dir="right"/></span>
     </button>
 
     <div
-        class="absolute bottom-3 right-3 z-10 micro-label text-cream/85! tabular
-             bg-ink/40 backdrop-blur px-2 h-6 inline-flex items-center rounded-sm"
+        class="absolute bottom-3 right-3 z-10 micro-label text-cream/85! tabular bg-ink/40 backdrop-blur px-2 h-6 inline-flex items-center rounded-sm"
         v-if="photos.length > 1"
     >
       <span>{{ index + 1 }}</span>

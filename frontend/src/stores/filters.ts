@@ -2,22 +2,53 @@ import {reactive, watch} from 'vue';
 import {defineStore} from 'pinia';
 import type {LocationQuery} from 'vue-router';
 import {useRoute, useRouter} from 'vue-router';
-import {DEFAULT_FILTER_STATE, type FilterState, type SortKey} from '../types/filter';
+import {
+    DEFAULT_FILTER_STATE,
+    type FilterState,
+    type SortKey,
+} from '../types/filter';
 import {Feature, PropertyType} from '../types/propertyItem';
 import {logger} from '../utils/logger';
 
 // ==========================================
 // 1. VALIDATION CONSTANTS & HOOKS
 // ==========================================
-const KNOWN_FEATURES: Feature[] = ['balcony', 'parking', 'elevator', 'furnished', 'pets', 'new_building'];
-const KNOWN_SORTS: SortKey[] = ['newest', 'price-asc', 'price-desc', 'price-per-m2-asc', 'm2-desc'];
+const KNOWN_FEATURES: Feature[] = [
+    'balcony',
+    'parking',
+    'elevator',
+    'furnished',
+    'pets',
+    'new_building',
+];
+const KNOWN_SORTS: SortKey[] = [
+    'newest',
+    'price-asc',
+    'price-desc',
+    'price-per-m2-asc',
+    'm2-desc',
+];
 const KNOWN_TYPES: PropertyType[] = ['buy', 'rent', 'new_project'];
 const KNOWN_COMPLETION: Array<'ready' | 'not_ready'> = ['ready', 'not_ready'];
 
 const ALL_FILTER_KEYS: Array<keyof FilterState> = [
-    'type', 'loc', 'priceMin', 'priceMax', 'rooms', 'm2Min', 'm2Max',
-    'floorMin', 'floorMax', 'notGround', 'notTop', 'yearMin', 'yearMax',
-    'features', 'completion', 'sort', 'page'
+    'type',
+    'loc',
+    'priceMin',
+    'priceMax',
+    'rooms',
+    'm2Min',
+    'm2Max',
+    'floorMin',
+    'floorMax',
+    'notGround',
+    'notTop',
+    'yearMin',
+    'yearMax',
+    'features',
+    'completion',
+    'sort',
+    'page',
 ];
 
 // ==========================================
@@ -32,7 +63,10 @@ const FilterCodec = {
 
     parseList(v: unknown): string[] {
         if (typeof v !== 'string' || v === '') return [];
-        return v.split(',').map((s) => s.trim()).filter(Boolean);
+        return v
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
     },
 
     fromQuery(q: LocationQuery): FilterState {
@@ -41,12 +75,22 @@ const FilterCodec = {
         const completionRaw = String(q.completion ?? '');
 
         return {
-            type: KNOWN_TYPES.includes(typeRaw as PropertyType) ? (typeRaw as PropertyType) : DEFAULT_FILTER_STATE.type,
-            sort: KNOWN_SORTS.includes(sortRaw as SortKey) ? (sortRaw as SortKey) : DEFAULT_FILTER_STATE.sort,
-            completion: KNOWN_COMPLETION.includes(completionRaw as any) ? (completionRaw as 'ready' | 'not_ready') : undefined,
+            type: KNOWN_TYPES.includes(typeRaw as PropertyType)
+                ? (typeRaw as PropertyType)
+                : DEFAULT_FILTER_STATE.type,
+            sort: KNOWN_SORTS.includes(sortRaw as SortKey)
+                ? (sortRaw as SortKey)
+                : DEFAULT_FILTER_STATE.sort,
+            completion: KNOWN_COMPLETION.includes(completionRaw as any)
+                ? (completionRaw as 'ready' | 'not_ready')
+                : undefined,
             loc: this.parseList(q.loc),
-            rooms: this.parseList(q.rooms).map(this.parseNumber).filter((n): n is number => n !== undefined),
-            features: this.parseList(q.features).filter((s): s is Feature => KNOWN_FEATURES.includes(s as Feature)),
+            rooms: this.parseList(q.rooms)
+                .map(this.parseNumber)
+                .filter((n): n is number => n !== undefined),
+            features: this.parseList(q.features).filter((s): s is Feature =>
+                KNOWN_FEATURES.includes(s as Feature)
+            ),
             priceMin: this.parseNumber(q.priceMin),
             priceMax: this.parseNumber(q.priceMax),
             m2Min: this.parseNumber(q.m2Min),
@@ -87,7 +131,7 @@ const FilterCodec = {
         const ka = Object.keys(a);
         if (ka.length !== Object.keys(b).length) return false;
         return ka.every((k) => String(a[k] ?? '') === String(b[k] ?? ''));
-    }
+    },
 };
 
 // ==========================================
@@ -98,18 +142,29 @@ export const useFiltersStore = defineStore('filters', () => {
     const router = useRouter();
 
     const state = reactive<FilterState>(FilterCodec.fromQuery(route.query));
-    logger.info('[FiltersStore] Initial structural query parsing complete.', FilterCodec.toQuery(state));
+    logger.info(
+        '[FiltersStore] Initial structural query parsing complete.',
+        FilterCodec.toQuery(state)
+    );
 
     // Handles when a user clicks the browser's Back button or lands on the site from a bookmarked link
     watch(
         () => route.query,
         (newQuery) => {
             const nextState = FilterCodec.fromQuery(newQuery);
-            if (FilterCodec.isEqual(FilterCodec.toQuery(state), FilterCodec.toQuery(nextState))) return;
+            if (
+                FilterCodec.isEqual(
+                    FilterCodec.toQuery(state),
+                    FilterCodec.toQuery(nextState)
+                )
+            )
+                return;
 
-            logger.debug('[FiltersStore] Browser URL alteration detected. Syncing store state.');
+            logger.debug(
+                '[FiltersStore] Browser URL alteration detected. Syncing store state.'
+            );
             Object.assign(state, nextState);
-        },
+        }
     );
 
     // Handles when a user is interacting with checkboxes, dropdowns, and inputs on screen
@@ -119,10 +174,12 @@ export const useFiltersStore = defineStore('filters', () => {
             const nextQuery = FilterCodec.toQuery(state);
             if (FilterCodec.isEqual(route.query, nextQuery)) return;
 
-            logger.debug('[FiltersStore] UI filter mutation detected. Replacing URL query variables.');
+            logger.debug(
+                '[FiltersStore] UI filter mutation detected. Replacing URL query variables.'
+            );
             void router.replace({path: route.path, query: nextQuery});
         },
-        {deep: true},
+        {deep: true}
     );
 
     // --- Actions ---
@@ -141,7 +198,9 @@ export const useFiltersStore = defineStore('filters', () => {
     }
 
     function setPriceRange(min: number | undefined, max: number | undefined) {
-        logger.info(`[FiltersStore] Price bracket modification: Min(${min}) - Max(${max})`);
+        logger.info(
+            `[FiltersStore] Price bracket modification: Min(${min}) - Max(${max})`
+        );
         state.priceMin = min;
         state.priceMax = max;
         state.page = 1;
@@ -154,7 +213,9 @@ export const useFiltersStore = defineStore('filters', () => {
     }
 
     function setSort(sort: SortKey) {
-        logger.info(`[FiltersStore] Sort rearrangement applied: ${state.sort} ➔ ${sort}`);
+        logger.info(
+            `[FiltersStore] Sort rearrangement applied: ${state.sort} ➔ ${sort}`
+        );
         state.sort = sort;
         state.page = 1;
     }
@@ -164,7 +225,10 @@ export const useFiltersStore = defineStore('filters', () => {
     }
 
     function applyAdvanced(patch: Partial<FilterState>) {
-        logger.info('[FiltersStore] Custom advanced filters payload appended:', patch);
+        logger.info(
+            '[FiltersStore] Custom advanced filters payload appended:',
+            patch
+        );
         Object.assign(state, patch);
         state.page = 1;
     }
@@ -185,7 +249,9 @@ export const useFiltersStore = defineStore('filters', () => {
     }
 
     function resetAll() {
-        logger.info('[FiltersStore] Flushing state matrix back to application defaults.');
+        logger.info(
+            '[FiltersStore] Flushing state matrix back to application defaults.'
+        );
 
         // Safe, clean, zero type-casting hacks.
         ALL_FILTER_KEYS.forEach((key) => {
@@ -195,7 +261,14 @@ export const useFiltersStore = defineStore('filters', () => {
 
     return {
         state,
-        setType, setLoc, setPriceRange, setRooms, setSort, setPage,
-        applyAdvanced, resetAdvanced, resetAll,
+        setType,
+        setLoc,
+        setPriceRange,
+        setRooms,
+        setSort,
+        setPage,
+        applyAdvanced,
+        resetAdvanced,
+        resetAll,
     };
 });

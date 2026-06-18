@@ -22,14 +22,19 @@ function pick(id: PropertyType) {
         :key="tab.id"
         role="tab"
         @click="pick(tab.id)"
-        class="focus-ring relative flex-1 px-4 sm:px-6 py-3 text-left
-             transition-colors duration-200 border-b-2"
-        :class="modelValue === tab.id
-        ? 'border-ink text-ink'
-        : 'border-transparent text-ink-2 hover:text-ink hover:border-line-2'"
+        class="focus-ring relative flex-1 px-4 sm:px-6 py-3 text-left transition-colors duration-200 border-b-2"
+        :class="
+        modelValue === tab.id
+          ? 'border-ink text-ink'
+          : 'border-transparent text-ink-2 hover:text-ink hover:border-line-2'
+      "
     >
-      <span class="block text-sm font-medium leading-tight">{{ tab.label }}</span>
-      <span class="block micro-label text-[0.625rem]! mt-0.5">{{ tab.hint }}</span>
+      <span class="block text-sm font-medium leading-tight">{{
+          tab.label
+        }}</span>
+      <span class="block micro-label text-[0.625rem]! mt-0.5">{{
+          tab.hint
+        }}</span>
     </button>
   </div>
 </template>

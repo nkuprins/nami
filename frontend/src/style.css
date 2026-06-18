@@ -1,28 +1,26 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-    --color-bg: #FFFFFF;
-    --color-cream: #FAF7F2;
-    --color-surface: #F6F2EC;
-    --color-ink: #14110D;
-    --color-ink-2: #57534E;
-    --color-ink-3: #A8A29E;
-    --color-line: #E7E2DC;
-    --color-line-2: #D6D1CA;
-    --color-accent: #F59E0B;
-    --color-accent-2: #B45309;
-    --color-success: #4D7C0F;
-    --color-warn: #B91C1C;
+    --color-bg: #ffffff;
+    --color-cream: #faf7f2;
+    --color-surface: #f6f2ec;
+    --color-ink: #14110d;
+    --color-ink-2: #57534e;
+    --color-ink-3: #a8a29e;
+    --color-line: #e7e2dc;
+    --color-line-2: #d6d1ca;
+    --color-accent: #f59e0b;
+    --color-accent-2: #b45309;
+    --color-success: #4d7c0f;
+    --color-warn: #b91c1c;
 
-    --font-display: "Fraunces", "Times New Roman", ui-serif, Georgia, serif;
-    --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
-    --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", monospace;
+    --font-display: 'Fraunces', 'Times New Roman', ui-serif, Georgia, serif;
+    --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
 
     --shadow-hair: 0 0 0 1px rgb(20 17 13 / 0.04);
-    --shadow-soft: 0 1px 2px rgb(20 17 13 / 0.04),
-    0 12px 32px -16px rgb(20 17 13 / 0.10);
-    --shadow-lift: 0 2px 4px rgb(20 17 13 / 0.06),
-    0 24px 48px -20px rgb(20 17 13 / 0.18);
+    --shadow-soft: 0 1px 2px rgb(20 17 13 / 0.04), 0 12px 32px -16px rgb(20 17 13 / 0.1);
+    --shadow-lift: 0 2px 4px rgb(20 17 13 / 0.06), 0 24px 48px -20px rgb(20 17 13 / 0.18);
 
     --radius-xs: 0.25rem;
     --radius-sm: 0.375rem;
@@ -43,7 +41,7 @@
         background: var(--color-bg);
         color: var(--color-ink);
         font-family: var(--font-sans);
-        font-feature-settings: "ss01", "cv11";
+        font-feature-settings: 'ss01', 'cv11';
     }
 
     ::selection {
@@ -97,7 +95,9 @@
     .display-headline {
         font-family: var(--font-display);
         font-optical-sizing: auto;
-        font-variation-settings: "opsz" 120, "SOFT" 30, "WONK" 1;
+        font-variation-settings: 'opsz' 120,
+        'SOFT' 30,
+        'WONK' 1;
         font-weight: 400;
         letter-spacing: -0.025em;
         line-height: 0.95;
@@ -106,20 +106,23 @@
     .display-eyebrow {
         font-family: var(--font-display);
         font-style: italic;
-        font-variation-settings: "opsz" 14, "SOFT" 50;
+        font-variation-settings: 'opsz' 14,
+        'SOFT' 50;
         font-weight: 400;
     }
 
     .display-price {
         font-family: var(--font-display);
-        font-variation-settings: "opsz" 36, "SOFT" 0, "WONK" 0;
+        font-variation-settings: 'opsz' 36,
+        'SOFT' 0,
+        'WONK' 0;
         font-weight: 500;
         font-variant-numeric: tabular-nums lining-nums;
         letter-spacing: -0.02em;
     }
 
     .grain::after {
-        content: "";
+        content: '';
         position: absolute;
         inset: 0;
         pointer-events: none;
@@ -160,43 +163,54 @@
 }
 
 /* Vue named transitions */
-.scrim-enter-active, .scrim-leave-active {
+.scrim-enter-active,
+.scrim-leave-active {
     transition: opacity 0.25s ease-out;
 }
 
-.scrim-enter-from, .scrim-leave-to {
+.scrim-enter-from,
+.scrim-leave-to {
     opacity: 0;
 }
 
-.drawer-right-enter-active, .drawer-right-leave-active {
+.drawer-right-enter-active,
+.drawer-right-leave-active {
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.drawer-right-enter-from, .drawer-right-leave-to {
+.drawer-right-enter-from,
+.drawer-right-leave-to {
     transform: translateX(100%);
 }
 
-.drawer-bottom-enter-active, .drawer-bottom-leave-active {
+.drawer-bottom-enter-active,
+.drawer-bottom-leave-active {
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.drawer-bottom-enter-from, .drawer-bottom-leave-to {
+.drawer-bottom-enter-from,
+.drawer-bottom-leave-to {
     transform: translateY(100%);
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
     transition: opacity 180ms ease;
 }
 
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
     opacity: 0;
 }
 
-.pop-enter-active, .pop-leave-active {
-    transition: opacity 160ms ease, transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+.pop-enter-active,
+.pop-leave-active {
+    transition: opacity 160ms ease,
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.pop-enter-from, .pop-leave-to {
+.pop-enter-from,
+.pop-leave-to {
     opacity: 0;
     transform: translateY(-4px) scale(0.98);
 }

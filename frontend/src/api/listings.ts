@@ -3,14 +3,22 @@ import {FilterState} from '../types/filter';
 import {districtByName, districtBySlug} from '../data/locations';
 import {fetchApi} from './fetchApi';
 
+type PropertyItemDto = Omit<PropertyItem, 'district' | 'city'> & {
+    district: string;
+    city: string;
+};
 
-type PropertyItemDto = Omit<PropertyItem, 'district' | 'city'> & { district: string; city: string };
-
-const citySlugMap: Record<string, string> = {'Rīga': 'riga', 'Jūrmala': 'jurmala', 'Sigulda': 'sigulda'};
+const citySlugMap: Record<string, string> = {
+    Rīga: 'riga',
+    Jūrmala: 'jurmala',
+    Sigulda: 'sigulda',
+};
 
 function resolveLocation(slug: string): { district: string; city: string } {
     const entry = districtBySlug.get(slug);
-    return entry ? {district: entry.name, city: entry.city} : {district: slug, city: slug};
+    return entry
+        ? {district: entry.name, city: entry.city}
+        : {district: slug, city: slug};
 }
 
 function mapDto(dto: PropertyItemDto): PropertyItem {
@@ -22,10 +30,10 @@ function mapDto(dto: PropertyItemDto): PropertyItem {
 function buildParams(f: FilterState): URLSearchParams {
     const p = new URLSearchParams();
     p.set('type', f.type);
-    f.loc.forEach(s => p.append('loc', s));
+    f.loc.forEach((s) => p.append('loc', s));
     if (f.priceMin != null) p.set('priceMin', String(f.priceMin));
     if (f.priceMax != null) p.set('priceMax', String(f.priceMax));
-    f.rooms.forEach(r => p.append('rooms', String(r)));
+    f.rooms.forEach((r) => p.append('rooms', String(r)));
     if (f.m2Min != null) p.set('m2Min', String(f.m2Min));
     if (f.m2Max != null) p.set('m2Max', String(f.m2Max));
     if (f.floorMin != null) p.set('floorMin', String(f.floorMin));
@@ -34,14 +42,16 @@ function buildParams(f: FilterState): URLSearchParams {
     if (f.notTop) p.set('notTop', 'true');
     if (f.yearMin != null) p.set('yearMin', String(f.yearMin));
     if (f.yearMax != null) p.set('yearMax', String(f.yearMax));
-    f.features.forEach(ft => p.append('features', ft));
+    f.features.forEach((ft) => p.append('features', ft));
     if (f.completion) p.set('completion', f.completion);
     p.set('sort', f.sort);
     p.set('page', String(f.page));
     return p;
 }
 
-export async function listProperties(f: FilterState): Promise<{ items: PropertyItem[]; total: number }> {
+export async function listProperties(
+    f: FilterState
+): Promise<{ items: PropertyItem[]; total: number }> {
     const res = await fetchApi(`/api/properties?${buildParams(f)}`);
     if (!res.ok) throw new Error(`listProperties: ${res.status}`);
     const data = await res.json();
@@ -62,7 +72,9 @@ export async function getMyProperties(): Promise<PropertyItem[]> {
     return (await res.json()).map(mapDto);
 }
 
-export async function getProperty(id: string): Promise<PropertyItem | undefined> {
+export async function getProperty(
+    id: string
+): Promise<PropertyItem | undefined> {
     const res = await fetch(`/api/properties/${id}`);
     if (res.status === 404) return undefined;
     if (!res.ok) throw new Error(`getProperty: ${res.status}`);
@@ -96,7 +108,9 @@ export async function uploadFilesToS3(
     );
 }
 
-export async function addProperty(data: Omit<PropertyItem, 'id' | 'postedAt'>): Promise<PropertyItem> {
+export async function addProperty(
+    data: Omit<PropertyItem, 'id' | 'postedAt'>
+): Promise<PropertyItem> {
     const districtEntry = districtByName.get(data.district);
     const districtSlug = districtEntry?.slug ?? data.district;
     const citySlug = districtEntry

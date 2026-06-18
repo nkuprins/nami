@@ -37,9 +37,7 @@ function go(p: number) {
         type="button"
         @click="go(page - 1)"
         :disabled="page === 1"
-        class="focus-ring size-10 grid place-items-center rounded-md text-ink-2
-             hover:text-ink hover:bg-surface disabled:opacity-30
-             transition-colors"
+        class="focus-ring size-10 grid place-items-center rounded-md text-ink-2 hover:text-ink hover:bg-surface disabled:opacity-30 transition-colors"
     >
       <span class="size-4"><IconChevron dir="left"/></span>
     </button>
@@ -49,17 +47,19 @@ function go(p: number) {
           v-if="p === '…'"
           class="px-1 text-ink-3 select-none"
           aria-hidden="true"
-      >…</span>
+      >…</span
+      >
       <button
           v-else
           type="button"
           @click="go(p)"
           :aria-current="p === page ? 'page' : undefined"
-          class="focus-ring size-10 grid place-items-center rounded-md tabular text-sm
-               transition-colors"
-          :class="p === page
-          ? 'bg-ink text-bg'
-          : 'text-ink-2 hover:text-ink hover:bg-surface'"
+          class="focus-ring size-10 grid place-items-center rounded-md tabular text-sm transition-colors"
+          :class="
+          p === page
+            ? 'bg-ink text-bg'
+            : 'text-ink-2 hover:text-ink hover:bg-surface'
+        "
       >
         {{ p }}
       </button>
@@ -69,9 +69,7 @@ function go(p: number) {
         type="button"
         @click="go(page + 1)"
         :disabled="page === pageCount"
-        class="focus-ring size-10 grid place-items-center rounded-md text-ink-2
-             hover:text-ink hover:bg-surface disabled:opacity-30
-             transition-colors"
+        class="focus-ring size-10 grid place-items-center rounded-md text-ink-2 hover:text-ink hover:bg-surface disabled:opacity-30 transition-colors"
     >
       <span class="size-4"><IconChevron dir="right"/></span>
     </button>

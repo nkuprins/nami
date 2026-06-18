@@ -24,7 +24,9 @@ async function loadSaved() {
 
   loading.value = true;
   try {
-    const results = await Promise.all(savedStore.ids.map((id) => getProperty(id)));
+    const results = await Promise.all(
+        savedStore.ids.map((id) => getProperty(id))
+    );
     items.value = results.filter((p): p is PropertyItem => p !== undefined);
   } catch {
     items.value = [];
@@ -36,13 +38,23 @@ watch(() => props.open, loadSaved);
 </script>
 
 <template>
-  <Drawer :open="open" title="Saved properties" @update:open="emit('update:open', $event)">
-
+  <Drawer
+      :open="open"
+      title="Saved properties"
+      @update:open="emit('update:open', $event)"
+  >
     <div v-if="loading" class="flex flex-col gap-3">
-      <div v-for="i in savedStore.ids.length" :key="i" class="h-20 rounded-xl bg-surface animate-pulse"/>
+      <div
+          v-for="i in savedStore.ids.length"
+          :key="i"
+          class="h-20 rounded-xl bg-surface animate-pulse"
+      />
     </div>
 
-    <div v-else-if="items.length === 0" class="flex flex-col items-center justify-center gap-3 py-16 text-center">
+    <div
+        v-else-if="items.length === 0"
+        class="flex flex-col items-center justify-center gap-3 py-16 text-center"
+    >
       <span class="size-10 text-ink-3">
         <IconHeart :filled="false"/>
       </span>
@@ -84,9 +96,13 @@ watch(() => props.open, loadSaved);
             >
               {{ item.title }}
             </RouterLink>
-            <p class="text-xs text-ink-3 mt-0.5 line-clamp-1">{{ item.district }}, {{ item.city }}</p>
+            <p class="text-xs text-ink-3 mt-0.5 line-clamp-1">
+              {{ item.district }}, {{ item.city }}
+            </p>
           </div>
-          <p class="text-sm font-semibold text-ink">{{ formatPrice(item.price, item.type) }}</p>
+          <p class="text-sm font-semibold text-ink">
+            {{ formatPrice(item.price, item.type) }}
+          </p>
         </div>
 
         <button
@@ -94,7 +110,9 @@ watch(() => props.open, loadSaved);
             class="shrink-0 w-10 grid place-items-center text-accent-2 hover:text-ink-2 transition-colors"
             @click="savedStore.toggle(item.id)"
         >
-          <span class="size-5"><IconHeart :filled="savedStore.isSaved(item.id)"/></span>
+          <span class="size-5"
+          ><IconHeart :filled="savedStore.isSaved(item.id)"
+          /></span>
         </button>
       </div>
     </div>

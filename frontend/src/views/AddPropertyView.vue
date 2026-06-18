@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import {computed, onUnmounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
-import {addProperty, requestPresignedUrls, uploadFilesToS3} from '../api/listings';
+import {
+  addProperty,
+  requestPresignedUrls,
+  uploadFilesToS3,
+} from '../api/listings';
 import {DISTRICTS} from '../data/locations';
-import type {Feature, PropertyKind, PropertyType} from '../types/propertyItem';
+import type {
+  Feature,
+  PropertyKind,
+  PropertyType,
+} from '../types/propertyItem';
 
 const router = useRouter();
 
@@ -78,13 +86,17 @@ function toggleFeature(f: Feature) {
 const errors = computed(() => {
   const e: Record<string, string> = {};
   if (!title.value.trim()) e.title = 'Required';
-  if (!price.value || isNaN(Number(price.value)) || Number(price.value) <= 0) e.price = 'Enter a valid price';
+  if (!price.value || isNaN(Number(price.value)) || Number(price.value) <= 0)
+    e.price = 'Enter a valid price';
   if (!districtSlug.value) e.district = 'Required';
   if (!address.value.trim()) e.address = 'Required';
-  if (!rooms.value || isNaN(Number(rooms.value)) || Number(rooms.value) < 1) e.rooms = 'Enter number of rooms';
-  if (!m2.value || isNaN(Number(m2.value)) || Number(m2.value) <= 0) e.m2 = 'Enter area in m²';
+  if (!rooms.value || isNaN(Number(rooms.value)) || Number(rooms.value) < 1)
+    e.rooms = 'Enter number of rooms';
+  if (!m2.value || isNaN(Number(m2.value)) || Number(m2.value) <= 0)
+    e.m2 = 'Enter area in m²';
   if (photoFiles.value.length === 0) e.photos = 'At least one photo required';
-  if (type.value === 'new_project' && !completion.value) e.completion = 'Required for new projects';
+  if (type.value === 'new_project' && !completion.value)
+    e.completion = 'Required for new projects';
   return e;
 });
 
@@ -100,7 +112,9 @@ async function submit() {
   submitting.value = true;
   submitError.value = '';
   try {
-    const slots = await requestPresignedUrls(photoFiles.value.map((f) => f.name));
+    const slots = await requestPresignedUrls(
+        photoFiles.value.map((f) => f.name)
+    );
     const photoList = await uploadFilesToS3(photoFiles.value, slots);
     const district = districtData.value;
     const item = await addProperty({
@@ -111,7 +125,10 @@ async function submit() {
       price: Number(price.value),
       rooms: Number(rooms.value),
       m2: Number(m2.value),
-      landM2: propertyKind.value === 'house' && landM2.value ? Number(landM2.value) : undefined,
+      landM2:
+          propertyKind.value === 'house' && landM2.value
+              ? Number(landM2.value)
+              : undefined,
       floor: floor.value ? Number(floor.value) : undefined,
       totalFloors: totalFloors.value ? Number(totalFloors.value) : undefined,
       yearBuilt: yearBuilt.value ? Number(yearBuilt.value) : undefined,
@@ -121,7 +138,10 @@ async function submit() {
       address: address.value.trim(),
       coords: {lat: 56.946, lng: 24.105},
       photos: photoList,
-      completion: type.value === 'new_project' && completion.value ? completion.value : undefined,
+      completion:
+          type.value === 'new_project' && completion.value
+              ? completion.value
+              : undefined,
     });
     await router.push(`/property/${item.id}`);
   } catch {
@@ -135,27 +155,36 @@ async function submit() {
   <div class="mx-auto max-w-2xl px-4 sm:px-6 py-10 sm:py-14">
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-ink">Add a property</h1>
-      <p class="text-sm text-ink-3 mt-1">Fill in the details below to list your property.</p>
+      <p class="text-sm text-ink-3 mt-1">
+        Fill in the details below to list your property.
+      </p>
     </div>
 
     <form class="flex flex-col gap-10" @submit.prevent="submit">
-
       <!-- Section: Listing type -->
       <section class="flex flex-col gap-4">
-        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">Listing type</h2>
+        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
+          Listing type
+        </h2>
 
         <div class="flex flex-col gap-3">
           <div class="flex flex-col gap-1.5">
             <p class="text-sm font-medium text-ink">Transaction type</p>
             <div class="flex gap-2 flex-wrap">
               <button
-                  v-for="opt in [{id: 'buy', label: 'For sale'}, {id: 'rent', label: 'For rent'}, {id: 'new_project', label: 'New project'}]"
+                  v-for="opt in [
+                  { id: 'buy', label: 'For sale' },
+                  { id: 'rent', label: 'For rent' },
+                  { id: 'new_project', label: 'New project' },
+                ]"
                   :key="opt.id"
                   type="button"
                   class="h-9 px-4 rounded-full text-sm font-medium border transition-colors"
-                  :class="type === opt.id
+                  :class="
+                  type === opt.id
                     ? 'bg-ink text-bg border-ink'
-                    : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'"
+                    : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+                "
                   @click="type = opt.id as PropertyType"
               >
                 {{ opt.label }}
@@ -167,13 +196,18 @@ async function submit() {
             <p class="text-sm font-medium text-ink">Property kind</p>
             <div class="flex gap-2">
               <button
-                  v-for="opt in [{id: 'apartment', label: 'Apartment'}, {id: 'house', label: 'House'}]"
+                  v-for="opt in [
+                  { id: 'apartment', label: 'Apartment' },
+                  { id: 'house', label: 'House' },
+                ]"
                   :key="opt.id"
                   type="button"
                   class="h-9 px-4 rounded-full text-sm font-medium border transition-colors"
-                  :class="propertyKind === opt.id
+                  :class="
+                  propertyKind === opt.id
                     ? 'bg-ink text-bg border-ink'
-                    : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'"
+                    : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+                "
                   @click="propertyKind = opt.id as PropertyKind"
               >
                 {{ opt.label }}
@@ -185,7 +219,9 @@ async function submit() {
 
       <!-- Section: Basic info -->
       <section class="flex flex-col gap-4">
-        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">Basic info</h2>
+        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
+          Basic info
+        </h2>
 
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="ap-title">
@@ -196,30 +232,37 @@ async function submit() {
               v-model="title"
               type="text"
               placeholder="e.g. Bright 3-room apartment in Centrs"
-              class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3
-                     focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-              :class="fieldError('title') ? 'border-red-400 bg-red-50' : 'border-line bg-bg'"
+              class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+              :class="
+              fieldError('title')
+                ? 'border-red-400 bg-red-50'
+                : 'border-line bg-bg'
+            "
           />
-          <p v-if="fieldError('title')" class="text-xs text-red-500">{{ fieldError('title') }}</p>
+          <p v-if="fieldError('title')" class="text-xs text-red-500">
+            {{ fieldError('title') }}
+          </p>
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="ap-description">Description</label>
+          <label class="text-sm font-medium text-ink" for="ap-description"
+          >Description</label
+          >
           <textarea
               id="ap-description"
               v-model="description"
               rows="4"
               placeholder="Describe the property…"
-              class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink
-                     placeholder:text-ink-3 resize-none focus:outline-none focus:ring-2
-                     focus:ring-ink/20 focus:border-ink transition-colors"
+              class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-none focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
       </section>
 
       <!-- Section: Pricing -->
       <section class="flex flex-col gap-4">
-        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">Pricing</h2>
+        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
+          Pricing
+        </h2>
 
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="ap-price">
@@ -232,11 +275,16 @@ async function submit() {
               inputmode="numeric"
               placeholder="e.g. 185000"
               @beforeinput="numericInput"
-              class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3
-                     focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-              :class="fieldError('price') ? 'border-red-400 bg-red-50' : 'border-line bg-bg'"
+              class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+              :class="
+              fieldError('price')
+                ? 'border-red-400 bg-red-50'
+                : 'border-line bg-bg'
+            "
           />
-          <p v-if="fieldError('price')" class="text-xs text-red-500">{{ fieldError('price') }}</p>
+          <p v-if="fieldError('price')" class="text-xs text-red-500">
+            {{ fieldError('price') }}
+          </p>
         </div>
 
         <div v-if="type === 'new_project'" class="flex flex-col gap-1.5">
@@ -245,25 +293,34 @@ async function submit() {
           </p>
           <div class="flex gap-2">
             <button
-                v-for="opt in [{id: 'ready', label: 'Ready'}, {id: 'not_ready', label: 'Under construction'}]"
+                v-for="opt in [
+                { id: 'ready', label: 'Ready' },
+                { id: 'not_ready', label: 'Under construction' },
+              ]"
                 :key="opt.id"
                 type="button"
                 class="h-9 px-4 rounded-full text-sm font-medium border transition-colors"
-                :class="completion === opt.id
+                :class="
+                completion === opt.id
                   ? 'bg-ink text-bg border-ink'
-                  : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'"
+                  : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+              "
                 @click="completion = opt.id as 'ready' | 'not_ready'"
             >
               {{ opt.label }}
             </button>
           </div>
-          <p v-if="fieldError('completion')" class="text-xs text-red-500">{{ fieldError('completion') }}</p>
+          <p v-if="fieldError('completion')" class="text-xs text-red-500">
+            {{ fieldError('completion') }}
+          </p>
         </div>
       </section>
 
       <!-- Section: Location -->
       <section class="flex flex-col gap-4">
-        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">Location</h2>
+        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
+          Location
+        </h2>
 
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="ap-district">
@@ -272,16 +329,21 @@ async function submit() {
           <select
               id="ap-district"
               v-model="districtSlug"
-              class="h-10 px-3 rounded-lg border text-sm text-ink bg-bg
-                     focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-              :class="fieldError('district') ? 'border-red-400 bg-red-50' : 'border-line'"
+              class="h-10 px-3 rounded-lg border text-sm text-ink bg-bg focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+              :class="
+              fieldError('district')
+                ? 'border-red-400 bg-red-50'
+                : 'border-line'
+            "
           >
             <option value="" disabled>Select a district</option>
             <option v-for="d in DISTRICTS" :key="d.slug" :value="d.slug">
               {{ d.name }} — {{ d.city }}
             </option>
           </select>
-          <p v-if="fieldError('district')" class="text-xs text-red-500">{{ fieldError('district') }}</p>
+          <p v-if="fieldError('district')" class="text-xs text-red-500">
+            {{ fieldError('district') }}
+          </p>
         </div>
 
         <div class="flex flex-col gap-1.5">
@@ -293,17 +355,24 @@ async function submit() {
               v-model="address"
               type="text"
               placeholder="e.g. Brīvības iela 12, apt. 4"
-              class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3
-                     focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-              :class="fieldError('address') ? 'border-red-400 bg-red-50' : 'border-line bg-bg'"
+              class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+              :class="
+              fieldError('address')
+                ? 'border-red-400 bg-red-50'
+                : 'border-line bg-bg'
+            "
           />
-          <p v-if="fieldError('address')" class="text-xs text-red-500">{{ fieldError('address') }}</p>
+          <p v-if="fieldError('address')" class="text-xs text-red-500">
+            {{ fieldError('address') }}
+          </p>
         </div>
       </section>
 
       <!-- Section: Details -->
       <section class="flex flex-col gap-4">
-        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">Details</h2>
+        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
+          Details
+        </h2>
 
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-1.5">
@@ -317,11 +386,16 @@ async function submit() {
                 inputmode="numeric"
                 placeholder="e.g. 3"
                 @beforeinput="numericInput"
-                class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3
-                       focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-                :class="fieldError('rooms') ? 'border-red-400 bg-red-50' : 'border-line bg-bg'"
+                class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+                :class="
+                fieldError('rooms')
+                  ? 'border-red-400 bg-red-50'
+                  : 'border-line bg-bg'
+              "
             />
-            <p v-if="fieldError('rooms')" class="text-xs text-red-500">{{ fieldError('rooms') }}</p>
+            <p v-if="fieldError('rooms')" class="text-xs text-red-500">
+              {{ fieldError('rooms') }}
+            </p>
           </div>
 
           <div class="flex flex-col gap-1.5">
@@ -335,16 +409,23 @@ async function submit() {
                 inputmode="numeric"
                 placeholder="e.g. 72"
                 @beforeinput="numericInput"
-                class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3
-                       focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-                :class="fieldError('m2') ? 'border-red-400 bg-red-50' : 'border-line bg-bg'"
+                class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+                :class="
+                fieldError('m2')
+                  ? 'border-red-400 bg-red-50'
+                  : 'border-line bg-bg'
+              "
             />
-            <p v-if="fieldError('m2')" class="text-xs text-red-500">{{ fieldError('m2') }}</p>
+            <p v-if="fieldError('m2')" class="text-xs text-red-500">
+              {{ fieldError('m2') }}
+            </p>
           </div>
         </div>
 
         <div v-if="propertyKind === 'house'" class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="ap-land">Land area (m²)</label>
+          <label class="text-sm font-medium text-ink" for="ap-land"
+          >Land area (m²)</label
+          >
           <input
               id="ap-land"
               v-model="landM2"
@@ -352,14 +433,15 @@ async function submit() {
               inputmode="numeric"
               placeholder="e.g. 600"
               @beforeinput="numericInput"
-              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3
-                     focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-ink" for="ap-floor">Floor</label>
+            <label class="text-sm font-medium text-ink" for="ap-floor"
+            >Floor</label
+            >
             <input
                 id="ap-floor"
                 v-model="floor"
@@ -367,13 +449,14 @@ async function submit() {
                 inputmode="numeric"
                 placeholder="e.g. 4"
                 @beforeinput="numericInput"
-                class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3
-                       focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+                class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
             />
           </div>
 
           <div class="flex flex-col gap-1.5">
-            <label class="text-sm font-medium text-ink" for="ap-total-floors">Total floors</label>
+            <label class="text-sm font-medium text-ink" for="ap-total-floors"
+            >Total floors</label
+            >
             <input
                 id="ap-total-floors"
                 v-model="totalFloors"
@@ -381,14 +464,15 @@ async function submit() {
                 inputmode="numeric"
                 placeholder="e.g. 9"
                 @beforeinput="numericInput"
-                class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3
-                       focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+                class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
             />
           </div>
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="ap-year">Year built</label>
+          <label class="text-sm font-medium text-ink" for="ap-year"
+          >Year built</label
+          >
           <input
               id="ap-year"
               v-model="yearBuilt"
@@ -396,24 +480,27 @@ async function submit() {
               inputmode="numeric"
               placeholder="e.g. 2018"
               @beforeinput="numericInput"
-              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3
-                     focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+              class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
       </section>
 
       <!-- Section: Features -->
       <section class="flex flex-col gap-4">
-        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">Features</h2>
+        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
+          Features
+        </h2>
         <div class="flex flex-wrap gap-2">
           <button
               v-for="opt in FEATURE_OPTIONS"
               :key="opt.value"
               type="button"
               class="h-9 px-4 rounded-full text-sm font-medium border transition-colors"
-              :class="features.includes(opt.value)
+              :class="
+              features.includes(opt.value)
                 ? 'bg-ink text-bg border-ink'
-                : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'"
+                : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+            "
               @click="toggleFeature(opt.value)"
           >
             {{ opt.label }}
@@ -423,7 +510,9 @@ async function submit() {
 
       <!-- Section: Photos -->
       <section class="flex flex-col gap-4">
-        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">Photos</h2>
+        <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
+          Photos
+        </h2>
         <div class="flex flex-col gap-1.5">
           <p class="text-sm font-medium text-ink">
             Photos <span class="text-red-500">*</span>
@@ -439,23 +528,34 @@ async function submit() {
           <button
               type="button"
               class="self-start h-9 px-4 rounded-full text-sm font-medium border transition-colors"
-              :class="fieldError('photos') ? 'border-red-400 text-red-500' : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'"
+              :class="
+              fieldError('photos')
+                ? 'border-red-400 text-red-500'
+                : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+            "
               @click="fileInputRef?.click()"
           >
             + Add photos
           </button>
           <div v-if="photoPreviews.length" class="grid grid-cols-3 gap-2 mt-1">
             <div v-for="(src, i) in photoPreviews" :key="i" class="relative">
-              <img :src="src" class="w-full aspect-square object-cover rounded-lg" :alt="`Photo ${i + 1}`"/>
+              <img
+                  :src="src"
+                  class="w-full aspect-square object-cover rounded-lg"
+                  :alt="`Photo ${i + 1}`"
+              />
               <button
                   type="button"
                   class="absolute top-1 right-1 size-5 rounded-full bg-ink/70 text-bg text-xs flex items-center justify-center hover:bg-ink transition-colors"
                   @click="removePhoto(i)"
-              >✕
+              >
+                ✕
               </button>
             </div>
           </div>
-          <p v-if="fieldError('photos')" class="text-xs text-red-500">{{ fieldError('photos') }}</p>
+          <p v-if="fieldError('photos')" class="text-xs text-red-500">
+            {{ fieldError('photos') }}
+          </p>
         </div>
       </section>
 
@@ -464,8 +564,7 @@ async function submit() {
         <button
             type="submit"
             :disabled="submitting"
-            class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium
-                   hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{ submitting ? 'Submitting…' : 'Publish listing' }}
         </button>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue';
-import {DISTRICTS} from "../../data/locations";
+import {DISTRICTS} from '../../data/locations';
 
 const props = defineProps<{ modelValue: string[] }>();
 const emit = defineEmits<{ 'update:modelValue': [value: string[]] }>();
@@ -14,7 +14,7 @@ const grouped = computed(() => {
           (d) =>
               d.name.toLowerCase().includes(filter) ||
               d.city.toLowerCase().includes(filter) ||
-              d.slug.includes(filter),
+              d.slug.includes(filter)
       )
       : DISTRICTS;
   const map = new Map<string, typeof DISTRICTS>();
@@ -45,8 +45,7 @@ function clear() {
         v-model="query"
         type="search"
         placeholder="Find a district…"
-        class="focus-ring w-full h-10 px-3 rounded-md border border-line bg-bg text-sm
-             placeholder:text-ink-3"
+        class="focus-ring w-full h-10 px-3 rounded-md border border-line bg-bg text-sm placeholder:text-ink-3"
     />
     <div class="space-y-4 max-h-72 overflow-y-auto pr-1">
       <div v-for="[city, items] in grouped" :key="city" class="space-y-1.5">
@@ -55,8 +54,7 @@ function clear() {
           <label
               v-for="d in items"
               :key="d.slug"
-              class="focus-ring flex items-center gap-2 px-2 py-1.5 rounded-md
-                   text-sm text-ink cursor-pointer hover:bg-surface"
+              class="focus-ring flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-ink cursor-pointer hover:bg-surface"
           >
             <input
                 type="checkbox"

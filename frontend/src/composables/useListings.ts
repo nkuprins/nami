@@ -1,6 +1,6 @@
 import {computed, ref, type Ref, watch} from 'vue';
-import {PropertyItem} from "../types/propertyItem";
-import {DEFAULT_FILTER_STATE, FilterState, PAGE_SIZE} from "../types/filter";
+import {PropertyItem} from '../types/propertyItem';
+import {DEFAULT_FILTER_STATE, FilterState, PAGE_SIZE} from '../types/filter';
 import {countProperties, listProperties} from '../api/listings';
 import {logger} from '../utils/logger';
 
@@ -17,7 +17,9 @@ export function useListings(source: Source) {
     const total = ref(0);
     const loading = ref(true);
     const error = ref<string | null>(null);
-    const pageCount = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)));
+    const pageCount = computed(() =>
+        Math.max(1, Math.ceil(total.value / PAGE_SIZE))
+    );
 
     let token = 0;
 
@@ -45,13 +47,16 @@ export function useListings(source: Source) {
         () => {
             void refresh();
         },
-        {immediate: true},
+        {immediate: true}
     );
 
     return {items, total, pageCount, loading, error, refresh};
 }
 
-export function useListingCount(draft: () => Partial<FilterState>, base: () => FilterState) {
+export function useListingCount(
+    draft: () => Partial<FilterState>,
+    base: () => FilterState
+) {
     const count = ref(0);
     const error = ref<string | null>(null);
     let token = 0;
@@ -71,7 +76,8 @@ export function useListingCount(draft: () => Partial<FilterState>, base: () => F
             error.value = null;
         } catch (e) {
             if (id !== token) return;
-            error.value = e instanceof Error ? e.message : 'Failed to count listings.';
+            error.value =
+                e instanceof Error ? e.message : 'Failed to count listings.';
             logger.error('useListingCount refresh failed:', e);
         }
     }
@@ -81,7 +87,7 @@ export function useListingCount(draft: () => Partial<FilterState>, base: () => F
         () => {
             void refresh();
         },
-        {immediate: true},
+        {immediate: true}
     );
     return {count, error};
 }

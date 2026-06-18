@@ -19,51 +19,62 @@ const myPropertiesOpen = ref(false);
 
 <template>
   <header class="sticky top-0 z-40 bg-bg/95 backdrop-blur border-b border-line">
-    <div class="mx-auto max-w-360 px-6 lg:px-10 h-16 flex items-center justify-between gap-6">
-      <RouterLink
-          to="/"
-          class="focus-ring flex items-baseline gap-2 group"
-      >
-        <span class="display-headline text-[1.6rem] leading-none text-ink"
-              style="font-variation-settings: 'opsz' 96, 'SOFT' 30, 'WONK' 1;">
+    <div
+        class="mx-auto max-w-360 px-6 lg:px-10 h-16 flex items-center justify-between gap-6"
+    >
+      <RouterLink to="/" class="focus-ring flex items-baseline gap-2 group">
+        <span
+            class="display-headline text-[1.6rem] leading-none text-ink"
+            style="
+            font-variation-settings:
+              'opsz' 96,
+              'SOFT' 30,
+              'WONK' 1;
+          "
+        >
           Baltnami
         </span>
-        <span class="micro-label hidden sm:inline-block -translate-y-0.5">est. 2026</span>
+        <span class="micro-label hidden sm:inline-block -translate-y-0.5"
+        >est. 2026</span
+        >
       </RouterLink>
 
       <div class="flex items-center gap-1 sm:gap-3">
         <button
-            class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full
-                 text-ink-2 hover:text-ink text-sm transition-colors"
-            @click="auth.isAuthenticated ? myPropertiesOpen = true : authOpen = true"
+            class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full text-ink-2 hover:text-ink text-sm transition-colors"
+            @click="
+            auth.isAuthenticated ? (myPropertiesOpen = true) : (authOpen = true)
+          "
         >
           <i class="ti ti-building-estate text-base" aria-hidden="true"/>
           <span class="hidden sm:inline">My listings</span>
         </button>
 
         <button
-            class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full
-                 text-ink-2 hover:text-ink text-sm transition-colors"
+            class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full text-ink-2 hover:text-ink text-sm transition-colors"
             @click="savedOpen = true"
         >
-          <span class="size-4 inline-block" :class="{ 'text-accent-2': savedStore.count > 0 }">
+          <span
+              class="size-4 inline-block"
+              :class="{ 'text-accent-2': savedStore.count > 0 }"
+          >
             <IconHeart :filled="savedStore.count > 0"/>
           </span>
           <span class="hidden sm:inline">Saved</span>
           <span
               v-if="savedStore.count > 0"
-              class="tabular text-[0.6875rem] font-medium px-1.5 h-4.5 inline-flex items-center
-                   rounded-full bg-ink text-cream"
+              class="tabular text-[0.6875rem] font-medium px-1.5 h-4.5 inline-flex items-center rounded-full bg-ink text-cream"
           >
             {{ savedStore.count }}
           </span>
         </button>
 
         <template v-if="auth.isAuthenticated">
-          <span class="hidden sm:inline text-sm text-ink-2 max-w-32 truncate">{{ auth.user?.name }}</span>
+          <span class="hidden sm:inline text-sm text-ink-2 max-w-32 truncate">{{
+              auth.user?.name
+            }}</span>
           <button
-              class="focus-ring inline-flex items-center h-9 px-3 sm:px-4 rounded-full
-                   text-sm text-ink hover:bg-surface transition-colors"
+              class="focus-ring inline-flex items-center h-9 px-3 sm:px-4 rounded-full text-sm text-ink hover:bg-surface transition-colors"
               @click="auth.logout"
           >
             Sign out
@@ -71,17 +82,19 @@ const myPropertiesOpen = ref(false);
         </template>
         <button
             v-else
-            class="focus-ring inline-flex items-center h-9 px-3 sm:px-4 rounded-full
-                 text-sm text-ink hover:bg-surface transition-colors"
+            class="focus-ring inline-flex items-center h-9 px-3 sm:px-4 rounded-full text-sm text-ink hover:bg-surface transition-colors"
             @click="authOpen = true"
         >
           Sign in
         </button>
 
         <button
-            class="focus-ring inline-flex items-center h-9 px-3 sm:px-4 rounded-full
-                 text-sm bg-ink text-bg hover:bg-accent-2 transition-colors"
-            @click="auth.isAuthenticated ? router.push('/add-property') : authOpen = true"
+            class="focus-ring inline-flex items-center h-9 px-3 sm:px-4 rounded-full text-sm bg-ink text-bg hover:bg-accent-2 transition-colors"
+            @click="
+            auth.isAuthenticated
+              ? router.push('/add-property')
+              : (authOpen = true)
+          "
         >
           <span class="inline md:hidden">Add</span>
           <span class="hidden md:inline">Add a property</span>

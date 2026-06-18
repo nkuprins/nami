@@ -7,7 +7,9 @@ function load(): string[] {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         const arr = raw ? JSON.parse(raw) : [];
-        return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [];
+        return Array.isArray(arr)
+            ? arr.filter((x): x is string => typeof x === 'string')
+            : [];
     } catch {
         return [];
     }
@@ -24,7 +26,7 @@ export const useSavedStore = defineStore('saved', () => {
 
     function toggle(id: string): void {
         if (asSet.value.has(id)) {
-            ids.value = ids.value.filter(x => x !== id);
+            ids.value = ids.value.filter((x) => x !== id);
         } else {
             ids.value = [...ids.value, id];
         }
