@@ -113,3 +113,8 @@ export async function addProperty(
   if (!res.ok) throw new Error(`addProperty: ${res.status}`);
   return mapDto(await res.json());
 }
+
+export async function deleteProperty(id: string): Promise<void> {
+  const res = await fetchApi(`/api/properties/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error(`deleteProperty: ${res.status}`);
+}

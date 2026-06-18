@@ -176,6 +176,14 @@ export const handlers = [
     return HttpResponse.json(applyFilters(url.searchParams));
   }),
 
+  http.delete('/api/properties/:id', ({ params }) => {
+    if (!mockUser) return new HttpResponse(null, { status: 401 });
+    const index = dtoCatalog.findIndex((i) => i.id === params.id);
+    if (index === -1) return new HttpResponse(null, { status: 404 });
+    dtoCatalog.splice(index, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
   http.get('/api/properties/mine', () => {
     return HttpResponse.json(mockUser ? dtoCatalog.slice(0, 2) : []);
   }),
