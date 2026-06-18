@@ -14,6 +14,7 @@ import type {
 import LocationPopover from '../components/hero/LocationPopover.vue';
 import type { Location } from '../data/rawLocations';
 import IconChevron from '../components/ui/IconChevron.vue';
+import LocationMap from '../components/ui/LocationMap.vue';
 
 const router = useRouter();
 
@@ -40,6 +41,7 @@ const features = ref<Feature[]>([]);
 const photoFiles = ref<File[]>([]);
 const photoPreviews = ref<string[]>([]);
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const coords = ref<{ lat: number; lng: number } | null>(null);
 
 const isOpenDistrict = ref(false);
 
@@ -141,7 +143,7 @@ async function submit() {
       district: selectedLocation.value!.district,
       city: selectedLocation.value!.city,
       address: address.value.trim(),
-      coords: { lat: 56.946, lng: 24.105 },
+      coords: coords.value ?? { lat: 56.946, lng: 24.105 },
       photos: photoList,
       completion:
         type.value === 'new_project' && completion.value
@@ -395,6 +397,13 @@ async function submit() {
             {{ fieldError('address') }}
           </p>
         </div>
+
+        <LocationMap
+          v-model="coords"
+          :address="address"
+          :district="selectedDistrictName"
+          :city="selectedLocation?.city ?? ''"
+        />
       </section>
 
       <section class="flex flex-col gap-4">

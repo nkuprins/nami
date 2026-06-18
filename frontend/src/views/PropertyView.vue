@@ -6,6 +6,7 @@ import { formatFloor, formatPrice, formatPricePerM2 } from '../utils/format';
 import SaveHeart from '../components/listing/SaveHeart.vue';
 import CardCarousel from '../components/listing/CardCarousel.vue';
 import { getProperty } from '../api/properties';
+import LocationMap from '../components/ui/LocationMap.vue';
 
 const props = defineProps<{ id: string }>();
 const router = useRouter();
@@ -136,6 +137,19 @@ const phoneRevealed = ref(false);
       <p class="text-sm text-[--color-ink-2] leading-relaxed">
         {{ property.description }}
       </p>
+      <hr class="border-none border-t border-[--color-line] my-5" />
+
+      <div v-if="property.coords" class="my-5">
+        <p class="micro-label mb-3">Location</p>
+        <LocationMap
+          :model-value="property.coords"
+          :address="property.address"
+          :district="property.district"
+          :city="property.city"
+          readonly
+        />
+      </div>
+
       <hr class="border-none border-t border-[--color-line] my-5" />
 
       <div>
