@@ -13,7 +13,7 @@ import type {
 } from '../types/propertyItem';
 import LocationPopover from '../components/hero/LocationPopover.vue';
 import type { Location } from '../data/rawLocations';
-import IconChevron from "../components/ui/IconChevron.vue";
+import IconChevron from '../components/ui/IconChevron.vue';
 
 const router = useRouter();
 
@@ -344,7 +344,7 @@ async function submit() {
             </span>
             <span v-else class="text-ink-3">Select a district…</span>
             <span class="size-4 text-ink-2">
-                <IconChevron :dir="isOpenDistrict ? 'up' : 'down'"/>
+              <IconChevron :dir="isOpenDistrict ? 'up' : 'down'" />
             </span>
           </button>
 
