@@ -20,6 +20,8 @@ let mockUser: {
   emailVerified: boolean;
 } | null = null;
 
+const mockSavedIds = new Set<string>();
+
 type SortKey =
   | 'newest'
   | 'price-asc'
@@ -211,6 +213,25 @@ export const handlers = [
   }),
 
   http.all('/mock-upload/*', () => new HttpResponse(null, { status: 200 })),
+
+  // --- SAVED ENDPOINTS ---
+  http.get('/api/saved', () =>
+    mockUser
+      ? HttpResponse.json([...mockSavedIds])
+      : new HttpResponse(null, { status: 401 })
+  ),
+
+  http.post('/api/saved/:propertyId', ({ params }) => {
+    if (!mockUser) return new HttpResponse(null, { status: 401 });
+    mockSavedIds.add(params.propertyId as string);
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.delete('/api/saved/:propertyId', ({ params }) => {
+    if (!mockUser) return new HttpResponse(null, { status: 401 });
+    mockSavedIds.delete(params.propertyId as string);
+    return new HttpResponse(null, { status: 204 });
+  }),
 
   http.all('/api/*', ({ request }) => {
     logger.error(`[mock] Frontend called an unhandled URL: ${request.url}`);

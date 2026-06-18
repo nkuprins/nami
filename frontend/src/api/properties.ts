@@ -65,7 +65,7 @@ export async function getMyProperties(): Promise<PropertyItem[]> {
 export async function getProperty(
   id: string
 ): Promise<PropertyItem | undefined> {
-  const res = await fetch(`/api/properties/${id}`);
+  const res = await fetchApi(`/api/properties/${id}`);
   if (res.status === 404) return undefined;
   if (!res.ok) throw new Error(`getProperty: ${res.status}`);
   return mapDto(await res.json());
