@@ -135,24 +135,24 @@ onBeforeUnmount(() => {
         class="fixed inset-0 z-50 flex flex-col bg-ink/96 touch-none"
       >
         <!-- Header -->
-        <div class="flex items-center justify-between px-4 py-3 shrink-0 z-10">
-          <span class="micro-label text-cream/50 tabular">
-            {{ index + 1 }} / {{ photos.length }}
+        <div class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 shrink-0 z-10">
+          <span class="micro-label text-cream/85! tabular bg-cream/10 backdrop-blur px-2 sm:px-3 h-6 sm:h-8 sm:text-sm inline-flex items-center rounded-sm">
+            {{ index + 1 }}<span class="mx-0.5">/</span>{{ photos.length }}
           </span>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 sm:gap-3">
             <button
               v-if="scale > 1"
-              class="focus-ring h-7 px-3 rounded-full bg-cream/10 hover:bg-cream/20 text-cream text-xs transition-colors"
+              class="focus-ring h-7 sm:h-9 px-3 sm:px-4 rounded-full bg-cream/10 hover:bg-cream/20 text-cream text-xs sm:text-sm transition-colors"
               @click="resetZoom"
             >
               Reset zoom
             </button>
             <button
-              class="focus-ring size-9 grid place-items-center rounded-full bg-cream/10 hover:bg-cream/20 text-cream transition-colors"
+              class="focus-ring size-9 sm:size-11 grid place-items-center rounded-full bg-cream/10 hover:bg-cream/20 text-cream transition-colors"
               aria-label="Close"
               @click="close"
             >
-              <span class="size-5"><IconClose /></span>
+              <span class="size-5 sm:size-6"><IconClose /></span>
             </button>
           </div>
         </div>
@@ -189,33 +189,35 @@ onBeforeUnmount(() => {
           </Transition>
 
           <!-- Desktop-only nav arrows -->
-          <button
-            v-if="photos.length > 1"
-            class="hidden sm:grid focus-ring absolute left-4 top-1/2 -translate-y-1/2 size-10 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors z-10"
-            aria-label="Previous"
-            @click="prev"
-          >
-            <span class="size-5 inline-block"><IconChevron dir="left" /></span>
-          </button>
-          <button
-            v-if="photos.length > 1"
-            class="hidden sm:grid focus-ring absolute right-4 top-1/2 -translate-y-1/2 size-10 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors z-10"
-            aria-label="Next"
-            @click="next"
-          >
-            <span class="size-5 inline-block"><IconChevron dir="right" /></span>
-          </button>
+          <div class="absolute inset-0 max-w-6xl mx-auto pointer-events-none z-10">
+            <button
+              v-if="photos.length > 1"
+              class="hidden sm:grid pointer-events-auto focus-ring absolute left-2 top-1/2 -translate-y-1/2 size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors"
+              aria-label="Previous"
+              @click="prev"
+            >
+              <span class="size-5 md:size-6 inline-block"><IconChevron dir="left" /></span>
+            </button>
+            <button
+              v-if="photos.length > 1"
+              class="hidden sm:grid pointer-events-auto focus-ring absolute right-2 top-1/2 -translate-y-1/2 size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors"
+              aria-label="Next"
+              @click="next"
+            >
+              <span class="size-5 md:size-6 inline-block"><IconChevron dir="right" /></span>
+            </button>
+          </div>
         </div>
 
         <!-- Thumbnail strip -->
         <div
           v-if="photos.length > 1"
-          class="shrink-0 flex gap-1.5 px-4 py-3 overflow-x-auto scroll-snap-x"
+          class="shrink-0 flex justify-center gap-1.5 sm:gap-2 px-4 py-3 sm:py-4 overflow-x-auto scroll-snap-x"
         >
           <button
             v-for="(src, i) in photos"
             :key="i"
-            class="shrink-0 size-14 rounded-md overflow-hidden transition-all duration-150"
+            class="shrink-0 size-14 sm:size-18 rounded-md overflow-hidden transition-all duration-150"
             :class="
               i === index
                 ? 'ring-2 ring-cream ring-offset-1 ring-offset-ink opacity-100'

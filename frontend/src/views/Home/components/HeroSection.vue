@@ -40,7 +40,7 @@ const emit = defineEmits<{ search: []; openMore: [] }>();
       <p
         class="mt-3 max-w-xl text-cream/80 text-base sm:text-lg leading-relaxed"
       >
-        Residential, commercial, and investment real estate.
+        Residential, commercial, and investment real estate
       </p>
 
       <div

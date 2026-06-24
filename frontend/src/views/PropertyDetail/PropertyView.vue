@@ -92,7 +92,7 @@ const videoThumbnailUrl = computed(() =>
       </button>
 
       <div class="relative aspect-4/3 rounded-xl overflow-hidden mb-6">
-        <CardCarousel :photos="property.photos" :alt="property.title" />
+        <CardCarousel :photos="property.photos" :alt="property.title" zoomable />
         <div class="absolute top-3 right-3 z-10">
           <SaveHeart :property-id="property.id" />
         </div>

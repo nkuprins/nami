@@ -48,36 +48,33 @@ const specRow = computed(() => {
         <div class="absolute top-3 right-3 z-10">
           <SaveHeart :property-id="property.id" />
         </div>
-
-        <div
-          class="absolute left-3 bottom-3 z-10 micro-label text-cream! bg-ink/55 backdrop-blur px-2 h-6 inline-flex items-center rounded-sm"
-        >
-          {{ TYPES_LABELS[property.type] }}
-        </div>
       </div>
 
-      <div class="p-5 space-y-3">
-        <div class="flex items-start justify-between gap-4">
-          <div class="min-w-0">
-            <p class="micro-label">
-              {{ property.district }} · {{ property.city }}
-            </p>
-            <h3
-              class="mt-1 text-[1.0625rem] leading-snug text-ink font-medium line-clamp-2 h-[2.6em]"
-            >
-              {{ property.title }}
-            </h3>
-          </div>
-          <div class="text-right shrink-0">
-            <p class="display-price text-2xl text-ink whitespace-nowrap">
-              {{ price }}
-            </p>
-            <p class="text-xs text-ink-2 tabular">{{ pricePerM2 }}</p>
-          </div>
+      <div class="p-5">
+        <div class="flex items-baseline justify-between gap-4">
+          <p class="micro-label truncate min-w-0">
+            {{ property.district }} · {{ property.city }}
+          </p>
+          <p
+            class="display-price text-2xl text-ink whitespace-nowrap shrink-0"
+          >
+            {{ price }}
+          </p>
+        </div>
+
+        <div class="flex items-baseline justify-between gap-4 mt-1">
+          <h3
+            class="text-[1.0625rem] leading-snug text-ink font-medium truncate min-w-0"
+          >
+            {{ property.title }}
+          </h3>
+          <p class="text-sm text-ink-2 tabular whitespace-nowrap shrink-0">
+            {{ pricePerM2 }}
+          </p>
         </div>
 
         <div
-          class="flex items-center flex-wrap gap-x-3 gap-y-1 text-sm text-ink-2 tabular"
+          class="flex items-center flex-wrap gap-x-3 gap-y-1 text-sm text-ink-2 tabular mt-3"
         >
           <span
             v-for="(part, i) in specRow"
@@ -94,7 +91,7 @@ const specRow = computed(() => {
           </span>
         </div>
 
-        <div class="text-sm text-ink-2">
+        <div class="text-sm text-ink-2 mt-2">
           {{ property.address }}
         </div>
       </div>

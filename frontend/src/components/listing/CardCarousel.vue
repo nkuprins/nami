@@ -6,6 +6,7 @@ import PhotoLightBox from './PhotoLightBox.vue';
 const props = defineProps<{
   photos: string[];
   alt: string;
+  zoomable?: boolean;
 }>();
 
 const index = ref(0);
@@ -66,13 +67,13 @@ function handleClick() {
     didSwipe = false;
     return;
   }
-  lightboxOpen.value = true;
+  if (props.zoomable) lightboxOpen.value = true;
 }
 </script>
 
 <template>
   <div
-    class="relative size-full overflow-hidden bg-surface group/carousel touch-pan-y cursor-zoom-in"
+    :class="['relative size-full overflow-hidden bg-surface group/carousel touch-pan-y', zoomable && 'cursor-zoom-in']"
     role="region"
     @click="handleClick"
     @touchstart="handleTouchStart"
@@ -121,6 +122,7 @@ function handleClick() {
     </div>
 
     <div
+      v-if="zoomable"
       class="absolute bottom-3 left-3 z-10 size-7 grid place-items-center rounded-md bg-ink/40 backdrop-blur opacity-0 group-hover/carousel:opacity-100 transition-opacity text-cream"
       aria-hidden="true"
     >
@@ -141,6 +143,7 @@ function handleClick() {
   </div>
 
   <PhotoLightBox
+    v-if="zoomable"
     v-model:open="lightboxOpen"
     :photos="photos"
     :alt="alt"
