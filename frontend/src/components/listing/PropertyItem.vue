@@ -5,6 +5,7 @@ import { computed } from 'vue';
 import CardCarousel from './CardCarousel.vue';
 import StatusPill from './StatusPill.vue';
 import SaveHeart from './SaveHeart.vue';
+import SpecDots from './SpecDots.vue';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
 
 const props = defineProps<{ property: PropertyItem }>();
@@ -73,23 +74,7 @@ const specRow = computed(() => {
           </p>
         </div>
 
-        <div
-          class="flex items-center flex-wrap gap-x-3 gap-y-1 text-sm text-ink-2 tabular mt-3"
-        >
-          <span
-            v-for="(part, i) in specRow"
-            :key="i"
-            class="inline-flex items-center gap-3"
-          >
-            {{ part }}
-            <span
-              v-if="i < specRow.length - 1"
-              class="text-ink-3"
-              aria-hidden="true"
-              >·</span
-            >
-          </span>
-        </div>
+        <SpecDots :parts="specRow" class="text-sm text-ink-2 mt-3" />
 
         <div class="text-sm text-ink-2 mt-2">
           {{ property.address }}
