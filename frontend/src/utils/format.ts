@@ -1,11 +1,5 @@
 import { PropertyType } from '../types/propertyItem';
 
-export function isNew(postedAt: string): boolean {
-  const posted = new Date(postedAt).getTime();
-  const sevenDays = 7 * 24 * 60 * 60 * 1000;
-  return Date.now() - posted < sevenDays;
-}
-
 const euroFmt = new Intl.NumberFormat('en-IE', {
   style: 'currency',
   currency: 'EUR',

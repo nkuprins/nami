@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import Drawer from '../ui/Drawer.vue';
+import FormField from '../ui/FormField.vue';
 import { useAuthStore } from '../../stores/authStore';
 
 const props = defineProps<{ open: boolean }>();
@@ -18,6 +20,8 @@ const forgotSent = ref(false);
 const submitting = ref(false);
 const unverifiedEmail = ref('');
 const verificationResent = ref(false);
+const agreedToTerms = ref(false);
+const termsError = ref(false);
 
 const name = ref('');
 const email = ref('');
@@ -33,6 +37,8 @@ function reset() {
   pendingVerification.value = false;
   forgotSent.value = false;
   unverifiedEmail.value = '';
+  agreedToTerms.value = false;
+  termsError.value = false;
 }
 
 function close() {
@@ -44,6 +50,7 @@ function switchTab(t: 'signin' | 'signup') {
   tab.value = t;
   mode.value = t;
   error.value = '';
+  termsError.value = false;
 }
 
 async function submit() {
@@ -83,6 +90,10 @@ async function submit() {
       }
       if (password.value.length < 15) {
         error.value = 'Password must be at least 15 characters.';
+        return;
+      }
+      if (!agreedToTerms.value) {
+        termsError.value = true;
         return;
       }
       const result = await signup(name.value, email.value, password.value);
@@ -153,19 +164,14 @@ async function handleResend() {
         </button>
       </div>
       <form v-else class="flex flex-col gap-4" @submit.prevent="submit">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="forgot-email"
-            >Email</label
-          >
-          <input
-            id="forgot-email"
-            v-model="email"
-            type="email"
-            autocomplete="email"
-            placeholder="you@example.com"
-            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-          />
-        </div>
+        <FormField
+          id="forgot-email"
+          label="Email"
+          v-model="email"
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com"
+        />
         <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
         <button
           type="submit"
@@ -186,7 +192,6 @@ async function handleResend() {
 
     <!-- Sign in / Sign up -->
     <div v-else class="flex flex-col gap-6">
-      <!-- Tab switcher -->
       <div class="flex rounded-lg border border-line overflow-hidden text-sm">
         <button
           type="button"
@@ -215,33 +220,23 @@ async function handleResend() {
       </div>
 
       <form class="flex flex-col gap-4" @submit.prevent="submit">
-        <div v-if="tab === 'signup'" class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="auth-name"
-            >Full name</label
-          >
-          <input
-            id="auth-name"
-            v-model="name"
-            type="text"
-            autocomplete="name"
-            placeholder="Your name"
-            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-          />
-        </div>
+        <FormField
+          v-if="tab === 'signup'"
+          id="auth-name"
+          label="Full name"
+          v-model="name"
+          autocomplete="name"
+          placeholder="Your name"
+        />
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="auth-email"
-            >Email</label
-          >
-          <input
-            id="auth-email"
-            v-model="email"
-            type="email"
-            autocomplete="email"
-            placeholder="you@example.com"
-            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-          />
-        </div>
+        <FormField
+          id="auth-email"
+          label="Email"
+          v-model="email"
+          type="email"
+          autocomplete="email"
+          placeholder="you@example.com"
+        />
 
         <div class="flex flex-col gap-1.5">
           <div class="flex items-center justify-between">
@@ -270,6 +265,39 @@ async function handleResend() {
             placeholder="••••••••••••••••"
             class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
+        </div>
+
+        <!-- Terms checkbox — signup only -->
+        <div v-if="tab === 'signup'" class="flex flex-col gap-1.5">
+          <label class="flex items-start gap-2.5 cursor-pointer group">
+            <input
+              v-model="agreedToTerms"
+              type="checkbox"
+              class="mt-0.5 size-4 rounded border-line accent-ink shrink-0 cursor-pointer"
+              @change="termsError = false"
+            />
+            <span class="text-sm text-ink-2 leading-snug">
+              I have read and agree to the
+              <RouterLink
+                to="/terms"
+                target="_blank"
+                class="text-ink underline underline-offset-2 hover:text-accent-2 transition-colors"
+              >
+                Terms of Service
+              </RouterLink>
+              and
+              <RouterLink
+                to="/privacy"
+                target="_blank"
+                class="text-ink underline underline-offset-2 hover:text-accent-2 transition-colors"
+              >
+                Privacy Policy
+              </RouterLink>
+            </span>
+          </label>
+          <p v-if="termsError" class="text-xs text-red-500">
+            You must agree to the Terms and Privacy Policy to create an account.
+          </p>
         </div>
 
         <!-- EMAIL_NOT_VERIFIED state -->

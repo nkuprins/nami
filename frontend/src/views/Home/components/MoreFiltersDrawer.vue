@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
-import Drawer from '../ui/Drawer.vue';
-import { useFiltersStore } from '../../stores/filterStore';
-import type { FilterState } from '../../types/filter';
-import { Feature } from '../../types/propertyItem';
+import Drawer from '../../../components/ui/Drawer.vue';
+import { useFiltersStore } from '../../../stores/filterStore';
+import type { FilterState } from '../../../types/filter';
+import { Feature } from '../../../types/propertyItem';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();

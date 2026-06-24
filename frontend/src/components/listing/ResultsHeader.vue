@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useFiltersStore } from '../../stores/filterStore';
-import IconChevron from '../ui/IconChevron.vue';
+import IconChevron from '../icons/IconChevron.vue';
 import Popover from '../ui/Popover.vue';
 import { SORT_OPTIONS, SortKey } from '../../types/sort';
 

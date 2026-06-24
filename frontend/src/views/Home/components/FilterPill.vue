@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import IconChevron from '../ui/IconChevron.vue';
-import Popover from '../ui/Popover.vue';
+import IconChevron from '../../../components/icons/IconChevron.vue';
+import Popover from '../../../components/ui/Popover.vue';
 
 defineProps<{
   label: string;

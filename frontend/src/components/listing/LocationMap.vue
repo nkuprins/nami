@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
-import IconSpinner from './IconSpinner.vue';
+import IconSpinner from '../icons/IconSpinner.vue';
 
 const props = defineProps<{
   address: string;
@@ -29,6 +29,38 @@ const query = computed(() =>
     .join(', ')
 );
 
+// Strip apartment/unit suffixes so "Jēkaba iela 5, apt 3" → "Jēkaba iela 5"
+function stripApartment(addr: string): string {
+  return addr
+    .replace(/,?\s*(apt\.?|apartament[s]?|dz\.?|flat)\s*\d+/i, '')
+    .trim();
+}
+
+// Build a ranked list of queries to try in order
+function buildQueries(): string[] {
+  const street = props.address.trim();
+  const city = props.city.trim();
+  const district = props.district.trim();
+  const stripped = stripApartment(street);
+  const queries: string[] = [];
+
+  // 1. Full query as-is
+  if (street)
+    queries.push([street, district, city, 'Latvia'].filter(Boolean).join(', '));
+  // 2. Stripped apartment number
+  if (stripped && stripped !== street)
+    queries.push(
+      [stripped, district, city, 'Latvia'].filter(Boolean).join(', ')
+    );
+  // 3. Street + city only (skip district — sometimes it confuses Nominatim)
+  if (stripped)
+    queries.push([stripped, city, 'Latvia'].filter(Boolean).join(', '));
+  // 4. Just city + country (last resort — at least shows the right city)
+  if (city) queries.push([city, 'Latvia'].join(', '));
+
+  return [...new Set(queries)]; // deduplicate
+}
+
 function makeIcon(L: any) {
   const cursor = props.readonly ? 'default' : 'grab';
   const html = `
@@ -50,7 +82,7 @@ function makeIcon(L: any) {
   });
 }
 
-function placeMarker(lat: number, lng: number) {
+function placeMarker(lat: number, lng: number, fly = true) {
   const L = (window as any).L;
   if (marker) {
     marker.setLatLng([lat, lng]);
@@ -67,35 +99,58 @@ function placeMarker(lat: number, lng: number) {
       });
     }
   }
-  map.setView([lat, lng], 16);
+  if (fly) map.setView([lat, lng], 16);
 }
 
-async function geocode(q: string) {
-  if (!q.trim()) return;
-  state.value = 'loading';
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}`;
-    const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
-    const data = await res.json();
-    if (!data.length) {
-      state.value = 'error';
-      emit('update:modelValue', null);
-      return;
-    }
-    const lat = parseFloat(data[0].lat);
-    const lng = parseFloat(data[0].lon);
+// Enable click-to-place when not readonly
+function setupClickToPlace() {
+  if (props.readonly || !map) return;
+  map.on('click', (e: any) => {
+    const { lat, lng } = e.latlng;
+    placeMarker(lat, lng, false);
     emit('update:modelValue', { lat, lng });
-    placeMarker(lat, lng);
     state.value = 'ok';
-  } catch {
-    state.value = 'error';
-    emit('update:modelValue', null);
+  });
+}
+
+async function tryGeocode(
+  q: string
+): Promise<{ lat: number; lng: number } | null> {
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(q)}&countrycodes=lv`;
+  const res = await fetch(url, { headers: { 'Accept-Language': 'lv,en' } });
+  const data = await res.json();
+  if (!data.length) return null;
+  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+}
+
+async function geocode() {
+  const queries = buildQueries();
+  if (!queries.length) return;
+  state.value = 'loading';
+
+  for (const q of queries) {
+    try {
+      const coords = await tryGeocode(q);
+      if (coords) {
+        emit('update:modelValue', coords);
+        placeMarker(coords.lat, coords.lng);
+        state.value = 'ok';
+        return;
+      }
+    } catch {
+      // try next query
+    }
   }
+
+  // All queries failed — show soft error but keep map interactive
+  state.value = 'error';
+  // Don't emit null if we already had coords — user may have placed manually
+  if (!props.modelValue) emit('update:modelValue', null);
 }
 
 function scheduleGeocode() {
   if (debounceTimer) clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => geocode(query.value), 700);
+  debounceTimer = setTimeout(geocode, 800);
 }
 
 function loadLeaflet(): Promise<void> {
@@ -131,11 +186,13 @@ onMounted(async () => {
     maxZoom: 19,
   }).addTo(map);
 
+  setupClickToPlace();
+
   if (props.modelValue) {
     placeMarker(props.modelValue.lat, props.modelValue.lng);
     state.value = 'ok';
   } else if (query.value.trim()) {
-    geocode(query.value);
+    geocode();
   }
 });
 
@@ -171,19 +228,27 @@ watch(query, () => {
         </div>
       </Transition>
 
+      <!-- Error: non-blocking, map stays interactive -->
       <Transition name="fade">
         <div
           v-if="state === 'error'"
-          class="absolute inset-0 bg-bg/80 backdrop-blur-sm flex items-center justify-center pointer-events-none"
+          class="absolute bottom-10 left-1/2 -translate-x-1/2 pointer-events-none"
           style="z-index: 1000"
         >
-          <p class="text-xs text-ink-3">Location not found on the map</p>
+          <p
+            class="text-xs text-ink bg-bg/90 backdrop-blur px-3 py-1.5 rounded-full border border-line whitespace-nowrap shadow-soft"
+          >
+            Address not found — click the map to place pin manually
+          </p>
         </div>
       </Transition>
     </div>
 
     <p v-if="state === 'ok' && !readonly" class="text-xs text-ink-3">
       Pin placed from your address. Drag it to adjust if needed.
+    </p>
+    <p v-if="state === 'error' && !readonly" class="text-xs text-ink-3">
+      Click anywhere on the map to place the pin manually.
     </p>
   </div>
 </template>

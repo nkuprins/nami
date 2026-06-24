@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
-import IconHeart from '../ui/IconHeart.vue';
+import IconHeart from '../icons/IconHeart.vue';
 import { useSavedStore } from '../../stores/savedStore';
 import { useAuthStore } from '../../stores/authStore';
 import AuthModal from '../auth/AuthModal.vue';
-import SavedDrawer from '../saved/SavedDrawer.vue';
+import SavedDrawer from '../listing/SavedDrawer.vue';
 import MyPropertiesDrawer from '../listing/MyPropertiesDrawer.vue';
-import IconBuilding from '../ui/IconBuilding.vue';
-import DeleteaccountDialog from '../ui/DeleteaccountDialog.vue';
-import IconChevron from '../ui/IconChevron.vue';
+import IconBuilding from '../icons/IconBuilding.vue';
+import DeleteAccountDialog from '../auth/DeleteAccountDialog.vue';
+import IconChevron from '../icons/IconChevron.vue';
 
 const router = useRouter();
 const savedStore = useSavedStore();
@@ -161,5 +161,5 @@ const userMenuOpen = ref(false);
   <AuthModal v-model:open="authOpen" />
   <SavedDrawer v-model:open="savedOpen" />
   <MyPropertiesDrawer v-model:open="myPropertiesOpen" />
-  <DeleteaccountDialog v-model:open="deleteAccountOpen" />
+  <DeleteAccountDialog v-model:open="deleteAccountOpen" />
 </template>

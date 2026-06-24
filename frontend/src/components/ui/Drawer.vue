@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, watch } from 'vue';
-import IconClose from './IconClose.vue';
+import IconClose from '../icons/IconClose.vue';
 
 const props = defineProps<{ open: boolean; title: string }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();

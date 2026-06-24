@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { PropertyItem } from '../../types/propertyItem';
-import { isNew } from '../../utils/format';
+import { isNew } from '../../utils/utils';
 
 const props = defineProps<{ property: PropertyItem }>();
 const status = computed(() => isNew(props.property.postedAt));

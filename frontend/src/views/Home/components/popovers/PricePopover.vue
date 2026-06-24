@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import type { PropertyType } from '../../types/propertyItem';
+import type { PropertyType } from '../../../../types/propertyItem';
+
+const fmt = new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 });
 
 const props = defineProps<{
   min: number | undefined;
@@ -11,14 +13,21 @@ const emit = defineEmits<{
   'update:range': [min: number | undefined, max: number | undefined];
 }>();
 
-const localMin = ref<string>(props.min !== undefined ? String(props.min) : '');
-const localMax = ref<string>(props.max !== undefined ? String(props.max) : '');
+const rawMin = ref(props.min);
+const rawMax = ref(props.max);
+
+const displayMin = computed(() =>
+  rawMin.value !== undefined ? fmt.format(rawMin.value) : ''
+);
+const displayMax = computed(() =>
+  rawMax.value !== undefined ? fmt.format(rawMax.value) : ''
+);
 
 watch(
   () => [props.min, props.max],
   ([mn, mx]) => {
-    localMin.value = mn !== undefined ? String(mn) : '';
-    localMax.value = mx !== undefined ? String(mx) : '';
+    rawMin.value = mn as number | undefined;
+    rawMax.value = mx as number | undefined;
   }
 );
 
@@ -43,34 +52,31 @@ const suggestions = computed<
 
 let timer: number | null = null;
 
-function commit() {
+function onInput(field: 'min' | 'max', e: Event) {
+  const raw = (e.target as HTMLInputElement).value.replace(/\D/g, '');
+  const num = raw === '' ? undefined : Math.max(0, parseInt(raw, 10));
+  const val = num !== undefined && Number.isFinite(num) ? num : undefined;
+  if (field === 'min') rawMin.value = val;
+  else rawMax.value = val;
+  scheduleCommit();
+}
+
+function scheduleCommit() {
   if (timer !== null) window.clearTimeout(timer);
   timer = window.setTimeout(() => {
-    const mn =
-      localMin.value === ''
-        ? undefined
-        : Math.max(0, parseInt(localMin.value, 10));
-    const mx =
-      localMax.value === ''
-        ? undefined
-        : Math.max(0, parseInt(localMax.value, 10));
-    emit(
-      'update:range',
-      Number.isFinite(mn as number) ? mn : undefined,
-      Number.isFinite(mx as number) ? mx : undefined
-    );
+    emit('update:range', rawMin.value, rawMax.value);
   }, 280);
 }
 
 function pickPreset(mn: number | undefined, mx: number | undefined) {
-  localMin.value = mn !== undefined ? String(mn) : '';
-  localMax.value = mx !== undefined ? String(mx) : '';
+  rawMin.value = mn;
+  rawMax.value = mx;
   emit('update:range', mn, mx);
 }
 
 function clear() {
-  localMin.value = '';
-  localMax.value = '';
+  rawMin.value = undefined;
+  rawMax.value = undefined;
   emit('update:range', undefined, undefined);
 }
 </script>
@@ -83,10 +89,9 @@ function clear() {
           >Min {{ type === 'rent' ? '€ / mo' : '€' }}</span
         >
         <input
-          v-model="localMin"
-          @input="commit"
+          :value="displayMin"
+          @input="onInput('min', $event)"
           inputmode="numeric"
-          pattern="[0-9]*"
           placeholder="Any"
           class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
         />
@@ -96,10 +101,9 @@ function clear() {
           >Max {{ type === 'rent' ? '€ / mo' : '€' }}</span
         >
         <input
-          v-model="localMax"
-          @input="commit"
+          :value="displayMax"
+          @input="onInput('max', $event)"
           inputmode="numeric"
-          pattern="[0-9]*"
           placeholder="Any"
           class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
         />

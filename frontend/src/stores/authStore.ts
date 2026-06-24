@@ -1,14 +1,7 @@
 import { computed, readonly, ref, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { logger } from '../utils/logger';
-import { authApi } from '../api/authApi';
-
-interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  emailVerified: boolean;
-}
+import { authApi, type AuthUser } from '../api/authApi';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<AuthUser | null>(null);

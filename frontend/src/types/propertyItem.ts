@@ -1,5 +1,3 @@
-import type { FilterState } from './filter';
-
 export const KNOWN_TYPES = ['buy', 'rent', 'new_project'] as const;
 export const KNOWN_KINDS = ['apartment', 'house'] as const;
 export const KNOWN_COMPLETION = ['ready', 'not_ready'] as const;
@@ -17,10 +15,9 @@ export type PropertyKind = (typeof KNOWN_KINDS)[number];
 export type PropertyCompletion = (typeof KNOWN_COMPLETION)[number];
 export type Feature = (typeof KNOWN_FEATURES)[number];
 
-export interface PropertyItem {
+interface BasePropertyItem {
   id: string;
   type: PropertyType;
-  propertyKind: PropertyKind;
   title: string;
   description: string;
   price: number;
@@ -36,6 +33,17 @@ export interface PropertyItem {
   address: string;
   coords: { lat: number; lng: number };
   photos: string[];
+  videoUrl?: string;
   postedAt: string;
   completion?: PropertyCompletion;
 }
+
+export interface ApartmentItem extends BasePropertyItem {
+  propertyKind: 'apartment';
+}
+
+export interface HouseItem extends BasePropertyItem {
+  propertyKind: 'house';
+}
+
+export type PropertyItem = ApartmentItem | HouseItem;

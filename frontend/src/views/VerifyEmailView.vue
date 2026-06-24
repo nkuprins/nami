@@ -2,8 +2,8 @@
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
-import IconFail from '../components/ui/IconFail.vue';
-import IconCheck from '../components/ui/IconCheck.vue';
+import IconFail from '../components/icons/IconFail.vue';
+import IconCheck from '../components/icons/IconCheck.vue';
 
 const route = useRoute();
 const { verifyEmail } = useAuthStore();

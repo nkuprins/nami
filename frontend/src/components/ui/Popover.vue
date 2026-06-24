@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, watch } from 'vue';
-import IconClose from './IconClose.vue';
+import IconClose from '../icons/IconClose.vue';
 
 const props = defineProps<{
   open: boolean;

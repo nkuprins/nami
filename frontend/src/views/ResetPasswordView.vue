@@ -2,7 +2,8 @@
 import { ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
-import IconCheck from '../components/ui/IconCheck.vue';
+import IconCheck from '../components/icons/IconCheck.vue';
+import FormField from '../components/ui/FormField.vue';
 
 const route = useRoute();
 const { resetPassword } = useAuthStore();
@@ -66,32 +67,22 @@ async function submit() {
     <div v-else>
       <h1 class="text-lg font-medium text-ink mb-6">Set new password</h1>
       <form class="flex flex-col gap-4" @submit.prevent="submit">
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="rp-password"
-            >New password</label
-          >
-          <input
-            id="rp-password"
-            v-model="password"
-            type="password"
-            autocomplete="new-password"
-            placeholder="••••••••••••••••"
-            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-          />
-        </div>
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="rp-confirm"
-            >Confirm password</label
-          >
-          <input
-            id="rp-confirm"
-            v-model="confirm"
-            type="password"
-            autocomplete="new-password"
-            placeholder="••••••••••••••••"
-            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-          />
-        </div>
+        <FormField
+          id="rp-password"
+          label="New password"
+          v-model="password"
+          type="password"
+          autocomplete="new-password"
+          placeholder="••••••••••••••••"
+        />
+        <FormField
+          id="rp-confirm"
+          label="Confirm password"
+          v-model="confirm"
+          type="password"
+          autocomplete="new-password"
+          placeholder="••••••••••••••••"
+        />
         <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
         <button
           type="submit"

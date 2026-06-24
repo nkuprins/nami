@@ -221,3 +221,24 @@
   opacity: 0;
   transform: translateY(-4px) scale(0.98);
 }
+
+/* Carousel slide */
+.carousel-fwd-enter-active,
+.carousel-fwd-leave-active,
+.carousel-bwd-enter-active,
+.carousel-bwd-leave-active {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.carousel-fwd-enter-from {
+  transform: translateX(100%);
+}
+.carousel-fwd-leave-to {
+  transform: translateX(-100%);
+}
+.carousel-bwd-enter-from {
+  transform: translateX(-100%);
+}
+.carousel-bwd-leave-to {
+  transform: translateX(100%);
+}

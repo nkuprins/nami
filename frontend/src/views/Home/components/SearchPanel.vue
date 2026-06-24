@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { storeToRefs } from 'pinia'; // 1. Import storeToRefs
+import { storeToRefs } from 'pinia';
 import CategoryTabs from './CategoryTabs.vue';
 import FilterPill from './FilterPill.vue';
-import LocationPopover from './LocationPopover.vue';
-import PricePopover from './PricePopover.vue';
-import RoomsPopover from './RoomsPopover.vue';
-import IconSearch from '../ui/IconSearch.vue';
-import IconSliders from '../ui/IconSliders.vue';
-import { useFiltersStore } from '../../stores/filterStore';
+import LocationPopover from '../../../components/listing/LocationPopover.vue';
+import PricePopover from './popovers/PricePopover.vue';
+import RoomsPopover from './popovers/RoomsPopover.vue';
+import IconSearch from '../../../components/icons/IconSearch.vue';
+import IconSliders from '../../../components/icons/IconSliders.vue';
+import { useFiltersStore } from '../../../stores/filterStore';
+
+const fmtNum = new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 });
 
 const emit = defineEmits<{ search: []; openMore: [] }>();
 
@@ -20,39 +22,26 @@ const { state, setType, setLocations, setPriceRange, setRooms } =
 const locSummary = computed(() => {
   if (!state.loc.length) return '';
   if (state.loc.length === 1) return districts.value[0];
-  if (state.loc.length === 2) return districts.value.join(',');
+  if (state.loc.length <= 3) return districts.value.join(', ');
   return `${districts.value[0]} +${state.loc.length - 1}`;
 });
 
 const priceSummary = computed(() => {
   const { priceMin, priceMax, type } = state;
   const suffix = type === 'rent' ? '/mo' : '';
+  const fmt = (n: number) => fmtNum.format(n);
   if (priceMin !== undefined && priceMax !== undefined)
-    return `${priceMin} – ${priceMax}${suffix}`;
-  if (priceMin !== undefined) return `From ${priceMin}${suffix}`;
-  if (priceMax !== undefined) return `Up to ${priceMax}${suffix}`;
+    return `${fmt(priceMin)} – ${fmt(priceMax)}${suffix}`;
+  if (priceMin !== undefined) return `From ${fmt(priceMin)}${suffix}`;
+  if (priceMax !== undefined) return `Up to ${fmt(priceMax)}${suffix}`;
   return '';
 });
 
 const roomsSummary = computed(() => {
   if (!state.rooms.length) return '';
   const sorted = [...state.rooms].sort((a, b) => a - b);
-  return sorted.map((n) => (n >= 5 ? '5+' : `${n}`)).join(', ') + ' rm';
+  return sorted.map((n) => (n >= 7 ? '7+' : `${n}`)).join(', ') + ' rm';
 });
-
-const advancedActive = computed(
-  () =>
-    state.m2Min !== undefined ||
-    state.m2Max !== undefined ||
-    state.floorMin !== undefined ||
-    state.floorMax !== undefined ||
-    !!state.notGround ||
-    !!state.notTop ||
-    state.yearMin !== undefined ||
-    state.yearMax !== undefined ||
-    state.features.length > 0 ||
-    !!state.completion
-);
 
 const advancedCount = computed(() => {
   let n = 0;
@@ -119,9 +108,6 @@ const advancedCount = computed(() => {
           type="button"
           @click="emit('openMore')"
           class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-4 rounded-md border border-line bg-bg text-sm text-ink-2 hover:text-ink hover:border-line-2 transition-colors"
-          :class="{
-            'border-accent-2/40 bg-cream/60 text-ink': advancedActive,
-          }"
         >
           <span class="size-4 inline-block"><IconSliders /></span>
           <span>More filters</span>

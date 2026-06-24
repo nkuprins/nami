@@ -3,11 +3,11 @@ import { ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import Drawer from '../ui/Drawer.vue';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
-import { getMyProperties, deleteProperty } from '../../api/properties';
+import { getMyProperties, deleteProperty } from '../../api/propertiesApi';
 import { formatPrice } from '../../utils/format';
 import type { PropertyItem } from '../../types/propertyItem';
-import IconTrash from '../ui/IconTrash.vue';
-import IconSpinner from '../ui/IconSpinner.vue';
+import IconTrash from '../icons/IconTrash.vue';
+import IconSpinner from '../icons/IconSpinner.vue';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();

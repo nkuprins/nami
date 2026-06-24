@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import IconHeart from '../ui/IconHeart.vue';
+import IconHeart from '../icons/IconHeart.vue';
 import { useSavedStore } from '../../stores/savedStore';
 
 const props = defineProps<{ propertyId: string }>();

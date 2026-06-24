@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { PropertyItem } from '../../types/propertyItem';
+import type { PropertyItem } from '../../types/propertyItem';
+import { TYPES_LABELS } from '../../types/propertyLabels';
 import { computed } from 'vue';
 import CardCarousel from './CardCarousel.vue';
 import StatusPill from './StatusPill.vue';
@@ -30,17 +31,6 @@ const specRow = computed(() => {
 
   return parts;
 });
-
-const typeLabel = computed(() => {
-  switch (props.property.type) {
-    case 'rent':
-      return 'For rent';
-    case 'new_project':
-      return 'New project';
-    default:
-      return 'For sale';
-  }
-});
 </script>
 
 <template>
@@ -62,7 +52,7 @@ const typeLabel = computed(() => {
         <div
           class="absolute left-3 bottom-3 z-10 micro-label text-cream! bg-ink/55 backdrop-blur px-2 h-6 inline-flex items-center rounded-sm"
         >
-          {{ typeLabel }}
+          {{ TYPES_LABELS[property.type] }}
         </div>
       </div>
 

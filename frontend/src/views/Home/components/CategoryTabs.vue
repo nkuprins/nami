@@ -1,14 +1,9 @@
 <script setup lang="ts">
-import type { PropertyType } from '../../types/propertyItem';
+import type { PropertyType } from '../../../types/propertyItem';
+import { CATEGORY_OPTIONS } from '../../../types/propertyLabels';
 
 defineProps<{ modelValue: PropertyType }>();
 const emit = defineEmits<{ 'update:modelValue': [value: PropertyType] }>();
-
-const tabs: Array<{ id: PropertyType; label: string; hint: string }> = [
-  { id: 'buy', label: 'Buy', hint: 'For sale' },
-  { id: 'rent', label: 'Rent', hint: 'Monthly' },
-  { id: 'new_project', label: 'New projects', hint: '' },
-];
 
 function pick(id: PropertyType) {
   emit('update:modelValue', id);
@@ -18,7 +13,7 @@ function pick(id: PropertyType) {
 <template>
   <div class="flex items-stretch">
     <button
-      v-for="tab in tabs"
+      v-for="tab in CATEGORY_OPTIONS"
       :key="tab.id"
       role="tab"
       @click="pick(tab.id)"

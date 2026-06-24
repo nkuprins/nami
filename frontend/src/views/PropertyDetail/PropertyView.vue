@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import type { Feature, PropertyItem } from '../types/propertyItem';
-import { formatFloor, formatPrice, formatPricePerM2 } from '../utils/format';
-import SaveHeart from '../components/listing/SaveHeart.vue';
-import CardCarousel from '../components/listing/CardCarousel.vue';
-import { getProperty } from '../api/properties';
-import LocationMap from '../components/ui/LocationMap.vue';
+import type { PropertyItem } from '../../types/propertyItem';
+import { FEATURE_LABELS } from '../../types/propertyLabels';
+import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
+import {
+  normalizeVideoEmbedUrl,
+  getVideoThumbnailUrl,
+} from '../../utils/video';
+import SaveHeart from '../../components/listing/SaveHeart.vue';
+import CardCarousel from '../../components/listing/CardCarousel.vue';
+import { getProperty } from '../../api/propertiesApi';
+import LocationMap from '../../components/listing/LocationMap.vue';
+import PhotoGrid from './components/PhotoGrid.vue';
+import IconPlayer from '../../components/icons/IconPlayer.vue';
 
 const props = defineProps<{ id: string }>();
 const router = useRouter();
@@ -25,6 +32,12 @@ const pricePerM2 = computed(() =>
     : ''
 );
 
+const videoHasError = ref(false);
+
+function handleVideoError() {
+  videoHasError.value = true;
+}
+
 const specRow = computed(() => {
   if (!property.value) return [];
   const { rooms, m2, floor, totalFloors, landM2, propertyKind } =
@@ -41,16 +54,21 @@ const specRow = computed(() => {
   return parts;
 });
 
-const featureLabels: Record<Feature, string> = {
-  balcony: 'Balcony',
-  parking: 'Parking',
-  elevator: 'Elevator',
-  furnished: 'Furnished',
-  pets: 'Pets allowed',
-  new_building: 'New building',
-};
-
 const phoneRevealed = ref(false);
+const videoExpanded = ref(false);
+
+const videoTourUrl = computed(() => {
+  const raw = property.value?.videoUrl;
+  return typeof raw === 'string' ? raw.trim() : '';
+});
+
+const videoEmbedUrl = computed(() =>
+  videoTourUrl.value ? normalizeVideoEmbedUrl(videoTourUrl.value) : ''
+);
+
+const videoThumbnailUrl = computed(() =>
+  videoTourUrl.value ? getVideoThumbnailUrl(videoTourUrl.value) : ''
+);
 </script>
 
 <template>
@@ -128,7 +146,7 @@ const phoneRevealed = ref(false);
           :key="f"
           class="micro-label bg-[--color-surface] border border-[--color-line] rounded-md px-2 py-1"
         >
-          {{ featureLabels[f] }}
+          {{ FEATURE_LABELS[f] }}
         </span>
       </div>
 
@@ -138,6 +156,81 @@ const phoneRevealed = ref(false);
         {{ property.description }}
       </p>
       <hr class="border-none border-t border-[--color-line] my-5" />
+
+      <PhotoGrid :photos="property.photos" :alt="property.title" />
+
+      <div v-if="videoTourUrl">
+        <div
+          v-if="videoHasError"
+          class="relative aspect-video overflow-hidden rounded-xl border border-dashed border-[--color-line] bg-[--color-surface] flex flex-col items-center justify-center text-center p-6"
+        >
+          <i
+            class="ti ti-video-off text-2xl text-[--color-ink-3] mb-2"
+            aria-hidden="true"
+          />
+          <p class="text-sm font-medium text-[--color-ink]">
+            Video tour unavailable
+          </p>
+          <p class="text-xs text-[--color-ink-2] mt-1 max-w-xs">
+            This video cannot be loaded or has been removed by the provider.
+          </p>
+        </div>
+
+        <div
+          v-else
+          class="relative aspect-video overflow-hidden rounded-xl border border-[--color-line] bg-black shadow-sm"
+        >
+          <Transition name="fade" mode="out-in">
+            <button
+              v-if="!videoExpanded"
+              type="button"
+              class="group absolute inset-0 h-full w-full bg-[--color-surface] text-left focus-ring border-none p-0 cursor-pointer"
+              :aria-expanded="videoExpanded"
+              @click="videoExpanded = true"
+            >
+              <img
+                v-if="videoThumbnailUrl"
+                :src="videoThumbnailUrl"
+                :alt="`${property.title} video tour thumbnail`"
+                class="absolute inset-0 h-full w-full object-cover"
+                @error="handleVideoError"
+              />
+              <div
+                v-else
+                class="absolute inset-0 bg-linear-to-br from-[--color-surface] via-bg to-[--color-cream]"
+              />
+              <div
+                class="absolute inset-0 bg-black/20 transition-opacity group-hover:bg-black/25"
+              />
+
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span
+                  class="flex size-14 items-center justify-center rounded-full bg-white/90 text-[--color-ink] shadow-lg transition-transform group-hover:scale-105"
+                >
+                  <IconPlayer />
+                </span>
+              </div>
+            </button>
+
+            <iframe
+              v-else
+              :src="`${videoEmbedUrl}&autoplay=1`"
+              class="h-full w-full border-none"
+              title="Video tour"
+              allow="
+                accelerometer;
+                autoplay;
+                clipboard-write;
+                encrypted-media;
+                gyroscope;
+                picture-in-picture;
+                web-share;
+              "
+              allowfullscreen
+            />
+          </Transition>
+        </div>
+      </div>
 
       <div v-if="property.coords" class="my-5">
         <p class="micro-label mb-3">Location</p>

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useFiltersStore } from '../stores/filterStore';
-import { useListings } from '../composables/useListings';
-import ResultsHeader from '../components/listing/ResultsHeader.vue';
-import PropertyGrid from '../components/listing/PropertyGrid.vue';
-import Pagination from '../components/listing/Pagination.vue';
-import HeroSection from '../components/hero/HeroSection.vue';
-import MoreFiltersDrawer from '../components/filters/MoreFiltersDrawer.vue';
+import { useFiltersStore } from '../../stores/filterStore';
+import { useListings } from '../../composables/useListings';
+import ResultsHeader from '../../components/listing/ResultsHeader.vue';
+import PropertyGrid from '../../components/listing/PropertyGrid.vue';
+import Pagination from '../../components/listing/Pagination.vue';
+import HeroSection from './components/HeroSection.vue';
+import MoreFiltersDrawer from './components/MoreFiltersDrawer.vue';
 
 const { state, setPage, resetAll } = useFiltersStore();
 const { items, total, pageCount, loading } = useListings(() => state);

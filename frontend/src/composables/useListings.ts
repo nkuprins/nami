@@ -1,7 +1,7 @@
 import { computed, ref, toValue, watch, type MaybeRefOrGetter } from 'vue';
 import type { PropertyItem } from '../types/propertyItem';
 import { type FilterState, PAGE_SIZE } from '../types/filter';
-import { listProperties } from '../api/properties';
+import { listProperties } from '../api/propertiesApi';
 import { logger } from '../utils/logger';
 
 export function useListings(source: MaybeRefOrGetter<FilterState>) {

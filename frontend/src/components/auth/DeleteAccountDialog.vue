@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/authStore';
-import ConfirmDialog from './ConfirmDialog.vue';
+import ConfirmDialog from '../ui/ConfirmDialog.vue';
 
 defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
@@ -20,9 +20,9 @@ async function handleConfirm() {
   error.value = false;
   try {
     await deleteAccount();
-    auth.logout();
+    await auth.logout();
     emit('update:open', false);
-    router.push('/');
+    await router.push('/');
   } catch {
     error.value = true;
   } finally {

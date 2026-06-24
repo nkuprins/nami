@@ -7,18 +7,18 @@ export const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: () => import('./views/HomeView.vue'),
+      component: () => import('./views/Home/HomeView.vue'),
     },
     {
       path: '/property/:id',
       name: 'property',
-      component: () => import('./views/PropertyView.vue'),
+      component: () => import('./views/PropertyDetail/PropertyView.vue'),
       props: true,
     },
     {
       path: '/add-property',
       name: 'add-property',
-      component: () => import('./views/AddPropertyView.vue'),
+      component: () => import('./views/AddProperty/AddPropertyView.vue'),
     },
     {
       path: '/verify-email',
@@ -29,6 +29,16 @@ export const router = createRouter({
       path: '/reset-password',
       name: 'reset-password',
       component: () => import('./views/ResetPasswordView.vue'),
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: () => import('./views/PrivacyPolicyView.vue'),
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: () => import('./views/TermsView.vue'),
     },
     {
       path: '/:pathMatch(.*)*',
