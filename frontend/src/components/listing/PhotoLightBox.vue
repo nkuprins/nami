@@ -22,6 +22,7 @@ const {
   panY,
   pinching,
   reset: resetZoom,
+  didDrag,
   onTouchStart,
   onTouchMove,
   onTouchEnd,
@@ -80,6 +81,46 @@ function onKey(e: KeyboardEvent) {
   if (e.key === 'ArrowLeft' && scale.value <= 1) prev();
 }
 
+function handleImageClick(e: MouseEvent) {
+  if (didDrag()) return;
+
+  const img = e.target as HTMLImageElement;
+  const rect = img.getBoundingClientRect();
+
+  if (scale.value <= 1 && img.naturalWidth && img.naturalHeight) {
+    const imgAspect = img.naturalWidth / img.naturalHeight;
+    const elemAspect = rect.width / rect.height;
+    let onLetterbox = false;
+
+    if (imgAspect > elemAspect) {
+      const displayedHeight = rect.width / imgAspect;
+      const bar = (rect.height - displayedHeight) / 2;
+      const relY = e.clientY - rect.top;
+      onLetterbox = relY < bar || relY > rect.height - bar;
+    } else {
+      const displayedWidth = rect.height * imgAspect;
+      const bar = (rect.width - displayedWidth) / 2;
+      const relX = e.clientX - rect.left;
+      onLetterbox = relX < bar || relX > rect.width - bar;
+    }
+
+    if (onLetterbox) {
+      close();
+      return;
+    }
+  }
+
+  if (scale.value > 1) {
+    resetZoom();
+  } else {
+    const cx = e.clientX - rect.left - rect.width / 2;
+    const cy = e.clientY - rect.top - rect.height / 2;
+    scale.value = 2;
+    panX.value = -cx;
+    panY.value = -cy;
+  }
+}
+
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKey);
   document.body.style.overflow = '';
@@ -119,10 +160,6 @@ onBeforeUnmount(() => {
         <!-- Image area -->
         <div
           class="relative flex-1 min-h-0 overflow-hidden"
-          :class="
-            scale > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
-          "
-          @click.self="scale <= 1 && close()"
           @touchstart="onTouchStart"
           @touchmove="onTouchMove"
           @touchend="onTouchEnd"
@@ -140,12 +177,14 @@ onBeforeUnmount(() => {
               :key="index"
               :src="photos[index]"
               :alt="`${alt} — photo ${index + 1} of ${photos.length}`"
-              class="absolute inset-0 w-full h-full object-contain select-none pointer-events-none"
+              class="absolute inset-0 w-full h-full object-contain select-none"
+              :class="scale > 1 ? 'cursor-zoom-out' : 'cursor-zoom-in'"
               :style="{
                 transform: `scale(${scale}) translate(${panX / scale}px, ${panY / scale}px)`,
-                transition: pinching ? 'none' : 'transform 0.1s ease',
+                transition: pinching ? 'none' : 'transform 0.2s ease',
               }"
               draggable="false"
+              @click="handleImageClick"
             />
           </Transition>
 

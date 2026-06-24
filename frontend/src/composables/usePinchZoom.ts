@@ -23,6 +23,7 @@ export function usePinchZoom(
   let panStartY = 0;
   let swipeStartX = 0;
   let swipeStartY = 0;
+  let wasDragged = false;
 
   function reset() {
     scale.value = 1;
@@ -44,12 +45,14 @@ export function usePinchZoom(
   function onTouchStart(e: TouchEvent) {
     if (e.touches.length === 2) {
       pinching.value = true;
+      wasDragged = true;
       touch0Start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       touch1Start = { x: e.touches[1].clientX, y: e.touches[1].clientY };
       pinchStartDist = dist(e.touches[0], e.touches[1]);
       pinchStartScale = scale.value;
     } else if (e.touches.length === 1) {
       pinching.value = false;
+      wasDragged = false;
       swipeStartX = e.touches[0].clientX;
       swipeStartY = e.touches[0].clientY;
       panStartX = panX.value;
@@ -59,6 +62,11 @@ export function usePinchZoom(
 
   function onTouchMove(e: TouchEvent) {
     e.preventDefault();
+    if (!wasDragged && e.touches.length === 1) {
+      const dx = e.touches[0].clientX - swipeStartX;
+      const dy = e.touches[0].clientY - swipeStartY;
+      if (Math.hypot(dx, dy) > 8) wasDragged = true;
+    }
     if (e.touches.length === 2 && pinching.value) {
       const newDist = dist(e.touches[0], e.touches[1]);
       scale.value = Math.min(
@@ -99,6 +107,7 @@ export function usePinchZoom(
     panY,
     pinching,
     reset,
+    didDrag: () => wasDragged,
     onTouchStart,
     onTouchMove,
     onTouchEnd,
