@@ -2,10 +2,11 @@
 import { ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import Drawer from '../ui/Drawer.vue';
+import EmptyState from '../ui/EmptyState.vue';
+import PropertyListItem from './PropertyListItem.vue';
 import IconHeart from '../icons/IconHeart.vue';
 import { useSavedStore } from '../../stores/savedStore';
 import { getProperty } from '../../api/propertiesApi';
-import { formatPrice } from '../../utils/format';
 import type { PropertyDetail } from '../../types/propertyItem';
 
 const props = defineProps<{ open: boolean }>();
@@ -51,70 +52,51 @@ watch(() => props.open, loadSaved);
       />
     </div>
 
-    <div
+    <EmptyState
       v-else-if="items.length === 0"
-      class="flex flex-col items-center justify-center gap-3 py-16 text-center"
+      message="No saved properties yet."
     >
-      <span class="size-10 text-ink-3">
-        <IconHeart :filled="false" />
-      </span>
-      <p class="text-sm text-ink-2">No saved properties yet.</p>
-      <RouterLink
-        to="/"
-        class="text-sm text-ink underline underline-offset-2"
-        @click="emit('update:open', false)"
-      >
-        Browse listings
-      </RouterLink>
-    </div>
-
-    <div v-else class="flex flex-col gap-3">
-      <div
-        v-for="item in items"
-        :key="item.id"
-        class="flex gap-3 rounded-xl border border-line overflow-hidden hover:border-ink/30 transition-colors"
-      >
+      <template #icon>
+        <span class="size-10 text-ink-3">
+          <IconHeart :filled="false" />
+        </span>
+      </template>
+      <template #action>
         <RouterLink
-          :to="`/property/${item.id}`"
-          class="shrink-0 w-24 sm:w-28 h-20 overflow-hidden bg-surface"
+          to="/"
+          class="text-sm text-ink underline underline-offset-2"
           @click="emit('update:open', false)"
         >
-          <img
-            v-if="item.photos[0]"
-            :src="item.photos[0]"
-            :alt="item.title"
-            class="w-full h-full object-cover"
-          />
+          Browse listings
         </RouterLink>
+      </template>
+    </EmptyState>
 
-        <div class="flex-1 min-w-0 py-3 pr-2 flex flex-col justify-between">
-          <div>
-            <RouterLink
-              :to="`/property/${item.id}`"
-              class="text-sm font-medium text-ink line-clamp-1 hover:underline"
-              @click="emit('update:open', false)"
-            >
-              {{ item.title }}
-            </RouterLink>
-            <p class="text-xs text-ink-3 mt-0.5 line-clamp-1">
-              {{ item.district }}, {{ item.city }}
-            </p>
-          </div>
-          <p class="text-sm font-semibold text-ink">
-            {{ formatPrice(item.price, item.type) }}
-          </p>
-        </div>
-
-        <button
-          type="button"
-          class="shrink-0 w-10 grid place-items-center text-accent-2 hover:text-ink-2 transition-colors"
-          @click="savedStore.toggle(item.id)"
-        >
-          <span class="size-5"
-            ><IconHeart :filled="savedStore.isSaved(item.id)"
-          /></span>
-        </button>
-      </div>
+    <div v-else class="flex flex-col gap-3">
+      <PropertyListItem
+        v-for="item in items"
+        :key="item.id"
+        :id="item.id"
+        :title="item.title"
+        :district="item.district"
+        :city="item.city"
+        :price="item.price"
+        :type="item.type"
+        :photo="item.photos[0]"
+        @navigate="emit('update:open', false)"
+      >
+        <template #action>
+          <button
+            type="button"
+            class="shrink-0 w-10 grid place-items-center text-accent-2 hover:text-ink-2 transition-colors"
+            @click="savedStore.toggle(item.id)"
+          >
+            <span class="size-5"
+              ><IconHeart :filled="savedStore.isSaved(item.id)"
+            /></span>
+          </button>
+        </template>
+      </PropertyListItem>
     </div>
   </Drawer>
 </template>

@@ -1,27 +1,30 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import type { PropertyDetail } from '../../types/propertyItem';
 import { FEATURE_LABELS } from '../../types/propertyLabels';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
-import {
-  normalizeVideoEmbedUrl,
-  getVideoThumbnailUrl,
-} from '../../utils/video';
 import SaveHeart from '../../components/listing/SaveHeart.vue';
 import CardCarousel from '../../components/listing/CardCarousel.vue';
 import { getProperty } from '../../api/propertiesApi';
 import LocationMap from '../../components/listing/LocationMap.vue';
 import PhotoGrid from './components/PhotoGrid.vue';
 import ContactCard from './components/ContactCard.vue';
-import IconPlayer from '../../components/icons/IconPlayer.vue';
-import IconChevron from '../../components/icons/IconChevron.vue';
-import IconPhone from '../../components/icons/IconPhone.vue';
+import VideoPlayer from './components/VideoPlayer.vue';
+import BentoPhotoGrid from './components/BentoPhotoGrid.vue';
+import MobileStickyBar from './components/MobileStickyBar.vue';
+import IconShare from '../../components/icons/IconShare.vue';
+import IconArrowLeft from '../../components/icons/IconArrowLeft.vue';
+import IconHeart from '../../components/icons/IconHeart.vue';
 import PhotoLightBox from '../../components/listing/PhotoLightBox.vue';
 import SpecDots from '../../components/listing/SpecDots.vue';
+import { useShare } from '../../composables/useShare';
+import { useSavedStore } from '../../stores/savedStore';
 
 const props = defineProps<{ id: string }>();
 const router = useRouter();
+const savedStore = useSavedStore();
+const saved = computed(() => savedStore.isSaved(props.id));
 
 const property = ref<PropertyDetail | null>(null);
 onMounted(async () => {
@@ -36,12 +39,6 @@ const pricePerM2 = computed(() =>
     ? formatPricePerM2(property.value.price / property.value.m2)
     : ''
 );
-
-const videoHasError = ref(false);
-
-function handleVideoError() {
-  videoHasError.value = true;
-}
 
 const specRow = computed(() => {
   if (!property.value) return [];
@@ -60,55 +57,24 @@ const specRow = computed(() => {
 });
 
 const phoneRevealed = ref(false);
-const phonePopoverOpen = ref(false);
-const phonePopoverEl = ref<HTMLElement | null>(null);
 
-function onClickOutsidePhone(e: MouseEvent) {
-  if (
-    phonePopoverEl.value &&
-    !phonePopoverEl.value.contains(e.target as Node)
-  ) {
-    phonePopoverOpen.value = false;
-  }
-}
-
-watch(phonePopoverOpen, (open) => {
-  if (open) {
-    document.addEventListener('mousedown', onClickOutsidePhone, true);
-  } else {
-    document.removeEventListener('mousedown', onClickOutsidePhone, true);
-  }
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('mousedown', onClickOutsidePhone, true);
-});
-const videoExpanded = ref(false);
 const mediaTab = ref<'photos' | 'video'>('photos');
 
 function switchToVideo() {
   mediaTab.value = 'video';
-  videoExpanded.value = false;
 }
-
-watch(mediaTab, (tab) => {
-  if (tab === 'photos') {
-    videoExpanded.value = false;
-  }
-});
 
 const videoTourUrl = computed(() => {
   const raw = property.value?.videoUrl;
   return typeof raw === 'string' ? raw.trim() : '';
 });
 
-const videoEmbedUrl = computed(() =>
-  videoTourUrl.value ? normalizeVideoEmbedUrl(videoTourUrl.value) : ''
-);
+const { share, justCopied } = useShare();
 
-const videoThumbnailUrl = computed(() =>
-  videoTourUrl.value ? getVideoThumbnailUrl(videoTourUrl.value) : ''
-);
+function shareProperty() {
+  if (!property.value) return;
+  share({ title: property.value.title, url: window.location.href });
+}
 
 const bentoLightboxOpen = ref(false);
 const bentoLightboxIndex = ref(0);
@@ -123,92 +89,46 @@ function openBento(i: number) {
   <div class="max-w-5xl mx-auto px-4 py-6 lg:px-6">
     <button
       v-if="!property"
-      class="micro-label text-ink-3 bg-transparent border-none p-0 cursor-pointer mb-6"
+      class="inline-flex items-center gap-1.5 text-sm font-medium text-ink-2 hover:text-ink transition-colors bg-transparent border-none p-0 cursor-pointer mb-6"
       @click="router.back()"
     >
-      &larr; Back
+      <span class="size-4 shrink-0"><IconArrowLeft /></span>
+      Back
     </button>
     <p v-if="!property" class="text-sm text-ink-2">Loading&hellip;</p>
 
     <template v-if="property">
       <button
-        class="inline-flex items-center gap-1.5 micro-label text-ink-3 hover:text-ink-2 transition-colors mb-6 bg-transparent border-none p-0 cursor-pointer"
+        class="inline-flex items-center gap-1.5 text-sm font-medium text-ink-2 hover:text-ink transition-colors mb-6 bg-transparent border-none p-0 cursor-pointer"
         @click="router.back()"
       >
-        <i class="ti ti-arrow-left" aria-hidden="true" />
+        <span class="size-4 shrink-0"><IconArrowLeft /></span>
         Back
       </button>
 
-      <!-- Desktop bento photo grid (lg+, 3+ photos) -->
-      <div
-        v-if="property.photos.length >= 3"
-        class="hidden lg:grid grid-cols-[2fr_1fr] grid-rows-2 gap-1.5 rounded-xl overflow-hidden h-[420px] mb-8"
-      >
-        <div
-          class="relative row-span-2 cursor-zoom-in overflow-hidden group"
-          @click="openBento(0)"
-        >
-          <img
-            :src="property.photos[0]"
-            :alt="`${property.title} — photo 1`"
-            class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-          />
-          <div class="absolute top-3 right-3 z-10">
-            <SaveHeart :property-id="property.id" />
-          </div>
-        </div>
-        <div class="cursor-zoom-in overflow-hidden group" @click="openBento(1)">
-          <img
-            :src="property.photos[1]"
-            :alt="`${property.title} — photo 2`"
-            class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-          />
-        </div>
-        <div
-          class="relative cursor-zoom-in overflow-hidden group"
-          @click="openBento(2)"
-        >
-          <img
-            :src="property.photos[2]"
-            :alt="`${property.title} — photo 3`"
-            class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-          />
-          <button
-            v-if="property.photos.length > 3"
-            type="button"
-            class="absolute bottom-3 right-3 z-10 text-xs font-medium text-ink bg-bg/90 backdrop-blur px-3 py-1.5 rounded-lg border border-line cursor-pointer hover:bg-bg transition-colors"
-            @click.stop="openBento(0)"
-          >
-            View all {{ property.photos.length }} photos
-          </button>
-        </div>
-      </div>
-
-      <!-- Desktop fallback carousel (lg+, < 3 photos) -->
-      <div
-        v-else
-        class="hidden lg:block relative aspect-[2.2/1] rounded-xl overflow-hidden mb-8"
-      >
-        <CardCarousel
-          :photos="property.photos"
-          :alt="property.title"
-          zoomable
-        />
-        <div class="absolute top-3 right-3 z-10">
-          <SaveHeart :property-id="property.id" />
-        </div>
-      </div>
+      <BentoPhotoGrid
+        :photos="property.photos"
+        :alt="property.title"
+        @open-lightbox="openBento"
+      />
 
       <!-- Mobile carousel -->
       <div
-        class="lg:hidden relative aspect-4/3 rounded-xl overflow-hidden mb-6"
+        class="lg:hidden relative aspect-4/3 rounded-lg overflow-hidden mb-6"
       >
         <CardCarousel
           :photos="property.photos"
           :alt="property.title"
           zoomable
         />
-        <div class="absolute top-3 right-3 z-10">
+        <div class="absolute top-3 right-3 z-10 flex items-center gap-2">
+          <button
+            type="button"
+            class="size-9 grid place-items-center rounded-full bg-bg/90 backdrop-blur text-ink-2 cursor-pointer hover:bg-bg hover:scale-105 active:scale-95 transition-all duration-200"
+            @click.stop="shareProperty"
+          >
+            <span class="size-4"><IconShare /></span>
+          </button>
           <SaveHeart :property-id="property.id" />
         </div>
       </div>
@@ -224,30 +144,22 @@ function openBento(i: number) {
       <div class="lg:grid lg:grid-cols-[1fr_320px] lg:gap-10">
         <!-- Main content -->
         <div>
-          <div class="flex items-start justify-between gap-4 mb-1">
-            <div class="min-w-0">
-              <p class="micro-label">
-                {{ property.district }} · {{ property.city }}
-              </p>
-              <h1 class="mt-1 text-xl leading-snug text-ink font-medium">
-                {{ property.title }}
-              </h1>
-              <p class="mt-1 text-sm text-ink-2">
-                {{ property.address }}
-              </p>
-            </div>
-            <!-- Price inline on mobile, hidden on desktop (shown in sidebar) -->
-            <div class="text-right shrink-0 lg:hidden">
-              <p class="display-price text-2xl text-ink whitespace-nowrap">
-                {{ price }}
-              </p>
-              <p class="text-xs text-ink-2 tabular">
-                {{ pricePerM2 }}
-              </p>
-            </div>
+          <div class="mb-1">
+            <p class="micro-label">
+              {{ property.district }} · {{ property.city }}
+            </p>
+            <h1 class="mt-1 text-xl leading-snug text-ink font-medium">
+              {{ property.title }}
+            </h1>
+            <p class="mt-1 text-sm text-ink-2">
+              {{ property.address }}
+            </p>
           </div>
 
-          <SpecDots :parts="specRow" class="text-sm text-ink-2 mt-3" />
+          <SpecDots
+            :parts="specRow"
+            class="lg:hidden text-sm text-ink-2 mt-3"
+          />
 
           <div
             v-if="property.features.length"
@@ -307,81 +219,11 @@ function openBento(i: number) {
               @play-video="switchToVideo()"
             />
 
-            <div v-else-if="mediaTab === 'video' && videoTourUrl">
-              <div
-                v-if="videoHasError"
-                class="relative aspect-video overflow-hidden rounded-xl border border-dashed border-line bg-surface flex flex-col items-center justify-center text-center p-6"
-              >
-                <i
-                  class="ti ti-video-off text-2xl text-ink-3 mb-2"
-                  aria-hidden="true"
-                />
-                <p class="text-sm font-medium text-ink">
-                  Video tour unavailable
-                </p>
-                <p class="text-xs text-ink-2 mt-1 max-w-xs">
-                  This video cannot be loaded or has been removed by the
-                  provider.
-                </p>
-              </div>
-
-              <div
-                v-else
-                class="relative aspect-video overflow-hidden rounded-xl border border-line bg-black shadow-sm"
-              >
-                <Transition name="fade" mode="out-in">
-                  <button
-                    v-if="!videoExpanded"
-                    type="button"
-                    class="group absolute inset-0 h-full w-full bg-surface text-left focus-ring border-none p-0 cursor-pointer"
-                    :aria-expanded="videoExpanded"
-                    @click="videoExpanded = true"
-                  >
-                    <img
-                      v-if="videoThumbnailUrl"
-                      :src="videoThumbnailUrl"
-                      :alt="`${property.title} video tour thumbnail`"
-                      class="absolute inset-0 h-full w-full object-cover"
-                      @error="handleVideoError"
-                    />
-                    <div
-                      v-else
-                      class="absolute inset-0 bg-linear-to-br from-surface via-bg to-cream"
-                    />
-                    <div
-                      class="absolute inset-0 bg-black/20 transition-opacity group-hover:bg-black/25"
-                    />
-
-                    <div
-                      class="absolute inset-0 flex items-center justify-center"
-                    >
-                      <span
-                        class="flex size-14 items-center justify-center rounded-full bg-white/90 text-ink shadow-lg transition-transform group-hover:scale-105"
-                      >
-                        <IconPlayer />
-                      </span>
-                    </div>
-                  </button>
-
-                  <iframe
-                    v-else
-                    :src="`${videoEmbedUrl}&autoplay=1`"
-                    class="h-full w-full border-none"
-                    title="Video tour"
-                    allow="
-                      accelerometer;
-                      autoplay;
-                      clipboard-write;
-                      encrypted-media;
-                      gyroscope;
-                      picture-in-picture;
-                      web-share;
-                    "
-                    allowfullscreen
-                  />
-                </Transition>
-              </div>
-            </div>
+            <VideoPlayer
+              v-else-if="mediaTab === 'video' && videoTourUrl"
+              :video-url="videoTourUrl"
+              :alt="property.title"
+            />
           </div>
 
           <div v-if="property.coords" class="my-5">
@@ -425,6 +267,27 @@ function openBento(i: number) {
                 class="text-xs text-ink-2 mt-3 pb-5 border-b border-line"
               />
 
+              <button
+                type="button"
+                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-4 text-sm font-medium bg-transparent border border-line rounded-lg cursor-pointer hover:bg-surface transition-colors"
+                :class="saved ? 'text-accent-2' : 'text-ink-2 hover:text-ink'"
+                @click="savedStore.toggle(property.id)"
+              >
+                <span class="size-4 shrink-0"
+                  ><IconHeart :filled="saved"
+                /></span>
+                {{ saved ? 'Saved' : 'Save listing' }}
+              </button>
+
+              <button
+                type="button"
+                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line rounded-lg cursor-pointer hover:bg-surface hover:text-ink transition-colors"
+                @click="shareProperty"
+              >
+                <span class="size-4 shrink-0"><IconShare /></span>
+                {{ justCopied ? 'Link copied!' : 'Share listing' }}
+              </button>
+
               <ContactCard
                 class="mt-5"
                 :phones="property.phones"
@@ -436,71 +299,13 @@ function openBento(i: number) {
         </aside>
       </div>
 
-      <!-- Mobile sticky bottom bar -->
-      <div
-        class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-bg/95 backdrop-blur border-t border-line px-4 py-3"
-      >
-        <div class="flex items-center justify-between gap-4 relative">
-          <div>
-            <p class="display-price text-lg text-ink">{{ price }}</p>
-            <p class="text-xs text-ink-2 tabular">{{ pricePerM2 }}</p>
-          </div>
-
-          <div
-            v-if="phoneRevealed && property.phones?.length"
-            ref="phonePopoverEl"
-            class="relative"
-          >
-            <div class="flex items-stretch bg-ink rounded-lg overflow-hidden">
-              <a
-                :href="`tel:${property.phones[0].replace(/\s/g, '')}`"
-                class="flex items-center gap-1.5 px-5 py-2.5 text-cream text-sm font-medium hover:opacity-90 transition-opacity"
-              >
-                <span class="size-4 shrink-0"><IconPhone /></span>
-                {{ property.phones[0] }}
-              </a>
-              <button
-                v-if="property.phones.length > 1"
-                class="flex items-center px-2.5 border-l border-cream/20 text-cream cursor-pointer hover:bg-white/10 transition-colors"
-                @click="phonePopoverOpen = !phonePopoverOpen"
-                aria-label="More phone numbers"
-              >
-                <span class="size-4"
-                  ><IconChevron :dir="phonePopoverOpen ? 'down' : 'up'"
-                /></span>
-              </button>
-            </div>
-
-            <Transition name="fade">
-              <div
-                v-if="phonePopoverOpen"
-                class="absolute bottom-full right-0 mb-2 w-56 bg-bg border border-line rounded-xl shadow-lift p-2"
-              >
-                <a
-                  v-for="(phone, i) in property.phones"
-                  :key="i"
-                  :href="`tel:${phone.replace(/\s/g, '')}`"
-                  class="flex items-center gap-2 px-3 py-2.5 text-sm text-ink font-medium rounded-lg hover:bg-surface transition-colors"
-                >
-                  <span class="size-4 shrink-0"><IconPhone /></span>
-                  {{ phone }}
-                </a>
-              </div>
-            </Transition>
-          </div>
-
-          <!-- Not yet revealed -->
-          <button
-            v-else-if="property.phones?.length"
-            class="flex items-center gap-1.5 px-5 py-2.5 bg-ink text-cream text-sm font-medium rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-            @click="phoneRevealed = true"
-          >
-            <span class="size-4 shrink-0"><IconPhone /></span>
-            Show number
-          </button>
-        </div>
-      </div>
-      <div class="lg:hidden h-20" />
+      <MobileStickyBar
+        :price="price"
+        :price-per-m2="pricePerM2"
+        :phones="property.phones"
+        :phone-revealed="phoneRevealed"
+        @reveal-phone="phoneRevealed = true"
+      />
     </template>
   </div>
 </template>

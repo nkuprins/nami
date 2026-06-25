@@ -116,7 +116,9 @@ function applyFilters(params: URLSearchParams) {
   const total = items.length;
   const page = Number(params.get('page') ?? '1');
   return {
-    items: items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map(toListItem),
+    items: items
+      .slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+      .map(toListItem),
     total,
   };
 }
@@ -190,7 +192,9 @@ export const handlers = [
   }),
 
   http.get('/api/properties/mine', () => {
-    return HttpResponse.json(mockUser ? dtoCatalog.slice(0, 2).map(toListItem) : []);
+    return HttpResponse.json(
+      mockUser ? dtoCatalog.slice(0, 2).map(toListItem) : []
+    );
   }),
 
   // Look how clean parametric routes look instead of regex!

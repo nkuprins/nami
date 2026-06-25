@@ -2,6 +2,7 @@
 import { COMPLETION_OPTIONS } from '../../../types/propertyLabels';
 import { numericInput } from '../../../utils/utils';
 import FormField from '../../../components/ui/FormField.vue';
+import ToggleButtons from '../../../components/ui/ToggleButtons.vue';
 import type { PropertyFormState } from '../composables/usePropertyForm';
 
 defineProps<{
@@ -31,22 +32,11 @@ defineProps<{
       <p class="text-sm font-medium text-ink">
         Completion status <span class="text-red-500">*</span>
       </p>
-      <div class="flex gap-2">
-        <button
-          v-for="opt in COMPLETION_OPTIONS"
-          :key="opt.id"
-          type="button"
-          class="h-9 px-4 rounded-full text-sm font-medium border transition-colors"
-          :class="
-            form.completion === opt.id
-              ? 'bg-ink text-bg border-ink'
-              : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
-          "
-          @click="form.completion = opt.id"
-        >
-          {{ opt.label }}
-        </button>
-      </div>
+      <ToggleButtons
+        :options="COMPLETION_OPTIONS"
+        :model-value="form.completion ?? ''"
+        @update:model-value="form.completion = $event as typeof form.completion"
+      />
       <p v-if="fieldError('completion')" class="text-xs text-red-500">
         {{ fieldError('completion') }}
       </p>

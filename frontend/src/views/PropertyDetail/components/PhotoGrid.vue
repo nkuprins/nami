@@ -67,7 +67,9 @@ function open(i: number) {
           v-else
           class="absolute inset-0 bg-linear-to-br from-surface via-bg to-cream"
         />
-        <div class="absolute inset-0 bg-black/25 transition-opacity group-hover:bg-black/30" />
+        <div
+          class="absolute inset-0 bg-black/25 transition-opacity group-hover:bg-black/30"
+        />
         <div class="absolute inset-0 flex items-center justify-center">
           <span
             class="flex size-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-lg transition-transform group-hover:scale-105"

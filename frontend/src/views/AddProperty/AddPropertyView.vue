@@ -20,7 +20,6 @@ const {
   submitting,
   submitError,
   fieldError,
-  toggleFeature,
   addPhone,
   removePhone,
   submit,
@@ -57,7 +56,7 @@ const {
 
       <DetailsSection :form="form" :field-error="fieldError" />
 
-      <FeaturesSection :form="form" :toggle-feature="toggleFeature" />
+      <FeaturesSection :form="form" />
 
       <PhonesSection
         :form="form"

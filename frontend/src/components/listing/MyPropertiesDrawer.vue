@@ -2,9 +2,10 @@
 import { ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import Drawer from '../ui/Drawer.vue';
+import EmptyState from '../ui/EmptyState.vue';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
+import PropertyListItem from './PropertyListItem.vue';
 import { getMyProperties, deleteProperty } from '../../api/propertiesApi';
-import { formatPrice } from '../../utils/format';
 import type { PropertySummary } from '../../types/propertyItem';
 import IconTrash from '../icons/IconTrash.vue';
 import IconSpinner from '../icons/IconSpinner.vue';
@@ -75,19 +76,20 @@ watch(() => props.open, load);
       <p class="text-sm text-ink-2">Failed to load properties.</p>
     </div>
 
-    <div
+    <EmptyState
       v-else-if="items.length === 0"
-      class="flex flex-col items-center justify-center gap-3 py-16 text-center"
+      message="You haven't listed any properties yet."
     >
-      <p class="text-sm text-ink-2">You haven't listed any properties yet.</p>
-      <RouterLink
-        to="/add-property"
-        class="text-sm text-ink underline underline-offset-2"
-        @click="emit('update:open', false)"
-      >
-        Add a property
-      </RouterLink>
-    </div>
+      <template #action>
+        <RouterLink
+          to="/add-property"
+          class="text-sm text-ink underline underline-offset-2"
+          @click="emit('update:open', false)"
+        >
+          Add a property
+        </RouterLink>
+      </template>
+    </EmptyState>
 
     <div v-else class="flex flex-col gap-3">
       <Transition name="fade">
@@ -96,55 +98,33 @@ watch(() => props.open, load);
         </p>
       </Transition>
 
-      <div
+      <PropertyListItem
         v-for="item in items"
         :key="item.id"
-        class="relative flex rounded-xl border border-line overflow-hidden hover:border-ink/30 transition-colors"
+        :id="item.id"
+        :title="item.title"
+        :district="item.district"
+        :city="item.city"
+        :price="item.price"
+        :type="item.type"
+        :photo="item.photo"
+        @navigate="emit('update:open', false)"
       >
-        <RouterLink
-          :to="`/property/${item.id}`"
-          class="flex flex-1 min-w-0 gap-3"
-          @click="emit('update:open', false)"
-        >
-          <div class="shrink-0 w-24 sm:w-28 h-20 overflow-hidden bg-surface">
-            <img
-              v-if="item.photo"
-              :src="item.photo"
-              :alt="item.title"
-              class="w-full h-full object-cover"
-            />
-          </div>
-
-          <div class="flex-1 min-w-0 py-3 flex flex-col justify-between">
-            <div>
-              <p class="text-sm font-medium text-ink line-clamp-1">
-                {{ item.title }}
-              </p>
-              <p class="text-xs text-ink-3 mt-0.5 line-clamp-1">
-                {{ item.district }}, {{ item.city }}
-              </p>
-            </div>
-            <p class="text-sm font-semibold text-ink">
-              {{ formatPrice(item.price, item.type) }}
-            </p>
-          </div>
-        </RouterLink>
-
-        <!-- Delete button -->
-        <button
-          class="shrink-0 self-stretch flex items-center justify-center w-10 border-l border-line text-ink-3 hover:text-warn hover:bg-warn/5 transition-colors"
-          :disabled="deletingId === item.id"
-          :aria-label="`Delete ${item.title}`"
-          @click="requestDelete($event, item.id)"
-        >
-          <IconTrash v-if="deletingId !== item.id" />
-          <IconSpinner v-else />
-        </button>
-      </div>
+        <template #action>
+          <button
+            class="shrink-0 self-stretch flex items-center justify-center w-10 border-l border-line text-ink-3 hover:text-warn hover:bg-warn/5 transition-colors"
+            :disabled="deletingId === item.id"
+            :aria-label="`Delete ${item.title}`"
+            @click="requestDelete($event, item.id)"
+          >
+            <IconTrash v-if="deletingId !== item.id" />
+            <IconSpinner v-else />
+          </button>
+        </template>
+      </PropertyListItem>
     </div>
   </Drawer>
 
-  <!-- Reuses ConfirmDialog — renders via Teleport outside the Drawer -->
   <ConfirmDialog
     :open="confirmId !== null"
     title="Delete listing?"

@@ -3,7 +3,7 @@
 <template>
   <footer class="border-t border-line mt-auto">
     <div
-      class="mx-auto max-w-360 px-6 lg:px-10 py-8 flex flex-col sm:flex-row items-center justify-between gap-4"
+      class="mx-auto max-w-360 px-6 lg:px-10 pt-8 pb-24 lg:pb-8 flex flex-col sm:flex-row items-center justify-between gap-4"
     >
       <p class="text-xs text-ink-3">
         © {{ new Date().getFullYear() }} Baltnami. All rights reserved.

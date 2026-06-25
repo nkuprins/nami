@@ -33,7 +33,10 @@ const specRow = computed(() => {
 </script>
 
 <template>
-  <RouterLink :to="`/property/${property.id}`" class="focus-ring block group h-full">
+  <RouterLink
+    :to="`/property/${property.id}`"
+    class="focus-ring block group h-full"
+  >
     <article
       class="card-lift relative bg-bg border border-line rounded-xl overflow-hidden h-full flex flex-col"
     >

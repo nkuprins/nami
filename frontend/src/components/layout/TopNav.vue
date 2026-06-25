@@ -8,6 +8,7 @@ import AuthModal from '../auth/AuthModal.vue';
 import SavedDrawer from '../listing/SavedDrawer.vue';
 import MyPropertiesDrawer from '../listing/MyPropertiesDrawer.vue';
 import DeleteAccountDialog from '../auth/DeleteAccountDialog.vue';
+import MobileMenu from './MobileMenu.vue';
 import IconBuilding from '../icons/IconBuilding.vue';
 import IconChevron from '../icons/IconChevron.vue';
 import IconMenu from '../icons/IconMenu.vue';
@@ -211,95 +212,18 @@ function handleDeleteAccount() {
     </div>
   </header>
 
-  <!-- Mobile slide-out menu -->
-  <Teleport to="body">
-    <transition name="scrim">
-      <div
-        v-if="mobileMenuOpen"
-        class="sm:hidden fixed inset-0 z-50 bg-ink/45 backdrop-blur-sm"
-        @click="mobileMenuOpen = false"
-      />
-    </transition>
-
-    <transition name="drawer-right">
-      <aside
-        v-if="mobileMenuOpen"
-        class="sm:hidden fixed inset-y-0 right-0 w-72 z-50 bg-bg shadow-lift flex flex-col"
-      >
-        <header
-          class="flex items-center justify-between px-5 h-14 border-b border-line"
-        >
-          <span class="micro-label text-ink-3">Menu</span>
-          <button
-            class="focus-ring size-10 -mr-2 grid place-items-center text-ink-2 hover:text-ink"
-            @click="mobileMenuOpen = false"
-          >
-            <span class="size-5"><IconClose /></span>
-          </button>
-        </header>
-
-        <nav class="flex-1 flex flex-col px-3 py-4 gap-1">
-          <button
-            class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
-            @click="handleMyListings"
-          >
-            My listings
-          </button>
-
-          <button
-            class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
-            @click="handleSaved"
-          >
-            Saved
-            <span
-              v-if="savedStore.count > 0"
-              class="tabular text-xs font-medium px-2 h-5 inline-flex items-center rounded-full bg-surface text-ink"
-            >
-              {{ savedStore.count }}
-            </span>
-          </button>
-
-          <template v-if="auth.isAuthenticated">
-            <button
-              class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
-              @click="handleSignOut"
-            >
-              Sign out
-            </button>
-          </template>
-          <template v-else>
-            <button
-              class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
-              @click="handleSignIn"
-            >
-              Sign in
-            </button>
-          </template>
-
-          <div class="border-t border-line my-2" />
-
-          <button
-            class="focus-ring flex items-center justify-center h-12 px-4 rounded-xl text-[0.9375rem] bg-ink text-bg hover:bg-accent-2 transition-colors"
-            @click="handleAddProperty"
-          >
-            + Add property
-          </button>
-        </nav>
-
-        <footer
-          v-if="auth.isAuthenticated"
-          class="border-t border-line px-3 py-3"
-        >
-          <button
-            class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-warn/70 hover:text-warn hover:bg-warn/5 transition-colors text-left w-full"
-            @click="handleDeleteAccount"
-          >
-            Delete account
-          </button>
-        </footer>
-      </aside>
-    </transition>
-  </Teleport>
+  <MobileMenu
+    :open="mobileMenuOpen"
+    :is-authenticated="auth.isAuthenticated"
+    :saved-count="savedStore.count"
+    @update:open="mobileMenuOpen = $event"
+    @add-property="handleAddProperty"
+    @my-listings="handleMyListings"
+    @saved="handleSaved"
+    @sign-in="handleSignIn"
+    @sign-out="handleSignOut"
+    @delete-account="handleDeleteAccount"
+  />
 
   <AuthModal v-model:open="authOpen" />
   <SavedDrawer v-model:open="savedOpen" />
