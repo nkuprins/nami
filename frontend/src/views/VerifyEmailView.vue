@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import IconFail from '../components/icons/IconFail.vue';
 import IconCheck from '../components/icons/IconCheck.vue';
 
 const route = useRoute();
+const router = useRouter();
 const { verifyEmail } = useAuthStore();
 
 const status = ref<'loading' | 'success' | 'error'>('loading');
@@ -19,6 +20,7 @@ onMounted(async () => {
     return;
   }
   const err = await verifyEmail(token);
+  void router.replace({ query: {} });
   if (err) {
     status.value = 'error';
     errorMsg.value = err;

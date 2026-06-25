@@ -162,9 +162,15 @@ function loadLeaflet(): Promise<void> {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    link.integrity =
+      'sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H';
+    link.crossOrigin = 'anonymous';
     document.head.appendChild(link);
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.integrity =
+      'sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH';
+    script.crossOrigin = 'anonymous';
     script.onload = () => resolve();
     document.head.appendChild(script);
   });

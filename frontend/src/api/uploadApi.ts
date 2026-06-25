@@ -22,6 +22,7 @@ export async function uploadFilesToS3(
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type },
+        credentials: 'omit',
       }).then(() => slots[i].fileUrl)
     )
   );

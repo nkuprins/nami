@@ -194,10 +194,10 @@ onBeforeUnmount(() => {
 
           <!-- Desktop-only nav arrows -->
           <div
+            v-if="photos.length > 1 && scale <= 1"
             class="absolute inset-0 max-w-6xl mx-auto pointer-events-none z-10"
           >
             <button
-              v-if="photos.length > 1"
               class="hidden sm:grid pointer-events-auto focus-ring absolute left-2 top-1/2 -translate-y-1/2 size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors"
               aria-label="Previous"
               @click="prev"
@@ -207,7 +207,6 @@ onBeforeUnmount(() => {
               /></span>
             </button>
             <button
-              v-if="photos.length > 1"
               class="hidden sm:grid pointer-events-auto focus-ring absolute right-2 top-1/2 -translate-y-1/2 size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors"
               aria-label="Next"
               @click="next"

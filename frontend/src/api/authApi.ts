@@ -82,6 +82,11 @@ export const authApi = {
     }
   },
 
+  async deleteAccount(): Promise<void> {
+    const res = await fetchApi('/api/auth/me', { method: 'DELETE' });
+    if (!res.ok) throw new Error(`deleteAccount: ${res.status}`);
+  },
+
   async logout(): Promise<void> {
     try {
       await fetchApi(`/api/auth/logout`, { method: 'POST' });

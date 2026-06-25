@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../../stores/authStore';
+import { authApi } from '../../api/authApi';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
 
 defineProps<{ open: boolean }>();
@@ -13,7 +14,9 @@ const router = useRouter();
 const loading = ref(false);
 const error = ref(false);
 
-async function deleteAccount() {}
+async function deleteAccount() {
+  await authApi.deleteAccount();
+}
 
 async function handleConfirm() {
   loading.value = true;

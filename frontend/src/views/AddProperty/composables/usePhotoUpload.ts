@@ -5,12 +5,19 @@ export interface PhotoEntry {
   preview: string;
 }
 
+const MAX_PHOTOS = 20;
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 export function usePhotoUpload() {
   const photos = ref<PhotoEntry[]>([]);
 
   function addFiles(e: Event) {
     const input = e.target as HTMLInputElement;
     for (const file of Array.from(input.files ?? [])) {
+      if (photos.value.length >= MAX_PHOTOS) break;
+      if (!ALLOWED_TYPES.includes(file.type)) continue;
+      if (file.size > MAX_FILE_SIZE) continue;
       if (photos.value.some((p) => p.file.name === file.name)) continue;
       photos.value.push({ file, preview: URL.createObjectURL(file) });
     }

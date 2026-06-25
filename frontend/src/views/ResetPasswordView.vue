@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
 import IconCheck from '../components/icons/IconCheck.vue';
 import FormField from '../components/ui/FormField.vue';
 
 const route = useRoute();
+const router = useRouter();
 const { resetPassword } = useAuthStore();
 
 const password = ref('');
@@ -44,6 +45,7 @@ async function submit() {
     return;
   }
   done.value = true;
+  void router.replace({ query: {} });
 }
 </script>
 
