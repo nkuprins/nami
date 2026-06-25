@@ -8,6 +8,7 @@ import PropertyListItem from './PropertyListItem.vue';
 import { getMyProperties, deleteProperty } from '../../api/propertiesApi';
 import type { PropertySummary } from '../../types/propertyItem';
 import IconTrash from '../icons/IconTrash.vue';
+import IconEdit from '../icons/IconEdit.vue';
 import IconSpinner from '../icons/IconSpinner.vue';
 
 const props = defineProps<{ open: boolean }>();
@@ -111,6 +112,14 @@ watch(() => props.open, load);
         @navigate="emit('update:open', false)"
       >
         <template #action>
+          <RouterLink
+            :to="`/property/${item.id}/edit`"
+            class="shrink-0 self-stretch flex items-center justify-center w-10 border-l border-line text-ink-3 hover:text-accent-2 hover:bg-accent-2/5 transition-colors"
+            :aria-label="`Edit ${item.title}`"
+            @click.stop="emit('update:open', false)"
+          >
+            <IconEdit />
+          </RouterLink>
           <button
             class="shrink-0 self-stretch flex items-center justify-center w-10 border-l border-line text-ink-3 hover:text-warn hover:bg-warn/5 transition-colors"
             :disabled="deletingId === item.id"

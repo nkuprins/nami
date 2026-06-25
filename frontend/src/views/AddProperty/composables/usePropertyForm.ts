@@ -3,11 +3,16 @@ import { useRouter } from 'vue-router';
 import type {
   Feature,
   PropertyCompletion,
+  PropertyDetail,
   PropertyKind,
   PropertyType,
 } from '../../../types/propertyItem';
 import type { Location } from '../../../data/rawLocations';
-import { addProperty } from '../../../api/propertiesApi';
+import {
+  addProperty,
+  getProperty,
+  updateProperty,
+} from '../../../api/propertiesApi';
 import { requestPresignedUrls, uploadFilesToS3 } from '../../../api/uploadApi';
 import type { PhotoEntry } from './usePhotoUpload';
 
@@ -51,28 +56,80 @@ const INITIAL_FORM: PropertyFormState = {
   coords: null,
 };
 
+export interface EditPrefill {
+  district: string;
+  city: string;
+  address: string;
+  coords: { lat: number; lng: number };
+  photos: string[];
+}
+
 export function usePropertyForm(
   getLocation: () => Location | null,
-  getPhotos: () => PhotoEntry[]
+  getPhotos: () => PhotoEntry[],
+  editId?: string
 ) {
   const router = useRouter();
   const form = reactive<PropertyFormState>({ ...INITIAL_FORM });
   const touched = ref(false);
   const submitting = ref(false);
   const submitError = ref('');
+  const isEdit = !!editId;
+  const loading = ref(false);
+  const prefill = ref<EditPrefill | null>(null);
+
+  if (editId) {
+    loading.value = true;
+    getProperty(editId)
+      .then((p) => {
+        if (!p) {
+          router.replace('/');
+          return;
+        }
+        form.type = p.type;
+        form.propertyKind = p.propertyKind;
+        form.title = p.title;
+        form.description = p.description;
+        form.price = String(p.price);
+        form.address = p.address;
+        form.rooms = String(p.rooms);
+        form.m2 = String(p.m2);
+        form.landM2 = p.landM2 != null ? String(p.landM2) : '';
+        form.floor = p.floor != null ? String(p.floor) : '';
+        form.totalFloors = p.totalFloors != null ? String(p.totalFloors) : '';
+        form.yearBuilt = p.yearBuilt != null ? String(p.yearBuilt) : '';
+        form.completion = p.completion ?? '';
+        form.features = [...p.features];
+        form.phones = p.phones?.length ? [...p.phones] : [''];
+        form.videoUrl = p.videoUrl ?? '';
+        form.coords = p.coords;
+        prefill.value = {
+          district: p.district,
+          city: p.city,
+          address: p.address,
+          coords: p.coords,
+          photos: p.photos,
+        };
+        loading.value = false;
+      })
+      .catch(() => {
+        router.replace('/');
+      });
+  }
 
   const errors = computed(() => {
     const e: Record<string, string> = {};
     if (!form.title.trim()) e.title = 'Required';
     if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
       e.price = 'Enter a valid price';
-    if (!getLocation()) e.district = 'Required';
-    if (!form.address.trim()) e.address = 'Required';
+    if (!isEdit && !getLocation()) e.district = 'Required';
+    if (!isEdit && !form.address.trim()) e.address = 'Required';
     if (!form.rooms || isNaN(Number(form.rooms)) || Number(form.rooms) < 1)
       e.rooms = 'Enter number of rooms';
     if (!form.m2 || isNaN(Number(form.m2)) || Number(form.m2) <= 0)
       e.m2 = 'Enter area in m²';
-    if (getPhotos().length === 0) e.photos = 'At least one photo required';
+    if (!isEdit && getPhotos().length === 0)
+      e.photos = 'At least one photo required';
     if (form.type === 'new_project' && !form.completion)
       e.completion = 'Required for new projects';
 
@@ -122,46 +179,77 @@ export function usePropertyForm(
     submitError.value = '';
 
     try {
-      const photos = getPhotos();
-      const slots = await requestPresignedUrls(photos.map((p) => p.file.name));
-      const photoUrls = await uploadFilesToS3(
-        photos.map((p) => p.file),
-        slots
-      );
-      const location = getLocation()!;
-
-      const item = await addProperty({
-        type: form.type,
-        propertyKind: form.propertyKind,
-        title: form.title.trim(),
-        description: form.description.trim(),
-        price: Number(form.price),
-        rooms: Number(form.rooms),
-        m2: Number(form.m2),
-        landM2:
-          form.propertyKind === 'house' && form.landM2
-            ? Number(form.landM2)
+      if (isEdit) {
+        const item = await updateProperty(editId!, {
+          type: form.type,
+          propertyKind: form.propertyKind,
+          title: form.title.trim(),
+          description: form.description.trim(),
+          price: Number(form.price),
+          rooms: Number(form.rooms),
+          m2: Number(form.m2),
+          landM2:
+            form.propertyKind === 'house' && form.landM2
+              ? Number(form.landM2)
+              : undefined,
+          floor: form.floor ? Number(form.floor) : undefined,
+          totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,
+          yearBuilt: form.yearBuilt ? Number(form.yearBuilt) : undefined,
+          features: form.features,
+          phones: form.phones.filter((p) => p.trim()).length
+            ? form.phones.filter((p) => p.trim())
             : undefined,
-        floor: form.floor ? Number(form.floor) : undefined,
-        totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,
-        yearBuilt: form.yearBuilt ? Number(form.yearBuilt) : undefined,
-        features: form.features,
-        district: location.district,
-        city: location.city,
-        address: form.address.trim(),
-        coords: form.coords ?? { lat: 56.946, lng: 24.105 },
-        phones: form.phones.filter((p) => p.trim()).length
-          ? form.phones.filter((p) => p.trim())
-          : undefined,
-        photos: photoUrls,
-        videoUrl: form.videoUrl.trim() || undefined,
-        completion:
-          form.type === 'new_project' && form.completion
-            ? form.completion
-            : undefined,
-      });
+          videoUrl: form.videoUrl.trim() || undefined,
+          completion:
+            form.type === 'new_project' && form.completion
+              ? form.completion
+              : undefined,
+        });
+        await router.push(`/property/${item.id}`);
+      } else {
+        const photos = getPhotos();
+        const slots = await requestPresignedUrls(
+          photos.map((p) => p.file.name)
+        );
+        const photoUrls = await uploadFilesToS3(
+          photos.map((p) => p.file),
+          slots
+        );
+        const location = getLocation()!;
 
-      await router.push(`/property/${item.id}`);
+        const item = await addProperty({
+          type: form.type,
+          propertyKind: form.propertyKind,
+          title: form.title.trim(),
+          description: form.description.trim(),
+          price: Number(form.price),
+          rooms: Number(form.rooms),
+          m2: Number(form.m2),
+          landM2:
+            form.propertyKind === 'house' && form.landM2
+              ? Number(form.landM2)
+              : undefined,
+          floor: form.floor ? Number(form.floor) : undefined,
+          totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,
+          yearBuilt: form.yearBuilt ? Number(form.yearBuilt) : undefined,
+          features: form.features,
+          district: location.district,
+          city: location.city,
+          address: form.address.trim(),
+          coords: form.coords ?? { lat: 56.946, lng: 24.105 },
+          phones: form.phones.filter((p) => p.trim()).length
+            ? form.phones.filter((p) => p.trim())
+            : undefined,
+          photos: photoUrls,
+          videoUrl: form.videoUrl.trim() || undefined,
+          completion:
+            form.type === 'new_project' && form.completion
+              ? form.completion
+              : undefined,
+        });
+
+        await router.push(`/property/${item.id}`);
+      }
     } catch {
       submitError.value = 'Something went wrong. Please try again.';
       submitting.value = false;
@@ -180,5 +268,8 @@ export function usePropertyForm(
     addPhone,
     removePhone,
     submit,
+    isEdit,
+    loading,
+    prefill,
   };
 }

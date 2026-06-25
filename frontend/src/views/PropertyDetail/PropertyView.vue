@@ -6,7 +6,7 @@ import { FEATURE_LABELS } from '../../types/propertyLabels';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
 import SaveHeart from '../../components/listing/SaveHeart.vue';
 import CardCarousel from '../../components/listing/CardCarousel.vue';
-import { getProperty } from '../../api/propertiesApi';
+import { getProperty, deleteProperty } from '../../api/propertiesApi';
 import LocationMap from '../../components/listing/LocationMap.vue';
 import PhotoGrid from './components/PhotoGrid.vue';
 import ContactCard from './components/ContactCard.vue';
@@ -20,16 +20,38 @@ import PhotoLightBox from '../../components/listing/PhotoLightBox.vue';
 import SpecDots from '../../components/listing/SpecDots.vue';
 import { useShare } from '../../composables/useShare';
 import { useSavedStore } from '../../stores/savedStore';
+import { useAuthStore } from '../../stores/authStore';
+import IconEdit from '../../components/icons/IconEdit.vue';
+import IconTrash from '../../components/icons/IconTrash.vue';
+import ConfirmDialog from '../../components/ui/ConfirmDialog.vue';
 
 const props = defineProps<{ id: string }>();
 const router = useRouter();
 const savedStore = useSavedStore();
+const authStore = useAuthStore();
 const saved = computed(() => savedStore.isSaved(props.id));
+const isOwner = computed(
+  () =>
+    authStore.user?.id != null && authStore.user.id === property.value?.ownerId
+);
 
 const property = ref<PropertyDetail | null>(null);
 onMounted(async () => {
   property.value = (await getProperty(props.id)) ?? null;
 });
+
+const confirmingDelete = ref(false);
+const deleting = ref(false);
+
+async function confirmDelete() {
+  deleting.value = true;
+  try {
+    await deleteProperty(props.id);
+    await router.replace('/');
+  } catch {
+    deleting.value = false;
+  }
+}
 
 const price = computed(() =>
   property.value ? formatPrice(property.value.price, property.value.type) : ''
@@ -122,6 +144,21 @@ function openBento(i: number) {
           zoomable
         />
         <div class="absolute top-3 right-3 z-10 flex items-center gap-2">
+          <RouterLink
+            v-if="isOwner"
+            :to="`/property/${property.id}/edit`"
+            class="size-9 grid place-items-center rounded-full bg-bg/90 backdrop-blur text-ink-2 hover:bg-bg hover:scale-105 active:scale-95 transition-all duration-200"
+          >
+            <span class="size-4"><IconEdit /></span>
+          </RouterLink>
+          <button
+            v-if="isOwner"
+            type="button"
+            class="size-9 grid place-items-center rounded-full bg-bg/90 backdrop-blur text-ink-2 cursor-pointer hover:bg-bg hover:scale-105 active:scale-95 transition-all duration-200"
+            @click.stop="confirmingDelete = true"
+          >
+            <span class="size-4"><IconTrash /></span>
+          </button>
           <button
             type="button"
             class="size-9 grid place-items-center rounded-full bg-bg/90 backdrop-blur text-ink-2 cursor-pointer hover:bg-bg hover:scale-105 active:scale-95 transition-all duration-200"
@@ -288,6 +325,26 @@ function openBento(i: number) {
                 {{ justCopied ? 'Link copied!' : 'Share listing' }}
               </button>
 
+              <RouterLink
+                v-if="isOwner"
+                :to="`/property/${property.id}/edit`"
+                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line rounded-lg hover:bg-surface hover:text-ink transition-colors"
+              >
+                <span class="size-4 shrink-0"><IconEdit /></span>
+                Edit listing
+              </RouterLink>
+
+              <button
+                v-if="isOwner"
+                type="button"
+                :disabled="deleting"
+                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line rounded-lg cursor-pointer hover:bg-warn/5 hover:text-warn hover:border-warn/30 transition-colors disabled:opacity-50"
+                @click="confirmingDelete = true"
+              >
+                <span class="size-4 shrink-0"><IconTrash /></span>
+                Delete listing
+              </button>
+
               <ContactCard
                 class="mt-5"
                 :phones="property.phones"
@@ -307,5 +364,15 @@ function openBento(i: number) {
         @reveal-phone="phoneRevealed = true"
       />
     </template>
+
+    <ConfirmDialog
+      :open="confirmingDelete"
+      title="Delete listing?"
+      description="This listing will be permanently removed and cannot be recovered."
+      confirm-label="Delete"
+      danger
+      @update:open="confirmingDelete = false"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>

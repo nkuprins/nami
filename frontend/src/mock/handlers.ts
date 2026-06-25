@@ -5,8 +5,11 @@ import { cityByName, districtSlugByName } from '../data/locations';
 
 const PAGE_SIZE = 12;
 
-const dtoCatalog = mockListings.map((item) => ({
+const MOCK_OWNER_ID = 'mock-user-1';
+
+const dtoCatalog = mockListings.map((item, i) => ({
   ...item,
+  ownerId: i < 2 ? MOCK_OWNER_ID : `other-user-${i}`,
   district:
     districtSlugByName.get(item.district) ?? item.district.toLowerCase(),
   city: cityByName.get(item.city) ?? item.city.toLowerCase(),
@@ -207,14 +210,26 @@ export const handlers = [
 
   http.post('/api/properties', async ({ request }) => {
     const body = (await request.json()) as any;
-    return HttpResponse.json(
-      {
-        ...body,
-        id: `mock-${Date.now()}`,
-        postedAt: new Date().toISOString(),
-      },
-      { status: 201 }
-    );
+    const created = {
+      ...body,
+      id: `mock-${Date.now()}`,
+      ownerId: mockUser?.id ?? MOCK_OWNER_ID,
+      postedAt: new Date().toISOString(),
+    };
+    dtoCatalog.unshift(created);
+    return HttpResponse.json(created, { status: 201 });
+  }),
+
+  http.put('/api/properties/:id', async ({ params, request }) => {
+    if (!mockUser) return new HttpResponse(null, { status: 401 });
+    const index = dtoCatalog.findIndex((i) => i.id === params.id);
+    if (index === -1) return new HttpResponse(null, { status: 404 });
+    const item = dtoCatalog[index];
+    if (item.ownerId !== mockUser.id)
+      return new HttpResponse(null, { status: 403 });
+    const body = (await request.json()) as any;
+    Object.assign(item, body);
+    return HttpResponse.json(item);
   }),
 
   // --- UPLOADS ENDPOINTS ---

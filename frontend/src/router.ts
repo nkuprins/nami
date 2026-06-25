@@ -26,6 +26,12 @@ export const router = createRouter({
       component: () => import('./views/AddProperty/AddPropertyView.vue'),
     },
     {
+      path: '/property/:id/edit',
+      name: 'edit-property',
+      component: () => import('./views/AddProperty/AddPropertyView.vue'),
+      props: true,
+    },
+    {
       path: '/verify-email',
       name: 'verify-email',
       component: () => import('./views/VerifyEmailView.vue'),
@@ -55,7 +61,10 @@ export const router = createRouter({
 
 router.beforeEach((to) => {
   const auth = useAuthStore();
-  if (to.name === 'add-property' && !auth.isAuthenticated) {
+  if (
+    (to.name === 'add-property' || to.name === 'edit-property') &&
+    !auth.isAuthenticated
+  ) {
     return { name: 'home' };
   }
 });

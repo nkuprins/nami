@@ -17,6 +17,7 @@ export type Feature = (typeof KNOWN_FEATURES)[number];
 
 interface PropertyBase {
   id: string;
+  ownerId?: string;
   type: PropertyType;
   propertyKind: PropertyKind;
   title: string;

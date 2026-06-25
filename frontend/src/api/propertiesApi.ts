@@ -47,6 +47,22 @@ export async function addProperty(
   return toDetailDisplayNames(await res.json());
 }
 
+export async function updateProperty(
+  id: string,
+  data: Omit<
+    PropertyDetail,
+    'id' | 'postedAt' | 'district' | 'city' | 'address' | 'coords' | 'photos'
+  >
+): Promise<PropertyDetail> {
+  const res = await fetchApi(`/api/properties/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`updateProperty: ${res.status}`);
+  return toDetailDisplayNames(await res.json());
+}
+
 export async function deleteProperty(id: string): Promise<void> {
   const res = await fetchApi(`/api/properties/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error(`deleteProperty: ${res.status}`);
