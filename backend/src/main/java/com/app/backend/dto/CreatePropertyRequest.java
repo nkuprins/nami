@@ -12,8 +12,10 @@ import java.util.List;
 public record CreatePropertyRequest(
         @NotBlank String type,
         @NotBlank String propertyKind,
-        @NotBlank String title,
-        @NotBlank String description,
+        String titleLv,
+        String titleEn,
+        String descriptionLv,
+        String descriptionEn,
         @NotNull @DecimalMin("0.01") BigDecimal price,
         @NotNull @Min(0) Short rooms,
         @NotNull @DecimalMin("1.00") BigDecimal m2,

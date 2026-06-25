@@ -10,9 +10,12 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-001',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Restored Art Nouveau apartment on Elizabetes',
-    description:
-      'A meticulously restored apartment in one of Riga’s landmark Art Nouveau buildings. Original ceiling reliefs, herringbone parquet, and tall casement windows facing a quiet courtyard.',
+    titleLv: 'Restaurēts jūgendstila dzīvoklis Elizabetes ielā',
+    titleEn: 'Restored Art Nouveau apartment on Elizabetes',
+    descriptionLv:
+      'Rūpīgi restaurēts dzīvoklis vienā no Rīgas ikoniskajām jūgendstila ēkām. Oriģinālās griesta reljefi, lauztais parketa grīdas segums un augstie logi ar skatu uz kluso pagalmu.',
+    descriptionEn:
+      "A meticulously restored apartment in one of Riga's landmark Art Nouveau buildings. Original ceiling reliefs, herringbone parquet, and tall casement windows facing a quiet courtyard.",
     price: 285_000,
     rooms: 3,
     m2: 108,
@@ -33,8 +36,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-002',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Bright loft in a converted Vecrīga warehouse',
-    description:
+    titleLv: 'Gaišs lofts pārveidotā Vecrīgas noliktavā',
+    titleEn: 'Bright loft in a converted Vecrīga warehouse',
+    descriptionLv:
+      'Augšējā stāva lofts ar koka sijām un dienvidrietumu terasi. Piecu minūšu gājiena attālumā līdz Doma laukumam.',
+    descriptionEn:
       'Top-floor loft with timber beams and a south-facing terrace. Five-minute walk to the Dome Square.',
     price: 412_000,
     rooms: 2,
@@ -56,8 +62,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-003',
     type: 'buy',
     propertyKind: 'house',
-    title: 'Wooden family house near Mežaparks',
-    description:
+    titleLv: 'Koka ģimenes māja pie Mežaparka',
+    titleEn: 'Wooden family house near Mežaparks',
+    descriptionLv:
+      'Mīlīgi restaurēta 1930. gadu koka māja. Gājiena attālumā līdz Mežaparka estrādei un ezeram.',
+    descriptionEn:
       'A 1930s wooden house lovingly restored. Walking distance to the Mežaparks open-air stage and the lake.',
     price: 540_000,
     rooms: 5,
@@ -77,8 +86,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-004',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Family apartment beside Āgenskalns market',
-    description:
+    titleLv: 'Ģimenes dzīvoklis pie Āgenskalna tirgus',
+    titleEn: 'Family apartment beside Āgenskalns market',
+    descriptionLv:
+      'Nesen renovēts trīsistabu dzīvoklis ar oriģināliem Pārdaugavas skatiem. Lielisks satiksmes tīkls.',
+    descriptionEn:
       'Recently renovated three-bedroom with original Pārdaugava views. Excellent transport links.',
     price: 168_000,
     rooms: 3,
@@ -99,8 +111,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-005',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Compact studio in a refurbished pre-war block',
-    description:
+    titleLv: 'Kompakts studijas dzīvoklis restaurētā pirmskara ēkā',
+    titleEn: 'Compact studio in a refurbished pre-war block',
+    descriptionLv:
+      'Gudri izvietots studijas dzīvoklis ar galeja virtuvi un oriģināliem kronšteiniem. Ideāli piemērots pilsētas dzīvei.',
+    descriptionEn:
       'Smartly laid-out studio with a galley kitchen and original cornices. Ideal for a city pied-à-terre.',
     price: 89_500,
     rooms: 1,
@@ -121,8 +136,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-006',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Sun-filled corner unit in Purvciems',
-    description:
+    titleLv: 'Saulains stūra dzīvoklis Purvciemā',
+    titleEn: 'Sun-filled corner unit in Purvciems',
+    descriptionLv:
+      'Divistabu dzīvoklis astotajā stāvā ar panorāmas skatu uz pilsētu. Jauni logi un balkona stiklojums.',
+    descriptionEn:
       'Two-bedroom on the eighth floor with panoramic city views. Brand-new windows and balcony glazing.',
     price: 124_000,
     rooms: 2,
@@ -143,8 +161,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-007',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Glass-walled apartment on Ķīpsala',
-    description:
+    titleLv: 'Stiklota siena dzīvoklis Ķīpsalā',
+    titleEn: 'Glass-walled apartment on Ķīpsala',
+    descriptionLv:
+      'Mūsdienīgs dzīvoklis pazīstamajā upes krastmalas projektā. Grīdu līdz griestiem stiklojums, skats uz upi.',
+    descriptionEn:
       'Contemporary unit in the well-known riverside development. Floor-to-ceiling glazing, river views.',
     price: 695_000,
     rooms: 4,
@@ -165,9 +186,10 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-008',
     type: 'buy',
     propertyKind: 'house',
-    title: 'Modernist villa with sea-pine grove',
-    description:
-      'Architect-designed home steps from the dunes. Open-plan main floor, private sauna, garage.',
+    // LV only — exercises single-language fallback in EN mode
+    titleLv: 'Modernistiska villa ar priežu mežu',
+    descriptionLv:
+      'Arhitekta projektēta māja soļu attālumā no kāpām. Atvērts plānojums galvenajā stāvā, privāta sauna, garāža.',
     price: 1_180_000,
     rooms: 6,
     m2: 270,
@@ -186,8 +208,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-009',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Penthouse with rooftop terrace, Centrs',
-    description:
+    titleLv: 'Penthouse ar jumta terasi, Centrs',
+    titleEn: 'Penthouse with rooftop terrace, Centrs',
+    descriptionLv:
+      'Pilna stāva penthouse maziņas butikas ēkas augšpusē. Apkārtēja terase.',
+    descriptionEn:
       'Full-floor penthouse spanning the top of a small boutique building. Wraparound terrace.',
     price: 925_000,
     rooms: 4,
@@ -208,8 +233,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-010',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Quiet two-bedroom near Imanta station',
-    description:
+    titleLv: 'Kluss divistabu dzīvoklis pie Imanta stacijas',
+    titleEn: 'Quiet two-bedroom near Imanta station',
+    descriptionLv:
+      'Praktisks plānojums 2007. gada ēkā. Mazs, bet kopts pagalms, stāvvieta pieejama.',
+    descriptionEn:
       'Practical layout in a 2007 building. Small but well-kept courtyard, parking available.',
     price: 132_000,
     rooms: 2,
@@ -230,8 +258,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-011',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Architect’s own apartment, Vecrīga',
-    description:
+    titleLv: 'Arhitekta dzīvoklis Vecrīgā',
+    titleEn: "Architect's own apartment, Vecrīga",
+    descriptionLv:
+      'Četristabu vēsturiskā dzīvokļa pārkonfigurācija, eksponēta Arhitektūras gadā 2022.',
+    descriptionEn:
       'A four-room reconfiguration of a historical apartment, exhibited in the Architecture Year 2022.',
     price: 588_000,
     rooms: 4,
@@ -252,8 +283,9 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-012',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Top-floor apartment with two balconies',
-    description:
+    // EN only — exercises single-language fallback in LV mode
+    titleEn: 'Top-floor apartment with two balconies',
+    descriptionEn:
       'East-and-west balconies — coffee on one, dinner on the other. Renovated in 2023.',
     price: 215_000,
     rooms: 3,
@@ -274,8 +306,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-013',
     type: 'buy',
     propertyKind: 'house',
-    title: 'Country house in Sigulda valley',
-    description:
+    titleLv: 'Lauku māja Siguldas ielejā',
+    titleEn: 'Country house in Sigulda valley',
+    descriptionLv:
+      'Pieticīga mājiņa mežainā zemesgabalā, pusstundas braucienā no Rīgas. Malkas krāsns, sauna, liels dārzeņu dārzs.',
+    descriptionEn:
       'A modest cottage on a wooded lot, half an hour from Riga. Wood stove, sauna, large vegetable garden.',
     price: 198_000,
     rooms: 4,
@@ -295,8 +330,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-014',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Studio in a small Mežaparks building',
-    description:
+    titleLv: 'Studija mazā Mežaparka ēkā',
+    titleEn: 'Studio in a small Mežaparks building',
+    descriptionLv:
+      'Kompakts un gaišs studijas dzīvoklis skaisti uzturētā koka mājā.',
+    descriptionEn:
       'A compact and bright studio in a beautifully maintained wooden house.',
     price: 119_000,
     rooms: 1,
@@ -317,9 +355,12 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-015',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Three-bedroom in a refurbished 1930s block',
-    description:
-      'Smart family layout, two large bedrooms plus a child’s room, in a quiet inner-courtyard building.',
+    titleLv: 'Trīsistabu dzīvoklis restaurētā 1930. gadu ēkā',
+    titleEn: 'Three-bedroom in a refurbished 1930s block',
+    descriptionLv:
+      'Ērts ģimenes plānojums, divas lielas guļamistabas un bērnu istaba, klusā iekšpagalma ēkā.',
+    descriptionEn:
+      "Smart family layout, two large bedrooms plus a child's room, in a quiet inner-courtyard building.",
     price: 268_000,
     rooms: 3,
     m2: 106,
@@ -339,8 +380,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-016',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Riverside two-bedroom with private mooring',
-    description:
+    titleLv: 'Upes divistabu dzīvoklis ar privātu piestātni',
+    titleEn: 'Riverside two-bedroom with private mooring',
+    descriptionLv:
+      'Neparasts pirmā stāva dzīvoklis ar tiešu pieeju privātai piestātnei Daugavas kanālā.',
+    descriptionEn:
       'Unusual ground-floor unit with direct access to a private mooring on the Daugava canal.',
     price: 449_000,
     rooms: 2,
@@ -362,8 +406,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-017',
     type: 'rent',
     propertyKind: 'apartment',
-    title: 'Furnished one-bedroom on Tērbatas',
-    description:
+    titleLv: 'Mēbelēts vienistabu dzīvoklis Tērbatas ielā',
+    titleEn: 'Furnished one-bedroom on Tērbatas',
+    descriptionLv:
+      'Gatavs ievākties, visi rēķini iekļauti. Gājiena attālumā līdz parkiem un universitātei.',
+    descriptionEn:
       'Move-in-ready unit, all bills inclusive. Walking distance to the parks and the university.',
     price: 780,
     rooms: 2,
@@ -384,8 +431,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-018',
     type: 'rent',
     propertyKind: 'apartment',
-    title: 'Designer studio near Vērmanes garden',
-    description:
+    titleLv: 'Dizainera studija pie Vērmanes dārza',
+    titleEn: 'Designer studio near Vērmanes garden',
+    descriptionLv:
+      'Eleganta studija, ko projektējusi pazīstama latviešu interjera studija. Minimālais nomas termiņš 6 mēneši.',
+    descriptionEn:
       'Sleek studio designed by a well-known Latvian interior practice. Minimum 6-month lease.',
     price: 950,
     rooms: 1,
@@ -406,8 +456,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-019',
     type: 'rent',
     propertyKind: 'apartment',
-    title: 'Family three-bedroom, Teika',
-    description:
+    titleLv: 'Ģimenes trīsistabu dzīvoklis Teikā',
+    titleEn: 'Family three-bedroom, Teika',
+    descriptionLv:
+      'Priekšroka ilgtermiņa nomai. Plašs viesistaba, divi balkoni, pazemes stāvvieta iekļauta.',
+    descriptionEn:
       'Long-term let preferred. Spacious living room, two balconies, underground parking included.',
     price: 1_350,
     rooms: 3,
@@ -428,8 +481,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-020',
     type: 'rent',
     propertyKind: 'house',
-    title: 'Wooden summer house, Jūrmala',
-    description:
+    titleLv: 'Koka vasaras māja Jūrmalā',
+    titleEn: 'Wooden summer house, Jūrmala',
+    descriptionLv:
+      'Pieejama no maija līdz septembrim. Priežu ēnā māja soļu attālumā no pludmales, ērta seši cilvēkiem.',
+    descriptionEn:
       'Available May–September. A pine-shaded house steps from the beach, sleeps six comfortably.',
     price: 2_400,
     rooms: 5,
@@ -449,8 +505,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-021',
     type: 'rent',
     propertyKind: 'apartment',
-    title: 'Compact two-bedroom near Stockmann',
-    description:
+    titleLv: 'Kompakts divistabu dzīvoklis pie Stockmann',
+    titleEn: 'Compact two-bedroom near Stockmann',
+    descriptionLv:
+      'Praktiska pilsētas noma, nesen renovēta. Visi pakalpojumi gājiena attālumā.',
+    descriptionEn:
       'Practical city rental, recently refurbished. All amenities within walking distance.',
     price: 620,
     rooms: 2,
@@ -472,8 +531,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-022',
     type: 'new_project',
     propertyKind: 'apartment',
-    title: 'Kalnciema Quarter — Building C',
-    description:
+    titleLv: 'Kalnciema kvartāls — C ēka',
+    titleEn: 'Kalnciema Quarter — Building C',
+    descriptionLv:
+      'Sešstāvu ēka jaunajā Kalnciema kvartāla ģenerālplānā. CLT konstruksija, ģeotermālā apkure, privāts pagalms.',
+    descriptionEn:
       'Six-storey building in the new Kalnciema Quarter masterplan. CLT construction, geothermal heating, private courtyard.',
     price: 372_000,
     rooms: 3,
@@ -495,8 +557,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-023',
     type: 'new_project',
     propertyKind: 'apartment',
-    title: 'Skanstes Riverside — Tower 2',
-    description:
+    titleLv: 'Skanstes upes krasts — 2. tornis',
+    titleEn: 'Skanstes Riverside — Tower 2',
+    descriptionLv:
+      'Augstceltnes dzīvoklis strauji augošajā Skanstes biznesa rajonā. Debesslobijs ar kopstrādes telpu un sporta zāli.',
+    descriptionEn:
       'High-rise apartment in the rapidly growing Skanstes business district. Sky-lobby with co-working and gym.',
     price: 615_000,
     rooms: 4,
@@ -518,8 +583,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-025',
     type: 'buy',
     propertyKind: 'apartment',
-    title: 'Cozy garret room near the Central Market',
-    description:
+    titleLv: 'Mazpagrabstāva istaba netālu no Centrāltirgus',
+    titleEn: 'Cozy garret room near the Central Market',
+    descriptionLv:
+      'Vienas istabas dzīvoklis ar virtuves stūrīti un koplietošanas vannasistabu. Ideāli piemērots studentiem vai pirmpircējiem ar ierobežotu budžetu.',
+    descriptionEn:
       'A single top-floor room with a kitchenette and a shared bathroom. Perfect for a student or first-time buyer on a budget.',
     price: 42_000,
     rooms: 1,
@@ -540,8 +608,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-026',
     type: 'rent',
     propertyKind: 'apartment',
-    title: 'Bright two-room flat on Čaka iela',
-    description:
+    titleLv: 'Gaiša divistabu dzīvoklis Čaka ielā',
+    titleEn: 'Bright two-room flat on Čaka iela',
+    descriptionLv:
+      'Vienkāršs, bet labi uzturēts īres dzīvoklis dzīvā ielā. Tramvaja pietura tieši pie durvīm.',
+    descriptionEn:
       'Simple but well-maintained rental on a lively street. Tram stop right outside the door.',
     price: 480,
     rooms: 2,
@@ -562,8 +633,11 @@ export const mockListings: PropertyDetail[] = [
     id: 'lst-024',
     type: 'new_project',
     propertyKind: 'house',
-    title: 'Mežaparks Wood Houses — Plot 11',
-    description:
+    titleLv: 'Mežaparka koka mājas — 11. zemesgabals',
+    titleEn: 'Mežaparks Wood Houses — Plot 11',
+    descriptionLv:
+      'Četristabu koka māja jaunā deviņu māju projektā. Gatava ievākties, pēdējā pieejamā vienība.',
+    descriptionEn:
       'Four-bedroom timber house in a new development of nine homes. Ready to move in, last unit available.',
     price: 712_000,
     rooms: 4,

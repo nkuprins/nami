@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { RouterLink, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import IconHeart from '../icons/IconHeart.vue';
 import { useSavedStore } from '../../stores/savedStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -14,8 +14,10 @@ import IconChevron from '../icons/IconChevron.vue';
 import IconMenu from '../icons/IconMenu.vue';
 import IconClose from '../icons/IconClose.vue';
 import IconUser from '../icons/IconUser.vue';
+import { useLocaleRoute } from '../../composables/useLocaleRoute';
 
-const router = useRouter();
+const { t } = useI18n();
+const { locale, localePath, localePush, switchLocalePath } = useLocaleRoute();
 const savedStore = useSavedStore();
 const auth = useAuthStore();
 
@@ -29,7 +31,7 @@ const mobileMenuOpen = ref(false);
 function handleAddProperty() {
   mobileMenuOpen.value = false;
   if (auth.isAuthenticated) {
-    router.push('/add-property');
+    localePush('/add-property');
   } else {
     authOpen.value = true;
   }
@@ -63,6 +65,8 @@ function handleDeleteAccount() {
   mobileMenuOpen.value = false;
   deleteAccountOpen.value = true;
 }
+
+const otherLocale = () => (locale.value === 'lv' ? 'en' : 'lv');
 </script>
 
 <template>
@@ -70,8 +74,10 @@ function handleDeleteAccount() {
     <div
       class="mx-auto max-w-360 px-4 sm:px-6 lg:px-10 h-14 sm:h-16 flex items-center justify-between"
     >
-      <!-- Logo -->
-      <RouterLink to="/" class="focus-ring flex flex-col group shrink-0">
+      <RouterLink
+        :to="localePath('/')"
+        class="focus-ring flex flex-col group shrink-0"
+      >
         <span
           class="display-headline text-[1.5rem] sm:text-[1.6rem] leading-none text-ink"
           style="
@@ -98,7 +104,7 @@ function handleDeleteAccount() {
           "
         >
           <span class="size-4"><IconBuilding /></span>
-          My listings
+          <span>{{ t('nav.myListings') }}</span>
         </button>
 
         <button
@@ -111,10 +117,19 @@ function handleDeleteAccount() {
           >
             <IconHeart :filled="savedStore.count > 0" />
           </span>
-          Saved<span v-if="savedStore.count > 0" class="tabular text-ink"
-            >({{ savedStore.count }})</span
-          >
+          <span>{{ t('nav.saved') }}</span>
+          <span v-if="savedStore.count > 0" class="tabular text-ink">
+            ({{ savedStore.count }})
+          </span>
         </button>
+
+        <!-- Language switcher -->
+        <RouterLink
+          :to="switchLocalePath(otherLocale())"
+          class="focus-ring inline-flex items-center h-9 px-2.5 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
+        >
+          {{ otherLocale() }}
+        </RouterLink>
 
         <!-- Authenticated: user dropdown -->
         <template v-if="auth.isAuthenticated">
@@ -147,7 +162,7 @@ function handleDeleteAccount() {
                     userMenuOpen = false;
                   "
                 >
-                  Sign out
+                  {{ t('nav.signOut') }}
                 </button>
                 <div class="border-t border-line" />
                 <button
@@ -157,7 +172,7 @@ function handleDeleteAccount() {
                     userMenuOpen = false;
                   "
                 >
-                  Delete account
+                  {{ t('nav.deleteAccount') }}
                 </button>
               </div>
             </Transition>
@@ -170,14 +185,14 @@ function handleDeleteAccount() {
           @click="authOpen = true"
         >
           <span class="size-4"><IconUser /></span>
-          Sign in
+          {{ t('nav.signIn') }}
         </button>
 
         <button
           class="focus-ring inline-flex items-center h-9 px-5 ml-2 rounded-full text-sm bg-ink text-bg hover:bg-accent-2 transition-colors"
           @click="handleAddProperty"
         >
-          + Add property
+          <span class="hidden md:inline">{{ t('nav.addProperty') }}</span>
         </button>
       </nav>
 

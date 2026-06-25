@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { RouterLink } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Drawer from '../ui/Drawer.vue';
 import FormField from '../ui/FormField.vue';
 import { useAuthStore } from '../../stores/authStore';
@@ -8,6 +8,10 @@ import {
   MIN_PASSWORD_LENGTH,
   ERROR_EMAIL_NOT_VERIFIED,
 } from '../../api/authApi';
+import { useLocaleRoute } from '../../composables/useLocaleRoute';
+
+const { t } = useI18n();
+const { localePath } = useLocaleRoute();
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
@@ -63,7 +67,7 @@ async function submit() {
   try {
     if (mode.value === 'forgot') {
       if (!email.value) {
-        error.value = 'Please enter your email.';
+        error.value = t('auth.enterEmail');
         return;
       }
       await forgotPassword(email.value);
@@ -73,7 +77,7 @@ async function submit() {
 
     if (tab.value === 'signin') {
       if (!email.value || !password.value) {
-        error.value = 'Please fill in all fields.';
+        error.value = t('auth.fillAllFields');
         return;
       }
       const result = await login(email.value, password.value);
@@ -89,11 +93,11 @@ async function submit() {
       error.value = result;
     } else {
       if (!name.value || !email.value || !password.value) {
-        error.value = 'Please fill in all fields.';
+        error.value = t('auth.fillAllFields');
         return;
       }
       if (password.value.length < MIN_PASSWORD_LENGTH) {
-        error.value = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+        error.value = t('auth.passwordLength');
         return;
       }
       if (!agreedToTerms.value) {
@@ -123,12 +127,12 @@ async function handleResend() {
     :open="open"
     :title="
       pendingVerification
-        ? 'Check your email'
+        ? t('auth.checkEmail')
         : mode === 'forgot'
-          ? 'Reset password'
+          ? t('auth.resetPassword')
           : tab === 'signin'
-            ? 'Sign in'
-            : 'Create account'
+            ? t('auth.signIn')
+            : t('auth.createAccount')
     "
     @update:open="close"
   >
@@ -138,39 +142,36 @@ async function handleResend() {
       class="flex flex-col gap-4 text-sm text-ink-2"
     >
       <p>
-        We sent a verification link to
+        {{ t('auth.verificationSent') }}
         <span class="text-ink font-medium">{{ email }}</span
         >.
       </p>
-      <p>Click the link in the email to activate your account, then sign in.</p>
+      <p>{{ t('auth.clickToActivate') }}</p>
       <button
         type="button"
         class="text-ink underline underline-offset-2 self-start"
         @click="switchTab('signin')"
       >
-        Back to sign in
+        {{ t('auth.backToSignIn') }}
       </button>
     </div>
 
     <!-- Forgot password -->
     <div v-else-if="mode === 'forgot'" class="flex flex-col gap-6">
       <div v-if="forgotSent" class="text-sm text-ink-2">
-        <p>
-          If that email is registered, we've sent a reset link. Check your
-          inbox.
-        </p>
+        <p>{{ t('auth.resetSent') }}</p>
         <button
           type="button"
           class="mt-4 text-ink underline underline-offset-2"
           @click="switchTab('signin')"
         >
-          Back to sign in
+          {{ t('auth.backToSignIn') }}
         </button>
       </div>
       <form v-else class="flex flex-col gap-4" @submit.prevent="submit">
         <FormField
           id="forgot-email"
-          label="Email"
+          :label="t('auth.emailLabel')"
           v-model="email"
           type="email"
           autocomplete="email"
@@ -182,14 +183,14 @@ async function handleResend() {
           :disabled="submitting"
           class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
         >
-          Send reset link
+          {{ t('auth.sendResetLink') }}
         </button>
         <button
           type="button"
           class="text-sm text-ink-3 underline underline-offset-2"
           @click="switchTab('signin')"
         >
-          Back to sign in
+          {{ t('auth.backToSignIn') }}
         </button>
       </form>
     </div>
@@ -207,7 +208,7 @@ async function handleResend() {
           "
           @click="switchTab('signin')"
         >
-          Sign in
+          {{ t('auth.signIn') }}
         </button>
         <button
           type="button"
@@ -219,7 +220,7 @@ async function handleResend() {
           "
           @click="switchTab('signup')"
         >
-          Create account
+          {{ t('auth.createAccount') }}
         </button>
       </div>
 
@@ -227,15 +228,15 @@ async function handleResend() {
         <FormField
           v-if="tab === 'signup'"
           id="auth-name"
-          label="Full name"
+          :label="t('auth.fullNameLabel')"
           v-model="name"
           autocomplete="name"
-          placeholder="Your name"
+          :placeholder="t('auth.namePlaceholder')"
         />
 
         <FormField
           id="auth-email"
-          label="Email"
+          :label="t('auth.emailLabel')"
           v-model="email"
           type="email"
           autocomplete="email"
@@ -244,9 +245,9 @@ async function handleResend() {
 
         <div class="flex flex-col gap-1.5">
           <div class="flex items-center justify-between">
-            <label class="text-sm font-medium text-ink" for="auth-password"
-              >Password</label
-            >
+            <label class="text-sm font-medium text-ink" for="auth-password">
+              {{ t('auth.passwordLabel') }}
+            </label>
             <button
               v-if="tab === 'signin'"
               type="button"
@@ -256,7 +257,7 @@ async function handleResend() {
                 error = '';
               "
             >
-              Forgot password?
+              {{ t('auth.forgotPassword') }}
             </button>
           </div>
           <input
@@ -281,26 +282,26 @@ async function handleResend() {
               @change="termsError = false"
             />
             <span class="text-sm text-ink-2 leading-snug">
-              I have read and agree to the
+              {{ t('auth.iAgree') }}
               <RouterLink
-                to="/terms"
+                :to="localePath('/terms')"
                 target="_blank"
                 class="text-ink underline underline-offset-2 hover:text-accent-2 transition-colors"
               >
-                Terms of Service
+                {{ t('auth.termsOfService') }}
               </RouterLink>
-              and
+              {{ t('auth.and') }}
               <RouterLink
-                to="/privacy"
+                :to="localePath('/privacy')"
                 target="_blank"
                 class="text-ink underline underline-offset-2 hover:text-accent-2 transition-colors"
               >
-                Privacy Policy
+                {{ t('auth.privacyPolicy') }}
               </RouterLink>
             </span>
           </label>
           <p v-if="termsError" class="text-xs text-red-500">
-            You must agree to the Terms and Privacy Policy to create an account.
+            {{ t('auth.agreeToTerms') }}
           </p>
         </div>
 
@@ -310,14 +311,16 @@ async function handleResend() {
           class="flex flex-col gap-2 rounded-lg bg-surface border border-line p-3"
         >
           <p class="text-sm text-ink-2">
-            Please verify your email before signing in.
+            {{ t('auth.verifyBeforeSignIn') }}
           </p>
           <button
             type="button"
             class="text-sm text-ink underline underline-offset-2 self-start"
             @click="handleResend"
           >
-            {{ verificationResent ? 'Sent!' : 'Resend verification email' }}
+            {{
+              verificationResent ? t('auth.sent') : t('auth.resendVerification')
+            }}
           </button>
         </div>
         <p v-else-if="error" class="text-sm text-red-500">{{ error }}</p>
@@ -327,29 +330,29 @@ async function handleResend() {
           :disabled="submitting"
           class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
         >
-          {{ tab === 'signin' ? 'Sign in' : 'Create account' }}
+          {{ tab === 'signin' ? t('auth.signIn') : t('auth.createAccount') }}
         </button>
       </form>
 
       <p class="text-center text-sm text-ink-3">
         <template v-if="tab === 'signin'">
-          No account?
+          {{ t('auth.noAccount') }}
           <button
             type="button"
             class="text-ink underline underline-offset-2"
             @click="switchTab('signup')"
           >
-            Sign up
+            {{ t('auth.signUp') }}
           </button>
         </template>
         <template v-else>
-          Already have an account?
+          {{ t('auth.alreadyHaveAccount') }}
           <button
             type="button"
             class="text-ink underline underline-offset-2"
             @click="switchTab('signin')"
           >
-            Sign in
+            {{ t('auth.signIn') }}
           </button>
         </template>
       </p>

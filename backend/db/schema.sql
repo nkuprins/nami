@@ -87,8 +87,10 @@ CREATE TABLE properties (
     listing_type      listing_type         NOT NULL,
     property_category property_category    NOT NULL,
 	status            property_status      NOT NULL DEFAULT 'active',
-    title             TEXT                 NOT NULL,
-    description       TEXT                 NOT NULL DEFAULT '',
+    title_lv          TEXT,
+    title_en          TEXT,
+    description_lv    TEXT,
+    description_en    TEXT,
 
     -- Pricing
     price             NUMERIC(14, 2)       NOT NULL CHECK (price >= 0),
@@ -127,6 +129,11 @@ CREATE TABLE properties (
 	-- completion field when 'not_ready' can not have year_built
   	CONSTRAINT chk_year_built_not_ready
         CHECK (completion IS DISTINCT FROM 'not_ready' OR year_built IS NULL),
+
+    CONSTRAINT chk_title_at_least_one
+        CHECK (title_lv IS NOT NULL OR title_en IS NOT NULL),
+    CONSTRAINT chk_description_at_least_one
+        CHECK (description_lv IS NOT NULL OR description_en IS NOT NULL),
 
     -- Timestamps
     posted_at         TIMESTAMPTZ          NOT NULL DEFAULT now(),

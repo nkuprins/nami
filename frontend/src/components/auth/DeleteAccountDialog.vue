@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../../stores/authStore';
 import { authApi } from '../../api/authApi';
+import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
+
+const { t } = useI18n();
+const { localePush } = useLocaleRoute();
 
 defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
 const auth = useAuthStore();
-const router = useRouter();
 
 const loading = ref(false);
 const error = ref(false);
@@ -25,7 +28,7 @@ async function handleConfirm() {
     await deleteAccount();
     await auth.logout();
     emit('update:open', false);
-    await router.push('/');
+    await localePush('/');
   } catch {
     error.value = true;
   } finally {
@@ -37,16 +40,18 @@ async function handleConfirm() {
 <template>
   <ConfirmDialog
     :open="open"
-    title="Delete your account?"
-    description="This will permanently remove your account, all your listings, and saved properties. This cannot be undone."
-    confirm-label="Yes, delete my account"
+    :title="t('auth.deleteAccount')"
+    :description="t('auth.deleteAccountDesc')"
+    :confirm-label="t('auth.confirmDeleteAccount')"
     danger
     @update:open="emit('update:open', $event)"
     @confirm="handleConfirm"
   >
     <p v-if="error" class="text-xs text-warn mt-1">
-      Something went wrong. Try again.
+      {{ t('auth.somethingWentWrong') }}
     </p>
-    <p v-if="loading" class="text-xs text-ink-3 mt-1">Deleting account…</p>
+    <p v-if="loading" class="text-xs text-ink-3 mt-1">
+      {{ t('auth.deletingAccount') }}
+    </p>
   </ConfirmDialog>
 </template>

@@ -100,8 +100,18 @@ public class PropertyService {
         property.setOwner(owner);
         property.setListingType(ListingType.fromDbValue(req.type()));
         property.setPropertyCategory(PropertyCategory.fromDbValue(req.propertyKind()));
-        property.setTitle(req.title());
-        property.setDescription(req.description());
+
+        if (isBlank(req.titleLv()) && isBlank(req.titleEn())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one title language is required");
+        }
+        if (isBlank(req.descriptionLv()) && isBlank(req.descriptionEn())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one description language is required");
+        }
+
+        property.setTitleLv(blankToNull(req.titleLv()));
+        property.setTitleEn(blankToNull(req.titleEn()));
+        property.setDescriptionLv(blankToNull(req.descriptionLv()));
+        property.setDescriptionEn(blankToNull(req.descriptionEn()));
         property.setPrice(req.price());
         property.setRooms(req.rooms());
         property.setM2(req.m2());
@@ -138,6 +148,14 @@ public class PropertyService {
         }
 
         return propertyMapper.toDto(propertyRepository.save(property));
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.isBlank();
+    }
+
+    private static String blankToNull(String s) {
+        return isBlank(s) ? null : s.trim();
     }
 
     private Sort buildSort(String sort) {

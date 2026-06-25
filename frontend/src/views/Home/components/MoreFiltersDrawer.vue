@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Drawer from '../../../components/ui/Drawer.vue';
 import { useFiltersStore } from '../../../stores/filterStore';
+import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import type { FilterState } from '../../../types/filter';
 import { Feature } from '../../../types/propertyItem';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
+const { t } = useI18n();
 const { state, applyAdvanced, resetAdvanced } = useFiltersStore();
+const { featureOptions, completionOptions } = usePropertyLabels();
 
 type Draft = Pick<
   FilterState,
@@ -47,21 +51,6 @@ watch(
     if (val) Object.assign(draft, makeDraftFromState());
   }
 );
-
-const FEATURE_OPTIONS: Array<{ id: Feature; label: string; hint: string }> = [
-  { id: 'balcony', label: 'Balcony', hint: 'Open-air space' },
-  { id: 'parking', label: 'Parking', hint: 'Garage or assigned spot' },
-  { id: 'elevator', label: 'Elevator', hint: 'Accessible upper floors' },
-  { id: 'furnished', label: 'Furnished', hint: 'Move-in ready' },
-  { id: 'pets', label: 'Pets allowed', hint: 'Animals welcome' },
-  { id: 'new_building', label: 'New building', hint: 'Built since 2010' },
-];
-
-const COMPLETION_OPTIONS: Array<{ id: 'ready' | 'not_ready'; label: string }> =
-  [
-    { id: 'ready', label: 'Ready to move in' },
-    { id: 'not_ready', label: 'Not yet completed' },
-  ];
 
 function toggleFeature(f: Feature) {
   const set = new Set(draft.features);
@@ -106,45 +95,45 @@ function reset() {
 <template>
   <Drawer
     :open="open"
-    title="Refine your search"
+    :title="t('advFilters.title')"
     @update:open="(v) => emit('update:open', v)"
   >
     <div class="space-y-8">
       <section>
-        <p class="micro-label mb-2">Area (m²)</p>
+        <p class="micro-label mb-2">{{ t('advFilters.area') }}</p>
         <div class="grid grid-cols-2 gap-2">
           <input
             v-model="m2Min.value"
             type="number"
             min="0"
-            placeholder="Min"
+            :placeholder="t('advFilters.min')"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
           <input
             v-model="m2Max.value"
             type="number"
             min="0"
-            placeholder="Max"
+            :placeholder="t('advFilters.max')"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
         </div>
       </section>
 
       <section>
-        <p class="micro-label mb-2">Floor</p>
+        <p class="micro-label mb-2">{{ t('advFilters.floor') }}</p>
         <div class="grid grid-cols-2 gap-2 mb-2">
           <input
             v-model="floorMin.value"
             type="number"
             min="0"
-            placeholder="Min"
+            :placeholder="t('advFilters.min')"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
           <input
             v-model="floorMax.value"
             type="number"
             min="0"
-            placeholder="Max"
+            :placeholder="t('advFilters.max')"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
         </div>
@@ -158,7 +147,7 @@ function reset() {
               @change="draft.notGround = !draft.notGround || undefined"
               class="accent-ink size-4"
             />
-            Not ground floor
+            {{ t('advFilters.notGround') }}
           </label>
           <label
             class="inline-flex items-center gap-2 text-sm text-ink-2 cursor-pointer"
@@ -169,20 +158,20 @@ function reset() {
               @change="draft.notTop = !draft.notTop || undefined"
               class="accent-ink size-4"
             />
-            Not top floor
+            {{ t('advFilters.notTop') }}
           </label>
         </div>
       </section>
 
       <section>
-        <p class="micro-label mb-2">Year built</p>
+        <p class="micro-label mb-2">{{ t('advFilters.yearBuilt') }}</p>
         <div class="grid grid-cols-2 gap-2">
           <input
             v-model="yearMin.value"
             type="number"
             min="1800"
             max="2030"
-            placeholder="From"
+            :placeholder="t('advFilters.from')"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
           <input
@@ -190,17 +179,17 @@ function reset() {
             type="number"
             min="1800"
             max="2030"
-            placeholder="To"
+            :placeholder="t('advFilters.to')"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
         </div>
       </section>
 
       <section>
-        <p class="micro-label mb-3">Features</p>
+        <p class="micro-label mb-3">{{ t('advFilters.features') }}</p>
         <div class="grid grid-cols-1 gap-1.5">
           <label
-            v-for="opt in FEATURE_OPTIONS"
+            v-for="opt in featureOptions"
             :key="opt.id"
             class="focus-ring flex items-center justify-between gap-3 px-3 py-2.5 rounded-md border border-line hover:border-line-2 cursor-pointer transition-colors"
             :class="
@@ -215,12 +204,8 @@ function reset() {
                 class="accent-ink size-4"
               />
               <div>
-                <p class="text-sm text-ink leading-tight">
-                  {{ opt.label }}
-                </p>
-                <p class="micro-label text-[0.625rem]!">
-                  {{ opt.hint }}
-                </p>
+                <p class="text-sm text-ink leading-tight">{{ opt.label }}</p>
+                <p class="micro-label text-[0.625rem]!">{{ opt.hint }}</p>
               </div>
             </div>
           </label>
@@ -228,10 +213,10 @@ function reset() {
       </section>
 
       <section v-if="state.type === 'new_project'">
-        <p class="micro-label mb-3">Completion</p>
+        <p class="micro-label mb-3">{{ t('advFilters.completion') }}</p>
         <div class="flex flex-wrap gap-2">
           <button
-            v-for="opt in COMPLETION_OPTIONS"
+            v-for="opt in completionOptions"
             :key="opt.id"
             type="button"
             @click="
@@ -258,14 +243,14 @@ function reset() {
           class="focus-ring text-sm text-ink-2 hover:text-ink underline underline-offset-4"
           @click="reset"
         >
-          Reset advanced
+          {{ t('advFilters.resetAdvanced') }}
         </button>
         <button
           type="button"
           @click="apply"
           class="focus-ring inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors min-w-44"
         >
-          <span>Apply</span>
+          <span>{{ t('advFilters.apply') }}</span>
         </button>
       </div>
     </template>

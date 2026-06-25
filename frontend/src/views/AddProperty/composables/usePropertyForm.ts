@@ -1,5 +1,4 @@
 import { computed, reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import type {
   Feature,
   PropertyCompletion,
@@ -14,13 +13,16 @@ import {
   updateProperty,
 } from '../../../api/propertiesApi';
 import { requestPresignedUrls, uploadFilesToS3 } from '../../../api/uploadApi';
+import { useLocaleRoute } from '../../../composables/useLocaleRoute';
 import type { PhotoEntry } from './usePhotoUpload';
 
 export interface PropertyFormState {
   type: PropertyType;
   propertyKind: PropertyKind;
-  title: string;
-  description: string;
+  titleLv: string;
+  titleEn: string;
+  descriptionLv: string;
+  descriptionEn: string;
   price: string;
   address: string;
   rooms: string;
@@ -39,8 +41,10 @@ export interface PropertyFormState {
 const INITIAL_FORM: PropertyFormState = {
   type: 'buy',
   propertyKind: 'apartment',
-  title: '',
-  description: '',
+  titleLv: '',
+  titleEn: '',
+  descriptionLv: '',
+  descriptionEn: '',
   price: '',
   address: '',
   rooms: '',
@@ -69,7 +73,7 @@ export function usePropertyForm(
   getPhotos: () => PhotoEntry[],
   editId?: string
 ) {
-  const router = useRouter();
+  const { localePush } = useLocaleRoute();
   const form = reactive<PropertyFormState>({ ...INITIAL_FORM });
   const touched = ref(false);
   const submitting = ref(false);
@@ -83,13 +87,15 @@ export function usePropertyForm(
     getProperty(editId)
       .then((p) => {
         if (!p) {
-          router.replace('/');
+          localePush('/');
           return;
         }
         form.type = p.type;
         form.propertyKind = p.propertyKind;
-        form.title = p.title;
-        form.description = p.description;
+        form.titleLv = p.titleLv ?? '';
+        form.titleEn = p.titleEn ?? '';
+        form.descriptionLv = p.descriptionLv ?? '';
+        form.descriptionEn = p.descriptionEn ?? '';
         form.price = String(p.price);
         form.address = p.address;
         form.rooms = String(p.rooms);
@@ -113,13 +119,14 @@ export function usePropertyForm(
         loading.value = false;
       })
       .catch(() => {
-        router.replace('/');
+        localePush('/');
       });
   }
 
   const errors = computed(() => {
     const e: Record<string, string> = {};
-    if (!form.title.trim()) e.title = 'Required';
+    if (!form.titleLv.trim() && !form.titleEn.trim())
+      e.title = 'Enter a title in at least one language';
     if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
       e.price = 'Enter a valid price';
     if (!isEdit && !getLocation()) e.district = 'Required';
@@ -183,8 +190,10 @@ export function usePropertyForm(
         const item = await updateProperty(editId!, {
           type: form.type,
           propertyKind: form.propertyKind,
-          title: form.title.trim(),
-          description: form.description.trim(),
+          titleLv: form.titleLv.trim() || undefined,
+          titleEn: form.titleEn.trim() || undefined,
+          descriptionLv: form.descriptionLv.trim() || undefined,
+          descriptionEn: form.descriptionEn.trim() || undefined,
           price: Number(form.price),
           rooms: Number(form.rooms),
           m2: Number(form.m2),
@@ -205,7 +214,7 @@ export function usePropertyForm(
               ? form.completion
               : undefined,
         });
-        await router.push(`/property/${item.id}`);
+        await localePush(`/property/${item.id}`);
       } else {
         const photos = getPhotos();
         const slots = await requestPresignedUrls(
@@ -220,8 +229,10 @@ export function usePropertyForm(
         const item = await addProperty({
           type: form.type,
           propertyKind: form.propertyKind,
-          title: form.title.trim(),
-          description: form.description.trim(),
+          titleLv: form.titleLv.trim() || undefined,
+          titleEn: form.titleEn.trim() || undefined,
+          descriptionLv: form.descriptionLv.trim() || undefined,
+          descriptionEn: form.descriptionEn.trim() || undefined,
           price: Number(form.price),
           rooms: Number(form.rooms),
           m2: Number(form.m2),
@@ -248,7 +259,7 @@ export function usePropertyForm(
               : undefined,
         });
 
-        await router.push(`/property/${item.id}`);
+        await localePush(`/property/${item.id}`);
       }
     } catch {
       submitError.value = 'Something went wrong. Please try again.';

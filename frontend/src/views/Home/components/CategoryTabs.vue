@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { PropertyType } from '../../../types/propertyItem';
-import { CATEGORY_OPTIONS } from '../../../types/propertyLabels';
+import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 
 defineProps<{ modelValue: PropertyType }>();
 const emit = defineEmits<{ 'update:modelValue': [value: PropertyType] }>();
+
+const { categoryOptions } = usePropertyLabels();
 
 function pick(id: PropertyType) {
   emit('update:modelValue', id);
@@ -13,7 +15,7 @@ function pick(id: PropertyType) {
 <template>
   <div class="flex items-stretch">
     <button
-      v-for="tab in CATEGORY_OPTIONS"
+      v-for="tab in categoryOptions"
       :key="tab.id"
       role="tab"
       @click="pick(tab.id)"

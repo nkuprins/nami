@@ -51,11 +51,17 @@ public class Property {
     @Column(name = "status", nullable = false)
     private PropertyStatus status;
 
-    @Column(name = "title", nullable = false)
-    private String title;
+    @Column(name = "title_lv")
+    private String titleLv;
 
-    @Column(name = "description", nullable = false)
-    private String description;
+    @Column(name = "title_en")
+    private String titleEn;
+
+    @Column(name = "description_lv")
+    private String descriptionLv;
+
+    @Column(name = "description_en")
+    private String descriptionEn;
 
     @Column(name = "price", nullable = false, precision = 14, scale = 2)
     private BigDecimal price;

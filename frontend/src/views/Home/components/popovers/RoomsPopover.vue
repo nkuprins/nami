@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 const props = defineProps<{ modelValue: number[] }>();
 const emit = defineEmits<{ 'update:modelValue': [value: number[]] }>();
 
@@ -42,7 +45,7 @@ function clear() {
             : 'border-line text-ink hover:border-line-2'
         "
       >
-        {{ opt.label }} rm
+        {{ opt.label }} {{ t('filters.rm') }}
       </button>
     </div>
     <div class="flex items-center justify-between pt-3 border-t border-line">
@@ -51,9 +54,11 @@ function clear() {
         class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
         @click="clear"
       >
-        Clear
+        {{ t('filters.clear') }}
       </button>
-      <p class="micro-label">{{ modelValue.length || 'Any' }} selected</p>
+      <p class="micro-label">
+        {{ modelValue.length || t('filters.any') }} {{ t('filters.selected') }}
+      </p>
     </div>
   </div>
 </template>

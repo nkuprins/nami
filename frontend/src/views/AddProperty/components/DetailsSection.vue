@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { numericInput } from '../../../utils/utils';
 import FormField from '../../../components/ui/FormField.vue';
+
+const { t } = useI18n();
 import type { PropertyFormState } from '../composables/usePropertyForm';
 
 defineProps<{
@@ -12,13 +15,13 @@ defineProps<{
 <template>
   <section class="flex flex-col gap-4">
     <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
-      Details
+      {{ t('addProperty.details') }}
     </h2>
 
     <div class="grid grid-cols-2 gap-4">
       <FormField
         id="ap-rooms"
-        label="Rooms"
+        :label="t('addProperty.roomsLabel')"
         v-model="form.rooms"
         :error="fieldError('rooms')"
         required
@@ -29,7 +32,7 @@ defineProps<{
 
       <FormField
         id="ap-m2"
-        label="Area (m²)"
+        :label="t('addProperty.areaLabel')"
         v-model="form.m2"
         :error="fieldError('m2')"
         required
@@ -42,7 +45,7 @@ defineProps<{
     <FormField
       v-if="form.propertyKind === 'house'"
       id="ap-land"
-      label="Land area (m²)"
+      :label="t('addProperty.landAreaLabel')"
       v-model="form.landM2"
       inputmode="numeric"
       placeholder="e.g. 600"
@@ -52,7 +55,7 @@ defineProps<{
     <div class="grid grid-cols-2 gap-4">
       <FormField
         id="ap-floor"
-        label="Floor"
+        :label="t('addProperty.floorLabel')"
         v-model="form.floor"
         inputmode="numeric"
         placeholder="e.g. 4"
@@ -61,7 +64,7 @@ defineProps<{
 
       <FormField
         id="ap-total-floors"
-        label="Total floors"
+        :label="t('addProperty.totalFloorsLabel')"
         v-model="form.totalFloors"
         inputmode="numeric"
         placeholder="e.g. 9"
@@ -71,7 +74,7 @@ defineProps<{
 
     <FormField
       id="ap-year"
-      label="Year built"
+      :label="t('addProperty.yearBuiltLabel')"
       v-model="form.yearBuilt"
       inputmode="numeric"
       placeholder="e.g. 2018"

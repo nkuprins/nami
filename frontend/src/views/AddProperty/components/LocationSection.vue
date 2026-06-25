@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import IconChevron from '../../../components/icons/IconChevron.vue';
+
+const { t } = useI18n();
 import LocationPopover from '../../../components/listing/LocationPopover.vue';
 import LocationMap from '../../../components/listing/LocationMap.vue';
 import FormField from '../../../components/ui/FormField.vue';
@@ -23,12 +26,13 @@ defineEmits<{
 <template>
   <section class="flex flex-col gap-4">
     <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
-      Location
+      {{ t('addProperty.locationSection') }}
     </h2>
 
     <div class="flex flex-col gap-1.5 relative">
       <label class="text-sm font-medium text-ink" for="ap-district-toggle"
-        >District <span class="text-red-500">*</span></label
+        >{{ t('addProperty.districtLabel') }}
+        <span class="text-red-500">*</span></label
       >
       <button
         id="ap-district-toggle"
@@ -42,7 +46,9 @@ defineEmits<{
         <span v-if="selectedLocation" class="text-ink font-medium">{{
           districtName
         }}</span>
-        <span v-else class="text-ink-3">Select a district…</span>
+        <span v-else class="text-ink-3">{{
+          t('addProperty.selectDistrict')
+        }}</span>
         <span class="size-4 text-ink-2">
           <IconChevron :dir="isOpen ? 'up' : 'down'" />
         </span>
@@ -72,7 +78,7 @@ defineEmits<{
 
     <FormField
       id="ap-address"
-      label="Street address"
+      :label="t('addProperty.streetAddress')"
       v-model="form.address"
       :error="fieldError('address')"
       required

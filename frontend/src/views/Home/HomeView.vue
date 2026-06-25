@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useFiltersStore } from '../../stores/filterStore';
 import { useListings } from '../../composables/useListings';
 import ResultsHeader from '../../components/listing/ResultsHeader.vue';
@@ -7,6 +8,8 @@ import PropertyGrid from '../../components/listing/PropertyGrid.vue';
 import Pagination from '../../components/listing/Pagination.vue';
 import HeroSection from './components/HeroSection.vue';
 import MoreFiltersDrawer from './components/MoreFiltersDrawer.vue';
+
+const { t } = useI18n();
 
 const HEADER_HEIGHT = 64;
 
@@ -46,20 +49,22 @@ async function goToPage(p: number) {
         <div
           class="border border-dashed border-line rounded-2xl py-24 px-8 text-center bg-cream/40"
         >
-          <p class="micro-label mb-4">No matches</p>
+          <p class="micro-label mb-4">{{ t('results.noMatches') }}</p>
           <h3 class="display-headline text-3xl text-ink mb-3">
-            Nothing fits these filters
-            <em class="display-eyebrow text-accent-2">— yet.</em>
+            {{ t('results.nothingFits') }}
+            <em class="display-eyebrow text-accent-2">{{
+              t('results.yet')
+            }}</em>
           </h3>
           <p class="text-sm text-ink-2 max-w-md mx-auto mb-8">
-            Loosen one of the filters above, or start over with a fresh search.
+            {{ t('results.loosenFilters') }}
           </p>
           <button
             type="button"
             @click="resetAll"
             class="focus-ring inline-flex items-center gap-2 h-11 px-5 rounded-full bg-ink text-bg text-sm hover:bg-accent-2 transition-colors"
           >
-            Clear all filters
+            {{ t('results.clearAll') }}
           </button>
         </div>
       </template>

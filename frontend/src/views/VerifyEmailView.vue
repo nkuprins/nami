@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/authStore';
+import { useLocaleRoute } from '../composables/useLocaleRoute';
 import IconFail from '../components/icons/IconFail.vue';
 import IconCheck from '../components/icons/IconCheck.vue';
 
+const { t } = useI18n();
+const { localePath } = useLocaleRoute();
 const route = useRoute();
 const router = useRouter();
 const { verifyEmail } = useAuthStore();
@@ -16,7 +20,7 @@ onMounted(async () => {
   const token = route.query.token as string | undefined;
   if (!token) {
     status.value = 'error';
-    errorMsg.value = 'No verification token found in the URL.';
+    errorMsg.value = t('verifyEmail.noToken');
     return;
   }
   const err = await verifyEmail(token);
@@ -32,7 +36,9 @@ onMounted(async () => {
 
 <template>
   <div class="max-w-md mx-auto px-4 py-20 text-center">
-    <p v-if="status === 'loading'" class="text-sm text-ink-2">Verifying…</p>
+    <p v-if="status === 'loading'" class="text-sm text-ink-2">
+      {{ t('verifyEmail.verifying') }}
+    </p>
 
     <div
       v-else-if="status === 'success'"
@@ -43,13 +49,16 @@ onMounted(async () => {
       >
         <IconCheck />
       </div>
-      <h1 class="text-lg font-medium text-ink">Email verified</h1>
-      <p class="text-sm text-ink-2">
-        Your email has been confirmed. You can now sign in.
-      </p>
-      <a href="/" class="text-sm text-ink underline underline-offset-2"
-        >Go to home</a
+      <h1 class="text-lg font-medium text-ink">
+        {{ t('verifyEmail.verified') }}
+      </h1>
+      <p class="text-sm text-ink-2">{{ t('verifyEmail.verifiedDesc') }}</p>
+      <RouterLink
+        :to="localePath('/')"
+        class="text-sm text-ink underline underline-offset-2"
       >
+        {{ t('verifyEmail.goHome') }}
+      </RouterLink>
     </div>
 
     <div v-else class="flex flex-col items-center gap-4">
@@ -58,11 +67,16 @@ onMounted(async () => {
       >
         <IconFail />
       </div>
-      <h1 class="text-lg font-medium text-ink">Verification FAILED</h1>
+      <h1 class="text-lg font-medium text-ink">
+        {{ t('verifyEmail.failed') }}
+      </h1>
       <p class="text-sm text-ink-2">{{ errorMsg }}</p>
-      <a href="/" class="text-sm text-ink underline underline-offset-2"
-        >Go to home</a
+      <RouterLink
+        :to="localePath('/')"
+        class="text-sm text-ink underline underline-offset-2"
       >
+        {{ t('verifyEmail.goHome') }}
+      </RouterLink>
     </div>
   </div>
 </template>

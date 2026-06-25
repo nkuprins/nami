@@ -1,4 +1,7 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
+</script>
 
 <template>
   <Transition name="fade" appear>
@@ -16,13 +19,12 @@
 
         <div class="space-y-3 max-w-lg">
           <p class="display-eyebrow text-xl md:text-2xl text-accent-2">
-            This page has drifted off the map
+            {{ t('notFound.headline') }}
           </p>
           <h2
             class="font-sans font-normal text-ink-2 text-base md:text-lg leading-relaxed"
           >
-            The resource you are looking for might have been removed, had its
-            name changed, or is temporarily unavailable.
+            {{ t('notFound.description') }}
           </h2>
         </div>
       </main>

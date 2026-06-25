@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useLocationDropdown } from './composables/useLocationDropdown';
 import { usePropertyForm } from './composables/usePropertyForm';
+import { useLocaleRoute } from '../../composables/useLocaleRoute';
 
 import ListingTypeSection from './components/ListingTypeSection.vue';
 import BasicInfoSection from './components/BasicInfoSection.vue';
@@ -15,6 +17,8 @@ import PhotosSection from './components/PhotosSection.vue';
 
 const route = useRoute();
 const editId = route.params.id as string | undefined;
+const { t } = useI18n();
+const { localePath } = useLocaleRoute();
 
 const { photos, addFiles, remove: removePhoto } = usePhotoUpload();
 const { selectedLocation, isOpen, districtName, onSelect } =
@@ -48,14 +52,10 @@ const {
     <template v-else>
       <div class="mb-8">
         <h1 class="text-2xl font-bold text-ink">
-          {{ isEdit ? 'Edit property' : 'Add a property' }}
+          {{ isEdit ? t('editProperty.title') : t('addProperty.title') }}
         </h1>
         <p class="text-sm text-ink-3 mt-1">
-          {{
-            isEdit
-              ? 'Update the details of your listing.'
-              : 'Fill in the details below to list your property.'
-          }}
+          {{ isEdit ? t('editProperty.subtitle') : t('addProperty.subtitle') }}
         </p>
       </div>
 
@@ -137,17 +137,17 @@ const {
           >
             {{
               submitting
-                ? 'Saving…'
+                ? t('addProperty.submitting')
                 : isEdit
-                  ? 'Save changes'
-                  : 'Publish listing'
+                  ? t('editProperty.publishListing')
+                  : t('addProperty.publishListing')
             }}
           </button>
           <RouterLink
-            to="/"
+            :to="localePath('/')"
             class="text-sm text-ink-2 hover:text-ink underline underline-offset-2 transition-colors"
           >
-            Cancel
+            {{ t('addProperty.cancel') }}
           </RouterLink>
         </div>
 

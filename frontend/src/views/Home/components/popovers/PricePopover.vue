@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { PropertyType } from '../../../../types/propertyItem';
 
 const DEBOUNCE_MS = 280;
+
+const { t } = useI18n();
+
 const fmt = new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 });
 
 const props = defineProps<{
@@ -86,32 +90,32 @@ function clear() {
   <div class="space-y-4 min-w-70">
     <div class="grid grid-cols-2 gap-2">
       <label class="flex flex-col gap-1">
-        <span class="micro-label"
-          >Min {{ type === 'rent' ? '€ / mo' : '€' }}</span
-        >
+        <span class="micro-label">{{
+          t('filters.minPrice', { unit: type === 'rent' ? '€ / mo' : '€' })
+        }}</span>
         <input
           :value="displayMin"
           @input="onInput('min', $event)"
           inputmode="numeric"
-          placeholder="Any"
+          :placeholder="t('filters.anyAmount')"
           class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
         />
       </label>
       <label class="flex flex-col gap-1">
-        <span class="micro-label"
-          >Max {{ type === 'rent' ? '€ / mo' : '€' }}</span
-        >
+        <span class="micro-label">{{
+          t('filters.maxPrice', { unit: type === 'rent' ? '€ / mo' : '€' })
+        }}</span>
         <input
           :value="displayMax"
           @input="onInput('max', $event)"
           inputmode="numeric"
-          placeholder="Any"
+          :placeholder="t('filters.anyAmount')"
           class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
         />
       </label>
     </div>
     <div>
-      <p class="micro-label mb-2">Quick picks</p>
+      <p class="micro-label mb-2">{{ t('filters.quickPicks') }}</p>
       <div class="flex flex-wrap gap-1.5">
         <button
           v-for="[mn, mx, label] in suggestions"
@@ -130,7 +134,7 @@ function clear() {
         class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
         @click="clear"
       >
-        Clear
+        {{ t('filters.clear') }}
       </button>
     </div>
   </div>

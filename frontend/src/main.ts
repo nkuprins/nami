@@ -17,7 +17,8 @@ async function main() {
     });
   }
   const app = createApp(App);
-  app.use(createPinia()).use(router);
+  const { default: i18n } = await import('./i18n');
+  app.use(createPinia()).use(i18n).use(router);
   await useAuthStore().init();
   app.mount('#app');
 }

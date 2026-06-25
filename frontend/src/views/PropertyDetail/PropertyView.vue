@@ -1,44 +1,56 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import type { PropertyDetail } from '../../types/propertyItem';
-import { FEATURE_LABELS } from '../../types/propertyLabels';
+import {
+  resolveTitle,
+  resolveDescription,
+  hasLanguage,
+} from '../../types/propertyItem';
+import { useLocaleRoute } from '../../composables/useLocaleRoute';
+import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
+import { getProperty, deleteProperty } from '../../api/propertiesApi';
+import { useSavedStore } from '../../stores/savedStore';
+import { useAuthStore } from '../../stores/authStore';
+import { useShare } from '../../composables/useShare';
+import type { Locale } from '../../i18n';
 import SaveHeart from '../../components/listing/SaveHeart.vue';
 import CardCarousel from '../../components/listing/CardCarousel.vue';
-import { getProperty, deleteProperty } from '../../api/propertiesApi';
 import LocationMap from '../../components/listing/LocationMap.vue';
 import PhotoGrid from './components/PhotoGrid.vue';
 import ContactCard from './components/ContactCard.vue';
 import VideoPlayer from './components/VideoPlayer.vue';
 import BentoPhotoGrid from './components/BentoPhotoGrid.vue';
 import MobileStickyBar from './components/MobileStickyBar.vue';
+import PhotoLightBox from '../../components/listing/PhotoLightBox.vue';
+import SpecDots from '../../components/listing/SpecDots.vue';
+import ConfirmDialog from '../../components/ui/ConfirmDialog.vue';
 import IconShare from '../../components/icons/IconShare.vue';
 import IconArrowLeft from '../../components/icons/IconArrowLeft.vue';
 import IconHeart from '../../components/icons/IconHeart.vue';
-import PhotoLightBox from '../../components/listing/PhotoLightBox.vue';
-import SpecDots from '../../components/listing/SpecDots.vue';
-import { useShare } from '../../composables/useShare';
-import { useSavedStore } from '../../stores/savedStore';
-import { useAuthStore } from '../../stores/authStore';
 import IconEdit from '../../components/icons/IconEdit.vue';
 import IconTrash from '../../components/icons/IconTrash.vue';
-import ConfirmDialog from '../../components/ui/ConfirmDialog.vue';
 
 const props = defineProps<{ id: string }>();
 const router = useRouter();
+const { t } = useI18n();
+const { locale, localePath } = useLocaleRoute();
+const { featureLabel } = usePropertyLabels();
 const savedStore = useSavedStore();
 const authStore = useAuthStore();
-const saved = computed(() => savedStore.isSaved(props.id));
-const isOwner = computed(
-  () =>
-    authStore.user?.id != null && authStore.user.id === property.value?.ownerId
-);
 
 const property = ref<PropertyDetail | null>(null);
 onMounted(async () => {
   property.value = (await getProperty(props.id)) ?? null;
 });
+
+const saved = computed(() => savedStore.isSaved(props.id));
+const isOwner = computed(
+  () =>
+    authStore.user?.id != null && authStore.user.id === property.value?.ownerId
+);
 
 const confirmingDelete = ref(false);
 const deleting = ref(false);
@@ -47,39 +59,57 @@ async function confirmDelete() {
   deleting.value = true;
   try {
     await deleteProperty(props.id);
-    await router.replace('/');
+    await router.replace(localePath('/'));
   } catch {
     deleting.value = false;
   }
 }
 
+const contentLocale = ref<Locale>(locale.value);
+watch(locale, (l) => {
+  contentLocale.value = l;
+});
+
+const displayTitle = computed(() =>
+  property.value ? resolveTitle(property.value, contentLocale.value) : ''
+);
+const displayDescription = computed(() =>
+  property.value ? resolveDescription(property.value, contentLocale.value) : ''
+);
+const hasBothLanguages = computed(() =>
+  property.value
+    ? hasLanguage(property.value, 'lv') && hasLanguage(property.value, 'en')
+    : false
+);
+
 const price = computed(() =>
-  property.value ? formatPrice(property.value.price, property.value.type) : ''
+  property.value
+    ? formatPrice(property.value.price, property.value.type, locale.value)
+    : ''
 );
 const pricePerM2 = computed(() =>
   property.value
-    ? formatPricePerM2(property.value.price / property.value.m2)
+    ? formatPricePerM2(property.value.price / property.value.m2, locale.value)
     : ''
 );
 
 const specRow = computed(() => {
   if (!property.value) return [];
-  const { rooms, m2, floor, totalFloors, landM2, propertyKind } =
+  const { rooms, m2, floor, totalFloors, landM2, propertyKind, yearBuilt } =
     property.value;
   const parts: string[] = [];
-  parts.push(`${rooms} rm`);
+  parts.push(`${rooms} ${t('property.rm')}`);
   parts.push(`${m2} m²`);
   if (propertyKind === 'house' && landM2) {
-    parts.push(`${landM2.toLocaleString()} m² land`);
+    parts.push(`${landM2.toLocaleString()} ${t('property.land')}`);
   } else if (floor) {
-    parts.push(formatFloor(floor, totalFloors));
+    parts.push(formatFloor(floor, totalFloors, locale.value));
   }
-  if (property.value.yearBuilt) parts.push(`Built ${property.value.yearBuilt}`);
+  if (yearBuilt) parts.push(`${t('property.built')} ${yearBuilt}`);
   return parts;
 });
 
 const phoneRevealed = ref(false);
-
 const mediaTab = ref<'photos' | 'video'>('photos');
 
 function switchToVideo() {
@@ -95,7 +125,7 @@ const { share, justCopied } = useShare();
 
 function shareProperty() {
   if (!property.value) return;
-  share({ title: property.value.title, url: window.location.href });
+  share({ title: displayTitle.value, url: window.location.href });
 }
 
 const bentoLightboxOpen = ref(false);
@@ -115,7 +145,7 @@ function openBento(i: number) {
       @click="router.back()"
     >
       <span class="size-4 shrink-0"><IconArrowLeft /></span>
-      Back
+      {{ t('property.back') }}
     </button>
     <p v-if="!property" class="text-sm text-ink-2">Loading&hellip;</p>
 
@@ -125,12 +155,30 @@ function openBento(i: number) {
         @click="router.back()"
       >
         <span class="size-4 shrink-0"><IconArrowLeft /></span>
-        Back
+        {{ t('property.back') }}
       </button>
+
+      <!-- Language toggle -->
+      <div v-if="hasBothLanguages" class="flex gap-2 mb-4">
+        <button
+          v-for="l in ['lv', 'en'] as const"
+          :key="l"
+          type="button"
+          class="h-7 px-3 rounded-full text-xs font-medium border transition-colors"
+          :class="
+            contentLocale === l
+              ? 'bg-ink text-bg border-ink'
+              : 'border-line text-ink-2 hover:text-ink hover:border-ink/40'
+          "
+          @click="contentLocale = l"
+        >
+          {{ l.toUpperCase() }}
+        </button>
+      </div>
 
       <BentoPhotoGrid
         :photos="property.photos"
-        :alt="property.title"
+        :alt="displayTitle"
         @open-lightbox="openBento"
       />
 
@@ -138,15 +186,11 @@ function openBento(i: number) {
       <div
         class="lg:hidden relative aspect-4/3 rounded-lg overflow-hidden mb-6"
       >
-        <CardCarousel
-          :photos="property.photos"
-          :alt="property.title"
-          zoomable
-        />
+        <CardCarousel :photos="property.photos" :alt="displayTitle" zoomable />
         <div class="absolute top-3 right-3 z-10 flex items-center gap-2">
           <RouterLink
             v-if="isOwner"
-            :to="`/property/${property.id}/edit`"
+            :to="localePath(`/property/${property.id}/edit`)"
             class="size-9 grid place-items-center rounded-full bg-bg/90 backdrop-blur text-ink-2 hover:bg-bg hover:scale-105 active:scale-95 transition-all duration-200"
           >
             <span class="size-4"><IconEdit /></span>
@@ -173,7 +217,7 @@ function openBento(i: number) {
       <PhotoLightBox
         v-model:open="bentoLightboxOpen"
         :photos="property.photos"
-        :alt="property.title"
+        :alt="displayTitle"
         :initial-index="bentoLightboxIndex"
       />
 
@@ -186,7 +230,7 @@ function openBento(i: number) {
               {{ property.district }} · {{ property.city }}
             </p>
             <h1 class="mt-1 text-xl leading-snug text-ink font-medium">
-              {{ property.title }}
+              {{ displayTitle }}
             </h1>
             <p class="mt-1 text-sm text-ink-2">
               {{ property.address }}
@@ -207,14 +251,14 @@ function openBento(i: number) {
               :key="f"
               class="micro-label bg-surface border border-line rounded-md px-2 py-1"
             >
-              {{ FEATURE_LABELS[f] }}
+              {{ featureLabel(f) }}
             </span>
           </div>
 
           <hr class="border-none border-t border-line my-5" />
 
           <p class="text-sm text-ink-2 leading-relaxed">
-            {{ property.description }}
+            {{ displayDescription }}
           </p>
 
           <hr class="border-none border-t border-line my-5" />
@@ -232,7 +276,7 @@ function openBento(i: number) {
                 "
                 @click="mediaTab = 'photos'"
               >
-                Photos
+                {{ t('property.photos') }}
               </button>
               <button
                 type="button"
@@ -244,14 +288,14 @@ function openBento(i: number) {
                 "
                 @click="switchToVideo()"
               >
-                Video
+                {{ t('property.video') }}
               </button>
             </div>
 
             <PhotoGrid
               v-if="mediaTab === 'photos'"
               :photos="property.photos"
-              :alt="property.title"
+              :alt="displayTitle"
               :video-url="videoTourUrl"
               @play-video="switchToVideo()"
             />
@@ -259,12 +303,12 @@ function openBento(i: number) {
             <VideoPlayer
               v-else-if="mediaTab === 'video' && videoTourUrl"
               :video-url="videoTourUrl"
-              :alt="property.title"
+              :alt="displayTitle"
             />
           </div>
 
           <div v-if="property.coords" class="my-5">
-            <p class="micro-label mb-3">Location</p>
+            <p class="micro-label mb-3">{{ t('property.location') }}</p>
             <LocationMap
               :model-value="property.coords"
               :address="property.address"
@@ -278,7 +322,7 @@ function openBento(i: number) {
           <div class="lg:hidden">
             <hr class="border-none border-t border-line my-5" />
             <div>
-              <p class="micro-label mb-4">Contact details</p>
+              <p class="micro-label mb-4">{{ t('property.contact') }}</p>
               <ContactCard
                 :phones="property.phones"
                 :phone-revealed="phoneRevealed"
@@ -292,12 +336,8 @@ function openBento(i: number) {
         <aside class="hidden lg:block">
           <div class="sticky top-20 space-y-4">
             <div class="rounded-xl border border-line p-5 shadow-soft">
-              <p class="display-price text-2xl text-ink">
-                {{ price }}
-              </p>
-              <p class="text-xs text-ink-2 tabular mt-1">
-                {{ pricePerM2 }}
-              </p>
+              <p class="display-price text-2xl text-ink">{{ price }}</p>
+              <p class="text-xs text-ink-2 tabular mt-1">{{ pricePerM2 }}</p>
 
               <SpecDots
                 :parts="specRow"
@@ -313,7 +353,7 @@ function openBento(i: number) {
                 <span class="size-4 shrink-0"
                   ><IconHeart :filled="saved"
                 /></span>
-                {{ saved ? 'Saved' : 'Save listing' }}
+                {{ saved ? t('property.saved') : t('property.save') }}
               </button>
 
               <button
@@ -322,16 +362,18 @@ function openBento(i: number) {
                 @click="shareProperty"
               >
                 <span class="size-4 shrink-0"><IconShare /></span>
-                {{ justCopied ? 'Link copied!' : 'Share listing' }}
+                {{
+                  justCopied ? t('property.linkCopied') : t('property.share')
+                }}
               </button>
 
               <RouterLink
                 v-if="isOwner"
-                :to="`/property/${property.id}/edit`"
+                :to="localePath(`/property/${property.id}/edit`)"
                 class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line rounded-lg hover:bg-surface hover:text-ink transition-colors"
               >
                 <span class="size-4 shrink-0"><IconEdit /></span>
-                Edit listing
+                {{ t('property.edit') }}
               </RouterLink>
 
               <button
@@ -342,7 +384,7 @@ function openBento(i: number) {
                 @click="confirmingDelete = true"
               >
                 <span class="size-4 shrink-0"><IconTrash /></span>
-                Delete listing
+                {{ t('property.delete') }}
               </button>
 
               <ContactCard
@@ -367,9 +409,9 @@ function openBento(i: number) {
 
     <ConfirmDialog
       :open="confirmingDelete"
-      title="Delete listing?"
-      description="This listing will be permanently removed and cannot be recovered."
-      confirm-label="Delete"
+      :title="t('property.deleteConfirmTitle')"
+      :description="t('property.deleteConfirmDesc')"
+      :confirm-label="t('property.deleteConfirmLabel')"
       danger
       @update:open="confirmingDelete = false"
       @confirm="confirmDelete"

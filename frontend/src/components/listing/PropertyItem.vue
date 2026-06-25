@@ -1,40 +1,47 @@
 <script setup lang="ts">
 import type { PropertySummary } from '../../types/propertyItem';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { resolveTitle } from '../../types/propertyItem';
+import { useLocaleRoute } from '../../composables/useLocaleRoute';
+import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import StatusPill from './StatusPill.vue';
 import SaveHeart from './SaveHeart.vue';
 import SpecDots from './SpecDots.vue';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
 
 const props = defineProps<{ property: PropertySummary }>();
+const { t } = useI18n();
+const { locale, localePath } = useLocaleRoute();
+const { typeLabel } = usePropertyLabels();
+
+const title = computed(() => resolveTitle(props.property, locale.value));
 
 const price = computed(() =>
-  formatPrice(props.property.price, props.property.type)
+  formatPrice(props.property.price, props.property.type, locale.value)
 );
 const pricePerM2 = computed(() =>
-  formatPricePerM2(props.property.price / props.property.m2)
+  formatPricePerM2(props.property.price / props.property.m2, locale.value)
 );
 
 const specRow = computed(() => {
   const { rooms, m2, floor, totalFloors, landM2, propertyKind } =
     props.property;
   const parts: string[] = [];
-  parts.push(`${rooms} rooms`);
+  parts.push(`${rooms} ${t('property.rm')}`);
   parts.push(`${m2} m²`);
-
   if (propertyKind === 'house' && landM2) {
-    parts.push(`${landM2.toLocaleString()} m² land`);
+    parts.push(`${landM2.toLocaleString()} ${t('property.land')}`);
   } else if (floor) {
-    parts.push(formatFloor(floor, totalFloors));
+    parts.push(formatFloor(floor, totalFloors, locale.value));
   }
-
   return parts;
 });
 </script>
 
 <template>
   <RouterLink
-    :to="`/property/${property.id}`"
+    :to="localePath(`/property/${property.id}`)"
     class="focus-ring block group h-full"
   >
     <article
@@ -43,7 +50,7 @@ const specRow = computed(() => {
       <div class="relative aspect-4/3 overflow-hidden shrink-0">
         <img
           :src="property.photo"
-          :alt="property.title"
+          :alt="title"
           class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         />
 
@@ -74,7 +81,7 @@ const specRow = computed(() => {
         <h3
           class="text-[1.0625rem] leading-snug text-ink font-medium mt-1 line-clamp-2"
         >
-          {{ property.title }}
+          {{ title }}
         </h3>
 
         <SpecDots :parts="specRow" class="text-sm text-ink-2 mt-auto pt-2" />

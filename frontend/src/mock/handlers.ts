@@ -15,7 +15,15 @@ const dtoCatalog = mockListings.map((item, i) => ({
 }));
 
 function toListItem(item: (typeof dtoCatalog)[0]) {
-  const { description, coords, phones, videoUrl, photos, ...rest } = item;
+  const {
+    descriptionLv,
+    descriptionEn,
+    coords,
+    phones,
+    videoUrl,
+    photos,
+    ...rest
+  } = item;
   return { ...rest, photo: photos[0] ?? null };
 }
 

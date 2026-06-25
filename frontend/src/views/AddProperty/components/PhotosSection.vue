@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import FormField from '../../../components/ui/FormField.vue';
 import type { PropertyFormState } from '../composables/usePropertyForm';
+
+const { t } = useI18n();
 
 defineProps<{
   form: PropertyFormState;
@@ -20,11 +23,11 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 <template>
   <section class="flex flex-col gap-4">
     <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
-      Photos
+      {{ t('addProperty.photosSection') }}
     </h2>
     <div class="flex flex-col gap-1.5">
       <p class="text-sm font-medium text-ink">
-        Photos <span class="text-red-500">*</span>
+        {{ t('addProperty.photosSection') }} <span class="text-red-500">*</span>
       </p>
 
       <input
@@ -45,7 +48,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
         "
         @click="fileInputRef?.click()"
       >
-        + Add photos
+        {{ t('addProperty.addPhotos') }}
       </button>
 
       <div v-if="photos.length" class="grid grid-cols-3 gap-2 mt-1">
@@ -72,13 +75,13 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
       <div class="mt-2">
         <FormField
           id="ap-video-url"
-          label="Video URL"
+          :label="t('addProperty.videoUrl')"
           v-model="form.videoUrl"
           type="url"
           placeholder="https://www.youtube.com/watch?v=..."
         />
         <p class="text-xs text-ink-3 mt-1.5">
-          Optional. Paste a link to your video tour.
+          {{ t('addProperty.videoUrlHint') }}
         </p>
       </div>
     </div>

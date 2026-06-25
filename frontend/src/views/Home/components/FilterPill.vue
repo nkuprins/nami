@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import IconChevron from '../../../components/icons/IconChevron.vue';
 import Popover from '../../../components/ui/Popover.vue';
+
+const { t } = useI18n();
 
 defineProps<{
   label: string;
@@ -39,7 +42,7 @@ function toggle() {
           class="text-sm truncate"
           :class="summary ? 'text-ink' : 'text-ink-3'"
         >
-          {{ summary || 'Any' }}
+          {{ summary || t('filters.any') }}
         </span>
       </span>
       <span class="size-4 text-ink-2 shrink-0">

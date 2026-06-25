@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import { TYPE_OPTIONS, KIND_OPTIONS } from '../../../types/propertyLabels';
 import ToggleButtons from '../../../components/ui/ToggleButtons.vue';
+import { useI18n } from 'vue-i18n';
+import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import type { PropertyFormState } from '../composables/usePropertyForm';
+
+const { t } = useI18n();
+const { typeOptions, kindOptions } = usePropertyLabels();
 
 defineProps<{ form: PropertyFormState }>();
 </script>
@@ -9,13 +13,13 @@ defineProps<{ form: PropertyFormState }>();
 <template>
   <section class="flex flex-col gap-4">
     <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
-      Listing type
+      {{ t('addProperty.listingType') }}
     </h2>
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1.5">
         <p class="text-sm font-medium text-ink">Transaction type</p>
         <ToggleButtons
-          :options="TYPE_OPTIONS"
+          :options="typeOptions"
           :model-value="form.type"
           @update:model-value="form.type = $event as typeof form.type"
         />
@@ -24,7 +28,7 @@ defineProps<{ form: PropertyFormState }>();
       <div class="flex flex-col gap-1.5">
         <p class="text-sm font-medium text-ink">Property kind</p>
         <ToggleButtons
-          :options="KIND_OPTIONS"
+          :options="kindOptions"
           :model-value="form.propertyKind"
           @update:model-value="
             form.propertyKind = $event as typeof form.propertyKind

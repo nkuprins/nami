@@ -20,7 +20,10 @@ interface PropertyBase {
   ownerId?: string;
   type: PropertyType;
   propertyKind: PropertyKind;
-  title: string;
+  titleLv?: string;
+  titleEn?: string;
+  descriptionLv?: string;
+  descriptionEn?: string;
   price: number;
   rooms: number;
   m2: number;
@@ -41,9 +44,37 @@ export interface PropertySummary extends PropertyBase {
 }
 
 export interface PropertyDetail extends PropertyBase {
-  description: string;
   coords: { lat: number; lng: number };
   phones?: string[];
   photos: string[];
   videoUrl?: string;
+}
+
+export type PropertyItem = PropertyDetail;
+
+export function resolveTitle(
+  item: Pick<PropertyBase, 'titleLv' | 'titleEn'>,
+  locale: 'lv' | 'en'
+): string {
+  if (locale === 'en') return item.titleEn ?? item.titleLv ?? '';
+  return item.titleLv ?? item.titleEn ?? '';
+}
+
+export function resolveDescription(
+  item: Pick<PropertyBase, 'descriptionLv' | 'descriptionEn'>,
+  locale: 'lv' | 'en'
+): string {
+  if (locale === 'en') return item.descriptionEn ?? item.descriptionLv ?? '';
+  return item.descriptionLv ?? item.descriptionEn ?? '';
+}
+
+export function hasLanguage(
+  item: Pick<
+    PropertyBase,
+    'titleLv' | 'titleEn' | 'descriptionLv' | 'descriptionEn'
+  >,
+  locale: 'lv' | 'en'
+): boolean {
+  if (locale === 'en') return Boolean(item.titleEn && item.descriptionEn);
+  return Boolean(item.titleLv && item.descriptionLv);
 }

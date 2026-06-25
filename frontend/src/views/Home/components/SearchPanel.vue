@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import CategoryTabs from './CategoryTabs.vue';
 import FilterPill from './FilterPill.vue';
@@ -9,7 +10,10 @@ import RoomsPopover from './popovers/RoomsPopover.vue';
 import IconSearch from '../../../components/icons/IconSearch.vue';
 import IconSliders from '../../../components/icons/IconSliders.vue';
 import { useFiltersStore } from '../../../stores/filterStore';
+import { useLocaleRoute } from '../../../composables/useLocaleRoute';
 
+const { t } = useI18n();
+const { locale } = useLocaleRoute();
 const fmtNum = new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 });
 
 const emit = defineEmits<{ search: []; openMore: [] }>();
@@ -28,19 +32,36 @@ const locSummary = computed(() => {
 
 const priceSummary = computed(() => {
   const { priceMin, priceMax, type } = state;
-  const suffix = type === 'rent' ? '/mo' : '';
+  const suffix = type === 'rent' ? t('filters.perMonth') : '';
   const fmt = (n: number) => fmtNum.format(n);
   if (priceMin !== undefined && priceMax !== undefined)
-    return `${fmt(priceMin)} – ${fmt(priceMax)}${suffix}`;
-  if (priceMin !== undefined) return `From ${fmt(priceMin)}${suffix}`;
-  if (priceMax !== undefined) return `Up to ${fmt(priceMax)}${suffix}`;
+    return (
+      t('filters.priceRange', {
+        min: `€${fmt(priceMin)}`,
+        max: `€${fmt(priceMax)}`,
+      }) + (suffix ? ' ' + suffix : '')
+    );
+  if (priceMin !== undefined)
+    return (
+      t('filters.priceFrom', { amount: `€${fmt(priceMin)}` }) +
+      (suffix ? ' ' + suffix : '')
+    );
+  if (priceMax !== undefined)
+    return (
+      t('filters.priceUpTo', { amount: `€${fmt(priceMax)}` }) +
+      (suffix ? ' ' + suffix : '')
+    );
   return '';
 });
 
 const roomsSummary = computed(() => {
   if (!state.rooms.length) return '';
   const sorted = [...state.rooms].sort((a, b) => a - b);
-  return sorted.map((n) => (n >= 7 ? '7+' : `${n}`)).join(', ') + ' rm';
+  return (
+    sorted.map((n) => (n >= 7 ? '7+' : `${n}`)).join(', ') +
+    ' ' +
+    t('filters.rm')
+  );
 });
 
 const advancedCount = computed(() => {
@@ -67,7 +88,7 @@ const advancedCount = computed(() => {
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_auto_auto] gap-2"
       >
         <FilterPill
-          label="Location"
+          :label="t('filters.location')"
           :summary="locSummary"
           :active="state.loc.length > 0"
           :width="380"
@@ -79,7 +100,7 @@ const advancedCount = computed(() => {
         </FilterPill>
 
         <FilterPill
-          label="Price"
+          :label="t('filters.price')"
           :summary="priceSummary"
           :active="state.priceMin !== undefined || state.priceMax !== undefined"
           :width="340"
@@ -93,7 +114,7 @@ const advancedCount = computed(() => {
         </FilterPill>
 
         <FilterPill
-          label="Rooms"
+          :label="t('filters.rooms')"
           :summary="roomsSummary"
           :active="state.rooms.length > 0"
           :width="300"
@@ -110,7 +131,7 @@ const advancedCount = computed(() => {
           class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-4 rounded-md border border-line bg-bg text-sm text-ink-2 hover:text-ink hover:border-line-2 transition-colors"
         >
           <span class="size-4 inline-block"><IconSliders /></span>
-          <span>More filters</span>
+          <span>{{ t('filters.moreFilters') }}</span>
           <span
             v-if="advancedCount > 0"
             class="tabular text-[0.6875rem] px-1.5 h-5 inline-flex items-center rounded-full bg-ink text-cream"
@@ -125,7 +146,7 @@ const advancedCount = computed(() => {
           class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-5 rounded-md bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors"
         >
           <span class="size-4 inline-block"><IconSearch /></span>
-          <span>Search</span>
+          <span>{{ t('filters.search') }}</span>
         </button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { districtSlugByName, slugify } from '../../data/locations';
 import {
   City,
@@ -7,6 +8,8 @@ import {
   Location,
   LOCATION_MAP,
 } from '../../data/rawLocations';
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -76,7 +79,7 @@ function clear() {
     <input
       v-model="query"
       type="search"
-      placeholder="Find a district…"
+      :placeholder="t('filters.findDistrict')"
       class="focus-ring w-full h-10 px-3 rounded-md border border-line bg-bg text-sm placeholder:text-ink-3"
     />
     <div class="space-y-4 max-h-72 overflow-y-auto pr-1">
@@ -128,7 +131,7 @@ function clear() {
         </div>
       </div>
       <p v-if="grouped.size === 0" class="text-sm text-ink-3 py-2">
-        Nothing matches “{{ query }}”.
+        {{ t('filters.nothingMatches', { query }) }}
       </p>
     </div>
 
@@ -141,9 +144,11 @@ function clear() {
         class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
         @click="clear"
       >
-        Clear
+        {{ t('filters.clear') }}
       </button>
-      <p class="micro-label">{{ modelValue.length || 'Any' }} selected</p>
+      <p class="micro-label">
+        {{ modelValue.length || t('filters.any') }} {{ t('filters.selected') }}
+      </p>
     </div>
   </div>
 </template>

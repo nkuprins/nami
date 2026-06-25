@@ -1,10 +1,15 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+const { t } = useI18n();
+</script>
 
 <template>
   <div class="mx-auto max-w-2xl px-4 sm:px-6 py-12 sm:py-16">
-    <p class="micro-label text-ink-3 mb-2">Legal</p>
-    <h1 class="display-headline text-3xl text-ink mb-2">Terms of Service</h1>
-    <p class="text-sm text-ink-3 mb-10">Last updated: June 2025</p>
+    <p class="micro-label text-ink-3 mb-2">{{ t('legal.legal') }}</p>
+    <h1 class="display-headline text-3xl text-ink mb-2">
+      {{ t('legal.termsTitle') }}
+    </h1>
+    <p class="text-sm text-ink-3 mb-10">{{ t('legal.lastUpdated') }}</p>
 
     <div class="flex flex-col gap-8 text-sm text-ink-2 leading-relaxed">
       <section class="flex flex-col gap-3">

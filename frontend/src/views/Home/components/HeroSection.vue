@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import SearchPanel from './SearchPanel.vue';
 
+const { t } = useI18n();
 const emit = defineEmits<{ search: []; openMore: [] }>();
 </script>
 
@@ -25,22 +27,22 @@ const emit = defineEmits<{ search: []; openMore: [] }>();
       <div
         class="flex items-center gap-6 micro-label font-bold text-cream/70! mb-10"
       >
-        <span>Latvia</span>
+        <span>{{ t('hero.country') }}</span>
         <span class="hidden md:inline h-px w-12 bg-cream/30" />
-        <span class="hidden md:inline">Curated listings · Updated 24/7</span>
+        <span class="hidden md:inline">{{ t('hero.curated') }}</span>
       </div>
 
       <h1
         class="display-headline text-cream text-[clamp(2.75rem,6.4vw,5.75rem)] max-w-4xl"
       >
-        Real estate
-        <em class="display-eyebrow text-accent">solutions</em>
+        {{ t('hero.headline') }}
+        <em class="display-eyebrow text-accent">{{ t('hero.accent') }}</em>
       </h1>
 
       <p
         class="mt-3 max-w-xl text-cream/80 text-base sm:text-lg leading-relaxed"
       >
-        Residential, commercial, and investment real estate
+        {{ t('hero.subtitle') }}
       </p>
 
       <div
@@ -48,17 +50,23 @@ const emit = defineEmits<{ search: []; openMore: [] }>();
       >
         <div class="flex items-baseline gap-2">
           <span class="display-price text-cream text-2xl">10</span>
-          <span class="micro-label text-cream/60!">properties</span>
+          <span class="micro-label text-cream/60!">{{
+            t('hero.properties')
+          }}</span>
         </div>
         <div class="h-8 w-px bg-cream/20" />
         <div class="flex items-baseline gap-2">
           <span class="display-price text-cream text-2xl">100</span>
-          <span class="micro-label text-cream/60!">districts</span>
+          <span class="micro-label text-cream/60!">{{
+            t('hero.districts')
+          }}</span>
         </div>
         <div class="h-8 w-px bg-cream/20" />
         <div class="flex items-baseline gap-2">
           <span class="display-price text-cream text-2xl">12</span>
-          <span class="micro-label text-cream/60!">clients</span>
+          <span class="micro-label text-cream/60!">{{
+            t('hero.clients')
+          }}</span>
         </div>
       </div>
     </div>

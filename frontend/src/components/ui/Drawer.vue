@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import IconClose from '../icons/IconClose.vue';
+
+const { t } = useI18n();
 
 const props = defineProps<{ open: boolean; title: string }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
@@ -53,7 +56,9 @@ onBeforeUnmount(() => {
         >
           <div>
             <p class="micro-label">{{ title }}</p>
-            <p class="text-xs text-ink-3 mt-0.5">Esc to close</p>
+            <p class="text-xs text-ink-3 mt-0.5">
+              {{ t('drawers.escToClose') }}
+            </p>
           </div>
           <button
             type="button"

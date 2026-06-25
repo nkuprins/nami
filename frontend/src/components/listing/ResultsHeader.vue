@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useFiltersStore } from '../../stores/filterStore';
 import IconChevron from '../icons/IconChevron.vue';
 import Popover from '../ui/Popover.vue';
-import { SORT_OPTIONS, SortKey } from '../../types/sort';
+import { useSortOptions } from '../../composables/useSortOptions';
+import type { SortKey } from '../../types/sort';
 
 defineProps<{ total: number; loading: boolean }>();
 
+const { t } = useI18n();
 const { state, setSort } = useFiltersStore();
+const sortOptions = useSortOptions();
 
 const open = ref(false);
 const anchor = ref<HTMLButtonElement | null>(null);
 
 const currentSortLabel = computed(() => {
-  return SORT_OPTIONS.find((s) => s.id === state.sort)?.label ?? 'Sort';
+  return (
+    sortOptions.value.find((s) => s.id === state.sort)?.label ?? t('sort.sort')
+  );
 });
 
 function pick(id: SortKey) {
@@ -27,14 +33,18 @@ function pick(id: SortKey) {
     class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8"
   >
     <div class="space-y-1">
-      <p class="micro-label">Results</p>
+      <p class="micro-label">{{ t('results.results') }}</p>
       <h2 class="display-headline text-3xl sm:text-4xl text-ink">
         <span class="tabular">{{ total }}</span>
         <span class="text-ink-2">
-          {{ total === 1 ? ' listing' : ' listings' }}</span
+          {{
+            ' ' + (total === 1 ? t('results.listing') : t('results.listings'))
+          }}</span
         >
       </h2>
-      <p v-if="loading" class="text-xs text-ink-3">Updating…</p>
+      <p v-if="loading" class="text-xs text-ink-3">
+        {{ t('results.updating') }}
+      </p>
     </div>
 
     <div class="relative">
@@ -45,7 +55,7 @@ function pick(id: SortKey) {
         :aria-expanded="open"
         class="focus-ring inline-flex items-center gap-3 h-11 px-4 rounded-md border border-line bg-bg hover:border-line-2 transition-colors text-sm"
       >
-        <span class="micro-label">Sort</span>
+        <span class="micro-label">{{ t('sort.sort') }}</span>
         <span class="text-ink">{{ currentSortLabel }}</span>
         <span class="size-4 text-ink-2"
           ><IconChevron :dir="open ? 'up' : 'down'"
@@ -55,14 +65,14 @@ function pick(id: SortKey) {
       <Popover
         :open="open"
         :anchor-el="anchor"
-        title="Sort listings"
+        :title="t('sort.sortListings')"
         align="end"
         :width="280"
         @update:open="(v) => (open = v)"
       >
         <div class="space-y-1">
           <button
-            v-for="opt in SORT_OPTIONS"
+            v-for="opt in sortOptions"
             :key="opt.id"
             type="button"
             @click="pick(opt.id)"

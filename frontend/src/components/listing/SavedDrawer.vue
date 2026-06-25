@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { RouterLink } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import Drawer from '../ui/Drawer.vue';
 import EmptyState from '../ui/EmptyState.vue';
 import PropertyListItem from './PropertyListItem.vue';
@@ -8,10 +8,14 @@ import IconHeart from '../icons/IconHeart.vue';
 import { useSavedStore } from '../../stores/savedStore';
 import { getProperty } from '../../api/propertiesApi';
 import type { PropertyDetail } from '../../types/propertyItem';
+import { resolveTitle } from '../../types/propertyItem';
+import { useLocaleRoute } from '../../composables/useLocaleRoute';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
+const { t } = useI18n();
+const { locale, localePath } = useLocaleRoute();
 const savedStore = useSavedStore();
 const items = ref<PropertyDetail[]>([]);
 const loading = ref(false);
@@ -41,7 +45,7 @@ watch(() => props.open, loadSaved);
 <template>
   <Drawer
     :open="open"
-    title="Saved properties"
+    :title="t('drawers.savedProperties')"
     @update:open="emit('update:open', $event)"
   >
     <div v-if="loading" class="flex flex-col gap-3">
@@ -63,11 +67,11 @@ watch(() => props.open, loadSaved);
       </template>
       <template #action>
         <RouterLink
-          to="/"
+          :to="localePath('/')"
           class="text-sm text-ink underline underline-offset-2"
           @click="emit('update:open', false)"
         >
-          Browse listings
+          {{ t('drawers.browseListings') }}
         </RouterLink>
       </template>
     </EmptyState>
@@ -77,7 +81,7 @@ watch(() => props.open, loadSaved);
         v-for="item in items"
         :key="item.id"
         :id="item.id"
-        :title="item.title"
+        :title="resolveTitle(item, locale)"
         :district="item.district"
         :city="item.city"
         :price="item.price"
