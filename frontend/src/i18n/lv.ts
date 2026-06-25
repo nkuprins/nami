@@ -173,6 +173,7 @@ export default {
     districtLabel: 'Rajons',
     selectDistrict: 'Izvēlieties rajonu…',
     streetAddress: 'Ielas adrese',
+    locationUnchanged: 'Atrašanās vietu un fotoattēlus nevar mainīt.',
     details: 'Detaļas',
     roomsLabel: 'Istabas',
     areaLabel: 'Platība (m²)',
@@ -181,6 +182,9 @@ export default {
     totalFloorsLabel: 'Kopā stāvi',
     yearBuiltLabel: 'Celtniecības gads',
     featuresSection: 'Papildu ērtības',
+    phoneSection: 'Kontakttelefons',
+    phoneNumber: 'Tālruņa numurs',
+    anotherPhone: '+ Pievienot vēl vienu tālruni',
     photosSection: 'Fotogrāfijas',
     addPhotos: '+ Pievienot fotogrāfijas',
     videoUrl: 'Video apskates URL',
@@ -192,6 +196,11 @@ export default {
     atLeastOnePhoto: 'Nepieciešama vismaz viena fotogrāfija',
     completionRequired: 'Obligāts jauniem projektiem',
     titleRequired: 'Ievadiet nosaukumu vismaz vienā valodā',
+  },
+  editProperty: {
+    title: 'Rediģēt sludinājumu',
+    subtitle:
+      'Aizpildiet zemāk esošo informāciju, lai rediģētu savu īpašumu. Ņemiet vērā, ka jūs nevarat atjaunināt atrašanās vietu un fotoattēlus.',
   },
   auth: {
     signIn: 'Ieiet',

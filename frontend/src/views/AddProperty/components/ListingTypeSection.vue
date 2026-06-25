@@ -17,7 +17,9 @@ defineProps<{ form: PropertyFormState }>();
     </h2>
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1.5">
-        <p class="text-sm font-medium text-ink">Transaction type</p>
+        <p class="text-sm font-medium text-ink">
+          {{ t('addProperty.transactionType') }}
+        </p>
         <ToggleButtons
           :options="typeOptions"
           :model-value="form.type"
@@ -26,7 +28,9 @@ defineProps<{ form: PropertyFormState }>();
       </div>
 
       <div class="flex flex-col gap-1.5">
-        <p class="text-sm font-medium text-ink">Property kind</p>
+        <p class="text-sm font-medium text-ink">
+          {{ t('addProperty.propertyKind') }}
+        </p>
         <ToggleButtons
           :options="kindOptions"
           :model-value="form.propertyKind"

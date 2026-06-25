@@ -34,7 +34,7 @@ export const router = createRouter({
           component: () => import('./views/AddProperty/AddPropertyView.vue'),
         },
         {
-          path: '/property/:id/edit',
+          path: 'property/:id/edit',
           name: 'edit-property',
           component: () => import('./views/AddProperty/AddPropertyView.vue'),
           props: true,

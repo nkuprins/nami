@@ -123,12 +123,11 @@ const otherLocale = () => (locale.value === 'lv' ? 'en' : 'lv');
           </span>
         </button>
 
-        <!-- Language switcher -->
         <RouterLink
           :to="switchLocalePath(otherLocale())"
           class="focus-ring inline-flex items-center h-9 px-2.5 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
         >
-          {{ otherLocale() }}
+          {{ locale }}
         </RouterLink>
 
         <!-- Authenticated: user dropdown -->
@@ -198,6 +197,13 @@ const otherLocale = () => (locale.value === 'lv' ? 'en' : 'lv');
 
       <!-- Mobile nav -->
       <div class="flex sm:hidden items-center gap-2">
+        <RouterLink
+          :to="switchLocalePath(otherLocale())"
+          class="focus-ring inline-flex items-center h-10 px-2.5 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
+        >
+          {{ locale }}
+        </RouterLink>
+
         <button
           class="focus-ring relative size-10 grid place-items-center rounded-full hover:text-ink transition-colors"
           :class="savedStore.count > 0 ? 'text-accent-2' : 'text-ink-2'"

@@ -80,14 +80,14 @@ const {
           <h2
             class="text-base font-semibold text-ink border-b border-line pb-2"
           >
-            Location
+            {{ t('addProperty.locationSection') }}
           </h2>
           <p class="text-sm text-ink-2">
             {{ prefill.district }}, {{ prefill.city }} &mdash;
             {{ prefill.address }}
           </p>
           <p class="text-xs text-ink-3">
-            Location and photos cannot be changed.
+            {{ t('addProperty.locationUnchanged') }}
           </p>
         </section>
 

@@ -173,6 +173,7 @@ export default {
     districtLabel: 'District',
     selectDistrict: 'Select a district…',
     streetAddress: 'Street address',
+    locationUnchanged: 'Location and photos cannot be changed.',
     details: 'Details',
     roomsLabel: 'Rooms',
     areaLabel: 'Area (m²)',
@@ -181,6 +182,9 @@ export default {
     totalFloorsLabel: 'Total floors',
     yearBuiltLabel: 'Year built',
     featuresSection: 'Features',
+    phoneSection: 'Contact phone',
+    phoneNumber: 'Phone number',
+    anotherPhone: '+ Add another phone',
     photosSection: 'Photos',
     addPhotos: '+ Add photos',
     videoUrl: 'Video tour URL',
@@ -192,6 +196,11 @@ export default {
     atLeastOnePhoto: 'At least one photo is required',
     completionRequired: 'Required for new projects',
     titleRequired: 'Enter a title in at least one language',
+  },
+  editProperty: {
+    title: 'Edit a property',
+    subtitle:
+      'Fill in the information below to edit your listing. Note, that you can not update location and photos.',
   },
   auth: {
     signIn: 'Sign in',
