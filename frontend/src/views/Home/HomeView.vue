@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import { useFiltersStore } from '../../stores/filterStore';
 import { useListings } from '../../composables/useListings';
 import ResultsHeader from '../../components/listing/ResultsHeader.vue';
@@ -8,6 +8,8 @@ import Pagination from '../../components/listing/Pagination.vue';
 import HeroSection from './components/HeroSection.vue';
 import MoreFiltersDrawer from './components/MoreFiltersDrawer.vue';
 
+const HEADER_HEIGHT = 64;
+
 const { state, setPage, resetAll } = useFiltersStore();
 const { items, total, pageCount, loading } = useListings(() => state);
 
@@ -15,11 +17,15 @@ const drawerOpen = ref(false);
 const gridRef = ref<HTMLElement | null>(null);
 
 function scrollToGrid() {
-  gridRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const el = gridRef.value;
+  if (!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY - HEADER_HEIGHT;
+  window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
 }
 
-function goToPage(p: number) {
+async function goToPage(p: number) {
   setPage(p);
+  await nextTick();
   scrollToGrid();
 }
 </script>
@@ -31,10 +37,8 @@ function goToPage(p: number) {
     @update:open="(v) => (drawerOpen = v)"
   />
 
-  <section
-    ref="gridRef"
-    class="mx-auto max-w-360 px-6 lg:px-10 pt-16 sm:pt-20 scroll-mt-20"
-  >
+  <section class="mx-auto max-w-360 px-6 lg:px-10 pt-16 sm:pt-20">
+    <div ref="gridRef" />
     <ResultsHeader :total="total" :loading="loading" />
 
     <PropertyGrid :items="items" :loading="loading">

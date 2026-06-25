@@ -8,10 +8,13 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ change: [page: number] }>();
 
+const MAX_VISIBLE_PAGES = 7;
+
 const pages = computed<Array<number | '…'>>(() => {
   const total = props.pageCount;
   const cur = props.page;
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  if (total <= MAX_VISIBLE_PAGES)
+    return Array.from({ length: total }, (_, i) => i + 1);
   const out: Array<number | '…'> = [1];
   const start = Math.max(2, cur - 1);
   const end = Math.min(total - 1, cur + 1);

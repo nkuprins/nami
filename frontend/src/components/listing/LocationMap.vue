@@ -16,6 +16,10 @@ const emit = defineEmits<{
 
 type GeoState = 'idle' | 'loading' | 'ok' | 'error';
 
+const INITIAL_ZOOM = 11;
+const DETAIL_ZOOM = 16;
+const MAX_ZOOM = 19;
+
 const mapEl = ref<HTMLDivElement | null>(null);
 const state = ref<GeoState>('idle');
 
@@ -99,7 +103,7 @@ function placeMarker(lat: number, lng: number, fly = true) {
       });
     }
   }
-  if (fly) map.setView([lat, lng], 16);
+  if (fly) map.setView([lat, lng], DETAIL_ZOOM);
 }
 
 // Enable click-to-place when not readonly
@@ -184,12 +188,12 @@ onMounted(async () => {
   map = L.map(mapEl.value, {
     zoomControl: true,
     scrollWheelZoom: false,
-  }).setView([56.946, 24.105], 11);
+  }).setView([56.946, 24.105], INITIAL_ZOOM);
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution:
       '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 19,
+    maxZoom: MAX_ZOOM,
   }).addTo(map);
 
   setupClickToPlace();

@@ -12,6 +12,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{ 'play-video': [] }>();
 
+const GRID_MAX_VISIBLE = 9;
+
 const videoThumb = computed(() =>
   props.videoUrl ? getVideoThumbnailUrl(props.videoUrl) : ''
 );
@@ -41,11 +43,11 @@ function open(i: number) {
           loading="lazy"
         />
         <div
-          v-if="i === 8 && photos.length > 9"
+          v-if="i === GRID_MAX_VISIBLE - 1 && photos.length > GRID_MAX_VISIBLE"
           class="absolute inset-0 bg-ink/60 backdrop-blur-sm flex items-center justify-center"
         >
           <span class="text-cream text-xl font-semibold tabular"
-            >+{{ photos.length - 9 }}</span
+            >+{{ photos.length - GRID_MAX_VISIBLE }}</span
           >
         </div>
       </div>

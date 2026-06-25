@@ -11,6 +11,8 @@ import IconTrash from '../icons/IconTrash.vue';
 import IconEdit from '../icons/IconEdit.vue';
 import IconSpinner from '../icons/IconSpinner.vue';
 
+const ERROR_DISPLAY_MS = 3000;
+
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
@@ -50,7 +52,7 @@ async function confirmDelete() {
     items.value = items.value.filter((item) => item.id !== id);
   } catch {
     deleteError.value = true;
-    setTimeout(() => (deleteError.value = false), 3000);
+    setTimeout(() => (deleteError.value = false), ERROR_DISPLAY_MS);
   } finally {
     deletingId.value = null;
   }

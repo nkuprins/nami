@@ -2,8 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { mockListings } from './properties';
 import { logger } from '../utils/logger';
 import { cityByName, districtSlugByName } from '../data/locations';
-
-const PAGE_SIZE = 12;
+import { PAGE_SIZE } from '../types/filter';
 
 const MOCK_OWNER_ID = 'mock-user-1';
 

@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import type { PropertyType } from '../../../../types/propertyItem';
 
+const DEBOUNCE_MS = 280;
 const fmt = new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 });
 
 const props = defineProps<{
@@ -65,7 +66,7 @@ function scheduleCommit() {
   if (timer !== null) window.clearTimeout(timer);
   timer = window.setTimeout(() => {
     emit('update:range', rawMin.value, rawMax.value);
-  }, 280);
+  }, DEBOUNCE_MS);
 }
 
 function pickPreset(mn: number | undefined, mx: number | undefined) {

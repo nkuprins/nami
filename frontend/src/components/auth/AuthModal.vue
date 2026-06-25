@@ -4,6 +4,10 @@ import { RouterLink } from 'vue-router';
 import Drawer from '../ui/Drawer.vue';
 import FormField from '../ui/FormField.vue';
 import { useAuthStore } from '../../stores/authStore';
+import {
+  MIN_PASSWORD_LENGTH,
+  ERROR_EMAIL_NOT_VERIFIED,
+} from '../../api/authApi';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
@@ -77,9 +81,9 @@ async function submit() {
         close();
         return;
       }
-      if (result === 'EMAIL_NOT_VERIFIED') {
+      if (result === ERROR_EMAIL_NOT_VERIFIED) {
         unverifiedEmail.value = email.value;
-        error.value = 'EMAIL_NOT_VERIFIED';
+        error.value = ERROR_EMAIL_NOT_VERIFIED;
         return;
       }
       error.value = result;
@@ -88,8 +92,8 @@ async function submit() {
         error.value = 'Please fill in all fields.';
         return;
       }
-      if (password.value.length < 15) {
-        error.value = 'Password must be at least 15 characters.';
+      if (password.value.length < MIN_PASSWORD_LENGTH) {
+        error.value = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
         return;
       }
       if (!agreedToTerms.value) {
@@ -302,7 +306,7 @@ async function handleResend() {
 
         <!-- EMAIL_NOT_VERIFIED state -->
         <div
-          v-if="error === 'EMAIL_NOT_VERIFIED'"
+          v-if="error === ERROR_EMAIL_NOT_VERIFIED"
           class="flex flex-col gap-2 rounded-lg bg-surface border border-line p-3"
         >
           <p class="text-sm text-ink-2">

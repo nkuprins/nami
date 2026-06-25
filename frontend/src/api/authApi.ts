@@ -1,6 +1,10 @@
 import { fetchApi } from './fetchApi';
 import { logger } from '../utils/logger';
 
+export const MIN_PASSWORD_LENGTH = 15;
+export const ERROR_EMAIL_NOT_VERIFIED = 'EMAIL_NOT_VERIFIED' as const;
+const ERROR_TOKEN_EXPIRED = 'TOKEN_EXPIRED';
+
 export interface AuthUser {
   id: string;
   name: string;
@@ -34,9 +38,9 @@ export const authApi = {
       const body = await res.json().catch(() => ({}));
       if (
         res.status === 403 &&
-        (body as { code?: string }).code === 'EMAIL_NOT_VERIFIED'
+        (body as { code?: string }).code === ERROR_EMAIL_NOT_VERIFIED
       ) {
-        return { user: null, error: 'EMAIL_NOT_VERIFIED' };
+        return { user: null, error: ERROR_EMAIL_NOT_VERIFIED };
       }
       return { user: null, error: 'Invalid email or password.' };
     } catch (e) {
@@ -120,7 +124,7 @@ export const authApi = {
       }
 
       const body = (await res.json().catch(() => ({}))) as { code?: string };
-      if (body.code === 'TOKEN_EXPIRED') {
+      if (body.code === ERROR_TOKEN_EXPIRED) {
         return 'This link has expired. Please request a new one.';
       }
 
@@ -144,7 +148,7 @@ export const authApi = {
       }
 
       const body = (await res.json().catch(() => ({}))) as { code?: string };
-      if (body.code === 'TOKEN_EXPIRED') {
+      if (body.code === ERROR_TOKEN_EXPIRED) {
         return 'This verification link has expired. Please request a new one.';
       }
 

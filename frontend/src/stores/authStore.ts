@@ -1,7 +1,11 @@
 import { computed, readonly, ref, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { logger } from '../utils/logger';
-import { authApi, type AuthUser } from '../api/authApi';
+import {
+  authApi,
+  type AuthUser,
+  ERROR_EMAIL_NOT_VERIFIED,
+} from '../api/authApi';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<AuthUser | null>(null);
@@ -53,11 +57,11 @@ export const useAuthStore = defineStore('auth', () => {
     const { user: loggedInUser, error } = await authApi.login(email, password);
 
     if (error) {
-      if (error === 'EMAIL_NOT_VERIFIED') {
+      if (error === ERROR_EMAIL_NOT_VERIFIED) {
         logger.warn(
           `[AuthStore] Login rejected: Email unverified for ${email}`
         );
-        return 'EMAIL_NOT_VERIFIED';
+        return ERROR_EMAIL_NOT_VERIFIED;
       }
       logger.warn(
         `[AuthStore] Login rejected: Invalid credentials for ${email}`

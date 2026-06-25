@@ -8,9 +8,12 @@ defineProps<{
 
 defineEmits<{ (e: 'reveal-phone'): void }>();
 
+const VISIBLE_DIGITS = 7;
+
 function maskPhone(phone: string): string {
-  return phone.length > 7
-    ? phone.slice(0, 7) + phone.slice(7).replace(/\d/g, 'X')
+  return phone.length > VISIBLE_DIGITS
+    ? phone.slice(0, VISIBLE_DIGITS) +
+        phone.slice(VISIBLE_DIGITS).replace(/\d/g, 'X')
     : phone;
 }
 </script>

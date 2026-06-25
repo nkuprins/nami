@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
+import { MIN_PASSWORD_LENGTH } from '../api/authApi';
 import IconCheck from '../components/icons/IconCheck.vue';
 import FormField from '../components/ui/FormField.vue';
 
@@ -23,8 +24,8 @@ async function submit() {
     error.value = 'Please enter a new password.';
     return;
   }
-  if (password.value.length < 15) {
-    error.value = 'Password must be at least 15 characters.';
+  if (password.value.length < MIN_PASSWORD_LENGTH) {
+    error.value = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
     return;
   }
   if (password.value !== confirm.value) {
