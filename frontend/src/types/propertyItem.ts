@@ -15,11 +15,11 @@ export type PropertyKind = (typeof KNOWN_KINDS)[number];
 export type PropertyCompletion = (typeof KNOWN_COMPLETION)[number];
 export type Feature = (typeof KNOWN_FEATURES)[number];
 
-interface BasePropertyItem {
+interface PropertyBase {
   id: string;
   type: PropertyType;
+  propertyKind: PropertyKind;
   title: string;
-  description: string;
   price: number;
   rooms: number;
   m2: number;
@@ -31,20 +31,18 @@ interface BasePropertyItem {
   district: string;
   city: string;
   address: string;
-  coords: { lat: number; lng: number };
-  phones?: string[];
-  photos: string[];
-  videoUrl?: string;
   postedAt: string;
   completion?: PropertyCompletion;
 }
 
-export interface ApartmentItem extends BasePropertyItem {
-  propertyKind: 'apartment';
+export interface PropertySummary extends PropertyBase {
+  photo: string;
 }
 
-export interface HouseItem extends BasePropertyItem {
-  propertyKind: 'house';
+export interface PropertyDetail extends PropertyBase {
+  description: string;
+  coords: { lat: number; lng: number };
+  phones?: string[];
+  photos: string[];
+  videoUrl?: string;
 }
-
-export type PropertyItem = ApartmentItem | HouseItem;

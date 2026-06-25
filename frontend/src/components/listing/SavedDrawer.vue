@@ -6,13 +6,13 @@ import IconHeart from '../icons/IconHeart.vue';
 import { useSavedStore } from '../../stores/savedStore';
 import { getProperty } from '../../api/propertiesApi';
 import { formatPrice } from '../../utils/format';
-import type { PropertyItem } from '../../types/propertyItem';
+import type { PropertyDetail } from '../../types/propertyItem';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
 const savedStore = useSavedStore();
-const items = ref<PropertyItem[]>([]);
+const items = ref<PropertyDetail[]>([]);
 const loading = ref(false);
 
 async function loadSaved() {
@@ -27,7 +27,7 @@ async function loadSaved() {
     const results = await Promise.all(
       savedStore.ids.map((id) => getProperty(id))
     );
-    items.value = results.filter((p): p is PropertyItem => p !== undefined);
+    items.value = results.filter((p): p is PropertyDetail => p !== undefined);
   } catch {
     items.value = [];
   }

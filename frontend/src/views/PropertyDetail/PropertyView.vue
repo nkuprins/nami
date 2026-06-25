@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import type { PropertyItem } from '../../types/propertyItem';
+import type { PropertyDetail } from '../../types/propertyItem';
 import { FEATURE_LABELS } from '../../types/propertyLabels';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
 import {
@@ -23,7 +23,7 @@ import SpecDots from '../../components/listing/SpecDots.vue';
 const props = defineProps<{ id: string }>();
 const router = useRouter();
 
-const property = ref<PropertyItem | null>(null);
+const property = ref<PropertyDetail | null>(null);
 onMounted(async () => {
   property.value = (await getProperty(props.id)) ?? null;
 });

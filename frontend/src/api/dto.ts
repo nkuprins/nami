@@ -1,4 +1,4 @@
-import type { PropertyItem } from '../types/propertyItem';
+import type { PropertySummary, PropertyDetail } from '../types/propertyItem';
 import type { FilterState } from '../types/filter';
 import {
   cityBySlug,
@@ -9,14 +9,29 @@ import {
 
 // The API speaks slugs ("agenskalns", "riga").
 
-export type PropertyItemDto = Omit<PropertyItem, 'district' | 'city'> & {
+export type PropertySummaryDto = Omit<PropertySummary, 'district' | 'city'> & {
   district: string; // slug
   city: string; // slug
 };
 
-export type PropertyPayload = Omit<PropertyItemDto, 'id' | 'postedAt'>;
+export type PropertyDetailDto = Omit<PropertyDetail, 'district' | 'city'> & {
+  district: string; // slug
+  city: string; // slug
+};
 
-export function toDisplayNames(dto: PropertyItemDto): PropertyItem {
+export type PropertyPayload = Omit<PropertyDetailDto, 'id' | 'postedAt'>;
+
+export function toSummaryDisplayNames(
+  dto: PropertySummaryDto
+): PropertySummary {
+  return {
+    ...dto,
+    district: districtNameBySlug.get(dto.district) ?? dto.district,
+    city: cityBySlug.get(dto.city) ?? dto.city,
+  };
+}
+
+export function toDetailDisplayNames(dto: PropertyDetailDto): PropertyDetail {
   return {
     ...dto,
     district: districtNameBySlug.get(dto.district) ?? dto.district,
@@ -25,7 +40,7 @@ export function toDisplayNames(dto: PropertyItemDto): PropertyItem {
 }
 
 export function toSlugs(
-  data: Omit<PropertyItem, 'id' | 'postedAt'>
+  data: Omit<PropertyDetail, 'id' | 'postedAt'>
 ): PropertyPayload {
   return {
     ...data,

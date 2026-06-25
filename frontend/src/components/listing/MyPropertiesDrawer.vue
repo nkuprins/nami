@@ -5,14 +5,14 @@ import Drawer from '../ui/Drawer.vue';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
 import { getMyProperties, deleteProperty } from '../../api/propertiesApi';
 import { formatPrice } from '../../utils/format';
-import type { PropertyItem } from '../../types/propertyItem';
+import type { PropertySummary } from '../../types/propertyItem';
 import IconTrash from '../icons/IconTrash.vue';
 import IconSpinner from '../icons/IconSpinner.vue';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
-const items = ref<PropertyItem[]>([]);
+const items = ref<PropertySummary[]>([]);
 const loading = ref(false);
 const error = ref(false);
 const confirmId = ref<string | null>(null);
@@ -108,8 +108,8 @@ watch(() => props.open, load);
         >
           <div class="shrink-0 w-24 sm:w-28 h-20 overflow-hidden bg-surface">
             <img
-              v-if="item.photos[0]"
-              :src="item.photos[0]"
+              v-if="item.photo"
+              :src="item.photo"
               :alt="item.title"
               class="w-full h-full object-cover"
             />

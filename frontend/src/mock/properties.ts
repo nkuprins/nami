@@ -1,11 +1,11 @@
-import type { PropertyItem } from '../types/propertyItem';
+import type { PropertyDetail } from '../types/propertyItem';
 
 const photo = (seed: string) =>
   `https://picsum.photos/seed/realestate-${seed}/1200/900`;
 
 const photos = (...seeds: string[]) => seeds.map(photo);
 
-export const mockListings: PropertyItem[] = [
+export const mockListings: PropertyDetail[] = [
   {
     id: 'lst-001',
     type: 'buy',
