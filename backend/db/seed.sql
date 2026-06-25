@@ -32,7 +32,7 @@ INSERT INTO properties (
     listing_type, property_category,
     title_lv, title_en, description_lv, description_en, price,
     rooms, m2, land_m2, floor, total_floors, year_built,
-    completion,
+    completion, video_url,
     district_slug, city_slug, address, lat, lng,
     posted_at
 ) VALUES
@@ -46,7 +46,7 @@ INSERT INTO properties (
  'Kluss pagalms, augsti griesti, svaigs remonts. Blakus Vērmanes dārzs.', 'Quiet courtyard, high ceilings, fresh renovation. Near Vērmanes Garden.',
  185000.00,
  2, 52.40, NULL, 4, 9, 1968,
- NULL,
+ NULL, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'centrs', 'riga', 'Dzirnavu iela 57-18', 56.9490, 24.1052,
  '2026-06-01 09:15:00+03'),
 
@@ -57,7 +57,7 @@ INSERT INTO properties (
  'Pilnībā mēbelēts dzīvoklis, mājdzīvnieki atļauti.', 'Fully furnished apartment, pets allowed.',
  650.00,
  3, 68.00, NULL, 2, 5, 1985,
- NULL,
+ NULL, NULL,
  'teika', 'riga', 'Hospitāļu iela 12-34', 56.9655, 24.1480,
  '2026-05-20 14:30:00+03'),
 
@@ -68,7 +68,7 @@ INSERT INTO properties (
  'Ķieģeļu māja 2005. g., silta garāža, 10 min līdz pludmalei.', 'Brick house built 2005, heated garage, 10 min to the beach.',
  320000.00,
  4, 120.00, 400.00, NULL, NULL, 2005,
- NULL,
+ NULL, 'https://www.youtube.com/watch?v=xvFZjo5PgG0',
  'majori', 'jurmala', 'Jomas iela 88', 56.9710, 23.7703,
  '2026-04-11 10:00:00+03'),
 
@@ -81,7 +81,7 @@ INSERT INTO properties (
  'Lielisks variants investīcijai vai pirmajam mājoklim. Lifts.', 'Great option for investment or first home. Elevator.',
  75000.00,
  1, 38.20, NULL, 8, 12, 2002,
- NULL,
+ NULL, NULL,
  'purvciems', 'riga', 'Stirnu iela 22-81', 56.9743, 24.1890,
  '2026-06-05 11:00:00+03'),
 
@@ -92,7 +92,7 @@ INSERT INTO properties (
  'Panorāmas logi, slēgts pagalms, autostāvvieta iekļauta.', 'Panoramic windows, enclosed courtyard, parking spot included.',
  145000.00,
  2, 58.00, NULL, 3, 8, NULL,
- 'not_ready',
+ 'not_ready', 'https://www.youtube.com/watch?v=L_jWHffIx5E',
  'agenskalns', 'riga', 'Nometņu iela 74-3', 56.9375, 24.0714,
  '2026-05-30 16:45:00+03'),
 
@@ -105,7 +105,7 @@ INSERT INTO properties (
  'Divstāvu māja, 650 m² zeme, garāža 2 mašīnām, pirts.', 'Two-storey house, 650 m² land, double garage, sauna.',
  295000.00,
  5, 180.00, 650.00, NULL, NULL, 1998,
- NULL,
+ NULL, NULL,
  'imanta', 'riga', 'Eduarda Veidenbauma iela 5', 56.9560, 24.0000,
  '2026-03-28 09:00:00+03'),
 
@@ -116,7 +116,7 @@ INSERT INTO properties (
  'Pirmais stāvs, kaķi/suņi līdz 10 kg. Bez mēbelēm.', 'Ground floor, cats/dogs up to 10 kg. Unfurnished.',
  480.00,
  2, 54.00, NULL, 0, 9, 1980,
- NULL,
+ NULL, NULL,
  'ziepniekkalns', 'riga', 'Zeļļu iela 3-12', 56.9095, 24.0690,
  '2026-06-08 13:20:00+03'),
 
@@ -127,7 +127,7 @@ INSERT INTO properties (
  'Balkons, noliktava, kluss pagalms. Padomju laika ēka, kapitālremonts 2018.', NULL,
  95000.00,
  3, 72.00, NULL, 6, 9, 1985,
- NULL,
+ NULL, NULL,
  'mezciems', 'riga', 'Vīlipa iela 8-64', 56.9820, 24.1680,
  '2026-04-22 10:30:00+03'),
 
@@ -140,7 +140,7 @@ INSERT INTO properties (
  'A klase, viedā māja, pazemes autostāvvieta, konsjeržs.', 'Class A, smart home, underground parking, concierge.',
  220000.00,
  2, 62.00, NULL, 5, 12, 2024,
- 'ready',
+ 'ready', 'https://www.youtube.com/watch?v=J---aiyznGQ',
  'centrs', 'riga', 'Elizabetes iela 31-5A', 56.9530, 24.1120,
  '2026-06-10 08:00:00+03'),
 
@@ -151,7 +151,7 @@ INSERT INTO properties (
  'Pēc remonta, iebūvēta virtuve, blakus tramvajs.', 'Renovated, built-in kitchen, tram nearby.',
  420.00,
  1, 32.00, NULL, 3, 5, 1974,
- NULL,
+ NULL, NULL,
  'teika', 'riga', 'Brīvības gatve 204-17', 56.9680, 24.1550,
  '2026-05-14 17:00:00+03'),
 
@@ -164,7 +164,7 @@ INSERT INTO properties (
  'Monolīta, siltināta, garāža, kopts dārzs.', 'Monolithic, insulated, garage, well-kept garden.',
  245000.00,
  4, 145.00, 520.00, NULL, NULL, 2012,
- NULL,
+ NULL, NULL,
  'jugla', 'riga', 'Juglas iela 14', 56.9930, 24.2420,
  '2026-05-05 12:00:00+03'),
 
@@ -175,7 +175,7 @@ INSERT INTO properties (
  NULL, 'High ceilings 3.1 m, parquet, stucco. Needs cosmetic work.',
  155000.00,
  2, 65.00, NULL, 3, 6, 1955,
- NULL,
+ NULL, NULL,
  'centrs', 'riga', 'Čaka iela 42-7', 56.9511, 24.1218,
  '2026-06-03 15:10:00+03'),
 
@@ -186,7 +186,7 @@ INSERT INTO properties (
  'Pilnībā mēbelēts, balkons, kluss pagalms.', 'Fully furnished, balcony, quiet courtyard.',
  750.00,
  3, 75.00, NULL, 5, 9, 1990,
- NULL,
+ NULL, NULL,
  'purvciems', 'riga', 'Dzelzavas iela 60-52', 56.9760, 24.1920,
  '2026-05-25 09:45:00+03');
 
@@ -284,6 +284,42 @@ INSERT INTO property_photos (property_id, url, position) VALUES
     ('20000000-0000-0000-0000-000000000013', 'https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/0.jpg', 0),
     ('20000000-0000-0000-0000-000000000013', 'https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/1.jpg', 1),
     ('20000000-0000-0000-0000-000000000013', 'https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/2.jpg', 2);
+
+-- ─────────────────────────────────────────────
+-- Phones
+-- ─────────────────────────────────────────────
+INSERT INTO property_phones (property_id, phone, position) VALUES
+    -- p01
+    ('20000000-0000-0000-0000-000000000001', '+371 29 123 456', 0),
+    ('20000000-0000-0000-0000-000000000001', '+371 26 789 012', 1),
+    -- p02
+    ('20000000-0000-0000-0000-000000000002', '+371 29 234 567', 0),
+    -- p03
+    ('20000000-0000-0000-0000-000000000003', '+371 26 345 678', 0),
+    ('20000000-0000-0000-0000-000000000003', '+371 29 456 789', 1),
+    -- p04
+    ('20000000-0000-0000-0000-000000000004', '+371 22 567 890', 0),
+    -- p05
+    ('20000000-0000-0000-0000-000000000005', '+371 29 678 901', 0),
+    -- p06
+    ('20000000-0000-0000-0000-000000000006', '+371 26 111 222', 0),
+    ('20000000-0000-0000-0000-000000000006', '+371 29 333 444', 1),
+    -- p07
+    ('20000000-0000-0000-0000-000000000007', '+371 22 555 666', 0),
+    -- p08
+    ('20000000-0000-0000-0000-000000000008', '+371 29 777 888', 0),
+    -- p09
+    ('20000000-0000-0000-0000-000000000009', '+371 26 999 000', 0),
+    ('20000000-0000-0000-0000-000000000009', '+371 29 112 233', 1),
+    -- p10
+    ('20000000-0000-0000-0000-000000000010', '+371 22 445 566', 0),
+    -- p11
+    ('20000000-0000-0000-0000-000000000011', '+371 29 667 788', 0),
+    -- p12
+    ('20000000-0000-0000-0000-000000000012', '+371 26 889 900', 0),
+    -- p13
+    ('20000000-0000-0000-0000-000000000013', '+371 29 223 344', 0),
+    ('20000000-0000-0000-0000-000000000013', '+371 22 556 677', 1);
 
 -- ─────────────────────────────────────────────
 -- Saved listings

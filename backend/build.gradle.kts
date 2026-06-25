@@ -1,5 +1,6 @@
 plugins {
     java
+    jacoco
     id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -34,12 +35,21 @@ dependencies {
     implementation(platform("software.amazon.awssdk:bom:2.30.17"))
     implementation("software.amazon.awssdk:s3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.instancio:instancio-junit:5.4.0")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.0")
+    testCompileOnly("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
 }

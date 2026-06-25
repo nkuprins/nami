@@ -3,8 +3,11 @@ package com.app.backend.service;
 import com.app.backend.dto.CreatePropertyRequest;
 import com.app.backend.dto.PropertyFilter;
 import com.app.backend.dto.PropertyItemDto;
+import com.app.backend.dto.PropertyListItemDto;
 import com.app.backend.dto.PropertyPageResponse;
+import com.app.backend.dto.UpdatePropertyRequest;
 import com.app.backend.entity.Property;
+import com.app.backend.entity.PropertyPhone;
 import com.app.backend.entity.PropertyPhoto;
 import com.app.backend.entity.User;
 import com.app.backend.enums.*;
@@ -13,6 +16,7 @@ import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.spec.PropertySpec;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -20,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.List;
@@ -28,6 +31,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PropertyService {
@@ -37,6 +41,7 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final PropertyMapper propertyMapper;
+    private final UploadService uploadService;
 
     @Transactional(readOnly = true)
     public PropertyPageResponse list(PropertyFilter filter, String sort, int page) {
@@ -62,24 +67,24 @@ public class PropertyService {
             all.sort(Comparator.comparing(p -> p.getPrice().divide(p.getM2(), 10, RoundingMode.HALF_UP)));
             int start = (page - 1) * PAGE_SIZE;
             int end = Math.min(start + PAGE_SIZE, all.size());
-            List<PropertyItemDto> items = (start >= all.size())
+            List<PropertyListItemDto> items = (start >= all.size())
                     ? List.of()
-                    : all.subList(start, end).stream().map(propertyMapper::toDto).toList();
+                    : all.subList(start, end).stream().map(propertyMapper::toListDto).toList();
             return new PropertyPageResponse(items, all.size());
         }
 
         PageRequest pageRequest = PageRequest.of(page - 1, PAGE_SIZE, buildSort(sort));
         Page<Property> result = propertyRepository.findAll(spec, pageRequest);
-        List<PropertyItemDto> items = result.getContent().stream().map(propertyMapper::toDto).toList();
+        List<PropertyListItemDto> items = result.getContent().stream().map(propertyMapper::toListDto).toList();
         return new PropertyPageResponse(items, result.getTotalElements());
     }
 
     @Transactional(readOnly = true)
-    public List<PropertyItemDto> listByOwner(UUID ownerId) {
+    public List<PropertyListItemDto> listByOwner(UUID ownerId) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
         return propertyRepository.findByOwner(owner).stream()
-                .map(propertyMapper::toDto)
+                .map(propertyMapper::toListDto)
                 .toList();
     }
 
@@ -147,6 +152,18 @@ public class PropertyService {
             }
         }
 
+        property.setVideoUrl(req.videoUrl());
+
+        if (req.phones() != null) {
+            for (int i = 0; i < req.phones().size(); i++) {
+                PropertyPhone phone = new PropertyPhone();
+                phone.setProperty(property);
+                phone.setPhone(req.phones().get(i));
+                phone.setPosition((short) i);
+                property.getPhones().add(phone);
+            }
+        }
+
         return propertyMapper.toDto(propertyRepository.save(property));
     }
 
@@ -156,6 +173,88 @@ public class PropertyService {
 
     private static String blankToNull(String s) {
         return isBlank(s) ? null : s.trim();
+    }
+
+    @Transactional
+    public PropertyItemDto update(UUID propertyId, UpdatePropertyRequest req, UUID ownerId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!property.getOwner().getId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        property.setListingType(ListingType.fromDbValue(req.type()));
+        property.setPropertyCategory(PropertyCategory.fromDbValue(req.propertyKind()));
+
+        if (isBlank(req.titleLv()) && isBlank(req.titleEn())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one title language is required");
+        }
+        if (isBlank(req.descriptionLv()) && isBlank(req.descriptionEn())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one description language is required");
+        }
+
+        property.setTitleLv(blankToNull(req.titleLv()));
+        property.setTitleEn(blankToNull(req.titleEn()));
+        property.setDescriptionLv(blankToNull(req.descriptionLv()));
+        property.setDescriptionEn(blankToNull(req.descriptionEn()));
+        property.setPrice(req.price());
+        property.setRooms(req.rooms());
+        property.setM2(req.m2());
+        property.setLandM2(req.landM2());
+        property.setFloor(req.floor());
+        property.setTotalFloors(req.totalFloors());
+        property.setYearBuilt(req.yearBuilt());
+        property.setVideoUrl(req.videoUrl());
+
+        if (req.completion() != null && !req.completion().isBlank()) {
+            property.setCompletion(PropertyCompletion.fromDbValue(req.completion()));
+        } else {
+            property.setCompletion(null);
+        }
+
+        property.getFeatures().clear();
+        if (req.features() != null) {
+            Set<PropertyFeature> featureSet = req.features().stream()
+                    .map(PropertyFeature::fromDbValue)
+                    .collect(Collectors.toSet());
+            property.setFeatures(featureSet);
+        }
+
+        property.getPhones().clear();
+        if (req.phones() != null) {
+            for (int i = 0; i < req.phones().size(); i++) {
+                PropertyPhone phone = new PropertyPhone();
+                phone.setProperty(property);
+                phone.setPhone(req.phones().get(i));
+                phone.setPosition((short) i);
+                property.getPhones().add(phone);
+            }
+        }
+
+        return propertyMapper.toDto(propertyRepository.save(property));
+    }
+
+    @Transactional
+    public void delete(UUID propertyId, UUID ownerId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!property.getOwner().getId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+
+        List<String> photoUrls = property.getPhotos().stream()
+                .map(PropertyPhoto::getUrl)
+                .toList();
+
+        propertyRepository.delete(property);
+
+        if (!photoUrls.isEmpty()) {
+            try {
+                uploadService.deleteObjects(photoUrls);
+            } catch (Exception e) {
+                log.warn("Failed to delete S3 objects for property {}: {}", propertyId, e.getMessage());
+            }
+        }
     }
 
     private Sort buildSort(String sort) {

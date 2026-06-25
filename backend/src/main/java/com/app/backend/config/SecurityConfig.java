@@ -34,7 +34,9 @@ public class SecurityConfig {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(cors -> cors.configure(http))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.DELETE, "/api/auth/me").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/properties/mine").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/properties/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/uploads/**").permitAll()
                         .anyRequest().authenticated()

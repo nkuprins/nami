@@ -8,15 +8,13 @@ import java.util.List;
 import java.util.UUID;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record PropertyItemDto(
+public record PropertyListItemDto(
         UUID id,
         UUID ownerId,
         String type,
         String propertyKind,
         String titleLv,
         String titleEn,
-        String descriptionLv,
-        String descriptionEn,
         BigDecimal price,
         Short rooms,
         BigDecimal m2,
@@ -28,10 +26,7 @@ public record PropertyItemDto(
         String district,
         String city,
         String address,
-        CoordsDto coords,
-        List<String> photos,
-        List<String> phones,
-        String videoUrl,
+        String photo,
         OffsetDateTime postedAt,
         String completion
 ) {}

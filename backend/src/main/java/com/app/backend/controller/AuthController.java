@@ -5,14 +5,12 @@ import com.app.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -51,6 +49,12 @@ public class AuthController {
         return authService.me(userId);
     }
 
+    @DeleteMapping("/me")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAccount(@AuthenticationPrincipal UUID userId, HttpServletResponse response) {
+        authService.deleteAccount(userId, response);
+    }
+
     @PostMapping("/verify-email")
     public void verifyEmail(@RequestBody @Valid VerifyEmailRequest req) {
         authService.verifyEmail(req);
@@ -63,9 +67,7 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public void forgotPassword(@RequestBody @Valid ForgotPasswordRequest req) {
-        log.info("START FORGETTING PASS");
         authService.forgotPassword(req);
-        log.info("END FORGETTING PASS");
     }
 
     @PostMapping("/reset-password")

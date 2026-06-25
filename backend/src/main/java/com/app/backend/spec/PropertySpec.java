@@ -8,7 +8,9 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PropertySpec {
 
@@ -31,7 +33,23 @@ public class PropertySpec {
             predicates.add(cb.equal(root.get("listingType"), listingType));
 
             if (loc != null && !loc.isEmpty()) {
-                predicates.add(root.get("districtSlug").in(loc));
+                Map<String, List<String>> byCity = new LinkedHashMap<>();
+                for (String entry : loc) {
+                    int colon = entry.indexOf(':');
+                    if (colon <= 0 || colon >= entry.length() - 1) continue;
+                    byCity.computeIfAbsent(entry.substring(0, colon), k -> new ArrayList<>())
+                            .add(entry.substring(colon + 1));
+                }
+                if (!byCity.isEmpty()) {
+                    List<Predicate> locPredicates = new ArrayList<>();
+                    for (var e : byCity.entrySet()) {
+                        locPredicates.add(cb.and(
+                                cb.equal(root.get("citySlug"), e.getKey()),
+                                root.get("districtSlug").in(e.getValue())
+                        ));
+                    }
+                    predicates.add(cb.or(locPredicates.toArray(new Predicate[0])));
+                }
             }
 
             if (priceMin != null) predicates.add(cb.ge(root.get("price"), priceMin));

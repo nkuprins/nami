@@ -1,6 +1,7 @@
 package com.app.backend.service;
 
 import com.app.backend.config.AppProperties;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -9,6 +10,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -16,20 +19,21 @@ import java.net.http.HttpResponse;
 public class EmailService {
 
     private final AppProperties props;
+    private final ObjectMapper objectMapper;
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     public void sendVerificationEmail(String toEmail, String name, String verificationLink) {
-        String html = "<p>Hi " + name + ",</p>"
+        String html = "<p>Hi " + escapeHtml(name) + ",</p>"
                 + "<p>Please verify your email address by clicking the link below:</p>"
-                + "<p><a href=\"" + verificationLink + "\">Verify email</a></p>"
+                + "<p><a href=\"" + escapeHtml(verificationLink) + "\">Verify email</a></p>"
                 + "<p>This link expires in 24 hours.</p>";
         send(toEmail, "Verify your Baltnami email", html);
     }
 
     public void sendPasswordResetEmail(String toEmail, String name, String resetLink) {
-        String html = "<p>Hi " + name + ",</p>"
+        String html = "<p>Hi " + escapeHtml(name) + ",</p>"
                 + "<p>You requested a password reset. Click the link below to set a new password:</p>"
-                + "<p><a href=\"" + resetLink + "\">Reset password</a></p>"
+                + "<p><a href=\"" + escapeHtml(resetLink) + "\">Reset password</a></p>"
                 + "<p>This link expires in 1 hour. If you didn't request this, you can ignore this email.</p>";
         send(toEmail, "Reset your Baltnami password", html);
     }
@@ -41,11 +45,12 @@ public class EmailService {
             return;
         }
         try {
-            String escaped = html.replace("\\", "\\\\").replace("\"", "\\\"");
-            String json = "{\"from\":\"" + props.resend().from() + "\","
-                    + "\"to\":[\"" + to + "\"],"
-                    + "\"subject\":\"" + subject + "\","
-                    + "\"html\":\"" + escaped + "\"}";
+            String json = objectMapper.writeValueAsString(Map.of(
+                    "from", props.resend().from(),
+                    "to", List.of(to),
+                    "subject", subject,
+                    "html", html
+            ));
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create("https://api.resend.com/emails"))
@@ -61,5 +66,14 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
+    }
+
+    private static String escapeHtml(String input) {
+        return input
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;");
     }
 }

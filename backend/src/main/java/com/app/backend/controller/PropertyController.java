@@ -28,7 +28,7 @@ public class PropertyController {
     }
 
     @GetMapping("/mine")
-    public List<PropertyItemDto> mine(@AuthenticationPrincipal UUID userId) {
+    public List<PropertyListItemDto> mine(@AuthenticationPrincipal UUID userId) {
         return propertyService.listByOwner(userId);
     }
 
@@ -44,5 +44,23 @@ public class PropertyController {
             @RequestBody @Valid CreatePropertyRequest request
     ) {
         return propertyService.create(request, userId);
+    }
+
+    @PutMapping("/{id}")
+    public PropertyItemDto update(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID id,
+            @RequestBody @Valid UpdatePropertyRequest request
+    ) {
+        return propertyService.update(id, request, userId);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID id
+    ) {
+        propertyService.delete(id, userId);
     }
 }

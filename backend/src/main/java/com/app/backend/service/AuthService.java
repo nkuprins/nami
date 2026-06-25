@@ -7,6 +7,7 @@ import com.app.backend.exception.AuthException;
 import com.app.backend.repository.*;
 import com.app.backend.security.CookieFactory;
 import com.app.backend.security.JwtService;
+import java.util.List;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PropertyRepository propertyRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
@@ -32,6 +34,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final CookieFactory cookieFactory;
     private final EmailService emailService;
+    private final UploadService uploadService;
     private final AppProperties props;
 
     @Transactional
@@ -112,6 +115,30 @@ public class AuthService {
     }
 
     @Transactional
+    public void deleteAccount(UUID userId, HttpServletResponse response) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AuthException(HttpStatus.NOT_FOUND, "NOT_FOUND", "User not found"));
+
+        List<String> allPhotoUrls = propertyRepository.findByOwner(user).stream()
+                .flatMap(p -> p.getPhotos().stream())
+                .map(PropertyPhoto::getUrl)
+                .toList();
+
+        userRepository.delete(user);
+
+        if (!allPhotoUrls.isEmpty()) {
+            try {
+                uploadService.deleteObjects(allPhotoUrls);
+            } catch (Exception e) {
+                log.warn("Failed to delete S3 objects for user {}: {}", userId, e.getMessage());
+            }
+        }
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearAccessToken().toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearRefreshToken().toString());
+    }
+
+    @Transactional
     public void verifyEmail(VerifyEmailRequest req) {
         String hash = jwtService.hashToken(req.token());
         EmailVerificationToken token = emailVerificationTokenRepository.findByTokenHash(hash)
@@ -156,7 +183,6 @@ public class AuthService {
             passwordResetTokenRepository.save(token);
 
             String link = props.frontendUrl() + "/reset-password?token=" + raw;
-            log.info("SEND EMAIL FOR {} {} {}", user.getEmail(), user.getName(), link);
             emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), link);
         });
         // Always return 200

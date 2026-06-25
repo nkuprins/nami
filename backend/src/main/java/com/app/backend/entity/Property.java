@@ -24,7 +24,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = {"features", "photos", "savedByUsers"})
+@ToString(exclude = {"features", "photos", "phones", "savedByUsers"})
 public class Property {
 
     @Id
@@ -98,6 +98,9 @@ public class Property {
     @Column(name = "address", nullable = false)
     private String address;
 
+    @Column(name = "video_url")
+    private String videoUrl;
+
     @Column(name = "lat", nullable = false)
     private Double lat;
 
@@ -122,6 +125,10 @@ public class Property {
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     private List<PropertyPhoto> photos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position ASC")
+    private List<PropertyPhone> phones = new ArrayList<>();
 
     @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
     private List<SavedProperty> savedByUsers = new ArrayList<>();

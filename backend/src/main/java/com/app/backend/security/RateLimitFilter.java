@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -38,6 +39,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.getWriter().write("{\"status\":429,\"detail\":\"Too many requests\"}");
         }
+    }
+
+    @Scheduled(fixedRate = 300_000)
+    void evictStaleBuckets() {
+        buckets.clear();
     }
 
     private Bucket newBucket() {

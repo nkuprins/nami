@@ -1,0 +1,29 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_batch_fetch_size: 16
+
+app:
+  cors:
+    allowed-origins: http://localhost
+  s3:
+    bucket: test-bucket
+    region: us-east-1
+    presign-ttl-minutes: 5
+    cdn-url: https://cdn.test.local
+  jwt:
+    secret: test-secret-must-be-at-least-32-characters-long-for-hs256
+    access-token-ttl-seconds: 900
+    refresh-token-ttl-seconds: 604800
+  resend:
+    api-key: ""
+    from: test@test.local
+  frontend-url: http://localhost:3000
+  cookie:
+    secure: false

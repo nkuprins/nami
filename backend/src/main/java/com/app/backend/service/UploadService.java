@@ -2,21 +2,28 @@ package com.app.backend.service;
 
 import com.app.backend.dto.PresignResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UploadService {
 
+    private final S3Client s3Client;
     private final S3Presigner s3Presigner;
 
     @Value("${app.s3.bucket}")
@@ -50,5 +57,19 @@ public class UploadService {
         String fileUrl = cdnUrl + "/" + key;
 
         return new PresignResponse(presigned.url().toString(), fileUrl);
+    }
+
+    public void deleteObjects(List<String> cdnUrls) {
+        if (cdnUrls.isEmpty()) return;
+
+        List<ObjectIdentifier> keys = cdnUrls.stream()
+                .map(url -> url.replace(cdnUrl + "/", ""))
+                .map(key -> ObjectIdentifier.builder().key(key).build())
+                .toList();
+
+        s3Client.deleteObjects(DeleteObjectsRequest.builder()
+                .bucket(bucket)
+                .delete(Delete.builder().objects(keys).build())
+                .build());
     }
 }

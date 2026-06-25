@@ -106,6 +106,9 @@ CREATE TABLE properties (
     -- new_project specific
     completion        property_completion,
 
+    -- Video
+    video_url         TEXT,
+
     -- Location: slugs validated at API layer; mapping owned by frontend locations.ts
     district_slug     TEXT                 NOT NULL CHECK (district_slug ~ '^[a-z0-9-]+$'),
     city_slug         TEXT                 NOT NULL CHECK (city_slug ~ '^[a-z0-9-]+$'),
@@ -181,6 +184,19 @@ CREATE TABLE property_photos (
 );
 
 CREATE INDEX idx_property_photos_property ON property_photos (property_id, position);
+
+-- ─────────────────────────────────────────────
+-- Property phones
+-- ─────────────────────────────────────────────
+CREATE TABLE property_phones (
+    id          UUID     PRIMARY KEY DEFAULT gen_random_uuid(),
+    property_id UUID     NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
+    phone       TEXT     NOT NULL CHECK (char_length(phone) >= 7),
+    position    SMALLINT NOT NULL DEFAULT 0 CHECK (position >= 0),
+    UNIQUE (property_id, position) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE INDEX idx_property_phones_property ON property_phones (property_id, position);
 
 -- ─────────────────────────────────────────────
 -- Saved listings
