@@ -26,6 +26,7 @@ export const mockListings: PropertyItem[] = [
     coords: { lat: 56.9559, lng: 24.1145 },
     phones: ['+371 29 123 456', '+371 26 789 012'],
     photos: photos('001a', '001b', '001c', '001d', '001e'),
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     postedAt: '2026-05-19T10:00:00Z',
   },
   {
@@ -48,6 +49,7 @@ export const mockListings: PropertyItem[] = [
     coords: { lat: 56.9472, lng: 24.1099 },
     phones: ['+371 22 345 678'],
     photos: photos('002a', '002b', '002c', '002d'),
+    videoUrl: 'https://vimeo.com/1054665455',
     postedAt: '2026-05-21T08:00:00Z',
   },
   {

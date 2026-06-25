@@ -27,7 +27,7 @@ export function normalizeVideoEmbedUrl(rawUrl: string): string {
     }
     if (host.includes('vimeo.com')) {
       const id = url.pathname.split('/').filter(Boolean).pop();
-      if (id) return `https://player.vimeo.com/video/${id}`;
+      if (id) return `https://player.vimeo.com/video/${id}?rel=0`;
     }
     return rawUrl;
   } catch {

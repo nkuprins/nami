@@ -72,7 +72,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
       <div class="mt-2">
         <FormField
           id="ap-video-url"
-          label="Video tour URL"
+          label="Video URL"
           v-model="form.videoUrl"
           type="url"
           placeholder="https://www.youtube.com/watch?v=..."
