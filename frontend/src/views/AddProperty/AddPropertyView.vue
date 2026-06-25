@@ -9,16 +9,25 @@ import PricingSection from './components/PricingSection.vue';
 import LocationSection from './components/LocationSection.vue';
 import DetailsSection from './components/DetailsSection.vue';
 import FeaturesSection from './components/FeaturesSection.vue';
+import PhonesSection from './components/PhonesSection.vue';
 import PhotosSection from './components/PhotosSection.vue';
 
 const { photos, addFiles, remove: removePhoto } = usePhotoUpload();
 const { selectedLocation, isOpen, districtName, onSelect } =
   useLocationDropdown();
-const { form, submitting, submitError, fieldError, toggleFeature, submit } =
-  usePropertyForm(
-    () => selectedLocation.value,
-    () => photos.value
-  );
+const {
+  form,
+  submitting,
+  submitError,
+  fieldError,
+  toggleFeature,
+  addPhone,
+  removePhone,
+  submit,
+} = usePropertyForm(
+  () => selectedLocation.value,
+  () => photos.value
+);
 </script>
 
 <template>
@@ -49,6 +58,13 @@ const { form, submitting, submitError, fieldError, toggleFeature, submit } =
       <DetailsSection :form="form" :field-error="fieldError" />
 
       <FeaturesSection :form="form" :toggle-feature="toggleFeature" />
+
+      <PhonesSection
+        :form="form"
+        :field-error="fieldError"
+        @add-phone="addPhone"
+        @remove-phone="removePhone"
+      />
 
       <PhotosSection
         :form="form"

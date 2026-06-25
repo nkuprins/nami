@@ -26,6 +26,7 @@ export interface PropertyFormState {
   yearBuilt: string;
   completion: PropertyCompletion | '';
   features: Feature[];
+  phones: string[];
   videoUrl: string;
   coords: { lat: number; lng: number } | null;
 }
@@ -45,6 +46,7 @@ const INITIAL_FORM: PropertyFormState = {
   yearBuilt: '',
   completion: '',
   features: [],
+  phones: [''],
   videoUrl: '',
   coords: null,
 };
@@ -73,6 +75,22 @@ export function usePropertyForm(
     if (getPhotos().length === 0) e.photos = 'At least one photo required';
     if (form.type === 'new_project' && !form.completion)
       e.completion = 'Required for new projects';
+
+    const filledPhones = form.phones.filter((p) => p.trim());
+    if (filledPhones.length === 0) {
+      e.phones = 'At least one phone number required';
+    }
+    const phoneRe = /^\+?[\d\s\-()]{7,}$/;
+    const seen = new Set<string>();
+    form.phones.forEach((p, i) => {
+      const normalized = p.replace(/[\s\-()]/g, '');
+      if (p.trim() && !phoneRe.test(p.trim()))
+        e[`phone_${i}`] = 'Invalid phone format';
+      else if (normalized && seen.has(normalized))
+        e[`phone_${i}`] = 'Duplicate phone number';
+      if (normalized) seen.add(normalized);
+    });
+
     return e;
   });
 
@@ -86,6 +104,14 @@ export function usePropertyForm(
     const i = form.features.indexOf(f);
     if (i === -1) form.features.push(f);
     else form.features.splice(i, 1);
+  }
+
+  function addPhone() {
+    form.phones.push('');
+  }
+
+  function removePhone(index: number) {
+    form.phones.splice(index, 1);
   }
 
   async function submit() {
@@ -124,6 +150,9 @@ export function usePropertyForm(
         city: location.city,
         address: form.address.trim(),
         coords: form.coords ?? { lat: 56.946, lng: 24.105 },
+        phones: form.phones.filter((p) => p.trim()).length
+          ? form.phones.filter((p) => p.trim())
+          : undefined,
         photos: photoUrls,
         videoUrl: form.videoUrl.trim() || undefined,
         completion:
@@ -148,6 +177,8 @@ export function usePropertyForm(
     isValid,
     fieldError,
     toggleFeature,
+    addPhone,
+    removePhone,
     submit,
   };
 }

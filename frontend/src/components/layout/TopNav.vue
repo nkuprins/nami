@@ -82,14 +82,19 @@ function handleDeleteAccount() {
         >
           Baltnami
         </span>
-        <span class="micro-label text-[0.55rem] tracking-[0.15em] text-ink-3 mt-0.5 hidden sm:block">Est. 2026</span>
+        <span
+          class="micro-label text-[0.55rem] tracking-[0.15em] text-ink-3 mt-0.5 hidden sm:block"
+          >Est. 2026</span
+        >
       </RouterLink>
 
       <!-- Desktop nav -->
       <nav class="hidden sm:flex items-center gap-1">
         <button
           class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full text-sm text-ink-2 hover:text-ink hover:bg-surface transition-colors"
-          @click="auth.isAuthenticated ? (myPropertiesOpen = true) : (authOpen = true)"
+          @click="
+            auth.isAuthenticated ? (myPropertiesOpen = true) : (authOpen = true)
+          "
         >
           <span class="size-4"><IconBuilding /></span>
           My listings
@@ -99,10 +104,15 @@ function handleDeleteAccount() {
           class="focus-ring inline-flex items-center gap-2 h-9 px-3 rounded-full text-sm text-ink-2 hover:text-ink hover:bg-surface transition-colors"
           @click="savedOpen = true"
         >
-          <span class="size-4" :class="{ 'text-accent-2': savedStore.count > 0 }">
+          <span
+            class="size-4"
+            :class="{ 'text-accent-2': savedStore.count > 0 }"
+          >
             <IconHeart :filled="savedStore.count > 0" />
           </span>
-          Saved<span v-if="savedStore.count > 0" class="tabular text-ink">({{ savedStore.count }})</span>
+          Saved<span v-if="savedStore.count > 0" class="tabular text-ink"
+            >({{ savedStore.count }})</span
+          >
         </button>
 
         <!-- Authenticated: user dropdown -->
@@ -131,14 +141,20 @@ function handleDeleteAccount() {
               >
                 <button
                   class="w-full text-left px-4 py-2.5 text-sm text-ink hover:bg-surface transition-colors"
-                  @click="auth.logout(); userMenuOpen = false"
+                  @click="
+                    auth.logout();
+                    userMenuOpen = false;
+                  "
                 >
                   Sign out
                 </button>
                 <div class="border-t border-line" />
                 <button
                   class="w-full text-left px-4 py-2.5 text-sm text-warn/70 hover:text-warn hover:bg-warn/5 transition-colors"
-                  @click="deleteAccountOpen = true; userMenuOpen = false"
+                  @click="
+                    deleteAccountOpen = true;
+                    userMenuOpen = false;
+                  "
                 >
                   Delete account
                 </button>
@@ -171,7 +187,9 @@ function handleDeleteAccount() {
           :class="savedStore.count > 0 ? 'text-accent-2' : 'text-ink-2'"
           @click="savedOpen = true"
         >
-          <span class="size-5"><IconHeart :filled="savedStore.count > 0" /></span>
+          <span class="size-5"
+            ><IconHeart :filled="savedStore.count > 0"
+          /></span>
           <span
             v-if="savedStore.count > 0"
             class="absolute top-0.5 right-0.5 tabular text-[0.625rem] font-semibold min-w-4 h-4 flex items-center justify-center rounded-full bg-ink text-cream"
@@ -208,7 +226,9 @@ function handleDeleteAccount() {
         v-if="mobileMenuOpen"
         class="sm:hidden fixed inset-y-0 right-0 w-72 z-50 bg-bg shadow-lift flex flex-col"
       >
-        <header class="flex items-center justify-between px-5 h-14 border-b border-line">
+        <header
+          class="flex items-center justify-between px-5 h-14 border-b border-line"
+        >
           <span class="micro-label text-ink-3">Menu</span>
           <button
             class="focus-ring size-10 -mr-2 grid place-items-center text-ink-2 hover:text-ink"
@@ -266,7 +286,10 @@ function handleDeleteAccount() {
           </button>
         </nav>
 
-        <footer v-if="auth.isAuthenticated" class="border-t border-line px-3 py-3">
+        <footer
+          v-if="auth.isAuthenticated"
+          class="border-t border-line px-3 py-3"
+        >
           <button
             class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-warn/70 hover:text-warn hover:bg-warn/5 transition-colors text-left w-full"
             @click="handleDeleteAccount"

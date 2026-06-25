@@ -135,8 +135,12 @@ onBeforeUnmount(() => {
         class="fixed inset-0 z-50 flex flex-col bg-ink/96 touch-none"
       >
         <!-- Header -->
-        <div class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 shrink-0 z-10">
-          <span class="micro-label text-cream/85! tabular bg-cream/10 backdrop-blur px-2 sm:px-3 h-6 sm:h-8 sm:text-sm inline-flex items-center rounded-sm">
+        <div
+          class="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 shrink-0 z-10"
+        >
+          <span
+            class="micro-label text-cream/85! tabular bg-cream/10 backdrop-blur px-2 sm:px-3 h-6 sm:h-8 sm:text-sm inline-flex items-center rounded-sm"
+          >
             {{ index + 1 }}<span class="mx-0.5">/</span>{{ photos.length }}
           </span>
           <div class="flex items-center gap-2 sm:gap-3">
@@ -189,14 +193,18 @@ onBeforeUnmount(() => {
           </Transition>
 
           <!-- Desktop-only nav arrows -->
-          <div class="absolute inset-0 max-w-6xl mx-auto pointer-events-none z-10">
+          <div
+            class="absolute inset-0 max-w-6xl mx-auto pointer-events-none z-10"
+          >
             <button
               v-if="photos.length > 1"
               class="hidden sm:grid pointer-events-auto focus-ring absolute left-2 top-1/2 -translate-y-1/2 size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors"
               aria-label="Previous"
               @click="prev"
             >
-              <span class="size-5 md:size-6 inline-block"><IconChevron dir="left" /></span>
+              <span class="size-5 md:size-6 inline-block"
+                ><IconChevron dir="left"
+              /></span>
             </button>
             <button
               v-if="photos.length > 1"
@@ -204,7 +212,9 @@ onBeforeUnmount(() => {
               aria-label="Next"
               @click="next"
             >
-              <span class="size-5 md:size-6 inline-block"><IconChevron dir="right" /></span>
+              <span class="size-5 md:size-6 inline-block"
+                ><IconChevron dir="right"
+              /></span>
             </button>
           </div>
         </div>

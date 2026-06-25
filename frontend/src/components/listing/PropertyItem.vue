@@ -56,9 +56,7 @@ const specRow = computed(() => {
           <p class="micro-label truncate min-w-0">
             {{ property.district }} · {{ property.city }}
           </p>
-          <p
-            class="display-price text-2xl text-ink whitespace-nowrap shrink-0"
-          >
+          <p class="display-price text-2xl text-ink whitespace-nowrap shrink-0">
             {{ price }}
           </p>
         </div>

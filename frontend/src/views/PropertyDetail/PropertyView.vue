@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import type { PropertyItem } from '../../types/propertyItem';
 import { FEATURE_LABELS } from '../../types/propertyLabels';
@@ -15,6 +15,8 @@ import LocationMap from '../../components/listing/LocationMap.vue';
 import PhotoGrid from './components/PhotoGrid.vue';
 import ContactCard from './components/ContactCard.vue';
 import IconPlayer from '../../components/icons/IconPlayer.vue';
+import IconChevron from '../../components/icons/IconChevron.vue';
+import IconPhone from '../../components/icons/IconPhone.vue';
 import PhotoLightBox from '../../components/listing/PhotoLightBox.vue';
 import SpecDots from '../../components/listing/SpecDots.vue';
 
@@ -58,6 +60,29 @@ const specRow = computed(() => {
 });
 
 const phoneRevealed = ref(false);
+const phonePopoverOpen = ref(false);
+const phonePopoverEl = ref<HTMLElement | null>(null);
+
+function onClickOutsidePhone(e: MouseEvent) {
+  if (
+    phonePopoverEl.value &&
+    !phonePopoverEl.value.contains(e.target as Node)
+  ) {
+    phonePopoverOpen.value = false;
+  }
+}
+
+watch(phonePopoverOpen, (open) => {
+  if (open) {
+    document.addEventListener('mousedown', onClickOutsidePhone, true);
+  } else {
+    document.removeEventListener('mousedown', onClickOutsidePhone, true);
+  }
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', onClickOutsidePhone, true);
+});
 const videoExpanded = ref(false);
 
 const videoTourUrl = computed(() => {
@@ -120,10 +145,7 @@ function openBento(i: number) {
             <SaveHeart :property-id="property.id" />
           </div>
         </div>
-        <div
-          class="cursor-zoom-in overflow-hidden group"
-          @click="openBento(1)"
-        >
+        <div class="cursor-zoom-in overflow-hidden group" @click="openBento(1)">
           <img
             :src="property.photos[1]"
             :alt="`${property.title} — photo 2`"
@@ -195,9 +217,7 @@ function openBento(i: number) {
               <p class="micro-label">
                 {{ property.district }} · {{ property.city }}
               </p>
-              <h1
-                class="mt-1 text-xl leading-snug text-ink font-medium"
-              >
+              <h1 class="mt-1 text-xl leading-snug text-ink font-medium">
                 {{ property.title }}
               </h1>
               <p class="mt-1 text-sm text-ink-2">
@@ -206,9 +226,7 @@ function openBento(i: number) {
             </div>
             <!-- Price inline on mobile, hidden on desktop (shown in sidebar) -->
             <div class="text-right shrink-0 lg:hidden">
-              <p
-                class="display-price text-2xl text-ink whitespace-nowrap"
-              >
+              <p class="display-price text-2xl text-ink whitespace-nowrap">
                 {{ price }}
               </p>
               <p class="text-xs text-ink-2 tabular">
@@ -251,9 +269,7 @@ function openBento(i: number) {
                 class="ti ti-video-off text-2xl text-ink-3 mb-2"
                 aria-hidden="true"
               />
-              <p class="text-sm font-medium text-ink">
-                Video tour unavailable
-              </p>
+              <p class="text-sm font-medium text-ink">Video tour unavailable</p>
               <p class="text-xs text-ink-2 mt-1 max-w-xs">
                 This video cannot be loaded or has been removed by the provider.
               </p>
@@ -333,7 +349,11 @@ function openBento(i: number) {
             <hr class="border-none border-t border-line my-5" />
             <div>
               <p class="micro-label mb-4">Contact details</p>
-              <ContactCard :phone-revealed="phoneRevealed" @reveal-phone="phoneRevealed = true" />
+              <ContactCard
+                :phones="property.phones"
+                :phone-revealed="phoneRevealed"
+                @reveal-phone="phoneRevealed = true"
+              />
             </div>
           </div>
         </div>
@@ -341,9 +361,7 @@ function openBento(i: number) {
         <!-- Sidebar: desktop only -->
         <aside class="hidden lg:block">
           <div class="sticky top-20 space-y-4">
-            <div
-              class="rounded-xl border border-line p-5 shadow-soft"
-            >
+            <div class="rounded-xl border border-line p-5 shadow-soft">
               <p class="display-price text-2xl text-ink">
                 {{ price }}
               </p>
@@ -351,9 +369,17 @@ function openBento(i: number) {
                 {{ pricePerM2 }}
               </p>
 
-              <SpecDots :parts="specRow" class="text-xs text-ink-2 mt-3 pb-5 border-b border-line" />
+              <SpecDots
+                :parts="specRow"
+                class="text-xs text-ink-2 mt-3 pb-5 border-b border-line"
+              />
 
-              <ContactCard class="mt-5" :phone-revealed="phoneRevealed" @reveal-phone="phoneRevealed = true" />
+              <ContactCard
+                class="mt-5"
+                :phones="property.phones"
+                :phone-revealed="phoneRevealed"
+                @reveal-phone="phoneRevealed = true"
+              />
             </div>
           </div>
         </aside>
@@ -363,17 +389,63 @@ function openBento(i: number) {
       <div
         class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-bg/95 backdrop-blur border-t border-line px-4 py-3"
       >
-        <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center justify-between gap-4 relative">
           <div>
             <p class="display-price text-lg text-ink">{{ price }}</p>
             <p class="text-xs text-ink-2 tabular">{{ pricePerM2 }}</p>
           </div>
+
+          <div
+            v-if="phoneRevealed && property.phones?.length"
+            ref="phonePopoverEl"
+            class="relative"
+          >
+            <div class="flex items-stretch bg-ink rounded-lg overflow-hidden">
+              <a
+                :href="`tel:${property.phones[0].replace(/\s/g, '')}`"
+                class="flex items-center gap-1.5 px-5 py-2.5 text-cream text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                <span class="size-4 shrink-0"><IconPhone /></span>
+                {{ property.phones[0] }}
+              </a>
+              <button
+                v-if="property.phones.length > 1"
+                class="flex items-center px-2.5 border-l border-cream/20 text-cream cursor-pointer hover:bg-white/10 transition-colors"
+                @click="phonePopoverOpen = !phonePopoverOpen"
+                aria-label="More phone numbers"
+              >
+                <span class="size-4"
+                  ><IconChevron :dir="phonePopoverOpen ? 'down' : 'up'"
+                /></span>
+              </button>
+            </div>
+
+            <Transition name="fade">
+              <div
+                v-if="phonePopoverOpen"
+                class="absolute bottom-full right-0 mb-2 w-56 bg-bg border border-line rounded-xl shadow-lift p-2"
+              >
+                <a
+                  v-for="(phone, i) in property.phones"
+                  :key="i"
+                  :href="`tel:${phone.replace(/\s/g, '')}`"
+                  class="flex items-center gap-2 px-3 py-2.5 text-sm text-ink font-medium rounded-lg hover:bg-surface transition-colors"
+                >
+                  <span class="size-4 shrink-0"><IconPhone /></span>
+                  {{ phone }}
+                </a>
+              </div>
+            </Transition>
+          </div>
+
+          <!-- Not yet revealed -->
           <button
+            v-else-if="property.phones?.length"
             class="flex items-center gap-1.5 px-5 py-2.5 bg-ink text-cream text-sm font-medium rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
             @click="phoneRevealed = true"
           >
-            <i class="ti ti-phone text-sm" aria-hidden="true" />
-            {{ phoneRevealed ? '+371 29 XXX XXX' : 'Show number' }}
+            <span class="size-4 shrink-0"><IconPhone /></span>
+            Show number
           </button>
         </div>
       </div>

@@ -73,7 +73,10 @@ function handleClick() {
 
 <template>
   <div
-    :class="['relative size-full overflow-hidden bg-surface group/carousel touch-pan-y', zoomable && 'cursor-zoom-in']"
+    :class="[
+      'relative size-full overflow-hidden bg-surface group/carousel touch-pan-y',
+      zoomable && 'cursor-zoom-in',
+    ]"
     role="region"
     @click="handleClick"
     @touchstart="handleTouchStart"

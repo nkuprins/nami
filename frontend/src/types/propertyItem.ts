@@ -32,6 +32,7 @@ interface BasePropertyItem {
   city: string;
   address: string;
   coords: { lat: number; lng: number };
+  phones?: string[];
   photos: string[];
   videoUrl?: string;
   postedAt: string;
