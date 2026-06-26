@@ -87,10 +87,6 @@ CREATE TABLE properties (
     listing_type      listing_type         NOT NULL,
     property_category property_category    NOT NULL,
 	status            property_status      NOT NULL DEFAULT 'active',
-    title_lv          TEXT,
-    title_en          TEXT,
-    description_lv    TEXT,
-    description_en    TEXT,
 
     -- Pricing
     price             NUMERIC(14, 2)       NOT NULL CHECK (price >= 0),
@@ -98,6 +94,7 @@ CREATE TABLE properties (
     -- Physical attributes
     rooms             SMALLINT             NOT NULL CHECK (rooms > 0),
     m2                NUMERIC(6, 2)        NOT NULL CHECK (m2 > 0),
+    price_per_m2      NUMERIC(14, 6)       GENERATED ALWAYS AS (price / m2) STORED,
     land_m2           NUMERIC(8, 2)        CHECK (land_m2 > 0),
     floor             SMALLINT             CHECK (floor >= 0),  -- 0 = ground floor (EU convention)
     total_floors      SMALLINT             CHECK (total_floors > 0),
@@ -133,11 +130,6 @@ CREATE TABLE properties (
   	CONSTRAINT chk_year_built_not_ready
         CHECK (completion IS DISTINCT FROM 'not_ready' OR year_built IS NULL),
 
-    CONSTRAINT chk_title_at_least_one
-        CHECK (title_lv IS NOT NULL OR title_en IS NOT NULL),
-    CONSTRAINT chk_description_at_least_one
-        CHECK (description_lv IS NOT NULL OR description_en IS NOT NULL),
-
     -- Timestamps
     posted_at         TIMESTAMPTZ          NOT NULL DEFAULT now(),
     updated_at        TIMESTAMPTZ          NOT NULL DEFAULT now()
@@ -147,6 +139,7 @@ CREATE INDEX idx_properties_listing_type          ON properties (listing_type);
 CREATE INDEX idx_properties_district              ON properties (district_slug);
 CREATE INDEX idx_properties_city                  ON properties (city_slug);
 CREATE INDEX idx_properties_price                 ON properties (price);
+CREATE INDEX idx_properties_price_per_m2          ON properties (price_per_m2);
 CREATE INDEX idx_properties_posted_at             ON properties (posted_at DESC);
 CREATE INDEX idx_properties_owner                 ON properties (owner_id);
 -- Covers the primary browse query: type + city + price range
@@ -186,6 +179,19 @@ CREATE TABLE property_photos (
 CREATE INDEX idx_property_photos_property ON property_photos (property_id, position);
 
 -- ─────────────────────────────────────────────
+-- Property plans (floor plan images)
+-- ─────────────────────────────────────────────
+CREATE TABLE property_plans (
+    id          UUID     PRIMARY KEY DEFAULT gen_random_uuid(),
+    property_id UUID     NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
+    url         TEXT     NOT NULL CHECK (url ~ '^https?://'),
+    position    SMALLINT NOT NULL DEFAULT 0 CHECK (position >= 0),
+    UNIQUE (property_id, position) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE INDEX idx_property_plans_property ON property_plans (property_id, position);
+
+-- ─────────────────────────────────────────────
 -- Property phones
 -- ─────────────────────────────────────────────
 CREATE TABLE property_phones (
@@ -197,6 +203,19 @@ CREATE TABLE property_phones (
 );
 
 CREATE INDEX idx_property_phones_property ON property_phones (property_id, position);
+
+-- ─────────────────────────────────────────────
+-- Property translations
+-- ─────────────────────────────────────────────
+CREATE TABLE property_translations (
+    property_id UUID NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
+    locale      TEXT NOT NULL CHECK (locale IN ('lv', 'en', 'ru')),
+    title       TEXT NOT NULL CHECK (char_length(title) > 0),
+    description TEXT NOT NULL CHECK (char_length(description) > 0),
+    PRIMARY KEY (property_id, locale)
+);
+
+CREATE INDEX idx_property_translations_property ON property_translations (property_id);
 
 -- ─────────────────────────────────────────────
 -- Saved listings

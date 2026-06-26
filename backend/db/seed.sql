@@ -30,7 +30,7 @@ INSERT INTO users (id, name, email, password_hash, email_verified) VALUES
 INSERT INTO properties (
     id, owner_id,
     listing_type, property_category,
-    title_lv, title_en, description_lv, description_en, price,
+    price,
     rooms, m2, land_m2, floor, total_floors, year_built,
     completion, video_url,
     district_slug, city_slug, address, lat, lng,
@@ -39,34 +39,22 @@ INSERT INTO properties (
 
 -- ── Jānis Bērziņš (u1) ──────────────────────────────────────────────────────
 
-('20000000-0000-0000-0000-000000000001',
- '10000000-0000-0000-0000-000000000001',
- 'buy', 'apartment',
- 'Gaišs 2-istabu dzīvoklis Centrā', 'Bright 2-room apartment in Centrs',
- 'Kluss pagalms, augsti griesti, svaigs remonts. Blakus Vērmanes dārzs.', 'Quiet courtyard, high ceilings, fresh renovation. Near Vērmanes Garden.',
- 185000.00,
+('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001',
+ 'buy', 'apartment', 185000.00,
  2, 52.40, NULL, 4, 9, 1968,
  NULL, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  'centrs', 'riga', 'Dzirnavu iela 57-18', 56.9490, 24.1052,
  '2026-06-01 09:15:00+03'),
 
-('20000000-0000-0000-0000-000000000002',
- '10000000-0000-0000-0000-000000000001',
- 'rent', 'apartment',
- '3-istabu Teikā, mēbeles iekļautas', '3-room in Teika, furniture included',
- 'Pilnībā mēbelēts dzīvoklis, mājdzīvnieki atļauti.', 'Fully furnished apartment, pets allowed.',
- 650.00,
+('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001',
+ 'rent', 'apartment', 650.00,
  3, 68.00, NULL, 2, 5, 1985,
  NULL, NULL,
  'teika', 'riga', 'Hospitāļu iela 12-34', 56.9655, 24.1480,
  '2026-05-20 14:30:00+03'),
 
-('20000000-0000-0000-0000-000000000003',
- '10000000-0000-0000-0000-000000000001',
- 'buy', 'house',
- 'Māja Jūrmalā ar dārzu 400 m²', 'House in Jūrmala with 400 m² garden',
- 'Ķieģeļu māja 2005. g., silta garāža, 10 min līdz pludmalei.', 'Brick house built 2005, heated garage, 10 min to the beach.',
- 320000.00,
+('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001',
+ 'buy', 'house', 320000.00,
  4, 120.00, 400.00, NULL, NULL, 2005,
  NULL, 'https://www.youtube.com/watch?v=xvFZjo5PgG0',
  'majori', 'jurmala', 'Jomas iela 88', 56.9710, 23.7703,
@@ -74,23 +62,15 @@ INSERT INTO properties (
 
 -- ── Anna Kalniņa (u2) ───────────────────────────────────────────────────────
 
-('20000000-0000-0000-0000-000000000004',
- '10000000-0000-0000-0000-000000000002',
- 'buy', 'apartment',
- 'Studija Purvciemā — pirmais pirkums', 'Studio in Purvciems — first-time buy',
- 'Lielisks variants investīcijai vai pirmajam mājoklim. Lifts.', 'Great option for investment or first home. Elevator.',
- 75000.00,
+('20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002',
+ 'buy', 'apartment', 75000.00,
  1, 38.20, NULL, 8, 12, 2002,
  NULL, NULL,
  'purvciems', 'riga', 'Stirnu iela 22-81', 56.9743, 24.1890,
  '2026-06-05 11:00:00+03'),
 
-('20000000-0000-0000-0000-000000000005',
- '10000000-0000-0000-0000-000000000002',
- 'new_project', 'apartment',
- 'Jaunbūve Āgenskalnā — nodošana 2027', 'New build in Āgenskalns — completion 2027',
- 'Panorāmas logi, slēgts pagalms, autostāvvieta iekļauta.', 'Panoramic windows, enclosed courtyard, parking spot included.',
- 145000.00,
+('20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000002',
+ 'new_project', 'apartment', 145000.00,
  2, 58.00, NULL, 3, 8, NULL,
  'not_ready', 'https://www.youtube.com/watch?v=L_jWHffIx5E',
  'agenskalns', 'riga', 'Nometņu iela 74-3', 56.9375, 24.0714,
@@ -98,34 +78,22 @@ INSERT INTO properties (
 
 -- ── Māris Ozoliņš (u3) ──────────────────────────────────────────────────────
 
-('20000000-0000-0000-0000-000000000006',
- '10000000-0000-0000-0000-000000000003',
- 'buy', 'house',
- 'Privātmāja Imantā ar lielu zemes gabalu', 'Detached house in Imanta with large plot',
- 'Divstāvu māja, 650 m² zeme, garāža 2 mašīnām, pirts.', 'Two-storey house, 650 m² land, double garage, sauna.',
- 295000.00,
+('20000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000003',
+ 'buy', 'house', 295000.00,
  5, 180.00, 650.00, NULL, NULL, 1998,
  NULL, NULL,
  'imanta', 'riga', 'Eduarda Veidenbauma iela 5', 56.9560, 24.0000,
  '2026-03-28 09:00:00+03'),
 
-('20000000-0000-0000-0000-000000000007',
- '10000000-0000-0000-0000-000000000003',
- 'rent', 'apartment',
- '2-istabu īre pirmajā stāvā', '2-room rental on ground floor',
- 'Pirmais stāvs, kaķi/suņi līdz 10 kg. Bez mēbelēm.', 'Ground floor, cats/dogs up to 10 kg. Unfurnished.',
- 480.00,
+('20000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000003',
+ 'rent', 'apartment', 480.00,
  2, 54.00, NULL, 0, 9, 1980,
  NULL, NULL,
  'ziepniekkalns', 'riga', 'Zeļļu iela 3-12', 56.9095, 24.0690,
  '2026-06-08 13:20:00+03'),
 
-('20000000-0000-0000-0000-000000000008',
- '10000000-0000-0000-0000-000000000003',
- 'buy', 'apartment',
- '3-istabu Mežciemā — labs stāvoklis', NULL,
- 'Balkons, noliktava, kluss pagalms. Padomju laika ēka, kapitālremonts 2018.', NULL,
- 95000.00,
+('20000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000003',
+ 'buy', 'apartment', 95000.00,
  3, 72.00, NULL, 6, 9, 1985,
  NULL, NULL,
  'mezciems', 'riga', 'Vīlipa iela 8-64', 56.9820, 24.1680,
@@ -133,23 +101,15 @@ INSERT INTO properties (
 
 -- ── Laura Liepiņa (u4) ──────────────────────────────────────────────────────
 
-('20000000-0000-0000-0000-000000000009',
- '10000000-0000-0000-0000-000000000004',
- 'new_project', 'apartment',
- 'Gatava jaunbūve Centrā — atslēgas uzreiz', 'Ready new build in Centrs — keys now',
- 'A klase, viedā māja, pazemes autostāvvieta, konsjeržs.', 'Class A, smart home, underground parking, concierge.',
- 220000.00,
+('20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000004',
+ 'new_project', 'apartment', 220000.00,
  2, 62.00, NULL, 5, 12, 2024,
  'ready', 'https://www.youtube.com/watch?v=J---aiyznGQ',
  'centrs', 'riga', 'Elizabetes iela 31-5A', 56.9530, 24.1120,
  '2026-06-10 08:00:00+03'),
 
-('20000000-0000-0000-0000-000000000010',
- '10000000-0000-0000-0000-000000000004',
- 'rent', 'apartment',
- 'Mājīga studija Teikā', 'Cozy studio in Teika',
- 'Pēc remonta, iebūvēta virtuve, blakus tramvajs.', 'Renovated, built-in kitchen, tram nearby.',
- 420.00,
+('20000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000004',
+ 'rent', 'apartment', 420.00,
  1, 32.00, NULL, 3, 5, 1974,
  NULL, NULL,
  'teika', 'riga', 'Brīvības gatve 204-17', 56.9680, 24.1550,
@@ -157,38 +117,68 @@ INSERT INTO properties (
 
 -- ── Pēteris Krūmiņš (u5) ────────────────────────────────────────────────────
 
-('20000000-0000-0000-0000-000000000011',
- '10000000-0000-0000-0000-000000000005',
- 'buy', 'house',
- 'Moderna māja Juglā, 2012. g.', 'Modern house in Jugla, built 2012',
- 'Monolīta, siltināta, garāža, kopts dārzs.', 'Monolithic, insulated, garage, well-kept garden.',
- 245000.00,
+('20000000-0000-0000-0000-000000000011', '10000000-0000-0000-0000-000000000005',
+ 'buy', 'house', 245000.00,
  4, 145.00, 520.00, NULL, NULL, 2012,
  NULL, NULL,
  'jugla', 'riga', 'Juglas iela 14', 56.9930, 24.2420,
  '2026-05-05 12:00:00+03'),
 
-('20000000-0000-0000-0000-000000000012',
- '10000000-0000-0000-0000-000000000005',
- 'buy', 'apartment',
- NULL, '2-room in Centrs — Stalinist building',
- NULL, 'High ceilings 3.1 m, parquet, stucco. Needs cosmetic work.',
- 155000.00,
+('20000000-0000-0000-0000-000000000012', '10000000-0000-0000-0000-000000000005',
+ 'buy', 'apartment', 155000.00,
  2, 65.00, NULL, 3, 6, 1955,
  NULL, NULL,
  'centrs', 'riga', 'Čaka iela 42-7', 56.9511, 24.1218,
  '2026-06-03 15:10:00+03'),
 
-('20000000-0000-0000-0000-000000000013',
- '10000000-0000-0000-0000-000000000005',
- 'rent', 'apartment',
- '3-istabu Purvciemā ar mēbelēm', '3-room in Purvciems with furniture',
- 'Pilnībā mēbelēts, balkons, kluss pagalms.', 'Fully furnished, balcony, quiet courtyard.',
- 750.00,
+('20000000-0000-0000-0000-000000000013', '10000000-0000-0000-0000-000000000005',
+ 'rent', 'apartment', 750.00,
  3, 75.00, NULL, 5, 9, 1990,
  NULL, NULL,
  'purvciems', 'riga', 'Dzelzavas iela 60-52', 56.9760, 24.1920,
  '2026-05-25 09:45:00+03');
+
+-- ─────────────────────────────────────────────
+-- Translations
+-- ─────────────────────────────────────────────
+INSERT INTO property_translations (property_id, locale, title, description) VALUES
+    -- p01: centrs apartment
+    ('20000000-0000-0000-0000-000000000001', 'lv', 'Gaišs 2-istabu dzīvoklis Centrā', 'Kluss pagalms, augsti griesti, svaigs remonts. Blakus Vērmanes dārzs.'),
+    ('20000000-0000-0000-0000-000000000001', 'en', 'Bright 2-room apartment in Centrs', 'Quiet courtyard, high ceilings, fresh renovation. Near Vērmanes Garden.'),
+    -- p02: teika rental
+    ('20000000-0000-0000-0000-000000000002', 'lv', '3-istabu Teikā, mēbeles iekļautas', 'Pilnībā mēbelēts dzīvoklis, mājdzīvnieki atļauti.'),
+    ('20000000-0000-0000-0000-000000000002', 'en', '3-room in Teika, furniture included', 'Fully furnished apartment, pets allowed.'),
+    -- p03: jurmala house
+    ('20000000-0000-0000-0000-000000000003', 'lv', 'Māja Jūrmalā ar dārzu 400 m²', 'Ķieģeļu māja 2005. g., silta garāža, 10 min līdz pludmalei.'),
+    ('20000000-0000-0000-0000-000000000003', 'en', 'House in Jūrmala with 400 m² garden', 'Brick house built 2005, heated garage, 10 min to the beach.'),
+    -- p04: purvciems studio
+    ('20000000-0000-0000-0000-000000000004', 'lv', 'Studija Purvciemā — pirmais pirkums', 'Lielisks variants investīcijai vai pirmajam mājoklim. Lifts.'),
+    ('20000000-0000-0000-0000-000000000004', 'en', 'Studio in Purvciems — first-time buy', 'Great option for investment or first home. Elevator.'),
+    -- p05: agenskalns new_project
+    ('20000000-0000-0000-0000-000000000005', 'lv', 'Jaunbūve Āgenskalnā — nodošana 2027', 'Panorāmas logi, slēgts pagalms, autostāvvieta iekļauta.'),
+    ('20000000-0000-0000-0000-000000000005', 'en', 'New build in Āgenskalns — completion 2027', 'Panoramic windows, enclosed courtyard, parking spot included.'),
+    -- p06: imanta house
+    ('20000000-0000-0000-0000-000000000006', 'lv', 'Privātmāja Imantā ar lielu zemes gabalu', 'Divstāvu māja, 650 m² zeme, garāža 2 mašīnām, pirts.'),
+    ('20000000-0000-0000-0000-000000000006', 'en', 'Detached house in Imanta with large plot', 'Two-storey house, 650 m² land, double garage, sauna.'),
+    -- p07: ziepniekkalns rental
+    ('20000000-0000-0000-0000-000000000007', 'lv', '2-istabu īre pirmajā stāvā', 'Pirmais stāvs, kaķi/suņi līdz 10 kg. Bez mēbelēm.'),
+    ('20000000-0000-0000-0000-000000000007', 'en', '2-room rental on ground floor', 'Ground floor, cats/dogs up to 10 kg. Unfurnished.'),
+    -- p08: mezciems apartment (LV only)
+    ('20000000-0000-0000-0000-000000000008', 'lv', '3-istabu Mežciemā — labs stāvoklis', 'Balkons, noliktava, kluss pagalms. Padomju laika ēka, kapitālremonts 2018.'),
+    -- p09: centrs new_project ready
+    ('20000000-0000-0000-0000-000000000009', 'lv', 'Gatava jaunbūve Centrā — atslēgas uzreiz', 'A klase, viedā māja, pazemes autostāvvieta, konsjeržs.'),
+    ('20000000-0000-0000-0000-000000000009', 'en', 'Ready new build in Centrs — keys now', 'Class A, smart home, underground parking, concierge.'),
+    -- p10: teika studio
+    ('20000000-0000-0000-0000-000000000010', 'lv', 'Mājīga studija Teikā', 'Pēc remonta, iebūvēta virtuve, blakus tramvajs.'),
+    ('20000000-0000-0000-0000-000000000010', 'en', 'Cozy studio in Teika', 'Renovated, built-in kitchen, tram nearby.'),
+    -- p11: jugla house
+    ('20000000-0000-0000-0000-000000000011', 'lv', 'Moderna māja Juglā, 2012. g.', 'Monolīta, siltināta, garāža, kopts dārzs.'),
+    ('20000000-0000-0000-0000-000000000011', 'en', 'Modern house in Jugla, built 2012', 'Monolithic, insulated, garage, well-kept garden.'),
+    -- p12: centrs stalinka (EN only)
+    ('20000000-0000-0000-0000-000000000012', 'en', '2-room in Centrs — Stalinist building', 'High ceilings 3.1 m, parquet, stucco. Needs cosmetic work.'),
+    -- p13: purvciems rental
+    ('20000000-0000-0000-0000-000000000013', 'lv', '3-istabu Purvciemā ar mēbelēm', 'Pilnībā mēbelēts, balkons, kluss pagalms.'),
+    ('20000000-0000-0000-0000-000000000013', 'en', '3-room in Purvciems with furniture', 'Fully furnished, balcony, quiet courtyard.');
 
 -- ─────────────────────────────────────────────
 -- Features

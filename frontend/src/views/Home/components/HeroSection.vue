@@ -49,14 +49,14 @@ const emit = defineEmits<{ search: []; openMore: [] }>();
         class="mt-8 hidden sm:flex items-center gap-8 text-cream/60 text-xs font-bold"
       >
         <div class="flex items-baseline gap-2">
-          <span class="display-price text-cream text-2xl">10</span>
+          <span class="display-price text-cream text-2xl">15</span>
           <span class="micro-label text-cream/60!">{{
             t('hero.properties')
           }}</span>
         </div>
         <div class="h-8 w-px bg-cream/20" />
         <div class="flex items-baseline gap-2">
-          <span class="display-price text-cream text-2xl">100</span>
+          <span class="display-price text-cream text-2xl">282</span>
           <span class="micro-label text-cream/60!">{{
             t('hero.districts')
           }}</span>
