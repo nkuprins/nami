@@ -5,6 +5,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Generated sources (annotation processors) ###
+src/main/generated/
+src/test/generated_tests/
+
 ### STS ###
 .apt_generated
 .classpath
