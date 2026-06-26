@@ -86,6 +86,39 @@ export const authApi = {
     }
   },
 
+  async updateProfile(payload: {
+    name?: string;
+    email?: string;
+  }): Promise<{ user: AuthUser | null; error: string | null }> {
+    try {
+      const res = await fetchApi('/api/auth/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) return { user: await res.json(), error: null };
+      const body = (await res.json().catch(() => ({}))) as { code?: string };
+      if (res.status === 409 || body.code === 'EMAIL_TAKEN')
+        return { user: null, error: 'EMAIL_TAKEN' };
+      if (res.status === 400) return { user: null, error: 'NO_CHANGES' };
+      return { user: null, error: 'UNKNOWN' };
+    } catch (e) {
+      logger.error('[authApi] updateProfile failed:', e);
+      return { user: null, error: 'UNKNOWN' };
+    }
+  },
+
+  async exportData(): Promise<object | null> {
+    try {
+      const res = await fetchApi('/api/auth/export');
+      if (res.ok) return res.json();
+      return null;
+    } catch (e) {
+      logger.error('[authApi] exportData failed:', e);
+      return null;
+    }
+  },
+
   async deleteAccount(): Promise<void> {
     const res = await fetchApi('/api/auth/me', { method: 'DELETE' });
     if (!res.ok) throw new Error(`deleteAccount: ${res.status}`);

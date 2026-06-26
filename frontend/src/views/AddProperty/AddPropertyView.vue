@@ -14,6 +14,7 @@ import DetailsSection from './components/DetailsSection.vue';
 import FeaturesSection from './components/FeaturesSection.vue';
 import PhonesSection from './components/PhonesSection.vue';
 import PhotosSection from './components/PhotosSection.vue';
+import PlansSection from './components/PlansSection.vue';
 
 const route = useRoute();
 const editId = route.params.id as string | undefined;
@@ -21,6 +22,11 @@ const { t } = useI18n();
 const { localePath } = useLocaleRoute();
 
 const { photos, addFiles, remove: removePhoto } = usePhotoUpload();
+const {
+  photos: plans,
+  addFiles: addPlanFiles,
+  remove: removePlan,
+} = usePhotoUpload(3);
 const { selectedLocation, isOpen, districtName, onSelect } =
   useLocationDropdown();
 const {
@@ -37,6 +43,7 @@ const {
 } = usePropertyForm(
   () => selectedLocation.value,
   () => photos.value,
+  () => plans.value,
   editId
 );
 </script>
@@ -109,6 +116,11 @@ const {
             :field-error="fieldError"
             @add-files="addFiles"
             @remove-photo="removePhoto"
+          />
+          <PlansSection
+            :plans="plans"
+            @add-files="addPlanFiles"
+            @remove-plan="removePlan"
           />
         </template>
         <section v-else-if="prefill" class="flex flex-col gap-4">

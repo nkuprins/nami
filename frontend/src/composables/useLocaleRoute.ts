@@ -8,7 +8,7 @@ export function useLocaleRoute() {
 
   const locale = computed<Locale>(() => {
     const p = route.params.locale;
-    return p === 'en' ? 'en' : 'lv';
+    return p === 'en' ? 'en' : p === 'ru' ? 'ru' : 'lv';
   });
 
   function localePath(path: string): string {

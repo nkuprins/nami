@@ -22,8 +22,10 @@ interface PropertyBase {
   propertyKind: PropertyKind;
   titleLv?: string;
   titleEn?: string;
+  titleRu?: string;
   descriptionLv?: string;
   descriptionEn?: string;
+  descriptionRu?: string;
   price: number;
   rooms: number;
   m2: number;
@@ -47,34 +49,49 @@ export interface PropertyDetail extends PropertyBase {
   coords: { lat: number; lng: number };
   phones?: string[];
   photos: string[];
+  plans?: string[];
   videoUrl?: string;
 }
 
 export type PropertyItem = PropertyDetail;
 
+import type { Locale } from '../i18n';
+
 export function resolveTitle(
-  item: Pick<PropertyBase, 'titleLv' | 'titleEn'>,
-  locale: 'lv' | 'en'
+  item: Pick<PropertyBase, 'titleLv' | 'titleEn' | 'titleRu'>,
+  locale: Locale
 ): string {
-  if (locale === 'en') return item.titleEn ?? item.titleLv ?? '';
-  return item.titleLv ?? item.titleEn ?? '';
+  if (locale === 'en')
+    return item.titleEn ?? item.titleLv ?? item.titleRu ?? '';
+  if (locale === 'ru')
+    return item.titleRu ?? item.titleLv ?? item.titleEn ?? '';
+  return item.titleLv ?? item.titleEn ?? item.titleRu ?? '';
 }
 
 export function resolveDescription(
-  item: Pick<PropertyBase, 'descriptionLv' | 'descriptionEn'>,
-  locale: 'lv' | 'en'
+  item: Pick<PropertyBase, 'descriptionLv' | 'descriptionEn' | 'descriptionRu'>,
+  locale: Locale
 ): string {
-  if (locale === 'en') return item.descriptionEn ?? item.descriptionLv ?? '';
-  return item.descriptionLv ?? item.descriptionEn ?? '';
+  if (locale === 'en')
+    return item.descriptionEn ?? item.descriptionLv ?? item.descriptionRu ?? '';
+  if (locale === 'ru')
+    return item.descriptionRu ?? item.descriptionLv ?? item.descriptionEn ?? '';
+  return item.descriptionLv ?? item.descriptionEn ?? item.descriptionRu ?? '';
 }
 
 export function hasLanguage(
   item: Pick<
     PropertyBase,
-    'titleLv' | 'titleEn' | 'descriptionLv' | 'descriptionEn'
+    | 'titleLv'
+    | 'titleEn'
+    | 'titleRu'
+    | 'descriptionLv'
+    | 'descriptionEn'
+    | 'descriptionRu'
   >,
-  locale: 'lv' | 'en'
+  locale: Locale
 ): boolean {
   if (locale === 'en') return Boolean(item.titleEn && item.descriptionEn);
+  if (locale === 'ru') return Boolean(item.titleRu && item.descriptionRu);
   return Boolean(item.titleLv && item.descriptionLv);
 }

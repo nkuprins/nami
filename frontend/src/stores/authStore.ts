@@ -147,6 +147,26 @@ export const useAuthStore = defineStore('auth', () => {
     logger.info(`[AuthStore] Verification link resent to: ${email}`);
   }
 
+  async function updateProfile(
+    name: string,
+    email: string
+  ): Promise<{ error: string | null; emailChanged: boolean }> {
+    logger.info('[AuthStore] Updating profile...');
+    const oldEmail = user.value?.email ?? '';
+    const { user: updated, error } = await authApi.updateProfile({
+      name: name.trim() || undefined,
+      email: email.trim() || undefined,
+    });
+    if (updated) {
+      const emailChanged =
+        updated.email.toLowerCase() !== oldEmail.toLowerCase();
+      user.value = updated;
+      logger.info('[AuthStore] Profile updated.');
+      return { error: null, emailChanged };
+    }
+    return { error, emailChanged: false };
+  }
+
   return {
     user: readonly(user),
     isAuthenticated,
@@ -159,5 +179,6 @@ export const useAuthStore = defineStore('auth', () => {
     resetPassword,
     verifyEmail,
     resendVerification,
+    updateProfile,
   };
 });

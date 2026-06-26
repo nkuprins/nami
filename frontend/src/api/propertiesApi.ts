@@ -51,7 +51,14 @@ export async function updateProperty(
   id: string,
   data: Omit<
     PropertyDetail,
-    'id' | 'postedAt' | 'district' | 'city' | 'address' | 'coords' | 'photos'
+    | 'id'
+    | 'postedAt'
+    | 'district'
+    | 'city'
+    | 'address'
+    | 'coords'
+    | 'photos'
+    | 'plans'
   >
 ): Promise<PropertyDetail> {
   const res = await fetchApi(`/api/properties/${id}`, {

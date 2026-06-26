@@ -76,10 +76,13 @@ const displayTitle = computed(() =>
 const displayDescription = computed(() =>
   property.value ? resolveDescription(property.value, contentLocale.value) : ''
 );
-const hasBothLanguages = computed(() =>
-  property.value
-    ? hasLanguage(property.value, 'lv') && hasLanguage(property.value, 'en')
-    : false
+const availableLanguages = computed(() =>
+  (['lv', 'en', 'ru'] as const).filter(
+    (l) => property.value && hasLanguage(property.value, l)
+  )
+);
+const hasMultipleLanguages = computed(
+  () => availableLanguages.value.length > 1
 );
 
 const price = computed(() =>
@@ -110,7 +113,7 @@ const specRow = computed(() => {
 });
 
 const phoneRevealed = ref(false);
-const mediaTab = ref<'photos' | 'video'>('photos');
+const mediaTab = ref<'photos' | 'plans' | 'video'>('photos');
 
 function switchToVideo() {
   mediaTab.value = 'video';
@@ -134,6 +137,14 @@ const bentoLightboxIndex = ref(0);
 function openBento(i: number) {
   bentoLightboxIndex.value = i;
   bentoLightboxOpen.value = true;
+}
+
+const planLightboxOpen = ref(false);
+const planLightboxIndex = ref(0);
+
+function openPlanLightbox(i: number) {
+  planLightboxIndex.value = i;
+  planLightboxOpen.value = true;
 }
 </script>
 
@@ -159,9 +170,9 @@ function openBento(i: number) {
       </button>
 
       <!-- Language toggle -->
-      <div v-if="hasBothLanguages" class="flex gap-2 mb-4">
+      <div v-if="hasMultipleLanguages" class="flex gap-2 mb-4">
         <button
-          v-for="l in ['lv', 'en'] as const"
+          v-for="l in availableLanguages"
           :key="l"
           type="button"
           class="h-7 px-3 rounded-full text-xs font-medium border transition-colors"
@@ -265,7 +276,10 @@ function openBento(i: number) {
 
           <!-- Media toggle + content -->
           <div>
-            <div v-if="videoTourUrl" class="flex items-center gap-1.5 mb-4">
+            <div
+              v-if="videoTourUrl || property.plans?.length"
+              class="flex items-center gap-1.5 mb-4"
+            >
               <button
                 type="button"
                 class="focus-ring px-4 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer"
@@ -279,6 +293,20 @@ function openBento(i: number) {
                 {{ t('property.photos') }}
               </button>
               <button
+                v-if="property.plans?.length"
+                type="button"
+                class="focus-ring px-4 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer"
+                :class="
+                  mediaTab === 'plans'
+                    ? 'bg-ink text-cream border-ink'
+                    : 'bg-transparent text-ink-2 border-line hover:border-line-2 hover:text-ink'
+                "
+                @click="mediaTab = 'plans'"
+              >
+                {{ t('property.plans') }}
+              </button>
+              <button
+                v-if="videoTourUrl"
                 type="button"
                 class="focus-ring px-4 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer"
                 :class="
@@ -300,12 +328,33 @@ function openBento(i: number) {
               @play-video="switchToVideo()"
             />
 
+            <div
+              v-else-if="mediaTab === 'plans' && property.plans?.length"
+              class="grid grid-cols-2 sm:grid-cols-3 gap-2"
+            >
+              <img
+                v-for="(url, i) in property.plans"
+                :key="i"
+                :src="url"
+                class="w-full rounded-lg object-contain bg-surface cursor-pointer"
+                :alt="`${t('property.plans')} ${i + 1}`"
+                @click="openPlanLightbox(i)"
+              />
+            </div>
+
             <VideoPlayer
               v-else-if="mediaTab === 'video' && videoTourUrl"
               :video-url="videoTourUrl"
               :alt="displayTitle"
             />
           </div>
+
+          <PhotoLightBox
+            v-model:open="planLightboxOpen"
+            :photos="property.plans ?? []"
+            :alt="t('property.plans')"
+            :initial-index="planLightboxIndex"
+          />
 
           <div v-if="property.coords" class="my-5">
             <p class="micro-label mb-3">{{ t('property.location') }}</p>

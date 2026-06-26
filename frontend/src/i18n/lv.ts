@@ -7,6 +7,7 @@ export default {
     addProperty: 'Pievienot sludinājumu',
     add: 'Pievienot',
     deleteAccount: 'Dzēst kontu',
+    exportData: 'Eksportēt manus datus',
   },
   hero: {
     country: 'Latvija',
@@ -104,6 +105,7 @@ export default {
     edit: 'Rediģēt sludinājumu',
     delete: 'Dzēst sludinājumu',
     photos: 'Fotogrāfijas',
+    plans: 'Plāni',
     video: 'Video',
     deleteConfirmTitle: 'Dzēst sludinājumu?',
     deleteConfirmDesc:
@@ -159,6 +161,7 @@ export default {
     atLeastOneLang: 'Vismaz viena valoda ir obligāta',
     langTabLv: 'Latviešu',
     langTabEn: 'Angļu',
+    langTabRu: 'Krievu',
     langWarningLatvianInEn:
       'Šis izskatās pēc latviešu teksta. Lūdzu, izmantojiet latviešu lauku.',
     langWarningSeparator:
@@ -188,7 +191,10 @@ export default {
     photosSection: 'Fotogrāfijas',
     addPhotos: '+ Pievienot fotogrāfijas',
     videoUrl: 'Video apskates URL',
-    videoUrlHint: 'Nav obligāti. Ielīmējiet saiti uz video apskati.',
+    videoUrlHint: 'Nav obligāti. Ielīmējiet saiti uz video.',
+    plansSection: 'Plāni',
+    addPlans: '+ Pievienot plānus',
+    plansHint: 'Nav obligāti. Augšupielādējiet plānu attēlus (maks. 3).',
     required: 'Obligāts',
     enterValidPrice: 'Ievadiet derīgu cenu',
     enterRooms: 'Ievadiet istabu skaitu',
@@ -234,6 +240,14 @@ export default {
     noAccount: 'Nav konta?',
     signUp: 'Reģistrēties',
     alreadyHaveAccount: 'Jau ir konts?',
+    editProfile: 'Rediģēt profilu',
+    saveChanges: 'Saglabāt izmaiņas',
+    saving: 'Saglabā…',
+    profileUpdated: 'Profils atjaunināts.',
+    checkEmailNewAddress:
+      'Pārbaudiet iesūtni, lai verificētu jauno e-pasta adresi.',
+    emailTaken: 'Šis e-pasts jau tiek izmantots.',
+    noChanges: 'Nav ko atjaunināt.',
     deleteAccount: 'Dzēst savu kontu?',
     deleteAccountDesc:
       'Tas neatgriezeniski noņems jūsu kontu, visus jūsu sludinājumus un saglabātos īpašumus. To nevar atcelt.',

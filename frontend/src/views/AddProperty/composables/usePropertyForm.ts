@@ -21,8 +21,10 @@ export interface PropertyFormState {
   propertyKind: PropertyKind;
   titleLv: string;
   titleEn: string;
+  titleRu: string;
   descriptionLv: string;
   descriptionEn: string;
+  descriptionRu: string;
   price: string;
   address: string;
   rooms: string;
@@ -43,8 +45,10 @@ const INITIAL_FORM: PropertyFormState = {
   propertyKind: 'apartment',
   titleLv: '',
   titleEn: '',
+  titleRu: '',
   descriptionLv: '',
   descriptionEn: '',
+  descriptionRu: '',
   price: '',
   address: '',
   rooms: '',
@@ -71,6 +75,7 @@ export interface EditPrefill {
 export function usePropertyForm(
   getLocation: () => Location | null,
   getPhotos: () => PhotoEntry[],
+  getPlans: () => PhotoEntry[],
   editId?: string
 ) {
   const { localePush } = useLocaleRoute();
@@ -94,8 +99,10 @@ export function usePropertyForm(
         form.propertyKind = p.propertyKind;
         form.titleLv = p.titleLv ?? '';
         form.titleEn = p.titleEn ?? '';
+        form.titleRu = p.titleRu ?? '';
         form.descriptionLv = p.descriptionLv ?? '';
         form.descriptionEn = p.descriptionEn ?? '';
+        form.descriptionRu = p.descriptionRu ?? '';
         form.price = String(p.price);
         form.address = p.address;
         form.rooms = String(p.rooms);
@@ -125,7 +132,7 @@ export function usePropertyForm(
 
   const errors = computed(() => {
     const e: Record<string, string> = {};
-    if (!form.titleLv.trim() && !form.titleEn.trim())
+    if (!form.titleLv.trim() && !form.titleEn.trim() && !form.titleRu.trim())
       e.title = 'Enter a title in at least one language';
     if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
       e.price = 'Enter a valid price';
@@ -192,8 +199,10 @@ export function usePropertyForm(
           propertyKind: form.propertyKind,
           titleLv: form.titleLv.trim() || undefined,
           titleEn: form.titleEn.trim() || undefined,
+          titleRu: form.titleRu.trim() || undefined,
           descriptionLv: form.descriptionLv.trim() || undefined,
           descriptionEn: form.descriptionEn.trim() || undefined,
+          descriptionRu: form.descriptionRu.trim() || undefined,
           price: Number(form.price),
           rooms: Number(form.rooms),
           m2: Number(form.m2),
@@ -224,6 +233,19 @@ export function usePropertyForm(
           photos.map((p) => p.file),
           slots
         );
+
+        let planUrls: string[] = [];
+        const planFiles = getPlans();
+        if (planFiles.length > 0) {
+          const planSlots = await requestPresignedUrls(
+            planFiles.map((p) => p.file.name)
+          );
+          planUrls = await uploadFilesToS3(
+            planFiles.map((p) => p.file),
+            planSlots
+          );
+        }
+
         const location = getLocation()!;
 
         const item = await addProperty({
@@ -231,8 +253,10 @@ export function usePropertyForm(
           propertyKind: form.propertyKind,
           titleLv: form.titleLv.trim() || undefined,
           titleEn: form.titleEn.trim() || undefined,
+          titleRu: form.titleRu.trim() || undefined,
           descriptionLv: form.descriptionLv.trim() || undefined,
           descriptionEn: form.descriptionEn.trim() || undefined,
+          descriptionRu: form.descriptionRu.trim() || undefined,
           price: Number(form.price),
           rooms: Number(form.rooms),
           m2: Number(form.m2),
@@ -252,6 +276,7 @@ export function usePropertyForm(
             ? form.phones.filter((p) => p.trim())
             : undefined,
           photos: photoUrls,
+          plans: planUrls.length ? planUrls : undefined,
           videoUrl: form.videoUrl.trim() || undefined,
           completion:
             form.type === 'new_project' && form.completion

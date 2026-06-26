@@ -14,13 +14,16 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const activeLang = ref<'lv' | 'en'>('lv');
+const activeLang = ref<'lv' | 'en' | 'ru'>('lv');
 
 const hasLv = computed(
   () => props.form.titleLv.trim() || props.form.descriptionLv.trim()
 );
 const hasEn = computed(
   () => props.form.titleEn.trim() || props.form.descriptionEn.trim()
+);
+const hasRu = computed(
+  () => props.form.titleRu.trim() || props.form.descriptionRu.trim()
 );
 
 const titleError = computed(() => props.fieldError('title'));
@@ -33,6 +36,18 @@ const lvDescWarning = computed(() =>
 const enDescWarning = computed(() =>
   detectEnFieldWarning(props.form.descriptionEn)
 );
+
+function tabLabel(lang: 'lv' | 'en' | 'ru'): string {
+  if (lang === 'lv') return t('addProperty.langTabLv');
+  if (lang === 'en') return t('addProperty.langTabEn');
+  return t('addProperty.langTabRu');
+}
+
+function hasContent(lang: 'lv' | 'en' | 'ru'): boolean {
+  if (lang === 'lv') return Boolean(hasLv.value);
+  if (lang === 'en') return Boolean(hasEn.value);
+  return Boolean(hasRu.value);
+}
 
 function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
   if (w === 'latvianInEn') return t('addProperty.langWarningLatvianInEn');
@@ -51,7 +66,7 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
     <div>
       <div class="flex gap-1 mb-3">
         <button
-          v-for="lang in ['lv', 'en'] as const"
+          v-for="lang in ['lv', 'en', 'ru'] as const"
           :key="lang"
           type="button"
           class="flex items-center gap-1.5 px-4 h-8 rounded-full text-sm font-medium border transition-colors"
@@ -62,13 +77,9 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           "
           @click="activeLang = lang"
         >
-          {{
-            lang === 'lv'
-              ? t('addProperty.langTabLv')
-              : t('addProperty.langTabEn')
-          }}
+          {{ tabLabel(lang) }}
           <span
-            v-if="lang === 'lv' ? hasLv : hasEn"
+            v-if="hasContent(lang)"
             class="size-1.5 rounded-full"
             :class="activeLang === lang ? 'bg-bg' : 'bg-ink'"
           />
@@ -137,6 +148,29 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           <p v-if="enDescWarning" class="text-xs text-amber-600">
             {{ warningMessage(enDescWarning) }}
           </p>
+        </div>
+      </div>
+
+      <!-- Russian fields -->
+      <div v-show="activeLang === 'ru'" class="flex flex-col gap-3">
+        <FormField
+          id="ap-title-ru"
+          :label="t('addProperty.titleLabel')"
+          v-model="form.titleRu"
+          :placeholder="t('addProperty.titlePlaceholder')"
+        />
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-sm font-medium text-ink" for="ap-desc-ru">
+            {{ t('addProperty.descriptionLabel') }}
+          </label>
+          <textarea
+            id="ap-desc-ru"
+            v-model="form.descriptionRu"
+            rows="4"
+            :placeholder="t('addProperty.descriptionPlaceholder')"
+            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-none focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+          />
         </div>
       </div>
     </div>

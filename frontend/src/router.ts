@@ -14,7 +14,7 @@ export const router = createRouter({
   routes: [
     { path: '/', redirect: '/lv' },
     {
-      path: '/:locale(lv|en)',
+      path: '/:locale(lv|en|ru)',
       component: LocaleLayout,
       children: [
         {
@@ -76,7 +76,7 @@ export const router = createRouter({
 router.beforeEach(async (to) => {
   const locale = to.params.locale as string | undefined;
 
-  if (locale === 'lv' || locale === 'en') {
+  if (locale === 'lv' || locale === 'en' || locale === 'ru') {
     const { setLocale } = await import('./i18n');
     setLocale(locale);
     document.documentElement.lang = locale;

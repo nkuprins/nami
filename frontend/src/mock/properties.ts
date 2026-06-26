@@ -5,6 +5,9 @@ const photo = (seed: string) =>
 
 const photos = (...seeds: string[]) => seeds.map(photo);
 
+const plans = (...seeds: string[]) =>
+  seeds.map((s) => `https://picsum.photos/seed/plan-${s}/1200/900`);
+
 export const mockListings: PropertyDetail[] = [
   {
     id: 'lst-001',
@@ -29,6 +32,7 @@ export const mockListings: PropertyDetail[] = [
     coords: { lat: 56.9559, lng: 24.1145 },
     phones: ['+371 29 123 456', '+371 26 789 012'],
     photos: photos('001a', '001b', '001c', '001d', '001e'),
+    plans: plans('001a', '001b'),
     videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     postedAt: '2026-05-19T10:00:00Z',
   },
@@ -55,6 +59,7 @@ export const mockListings: PropertyDetail[] = [
     coords: { lat: 56.9472, lng: 24.1099 },
     phones: ['+371 22 345 678'],
     photos: photos('002a', '002b', '002c', '002d'),
+    plans: plans('002a', '002b', '002c'),
     videoUrl: 'https://vimeo.com/1054665455',
     postedAt: '2026-05-21T08:00:00Z',
   },
@@ -180,6 +185,8 @@ export const mockListings: PropertyDetail[] = [
     coords: { lat: 56.9521, lng: 24.0902 },
     phones: ['+371 29 555 111', '+371 26 444 222'],
     photos: photos('007a', '007b', '007c', '007d', '007e'),
+    plans: plans('007a', '007b'),
+    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     postedAt: '2026-05-15T08:00:00Z',
   },
   {

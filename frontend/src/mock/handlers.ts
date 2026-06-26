@@ -6,6 +6,8 @@ import { PAGE_SIZE } from '../types/filter';
 
 const MOCK_OWNER_ID = 'mock-user-1';
 
+const registeredNames = new Map<string, string>();
+
 const dtoCatalog = mockListings.map((item, i) => ({
   ...item,
   ownerId: i < 2 ? MOCK_OWNER_ID : `other-user-${i}`,
@@ -18,6 +20,7 @@ function toListItem(item: (typeof dtoCatalog)[0]) {
   const {
     descriptionLv,
     descriptionEn,
+    descriptionRu,
     coords,
     phones,
     videoUrl,
@@ -147,7 +150,7 @@ export const handlers = [
       if (password?.length >= 1) {
         mockUser = {
           id: 'mock-user-1',
-          name: email.split('@')[0],
+          name: registeredNames.get(email.toLowerCase()) ?? email.split('@')[0],
           email,
           emailVerified: true,
         };
@@ -162,10 +165,13 @@ export const handlers = [
     );
   }),
 
-  http.post(
-    '/api/auth/register',
-    () => new HttpResponse(null, { status: 201 })
-  ),
+  http.post('/api/auth/register', async ({ request }) => {
+    try {
+      const { name, email } = (await request.json()) as any;
+      if (name && email) registeredNames.set(email.toLowerCase(), name);
+    } catch {}
+    return new HttpResponse(null, { status: 201 });
+  }),
 
   http.post('/api/auth/logout', () => {
     mockUser = null;

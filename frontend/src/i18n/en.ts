@@ -7,6 +7,7 @@ export default {
     addProperty: 'Add a property',
     add: 'Add',
     deleteAccount: 'Delete account',
+    exportData: 'Export my data',
   },
   hero: {
     country: 'Latvia',
@@ -104,6 +105,7 @@ export default {
     edit: 'Edit listing',
     delete: 'Delete listing',
     photos: 'Photos',
+    plans: 'Plans',
     video: 'Video',
     deleteConfirmTitle: 'Delete listing?',
     deleteConfirmDesc:
@@ -159,6 +161,7 @@ export default {
     atLeastOneLang: 'At least one language is required',
     langTabLv: 'Latvian',
     langTabEn: 'English',
+    langTabRu: 'Russian',
     langWarningLatvianInEn:
       'This looks like Latvian text. Please use the Latvian field.',
     langWarningSeparator:
@@ -188,7 +191,10 @@ export default {
     photosSection: 'Photos',
     addPhotos: '+ Add photos',
     videoUrl: 'Video tour URL',
-    videoUrlHint: 'Optional. Paste a link to your video tour.',
+    videoUrlHint: 'Optional. Paste a link to your video.',
+    plansSection: 'Plans',
+    addPlans: '+ Add plans',
+    plansHint: 'Optional. Upload plan images (max 3).',
     required: 'Required',
     enterValidPrice: 'Enter a valid price',
     enterRooms: 'Enter number of rooms',
@@ -234,6 +240,13 @@ export default {
     noAccount: 'No account?',
     signUp: 'Sign up',
     alreadyHaveAccount: 'Already have an account?',
+    editProfile: 'Edit profile',
+    saveChanges: 'Save changes',
+    saving: 'Saving…',
+    profileUpdated: 'Profile updated.',
+    checkEmailNewAddress: 'Check your inbox to verify your new email address.',
+    emailTaken: 'This email is already in use.',
+    noChanges: 'Nothing to update.',
     deleteAccount: 'Delete your account?',
     deleteAccountDesc:
       'This will permanently remove your account, all your listings, and saved properties. This cannot be undone.',

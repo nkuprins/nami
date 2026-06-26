@@ -8,6 +8,7 @@ import AuthModal from '../auth/AuthModal.vue';
 import SavedDrawer from '../listing/SavedDrawer.vue';
 import MyPropertiesDrawer from '../listing/MyPropertiesDrawer.vue';
 import DeleteAccountDialog from '../auth/DeleteAccountDialog.vue';
+import EditProfileDialog from '../auth/EditProfileDialog.vue';
 import MobileMenu from './MobileMenu.vue';
 import IconBuilding from '../icons/IconBuilding.vue';
 import IconChevron from '../icons/IconChevron.vue';
@@ -15,6 +16,8 @@ import IconMenu from '../icons/IconMenu.vue';
 import IconClose from '../icons/IconClose.vue';
 import IconUser from '../icons/IconUser.vue';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
+import { LOCALES } from '../../i18n';
+import { authApi } from '../../api/authApi';
 
 const { t } = useI18n();
 const { locale, localePath, localePush, switchLocalePath } = useLocaleRoute();
@@ -25,8 +28,11 @@ const authOpen = ref(false);
 const savedOpen = ref(false);
 const myPropertiesOpen = ref(false);
 const deleteAccountOpen = ref(false);
+const editProfileOpen = ref(false);
 const userMenuOpen = ref(false);
 const mobileMenuOpen = ref(false);
+const langMenuOpen = ref(false);
+const mobileLangOpen = ref(false);
 
 function handleAddProperty() {
   mobileMenuOpen.value = false;
@@ -66,7 +72,24 @@ function handleDeleteAccount() {
   deleteAccountOpen.value = true;
 }
 
-const otherLocale = () => (locale.value === 'lv' ? 'en' : 'lv');
+function handleEditProfile() {
+  mobileMenuOpen.value = false;
+  editProfileOpen.value = true;
+}
+
+async function handleExportData() {
+  const data = await authApi.exportData();
+  if (!data) return;
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: 'application/json',
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'baltnami-export.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
 </script>
 
 <template>
@@ -123,12 +146,43 @@ const otherLocale = () => (locale.value === 'lv' ? 'en' : 'lv');
           </span>
         </button>
 
-        <RouterLink
-          :to="switchLocalePath(otherLocale())"
-          class="focus-ring inline-flex items-center h-9 px-2.5 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
+        <div
+          class="relative"
+          @mouseenter="langMenuOpen = true"
+          @mouseleave="langMenuOpen = false"
         >
-          {{ locale }}
-        </RouterLink>
+          <button
+            class="focus-ring inline-flex items-center gap-1 h-9 px-2.5 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
+            @click="langMenuOpen = !langMenuOpen"
+          >
+            {{ locale }}
+            <span class="size-3 text-ink-3"
+              ><IconChevron :dir="langMenuOpen ? 'up' : 'down'"
+            /></span>
+          </button>
+          <div class="absolute left-0 right-0 h-3 top-full" />
+          <Transition name="pop">
+            <div
+              v-if="langMenuOpen"
+              class="absolute right-0 top-full mt-3 w-24 bg-bg border border-line rounded-xl shadow-lift overflow-hidden z-50"
+            >
+              <RouterLink
+                v-for="l in LOCALES"
+                :key="l"
+                :to="switchLocalePath(l)"
+                class="block px-4 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors"
+                :class="
+                  locale === l
+                    ? 'text-ink bg-surface'
+                    : 'text-ink-2 hover:text-ink hover:bg-surface'
+                "
+                @click="langMenuOpen = false"
+              >
+                {{ l }}
+              </RouterLink>
+            </div>
+          </Transition>
+        </div>
 
         <!-- Authenticated: user dropdown -->
         <template v-if="auth.isAuthenticated">
@@ -154,6 +208,25 @@ const otherLocale = () => (locale.value === 'lv' ? 'en' : 'lv');
                 v-if="userMenuOpen"
                 class="absolute right-0 top-full mt-3 w-48 bg-bg border border-line rounded-xl shadow-lift overflow-hidden z-50"
               >
+                <button
+                  class="w-full text-left px-4 py-2.5 text-sm text-ink hover:bg-surface transition-colors"
+                  @click="
+                    editProfileOpen = true;
+                    userMenuOpen = false;
+                  "
+                >
+                  {{ t('auth.editProfile') }}
+                </button>
+                <button
+                  class="w-full text-left px-4 py-2.5 text-sm text-ink-2 hover:bg-surface transition-colors"
+                  @click="
+                    handleExportData();
+                    userMenuOpen = false;
+                  "
+                >
+                  {{ t('nav.exportData') }}
+                </button>
+                <div class="border-t border-line" />
                 <button
                   class="w-full text-left px-4 py-2.5 text-sm text-ink hover:bg-surface transition-colors"
                   @click="
@@ -197,12 +270,38 @@ const otherLocale = () => (locale.value === 'lv' ? 'en' : 'lv');
 
       <!-- Mobile nav -->
       <div class="flex sm:hidden items-center gap-2">
-        <RouterLink
-          :to="switchLocalePath(otherLocale())"
-          class="focus-ring inline-flex items-center h-10 px-2.5 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
-        >
-          {{ locale }}
-        </RouterLink>
+        <div class="relative">
+          <button
+            class="focus-ring inline-flex items-center gap-0.5 h-10 px-2 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
+            @click="mobileLangOpen = !mobileLangOpen"
+          >
+            {{ locale }}
+            <span class="size-3 text-ink-3"
+              ><IconChevron :dir="mobileLangOpen ? 'up' : 'down'"
+            /></span>
+          </button>
+          <Transition name="pop">
+            <div
+              v-if="mobileLangOpen"
+              class="absolute right-0 top-full mt-1 w-20 bg-bg border border-line rounded-xl shadow-lift overflow-hidden z-50"
+            >
+              <RouterLink
+                v-for="l in LOCALES"
+                :key="l"
+                :to="switchLocalePath(l)"
+                class="block px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors"
+                :class="
+                  locale === l
+                    ? 'text-ink bg-surface'
+                    : 'text-ink-2 hover:text-ink hover:bg-surface'
+                "
+                @click="mobileLangOpen = false"
+              >
+                {{ l }}
+              </RouterLink>
+            </div>
+          </Transition>
+        </div>
 
         <button
           class="focus-ring relative size-10 grid place-items-center rounded-full hover:text-ink transition-colors"
@@ -243,11 +342,14 @@ const otherLocale = () => (locale.value === 'lv' ? 'en' : 'lv');
     @saved="handleSaved"
     @sign-in="handleSignIn"
     @sign-out="handleSignOut"
+    @edit-profile="handleEditProfile"
+    @export-data="handleExportData"
     @delete-account="handleDeleteAccount"
   />
 
   <AuthModal v-model:open="authOpen" />
   <SavedDrawer v-model:open="savedOpen" />
   <MyPropertiesDrawer v-model:open="myPropertiesOpen" />
+  <EditProfileDialog v-model:open="editProfileOpen" />
   <DeleteAccountDialog v-model:open="deleteAccountOpen" />
 </template>

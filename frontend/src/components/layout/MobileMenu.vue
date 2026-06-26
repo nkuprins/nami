@@ -14,6 +14,8 @@ const emit = defineEmits<{
   saved: [];
   'sign-in': [];
   'sign-out': [];
+  'edit-profile': [];
+  'export-data': [];
   'delete-account': [];
 }>();
 </script>
@@ -69,6 +71,12 @@ const emit = defineEmits<{
           <template v-if="isAuthenticated">
             <button
               class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
+              @click="emit('edit-profile')"
+            >
+              Edit profile
+            </button>
+            <button
+              class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
               @click="emit('sign-out')"
             >
               Sign out
@@ -93,7 +101,16 @@ const emit = defineEmits<{
           </button>
         </nav>
 
-        <footer v-if="isAuthenticated" class="border-t border-line px-3 py-3">
+        <footer
+          v-if="isAuthenticated"
+          class="border-t border-line px-3 py-3 flex flex-col gap-1"
+        >
+          <button
+            class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink-2 hover:text-ink hover:bg-surface transition-colors text-left w-full"
+            @click="emit('export-data')"
+          >
+            Export my data
+          </button>
           <button
             class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-warn/70 hover:text-warn hover:bg-warn/5 transition-colors text-left w-full"
             @click="emit('delete-account')"

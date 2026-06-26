@@ -1,6 +1,5 @@
+import type { Locale } from '../i18n';
 import { PropertyType } from '../types/propertyItem';
-
-type Locale = 'lv' | 'en';
 
 const fmtLv = new Intl.NumberFormat('lv-LV', {
   style: 'currency',
@@ -14,8 +13,16 @@ const fmtEn = new Intl.NumberFormat('en-IE', {
   maximumFractionDigits: 0,
 });
 
+const fmtRu = new Intl.NumberFormat('ru-RU', {
+  style: 'currency',
+  currency: 'EUR',
+  maximumFractionDigits: 0,
+});
+
 function fmt(locale: Locale) {
-  return locale === 'en' ? fmtEn : fmtLv;
+  if (locale === 'en') return fmtEn;
+  if (locale === 'ru') return fmtRu;
+  return fmtLv;
 }
 
 export function formatPrice(
@@ -25,7 +32,9 @@ export function formatPrice(
 ): string {
   const formatted = fmt(locale).format(value);
   if (type !== 'rent') return formatted;
-  return `${formatted} ${locale === 'en' ? '/ mo' : '/ mēn.'}`;
+  const suffix =
+    locale === 'en' ? '/ mo' : locale === 'ru' ? '/ мес.' : '/ mēn.';
+  return `${formatted} ${suffix}`;
 }
 
 export function formatPricePerM2(value: number, locale: Locale = 'lv'): string {
@@ -37,7 +46,7 @@ export function formatFloor(
   total: number | undefined,
   locale: Locale = 'lv'
 ): string {
-  const unit = locale === 'en' ? 'fl' : 'st.';
+  const unit = locale === 'en' ? 'fl' : locale === 'ru' ? 'эт.' : 'st.';
   if (!total) return `${floor} ${unit}`;
   return `${floor}/${total} ${unit}`;
 }
