@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -14,8 +15,10 @@ import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,7 +27,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = {"features", "photos", "phones", "savedByUsers"})
+@ToString(exclude = {"features", "photos", "plans", "phones", "savedByUsers", "translations"})
 public class Property {
 
     @Id
@@ -51,20 +54,16 @@ public class Property {
     @Column(name = "status", nullable = false)
     private PropertyStatus status;
 
-    @Column(name = "title_lv")
-    private String titleLv;
-
-    @Column(name = "title_en")
-    private String titleEn;
-
-    @Column(name = "description_lv")
-    private String descriptionLv;
-
-    @Column(name = "description_en")
-    private String descriptionEn;
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+    @MapKey(name = "locale")
+    @BatchSize(size = 20)
+    private Map<String, PropertyTranslation> translations = new HashMap<>();
 
     @Column(name = "price", nullable = false, precision = 14, scale = 2)
     private BigDecimal price;
+
+    @Column(name = "price_per_m2", precision = 14, scale = 6, insertable = false, updatable = false)
+    private BigDecimal pricePerM2;
 
     @Column(name = "rooms", nullable = false)
     private Short rooms;
@@ -120,11 +119,17 @@ public class Property {
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "feature")
+    @BatchSize(size = 20)
     private Set<PropertyFeature> features = new HashSet<>();
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
+    @BatchSize(size = 20)
     private List<PropertyPhoto> photos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position ASC")
+    private List<PropertyPlan> plans = new ArrayList<>();
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
