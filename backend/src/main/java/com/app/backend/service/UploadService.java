@@ -1,9 +1,8 @@
 package com.app.backend.service;
 
+import com.app.backend.config.AppProperties;
 import com.app.backend.dto.PresignResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Delete;
@@ -18,22 +17,13 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UploadService {
 
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
-
-    @Value("${app.s3.bucket}")
-    private String bucket;
-
-    @Value("${app.s3.presign-ttl-minutes}")
-    private int presignTtlMinutes;
-
-    @Value("${app.s3.cdn-url}")
-    private String cdnUrl;
+    private final AppProperties props;
 
     public List<PresignResponse> presign(List<String> filenames) {
         return filenames.stream().map(this::presignOne).toList();
@@ -44,17 +34,17 @@ public class UploadService {
         String key = "uploads/" + UUID.randomUUID() + "/" + safeName;
 
         PutObjectRequest objectRequest = PutObjectRequest.builder()
-                .bucket(bucket)
+                .bucket(props.s3().bucket())
                 .key(key)
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(presignTtlMinutes))
+                .signatureDuration(Duration.ofMinutes(props.s3().presignTtlMinutes()))
                 .putObjectRequest(objectRequest)
                 .build();
 
         PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
-        String fileUrl = cdnUrl + "/" + key;
+        String fileUrl = props.s3().cdnUrl() + "/" + key;
 
         return new PresignResponse(presigned.url().toString(), fileUrl);
     }
@@ -63,12 +53,12 @@ public class UploadService {
         if (cdnUrls.isEmpty()) return;
 
         List<ObjectIdentifier> keys = cdnUrls.stream()
-                .map(url -> url.replace(cdnUrl + "/", ""))
+                .map(url -> url.replace(props.s3().cdnUrl() + "/", ""))
                 .map(key -> ObjectIdentifier.builder().key(key).build())
                 .toList();
 
         s3Client.deleteObjects(DeleteObjectsRequest.builder()
-                .bucket(bucket)
+                .bucket(props.s3().bucket())
                 .delete(Delete.builder().objects(keys).build())
                 .build());
     }

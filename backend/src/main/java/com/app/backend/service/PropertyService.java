@@ -7,13 +7,17 @@ import com.app.backend.dto.PropertyListItemDto;
 import com.app.backend.dto.PropertyPageResponse;
 import com.app.backend.dto.UpdatePropertyRequest;
 import com.app.backend.entity.Property;
+import com.app.backend.entity.Property_;
 import com.app.backend.entity.PropertyPhone;
 import com.app.backend.entity.PropertyPhoto;
+import com.app.backend.entity.PropertyPlan;
+import com.app.backend.entity.PropertyTranslation;
 import com.app.backend.entity.User;
 import com.app.backend.enums.*;
 import com.app.backend.mapper.PropertyMapper;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
+import com.app.backend.spec.PropertySearchCriteria;
 import com.app.backend.spec.PropertySpec;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +26,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.RoundingMode;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -51,27 +59,22 @@ public class PropertyService {
                 ? List.of()
                 : filter.features().stream().map(PropertyFeature::fromDbValue).toList();
 
-        PropertyCompletion completionEnum = (filter.completion() != null && !filter.completion().isBlank())
+        PropertyCompletion completionEnum = StringUtils.hasText(filter.completion())
                 ? PropertyCompletion.fromDbValue(filter.completion())
                 : null;
 
-        Specification<Property> spec = PropertySpec.build(
-                listingType, filter.loc(), filter.priceMin(), filter.priceMax(), filter.rooms(),
-                filter.m2Min(), filter.m2Max(), filter.floorMin(), filter.floorMax(),
-                filter.notGround(), filter.notTop(), filter.yearMin(), filter.yearMax(),
+        PropertySearchCriteria criteria = new PropertySearchCriteria(
+                listingType,
+                parseLocFilter(filter.loc()),
+                filter.priceMin(), filter.priceMax(),
+                filter.rooms(),
+                filter.m2Min(), filter.m2Max(),
+                filter.floorMin(), filter.floorMax(),
+                filter.notGround(), filter.notTop(),
+                filter.yearMin(), filter.yearMax(),
                 featureEnums, completionEnum
         );
-
-        if ("price-per-m2-asc".equals(sort)) {
-            List<Property> all = propertyRepository.findAll(spec);
-            all.sort(Comparator.comparing(p -> p.getPrice().divide(p.getM2(), 10, RoundingMode.HALF_UP)));
-            int start = (page - 1) * PAGE_SIZE;
-            int end = Math.min(start + PAGE_SIZE, all.size());
-            List<PropertyListItemDto> items = (start >= all.size())
-                    ? List.of()
-                    : all.subList(start, end).stream().map(propertyMapper::toListDto).toList();
-            return new PropertyPageResponse(items, all.size());
-        }
+        Specification<Property> spec = PropertySpec.build(criteria);
 
         PageRequest pageRequest = PageRequest.of(page - 1, PAGE_SIZE, buildSort(sort));
         Page<Property> result = propertyRepository.findAll(spec, pageRequest);
@@ -106,17 +109,8 @@ public class PropertyService {
         property.setListingType(ListingType.fromDbValue(req.type()));
         property.setPropertyCategory(PropertyCategory.fromDbValue(req.propertyKind()));
 
-        if (isBlank(req.titleLv()) && isBlank(req.titleEn())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one title language is required");
-        }
-        if (isBlank(req.descriptionLv()) && isBlank(req.descriptionEn())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one description language is required");
-        }
-
-        property.setTitleLv(blankToNull(req.titleLv()));
-        property.setTitleEn(blankToNull(req.titleEn()));
-        property.setDescriptionLv(blankToNull(req.descriptionLv()));
-        property.setDescriptionEn(blankToNull(req.descriptionEn()));
+        applyTranslations(property, req.titleLv(), req.titleEn(), req.titleRu(),
+                req.descriptionLv(), req.descriptionEn(), req.descriptionRu());
         property.setPrice(req.price());
         property.setRooms(req.rooms());
         property.setM2(req.m2());
@@ -131,7 +125,7 @@ public class PropertyService {
         property.setLng(req.coords().lng());
         property.setStatus(PropertyStatus.ACTIVE);
 
-        if (req.completion() != null && !req.completion().isBlank()) {
+        if (StringUtils.hasText(req.completion())) {
             property.setCompletion(PropertyCompletion.fromDbValue(req.completion()));
         }
 
@@ -142,37 +136,53 @@ public class PropertyService {
             property.setFeatures(featureSet);
         }
 
-        if (req.photos() != null) {
-            for (int i = 0; i < req.photos().size(); i++) {
-                PropertyPhoto photo = new PropertyPhoto();
-                photo.setProperty(property);
-                photo.setUrl(req.photos().get(i));
-                photo.setPosition((short) i);
-                property.getPhotos().add(photo);
-            }
-        }
-
+        addPhotos(property, req.photos());
+        addPlans(property, req.plans());
         property.setVideoUrl(req.videoUrl());
+        addPhones(property, req.phones());
 
-        if (req.phones() != null) {
-            for (int i = 0; i < req.phones().size(); i++) {
-                PropertyPhone phone = new PropertyPhone();
-                phone.setProperty(property);
-                phone.setPhone(req.phones().get(i));
-                phone.setPosition((short) i);
-                property.getPhones().add(phone);
+        Property saved = propertyRepository.save(property);
+        log.info("Property created: {} by owner: {}", saved.getId(), ownerId);
+        return propertyMapper.toDto(saved);
+    }
+
+    private static void applyTranslations(Property property,
+                                           String titleLv, String titleEn, String titleRu,
+                                           String descLv, String descEn, String descRu) {
+        List<String[]> candidates = List.of(
+                new String[]{SupportedLocale.LV.code, titleLv, descLv},
+                new String[]{SupportedLocale.EN.code, titleEn, descEn},
+                new String[]{SupportedLocale.RU.code, titleRu, descRu}
+        );
+        boolean anyValid = candidates.stream()
+                .anyMatch(c -> StringUtils.hasText(c[1]) && StringUtils.hasText(c[2]));
+        if (!anyValid) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "At least one complete translation (title + description) is required");
+        }
+        property.getTranslations().clear();
+        for (String[] c : candidates) {
+            if (StringUtils.hasText(c[1]) && StringUtils.hasText(c[2])) {
+                PropertyTranslation pt = new PropertyTranslation();
+                pt.setProperty(property);
+                pt.setLocale(c[0]);
+                pt.setTitle(c[1].trim());
+                pt.setDescription(c[2].trim());
+                property.getTranslations().put(c[0], pt);
             }
         }
-
-        return propertyMapper.toDto(propertyRepository.save(property));
     }
 
-    private static boolean isBlank(String s) {
-        return s == null || s.isBlank();
-    }
-
-    private static String blankToNull(String s) {
-        return isBlank(s) ? null : s.trim();
+    private static Map<String, List<String>> parseLocFilter(List<String> loc) {
+        if (loc == null || loc.isEmpty()) return Map.of();
+        Map<String, List<String>> byCity = new HashMap<>();
+        for (String entry : loc) {
+            int colon = entry.indexOf(':');
+            if (colon <= 0 || colon >= entry.length() - 1) continue;
+            byCity.computeIfAbsent(entry.substring(0, colon), k -> new ArrayList<>())
+                    .add(entry.substring(colon + 1));
+        }
+        return byCity;
     }
 
     @Transactional
@@ -186,17 +196,8 @@ public class PropertyService {
         property.setListingType(ListingType.fromDbValue(req.type()));
         property.setPropertyCategory(PropertyCategory.fromDbValue(req.propertyKind()));
 
-        if (isBlank(req.titleLv()) && isBlank(req.titleEn())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one title language is required");
-        }
-        if (isBlank(req.descriptionLv()) && isBlank(req.descriptionEn())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one description language is required");
-        }
-
-        property.setTitleLv(blankToNull(req.titleLv()));
-        property.setTitleEn(blankToNull(req.titleEn()));
-        property.setDescriptionLv(blankToNull(req.descriptionLv()));
-        property.setDescriptionEn(blankToNull(req.descriptionEn()));
+        applyTranslations(property, req.titleLv(), req.titleEn(), req.titleRu(),
+                req.descriptionLv(), req.descriptionEn(), req.descriptionRu());
         property.setPrice(req.price());
         property.setRooms(req.rooms());
         property.setM2(req.m2());
@@ -206,7 +207,7 @@ public class PropertyService {
         property.setYearBuilt(req.yearBuilt());
         property.setVideoUrl(req.videoUrl());
 
-        if (req.completion() != null && !req.completion().isBlank()) {
+        if (StringUtils.hasText(req.completion())) {
             property.setCompletion(PropertyCompletion.fromDbValue(req.completion()));
         } else {
             property.setCompletion(null);
@@ -221,15 +222,7 @@ public class PropertyService {
         }
 
         property.getPhones().clear();
-        if (req.phones() != null) {
-            for (int i = 0; i < req.phones().size(); i++) {
-                PropertyPhone phone = new PropertyPhone();
-                phone.setProperty(property);
-                phone.setPhone(req.phones().get(i));
-                phone.setPosition((short) i);
-                property.getPhones().add(phone);
-            }
-        }
+        addPhones(property, req.phones());
 
         return propertyMapper.toDto(propertyRepository.save(property));
     }
@@ -245,24 +238,71 @@ public class PropertyService {
         List<String> photoUrls = property.getPhotos().stream()
                 .map(PropertyPhoto::getUrl)
                 .toList();
+        List<String> planUrls = property.getPlans().stream()
+                .map(PropertyPlan::getUrl)
+                .toList();
 
         propertyRepository.delete(property);
+        log.info("Property deleted: {} by owner: {}", propertyId, ownerId);
 
-        if (!photoUrls.isEmpty()) {
-            try {
-                uploadService.deleteObjects(photoUrls);
-            } catch (Exception e) {
-                log.warn("Failed to delete S3 objects for property {}: {}", propertyId, e.getMessage());
-            }
+        List<String> allMediaUrls = new java.util.ArrayList<>(photoUrls);
+        allMediaUrls.addAll(planUrls);
+        if (!allMediaUrls.isEmpty()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        uploadService.deleteObjects(allMediaUrls);
+                    } catch (Exception e) {
+                        log.warn("Failed to delete S3 objects for property {}: {}", propertyId, e.getMessage());
+                    }
+                }
+            });
         }
     }
 
-    private Sort buildSort(String sort) {
+    private static void addPhotos(Property property, List<String> urls) {
+        if (urls == null) return;
+        for (int i = 0; i < urls.size(); i++) {
+            PropertyPhoto photo = new PropertyPhoto();
+            photo.setProperty(property);
+            photo.setUrl(urls.get(i));
+            photo.setPosition((short) i);
+            property.getPhotos().add(photo);
+        }
+    }
+
+    private static void addPlans(Property property, List<String> urls) {
+        if (urls == null) return;
+        for (int i = 0; i < urls.size(); i++) {
+            PropertyPlan plan = new PropertyPlan();
+            plan.setProperty(property);
+            plan.setUrl(urls.get(i));
+            plan.setPosition((short) i);
+            property.getPlans().add(plan);
+        }
+    }
+
+    private static void addPhones(Property property, List<String> numbers) {
+        if (numbers == null) return;
+        for (int i = 0; i < numbers.size(); i++) {
+            PropertyPhone phone = new PropertyPhone();
+            phone.setProperty(property);
+            phone.setPhone(numbers.get(i));
+            phone.setPosition((short) i);
+            property.getPhones().add(phone);
+        }
+    }
+
+    private static Sort buildSort(String sort) {
+        if (sort == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sort parameter is required");
         return switch (sort) {
-            case "price-asc" -> Sort.by(Sort.Direction.ASC, "price");
-            case "price-desc" -> Sort.by(Sort.Direction.DESC, "price");
-            case "m2-desc" -> Sort.by(Sort.Direction.DESC, "m2");
-            default -> Sort.by(Sort.Direction.DESC, "postedAt");
+            case "newest" -> Sort.by(Sort.Direction.DESC, Property_.POSTED_AT);
+            case "price-asc" -> Sort.by(Sort.Direction.ASC, Property_.PRICE);
+            case "price-desc" -> Sort.by(Sort.Direction.DESC, Property_.PRICE);
+            case "m2-desc" -> Sort.by(Sort.Direction.DESC, Property_.M2);
+            case "price-per-m2-asc" -> Sort.by(Sort.Direction.ASC, Property_.PRICE_PER_M2);
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown sort option: " + sort);
         };
     }
 }

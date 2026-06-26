@@ -32,6 +32,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
+    annotationProcessor("org.hibernate.orm:hibernate-processor")
     implementation(platform("software.amazon.awssdk:bom:2.30.17"))
     implementation("software.amazon.awssdk:s3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -40,7 +41,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.instancio:instancio-junit:5.4.0")
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.0")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -52,4 +53,18 @@ tasks.withType<Test> {
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.70".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }

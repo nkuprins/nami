@@ -1,108 +1,86 @@
 package com.app.backend.spec;
 
 import com.app.backend.entity.Property;
-import com.app.backend.enums.*;
+import com.app.backend.entity.Property_;
+import com.app.backend.enums.PropertyFeature;
+import com.app.backend.enums.PropertyStatus;
 import jakarta.persistence.criteria.*;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.domain.Specification;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PropertySpec {
 
-    public static Specification<Property> build(
-            ListingType listingType,
-            List<String> loc,
-            BigDecimal priceMin, BigDecimal priceMax,
-            List<Integer> rooms,
-            BigDecimal m2Min, BigDecimal m2Max,
-            Integer floorMin, Integer floorMax,
-            Boolean notGround, Boolean notTop,
-            Integer yearMin, Integer yearMax,
-            List<PropertyFeature> features,
-            PropertyCompletion completion
-    ) {
+    public static Specification<Property> build(PropertySearchCriteria criteria) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            predicates.add(cb.equal(root.get("status"), PropertyStatus.ACTIVE));
-            predicates.add(cb.equal(root.get("listingType"), listingType));
+            predicates.add(cb.equal(root.get(Property_.status), PropertyStatus.ACTIVE));
+            predicates.add(cb.equal(root.get(Property_.listingType), criteria.listingType()));
 
-            if (loc != null && !loc.isEmpty()) {
-                Map<String, List<String>> byCity = new LinkedHashMap<>();
-                for (String entry : loc) {
-                    int colon = entry.indexOf(':');
-                    if (colon <= 0 || colon >= entry.length() - 1) continue;
-                    byCity.computeIfAbsent(entry.substring(0, colon), k -> new ArrayList<>())
-                            .add(entry.substring(colon + 1));
+            if (criteria.locByCity() != null && !criteria.locByCity().isEmpty()) {
+                List<Predicate> locPredicates = new ArrayList<>();
+                for (var e : criteria.locByCity().entrySet()) {
+                    locPredicates.add(cb.and(
+                            cb.equal(root.get(Property_.citySlug), e.getKey()),
+                            root.get(Property_.districtSlug).in(e.getValue())
+                    ));
                 }
-                if (!byCity.isEmpty()) {
-                    List<Predicate> locPredicates = new ArrayList<>();
-                    for (var e : byCity.entrySet()) {
-                        locPredicates.add(cb.and(
-                                cb.equal(root.get("citySlug"), e.getKey()),
-                                root.get("districtSlug").in(e.getValue())
-                        ));
-                    }
-                    predicates.add(cb.or(locPredicates.toArray(new Predicate[0])));
-                }
+                predicates.add(cb.or(locPredicates.toArray(new Predicate[0])));
             }
 
-            if (priceMin != null) predicates.add(cb.ge(root.get("price"), priceMin));
-            if (priceMax != null) predicates.add(cb.le(root.get("price"), priceMax));
+            if (criteria.priceMin() != null) predicates.add(cb.ge(root.get(Property_.price), criteria.priceMin()));
+            if (criteria.priceMax() != null) predicates.add(cb.le(root.get(Property_.price), criteria.priceMax()));
 
-            if (m2Min != null) predicates.add(cb.ge(root.get("m2"), m2Min));
-            if (m2Max != null) predicates.add(cb.le(root.get("m2"), m2Max));
+            if (criteria.m2Min() != null) predicates.add(cb.ge(root.get(Property_.m2), criteria.m2Min()));
+            if (criteria.m2Max() != null) predicates.add(cb.le(root.get(Property_.m2), criteria.m2Max()));
 
-            if (floorMin != null) predicates.add(cb.ge(root.<Short>get("floor"), floorMin.shortValue()));
-            if (floorMax != null) predicates.add(cb.le(root.<Short>get("floor"), floorMax.shortValue()));
+            if (criteria.floorMin() != null) predicates.add(cb.ge(root.get(Property_.floor), criteria.floorMin()));
+            if (criteria.floorMax() != null) predicates.add(cb.le(root.get(Property_.floor), criteria.floorMax()));
 
-            if (Boolean.TRUE.equals(notGround)) {
+            if (Boolean.TRUE.equals(criteria.notGround())) {
                 predicates.add(cb.or(
-                        root.get("floor").isNull(),
-                        cb.notEqual(root.<Short>get("floor"), (short) 1)
+                        root.get(Property_.floor).isNull(),
+                        cb.notEqual(root.get(Property_.floor), (short) 1)
                 ));
             }
 
-            if (Boolean.TRUE.equals(notTop)) {
+            if (Boolean.TRUE.equals(criteria.notTop())) {
                 predicates.add(cb.or(
-                        root.get("floor").isNull(),
-                        cb.notEqual(root.get("floor"), root.get("totalFloors"))
+                        root.get(Property_.floor).isNull(),
+                        cb.notEqual(root.get(Property_.floor), root.get(Property_.totalFloors))
                 ));
             }
 
-            if (rooms != null && !rooms.isEmpty()) {
+            if (criteria.rooms() != null && !criteria.rooms().isEmpty()) {
                 List<Predicate> roomPredicates = new ArrayList<>();
-                boolean hasFivePlus = rooms.contains(5);
-                for (int r : rooms) {
-                    if (r < 5) roomPredicates.add(cb.equal(root.<Short>get("rooms"), (short) r));
+                boolean hasFivePlus = criteria.rooms().contains(5);
+                for (int r : criteria.rooms()) {
+                    if (r < 5) roomPredicates.add(cb.equal(root.get(Property_.rooms), (short) r));
                 }
-                if (hasFivePlus) roomPredicates.add(cb.ge(root.<Short>get("rooms"), (short) 5));
+                if (hasFivePlus) roomPredicates.add(cb.ge(root.get(Property_.rooms), (short) 5));
                 if (!roomPredicates.isEmpty()) {
                     predicates.add(cb.or(roomPredicates.toArray(new Predicate[0])));
                 }
             }
 
-            if (yearMin != null) predicates.add(cb.ge(root.<Short>get("yearBuilt"), yearMin.shortValue()));
-            if (yearMax != null) predicates.add(cb.le(root.<Short>get("yearBuilt"), yearMax.shortValue()));
+            if (criteria.yearMin() != null) predicates.add(cb.ge(root.get(Property_.yearBuilt), criteria.yearMin()));
+            if (criteria.yearMax() != null) predicates.add(cb.le(root.get(Property_.yearBuilt), criteria.yearMax()));
 
-            if (features != null && !features.isEmpty()) {
-                for (PropertyFeature feat : features) {
+            if (criteria.features() != null && !criteria.features().isEmpty()) {
+                for (PropertyFeature feat : criteria.features()) {
                     Subquery<Integer> sub = query.subquery(Integer.class);
                     Root<Property> subRoot = sub.correlate(root);
-                    Join<Property, PropertyFeature> featureJoin = subRoot.join("features");
+                    var featureJoin = subRoot.join(Property_.features);
                     sub.select(cb.literal(1));
                     sub.where(cb.equal(featureJoin, feat));
                     predicates.add(cb.exists(sub));
                 }
             }
 
-            if (completion != null) {
-                predicates.add(cb.equal(root.get("completion"), completion));
+            if (criteria.completion() != null) {
+                predicates.add(cb.equal(root.get(Property_.completion), criteria.completion()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));

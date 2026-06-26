@@ -38,10 +38,20 @@ public class EmailService {
         send(toEmail, "Reset your Baltnami password", html);
     }
 
+    public void sendInactivityWarningEmail(String toEmail, String name) {
+        String loginUrl = props.frontendUrl();
+        String html = "<p>Hi " + escapeHtml(name) + ",</p>"
+                + "<p>Your Baltnami account has been inactive for nearly 2 years. "
+                + "It will be permanently deleted in approximately 30 days along with all your listings and data.</p>"
+                + "<p>If you'd like to keep your account, simply <a href=\"" + escapeHtml(loginUrl) + "\">log in</a>.</p>"
+                + "<p>If you no longer need your account, no action is needed.</p>";
+        send(toEmail, "Your Baltnami account will be deleted soon", html);
+    }
+
     private void send(String to, String subject, String html) {
         String apiKey = props.resend().apiKey();
         if (apiKey == null || apiKey.isBlank()) {
-            log.info("RESEND_API_KEY not set - skipping email to {}: {}", to, subject);
+            log.info("RESEND_API_KEY not set - skipping email: {}", subject);
             return;
         }
         try {
@@ -64,7 +74,7 @@ public class EmailService {
                 log.error("Resend API error {}: {}", response.statusCode(), response.body());
             }
         } catch (Exception e) {
-            log.error("Failed to send email to {}: {}", to, e.getMessage());
+            log.error("Failed to send email ({}): {}", subject, e.getMessage());
         }
     }
 

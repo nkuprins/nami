@@ -1,5 +1,6 @@
 package com.app.backend.controller;
 
+import com.app.backend.dto.UserExportDto;
 import com.app.backend.dto.auth.*;
 import com.app.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -47,6 +48,17 @@ public class AuthController {
     @GetMapping("/me")
     public AuthUserResponse me(@AuthenticationPrincipal UUID userId) {
         return authService.me(userId);
+    }
+
+    @PatchMapping("/me")
+    public AuthUserResponse updateProfile(@AuthenticationPrincipal UUID userId,
+                                          @RequestBody @Valid UpdateProfileRequest req) {
+        return authService.updateProfile(userId, req);
+    }
+
+    @GetMapping("/export")
+    public UserExportDto export(@AuthenticationPrincipal UUID userId) {
+        return authService.export(userId);
     }
 
     @DeleteMapping("/me")

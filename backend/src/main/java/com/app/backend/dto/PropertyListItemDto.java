@@ -1,12 +1,14 @@
 package com.app.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record PropertyListItemDto(
         UUID id,
@@ -15,6 +17,7 @@ public record PropertyListItemDto(
         String propertyKind,
         String titleLv,
         String titleEn,
+        String titleRu,
         BigDecimal price,
         Short rooms,
         BigDecimal m2,

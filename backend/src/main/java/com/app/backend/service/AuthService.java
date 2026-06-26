@@ -1,9 +1,13 @@
 package com.app.backend.service;
 
 import com.app.backend.config.AppProperties;
+import com.app.backend.dto.PropertyItemDto;
+import com.app.backend.dto.SavedPropertyExportDto;
+import com.app.backend.dto.UserExportDto;
 import com.app.backend.dto.auth.*;
 import com.app.backend.entity.*;
 import com.app.backend.exception.AuthException;
+import com.app.backend.mapper.PropertyMapper;
 import com.app.backend.repository.*;
 import com.app.backend.security.CookieFactory;
 import com.app.backend.security.JwtService;
@@ -16,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -27,6 +33,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PropertyRepository propertyRepository;
+    private final SavedPropertyRepository savedPropertyRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
@@ -35,6 +42,7 @@ public class AuthService {
     private final CookieFactory cookieFactory;
     private final EmailService emailService;
     private final UploadService uploadService;
+    private final PropertyMapper propertyMapper;
     private final AppProperties props;
 
     @Transactional
@@ -49,6 +57,7 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(req.password()));
         user.setEmailVerified(false);
         userRepository.save(user);
+        log.info("User registered: {}", user.getId());
 
         sendVerificationEmail(user);
 
@@ -125,13 +134,19 @@ public class AuthService {
                 .toList();
 
         userRepository.delete(user);
+        log.info("Account deleted: {}", userId);
 
         if (!allPhotoUrls.isEmpty()) {
-            try {
-                uploadService.deleteObjects(allPhotoUrls);
-            } catch (Exception e) {
-                log.warn("Failed to delete S3 objects for user {}: {}", userId, e.getMessage());
-            }
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        uploadService.deleteObjects(allPhotoUrls);
+                    } catch (Exception e) {
+                        log.warn("Failed to delete S3 objects for user {}: {}", userId, e.getMessage());
+                    }
+                }
+            });
         }
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearAccessToken().toString());
@@ -157,6 +172,7 @@ public class AuthService {
         User user = token.getUser();
         user.setEmailVerified(true);
         userRepository.save(user);
+        log.info("Email verified for user: {}", user.getId());
     }
 
     @Transactional
@@ -183,7 +199,14 @@ public class AuthService {
             passwordResetTokenRepository.save(token);
 
             String link = props.frontendUrl() + "/reset-password?token=" + raw;
-            emailService.sendPasswordResetEmail(user.getEmail(), user.getName(), link);
+            String email = user.getEmail();
+            String name = user.getName();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    emailService.sendPasswordResetEmail(email, name, link);
+                }
+            });
         });
         // Always return 200
     }
@@ -208,8 +231,60 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
         userRepository.save(user);
 
+        log.info("Password reset for user: {}", user.getId());
         // Invalidate all existing sessions
         refreshTokenRepository.deleteByUser(user);
+    }
+
+    @Transactional(readOnly = true)
+    public UserExportDto export(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AuthException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "User not found"));
+        List<PropertyItemDto> ownedProps = propertyRepository.findByOwner(user)
+                .stream().map(propertyMapper::toDto).toList();
+        List<SavedPropertyExportDto> saved = savedPropertyRepository.findByIdUserId(userId)
+                .stream()
+                .map(sp -> new SavedPropertyExportDto(sp.getId().getPropertyId(), sp.getSavedAt()))
+                .toList();
+        return UserExportDto.builder()
+                .id(user.getId()).name(user.getName()).email(user.getEmail())
+                .emailVerified(user.isEmailVerified()).createdAt(user.getCreatedAt())
+                .ownedProperties(ownedProps).savedProperties(saved)
+                .build();
+    }
+
+    @Transactional
+    public AuthUserResponse updateProfile(UUID userId, UpdateProfileRequest req) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AuthException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "User not found"));
+
+        boolean nameChanged = req.name() != null && !req.name().isBlank();
+        boolean emailChanged = req.email() != null && !req.email().isBlank()
+                && !req.email().equalsIgnoreCase(user.getEmail());
+
+        if (!nameChanged && !emailChanged) {
+            throw new AuthException(HttpStatus.BAD_REQUEST, "NO_CHANGES", "No changes provided");
+        }
+
+        if (nameChanged) {
+            user.setName(req.name().strip());
+        }
+        if (emailChanged) {
+            String newEmail = req.email().strip().toLowerCase();
+            if (userRepository.findByEmailIgnoreCase(newEmail).isPresent()) {
+                throw new AuthException(HttpStatus.CONFLICT, "EMAIL_TAKEN", "Email already in use");
+            }
+            user.setEmail(newEmail);
+            user.setEmailVerified(false);
+            refreshTokenRepository.deleteByUser(user);
+            userRepository.save(user);
+            sendVerificationEmail(user);
+        } else {
+            userRepository.save(user);
+        }
+
+        log.info("Profile updated for user: {}", userId);
+        return toResponse(user);
     }
 
     private void setAuthCookies(User user, HttpServletResponse response) {
@@ -235,7 +310,14 @@ public class AuthService {
         emailVerificationTokenRepository.save(token);
 
         String link = props.frontendUrl() + "/verify-email?token=" + raw;
-        emailService.sendVerificationEmail(user.getEmail(), user.getName(), link);
+        String email = user.getEmail();
+        String name = user.getName();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                emailService.sendVerificationEmail(email, name, link);
+            }
+        });
     }
 
     private AuthUserResponse toResponse(User user) {

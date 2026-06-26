@@ -13,12 +13,12 @@ public record PropertyFilter(
         List<Integer> rooms,
         BigDecimal m2Min,
         BigDecimal m2Max,
-        Integer floorMin,
-        Integer floorMax,
+        Short floorMin,
+        Short floorMax,
         Boolean notGround,
         Boolean notTop,
-        Integer yearMin,
-        Integer yearMax,
+        Short yearMin,
+        Short yearMax,
         List<String> features,
         String completion
 ) {}
