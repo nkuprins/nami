@@ -32,6 +32,7 @@ Reģistrējoties kontam, mēs vācam:
 - **Pilno vārdu** — konta identifikācijai un attēlošanai sludinājumos
 - **E-pasta adresi** — konta autentifikācijai, e-pasta verifikācijai un paroles atjaunošanai
 - **Paroli** — uzglabātu tikai kā vienpusēju kriptogrāfijas jaucējfunkcijas vērtību (BCrypt); mēs nevaram atgūt Jūsu sākotnējo paroli
+- **Pēdējās pieteikšanās laika zīmogs** — Jūsu jaunākās veiksmīgās pieteikšanās datums un laiks, kas tiek izmantots tikai konta neaktivitātes novērtēšanai saskaņā ar automātiskās dzēšanas politiku, kas aprakstīta 6. sadaļā
 
 _Juridiskais pamats: VDAR 6. panta 1. punkta b) apakšpunkts — apstrāde ir nepieciešama, lai izpildītu ar Jums noslēgto līgumu (pakalpojuma sniegšana)._
 
@@ -79,6 +80,9 @@ Mēs sūtām e-pastus tikai šādos gadījumos:
 
 - E-pasta adreses verifikācijai pēc reģistrācijas
 - Paroles atjaunošanai pēc Jūsu pieprasījuma
+- Sludinājuma derīguma termiņa brīdinājums — automātiski nosūtīts 7 dienas pirms sludinājuma beigām
+- Paziņojums par sludinājuma beigām — nosūtīts, kad sludinājums beidzas un tiek deaktivizēts
+- Konta neaktivitātes brīdinājums — nosūtīts aptuveni 30 dienas pirms automātiskas konta dzēšanas
 
 Mēs nesūtām mārketinga e-pastus. Jūsu e-pasta adrese netiek izmantota citiem mērķiem kā vien konta pārvaldībai.
 
@@ -128,15 +132,18 @@ Nekādas citas trešās puses nesaņem Jūsu personas datus. Mēs neizmantojam G
 | Dati                                            | Glabāšanas periods                                                                                                                   |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | Konta dati (vārds, e-pasts)                     | Līdz konta dzēšanai vai automātiski pēc 2 gadiem konta neaktivitātes bez aktīviem sludinājumiem (atkarībā no tā, kas iestājas agrāk) |
-| Nekustamā īpašuma sludinājumi un saistītie dati | Līdz sludinājuma vai konta dzēšanai                                                                                                  |
+| Nekustamā īpašuma sludinājumi un saistītie dati | Līdz sludinājuma vai konta dzēšanai vai sludinājuma derīguma termiņa beigām (maks. 6 mēneši no izveides vai pēdējās atjaunošanas); beigušies sludinājumi kļūst neaktīvi un paliek Jūsu kontā līdz 90 dienām, pēc tam tiek neatgriezeniski dzēsti |
 | Augšupielādētie fotoattēli un grīdas plāni      | Dzēsti no uzglabāšanas dažu stundu laikā pēc sludinājuma vai konta dzēšanas                                                          |
 | Saglabāto sludinājumu ieraksti                  | Līdz saglabājuma noņemšanai vai konta dzēšanai                                                                                       |
 | Piekļuves žetona sīkfails                       | 15 minūtes                                                                                                                           |
 | Atsvaidzināšanas žetons                         | 7 dienas (vai līdz atteikšanās no sistēmas)                                                                                          |
 | E-pasta verifikācijas žetoni                    | 24 stundas                                                                                                                           |
 | Paroles atjaunošanas žetoni                     | 1 stunda                                                                                                                             |
+| Pēdējās pieteikšanās laika zīmogs              | Līdz konta dzēšanai                                                                                                                  |
 
-**Automātiska neaktīvo kontu dzēšana:** Ja Jūsu konts nav bijis aktīvs 2 gadus pēc kārtas un Jums nav aktīvu nekustamā īpašuma sludinājumu, Jūsu konts un visi ar to saistītie dati tiks automātiski un neatgriezeniski dzēsti. Pirms dzēšanas mēs nosūtīsim paziņojuma e-pastu uz Jūsu reģistrēto e-pasta adresi.
+**Automātiska neaktīvo kontu dzēšana:** Ja Jūs neesat pieteicies(-usies) 2 gadus pēc kārtas un Jums nav aktīvu nekustamā īpašuma sludinājumu, Jūsu konts un visi ar to saistītie dati tiks automātiski un neatgriezeniski dzēsti. Pirms dzēšanas mēs nosūtīsim paziņojuma e-pastu uz Jūsu reģistrēto e-pasta adresi aptuveni 30 dienas iepriekš.
+
+**Sludinājumu derīguma termiņš:** Publicējot sludinājumu, Jūs izvēlaties tā ilgumu (1–6 mēneši). Mēs paziņojam Jums 7 dienas pirms termiņa beigām. Beigušies sludinājumi tiek deaktivizēti un vairs nav publiski redzami; Jūs varat tos atjaunot no sava konta 90 dienu laikā, pēc tam tie tiek neatgriezeniski dzēsti.
 
 ---
 

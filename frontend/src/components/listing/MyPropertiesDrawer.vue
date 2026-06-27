@@ -5,13 +5,13 @@ import Drawer from '../ui/Drawer.vue';
 import EmptyState from '../ui/EmptyState.vue';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
 import PropertyListItem from './PropertyListItem.vue';
-import { getMyProperties, deleteProperty } from '../../api/propertiesApi';
+import { getMyProperties, deleteProperty, renewProperty } from '../../api/propertiesApi';
 import type { PropertySummary } from '../../types/propertyItem';
-import { formatPrice } from '../../utils/format';
 import { resolveTitle } from '../../types/propertyItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import IconTrash from '../icons/IconTrash.vue';
 import IconEdit from '../icons/IconEdit.vue';
+import IconRefresh from '../icons/IconRefresh.vue';
 import IconSpinner from '../icons/IconSpinner.vue';
 
 const ERROR_DISPLAY_MS = 3000;
@@ -29,6 +29,11 @@ const error = ref(false);
 const confirmId = ref<string | null>(null);
 const deletingId = ref<string | null>(null);
 const deleteError = ref(false);
+
+const renewId = ref<string | null>(null);
+const renewMonths = ref(3);
+const renewingId = ref<string | null>(null);
+const renewError = ref(false);
 
 async function load() {
   if (!props.open) return;
@@ -63,6 +68,45 @@ async function confirmDelete() {
   } finally {
     deletingId.value = null;
   }
+}
+
+function requestRenew(event: MouseEvent, id: string) {
+  event.preventDefault();
+  event.stopPropagation();
+  renewMonths.value = 3;
+  renewId.value = id;
+}
+
+async function confirmRenew() {
+  const id = renewId.value;
+  if (!id) return;
+  renewId.value = null;
+  renewingId.value = id;
+  try {
+    const updated = await renewProperty(id, renewMonths.value);
+    items.value = items.value.map((item) =>
+      item.id === id ? { ...item, expiresAt: updated.expiresAt } : item
+    );
+  } catch {
+    renewError.value = true;
+    setTimeout(() => (renewError.value = false), ERROR_DISPLAY_MS);
+  } finally {
+    renewingId.value = null;
+  }
+}
+
+function isExpired(item: PropertySummary): boolean {
+  return !!item.expiresAt && new Date(item.expiresAt) < new Date();
+}
+
+function formatExpiry(item: PropertySummary): string {
+  if (!item.expiresAt) return '';
+  const date = new Date(item.expiresAt).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  return t('drawers.expiresOn', { date });
 }
 
 watch(() => props.open, load);
@@ -107,6 +151,11 @@ watch(() => props.open, load);
           {{ t('drawers.failedToDelete') }}
         </p>
       </Transition>
+      <Transition name="fade">
+        <p v-if="renewError" class="text-xs text-warn text-center py-1">
+          {{ t('drawers.renewError') }}
+        </p>
+      </Transition>
 
       <PropertyListItem
         v-for="item in items"
@@ -120,24 +169,47 @@ watch(() => props.open, load);
         :photo="item.photo"
         @navigate="emit('update:open', false)"
       >
-        <template #action>
-          <RouterLink
-            :to="localePath(`/property/${item.id}/edit`)"
-            class="shrink-0 self-stretch flex items-center justify-center w-10 border-l border-line text-ink-3 hover:text-accent-2 hover:bg-accent-2/5 transition-colors"
-            :aria-label="resolveTitle(item, locale)"
-            @click.stop="emit('update:open', false)"
+        <template #subtitle>
+          <span
+            v-if="isExpired(item)"
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warn/10 text-warn"
           >
-            <IconEdit />
-          </RouterLink>
-          <button
-            class="shrink-0 self-stretch flex items-center justify-center w-10 border-l border-line text-ink-3 hover:text-warn hover:bg-warn/5 transition-colors"
-            :disabled="deletingId === item.id"
-            :aria-label="resolveTitle(item, locale)"
-            @click="requestDelete($event, item.id)"
-          >
-            <IconTrash v-if="deletingId !== item.id" />
-            <IconSpinner v-else />
-          </button>
+            {{ t('drawers.expired') }}
+          </span>
+          <p v-else-if="item.expiresAt" class="text-xs text-ink-2 truncate">
+            {{ formatExpiry(item) }}
+          </p>
+        </template>
+
+        <template #footer>
+          <div class="grid grid-cols-3 divide-x divide-line">
+            <button
+              class="flex flex-col items-center gap-1.5 py-2.5 text-ink-3 hover:text-ink hover:bg-surface transition-colors disabled:opacity-40"
+              :disabled="renewingId === item.id"
+              @click="requestRenew($event, item.id)"
+            >
+              <IconSpinner v-if="renewingId === item.id" class="size-4" />
+              <IconRefresh v-else class="size-4" />
+              <span class="text-xs font-medium">{{ t('drawers.renew') }}</span>
+            </button>
+            <RouterLink
+              :to="localePath(`/property/${item.id}/edit`)"
+              class="flex flex-col items-center gap-1.5 py-2.5 text-ink-3 hover:text-ink hover:bg-surface transition-colors"
+              @click.stop="emit('update:open', false)"
+            >
+              <IconEdit class="size-4" />
+              <span class="text-xs font-medium">{{ t('drawers.edit') }}</span>
+            </RouterLink>
+            <button
+              class="flex flex-col items-center gap-1.5 py-2.5 text-ink-3 hover:text-warn hover:bg-warn/5 transition-colors disabled:opacity-40"
+              :disabled="deletingId === item.id"
+              @click="requestDelete($event, item.id)"
+            >
+              <IconSpinner v-if="deletingId === item.id" class="size-4" />
+              <IconTrash v-else class="size-4" />
+              <span class="text-xs font-medium">{{ t('drawers.delete') }}</span>
+            </button>
+          </div>
         </template>
       </PropertyListItem>
     </div>
@@ -152,4 +224,22 @@ watch(() => props.open, load);
     @update:open="confirmId = null"
     @confirm="confirmDelete"
   />
+
+  <ConfirmDialog
+    :open="renewId !== null"
+    :title="t('drawers.renewListing')"
+    :description="t('drawers.renewListingDesc')"
+    :confirm-label="t('drawers.renewConfirm')"
+    @update:open="renewId = null"
+    @confirm="confirmRenew"
+  >
+    <select
+      v-model.number="renewMonths"
+      class="mt-2 h-10 w-full rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
+    >
+      <option v-for="n in 6" :key="n" :value="n">
+        {{ n }} {{ t('addProperty.months') }}
+      </option>
+    </select>
+  </ConfirmDialog>
 </template>

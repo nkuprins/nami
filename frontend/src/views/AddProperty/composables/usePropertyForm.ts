@@ -38,6 +38,7 @@ export interface PropertyFormState {
   phones: string[];
   videoUrl: string;
   coords: { lat: number; lng: number } | null;
+  durationMonths: number;
 }
 
 const INITIAL_FORM: PropertyFormState = {
@@ -62,6 +63,7 @@ const INITIAL_FORM: PropertyFormState = {
   phones: [''],
   videoUrl: '',
   coords: null,
+  durationMonths: 3,
 };
 
 export interface EditPrefill {
@@ -282,6 +284,7 @@ export function usePropertyForm(
             form.type === 'new_project' && form.completion
               ? form.completion
               : undefined,
+          durationMonths: form.durationMonths,
         });
 
         await localePush(`/property/${item.id}`);

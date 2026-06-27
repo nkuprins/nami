@@ -36,7 +36,7 @@ export async function getProperty(
 }
 
 export async function addProperty(
-  data: Omit<PropertyDetail, 'id' | 'postedAt'>
+  data: Omit<PropertyDetail, 'id' | 'postedAt' | 'expiresAt'> & { durationMonths: number }
 ): Promise<PropertyDetail> {
   const res = await fetchApi(`/api/properties`, {
     method: 'POST',
@@ -44,6 +44,19 @@ export async function addProperty(
     body: JSON.stringify(toSlugs(data)),
   });
   if (!res.ok) throw new Error(`addProperty: ${res.status}`);
+  return toDetailDisplayNames(await res.json());
+}
+
+export async function renewProperty(
+  id: string,
+  durationMonths: number
+): Promise<PropertyDetail> {
+  const res = await fetchApi(`/api/properties/${id}/renew`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ durationMonths }),
+  });
+  if (!res.ok) throw new Error(`renewProperty: ${res.status}`);
   return toDetailDisplayNames(await res.json());
 }
 

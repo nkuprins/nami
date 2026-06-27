@@ -49,7 +49,9 @@ Jums jābūt vismaz 18 gadus vecam un jābūt pilnai rīcībspējai, lai noslēg
 - Saturu, kas pārkāpj trešo pušu intelektuālā īpašuma tiesības
 - Diskriminējošus nosacījumus vai pretlikumīgus ierobežojumus potenciālajiem pircējiem vai īrniekiem
 
-**5.4 Noņemšana.** Mēs paturam tiesības bez iepriekšēja brīdinājuma noņemt jebkuru sludinājumu, kas pārkāpj šos Noteikumus. Jūs varat dzēst savus sludinājumus jebkurā laikā.
+**5.4 Sludinājuma ilgums.** Publicējot sludinājumu, Jūs izvēlaties tā aktīvo ilgumu no 1 līdz 6 mēnešiem. Perioda beigās sludinājums tiek automātiski deaktivizēts un noņemts no publiskajiem meklēšanas rezultātiem. Jūs saņemsiet e-pasta paziņojumu 7 dienas pirms termiņa beigām. Sludinājumu var atjaunot jebkurā laikā — arī pēc tā beigšanās — izvēloties jaunu ilgumu savā kontā.
+
+**5.5 Noņemšana.** Mēs paturam tiesības bez iepriekšēja brīdinājuma noņemt jebkuru sludinājumu, kas pārkāpj šos Noteikumus. Jūs varat dzēst savus sludinājumus jebkurā laikā.
 
 ---
 

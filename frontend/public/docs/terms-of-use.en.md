@@ -49,7 +49,9 @@ You must be at least 18 years old and have full legal capacity to enter into bin
 - Content that infringes third-party intellectual property rights
 - Discriminatory conditions or unlawful restrictions on potential buyers or renters
 
-**5.4 Removal.** We reserve the right to remove any listing that violates these Terms without notice. You may delete your own listings at any time.
+**5.4 Listing duration.** When publishing a listing, you select an active duration of 1 to 6 months. At the end of this period, the listing is automatically deactivated and removed from public search results. You will receive an email notification 7 days before expiry. You may renew a listing at any time — including after it has expired — by selecting a new duration from your account.
+
+**5.5 Removal.** We reserve the right to remove any listing that violates these Terms without notice. You may delete your own listings at any time.
 
 ---
 

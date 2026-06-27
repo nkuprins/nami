@@ -32,6 +32,7 @@ When you create an account, we collect:
 - **Full name** — to identify your account and display on listings
 - **Email address** — for account authentication, email verification, and password recovery
 - **Password** — stored exclusively as a one-way cryptographic hash (BCrypt); we cannot recover your original password
+- **Last login timestamp** — the date and time of your most recent successful login, used solely to measure account inactivity for the automatic deletion policy described in Section 6
 
 _Legal basis: Article 6(1)(b) GDPR — processing is necessary to perform the contract with you (providing the platform service)._
 
@@ -79,6 +80,9 @@ We send emails only for:
 
 - Email address verification upon registration
 - Password reset upon your request
+- Listing expiry warnings — sent automatically 7 days before a listing expires
+- Listing expiry notifications — sent when a listing expires and is deactivated
+- Account inactivity warnings — sent approximately 30 days before automatic account deletion
 
 We do not send marketing emails. Your email address is not used for any purpose beyond account management.
 
@@ -128,15 +132,18 @@ No other third parties receive your personal data. We do not use Google Analytic
 | Data                                  | Retention period                                                                                                                   |
 | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | Account data (name, email)            | Until you delete your account, or automatically after 2 years of account inactivity with no active listings (whichever is earlier) |
-| Property listings and associated data | Until you delete the listing or your account                                                                                       |
+| Property listings and associated data | Until you delete the listing or your account, or until the listing expires (max 6 months from creation or last renewal); expired listings become inactive and remain in your account for up to 90 days, after which they are permanently deleted |
 | Uploaded photos and floor plans       | Deleted from storage within hours of listing or account deletion                                                                   |
 | Saved property records                | Until you remove the save or your account is deleted                                                                               |
 | Access token cookie                   | 15 minutes                                                                                                                         |
 | Refresh token                         | 7 days (or until logout)                                                                                                           |
 | Email verification tokens             | 24 hours                                                                                                                           |
 | Password reset tokens                 | 1 hour                                                                                                                             |
+| Last login timestamp                  | Until your account is deleted                                                                                                      |
 
-**Automatic inactivity deletion:** If your account has had no activity for 2 consecutive years and you have no active property listings, your account and all associated data are automatically and permanently deleted. We will send a notification email to your registered address before deletion occurs.
+**Automatic inactivity deletion:** If you have not logged in for 2 consecutive years and you have no active property listings, your account and all associated data are automatically and permanently deleted. We will send a notification email to your registered address approximately 30 days before deletion occurs.
+
+**Listing expiry:** When you publish a listing, you choose its duration (1–6 months). We notify you 7 days before expiry. Expired listings are deactivated and no longer publicly visible; you can renew them from your account within 90 days, after which they are permanently deleted.
 
 ---
 

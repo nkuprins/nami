@@ -38,6 +38,7 @@ interface PropertyBase {
   city: string;
   address: string;
   postedAt: string;
+  expiresAt?: string;
   completion?: PropertyCompletion;
 }
 
