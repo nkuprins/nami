@@ -11,15 +11,17 @@ import com.app.backend.enums.*;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public final class TestData {
 
     public static final String RAW_PASSWORD = "TestPassword12345";
-    public static final String BCRYPT_HASH = "$2a$04$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012";
+    public static final String BCRYPT_HASH = "$2a$04$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ01234";
 
     private TestData() {}
 
@@ -52,8 +54,19 @@ public final class TestData {
         p.setListingType(ListingType.BUY);
         p.setPropertyCategory(PropertyCategory.APARTMENT);
         p.setStatus(PropertyStatus.ACTIVE);
-        p.setTitle("Test Property");
-        p.setDescription("A test property description");
+        Map<String, PropertyTranslation> translations = new HashMap<>();
+        for (String[] t : new String[][]{
+                {"lv", "Testa īpašums", "Apraksts latviski"},
+                {"en", "Test Property", "Description in English"}
+        }) {
+            PropertyTranslation pt = new PropertyTranslation();
+            pt.setProperty(p);
+            pt.setLocale(t[0]);
+            pt.setTitle(t[1]);
+            pt.setDescription(t[2]);
+            translations.put(t[0], pt);
+        }
+        p.setTranslations(translations);
         p.setPrice(new BigDecimal("150000.00"));
         p.setRooms((short) 3);
         p.setM2(new BigDecimal("75.00"));
@@ -67,14 +80,17 @@ public final class TestData {
         p.setLng(24.1052);
         p.setPostedAt(OffsetDateTime.now());
         p.setUpdatedAt(OffsetDateTime.now());
+        p.setExpiresAt(OffsetDateTime.now().plusMonths(3));
         p.setFeatures(new HashSet<>(Set.of(PropertyFeature.BALCONY, PropertyFeature.PARKING)));
         p.setPhotos(new ArrayList<>());
+        p.setPlans(new ArrayList<>());
         p.setPhones(new ArrayList<>());
         return p;
     }
 
     public static Property propertyWithPhotos(User owner) {
         Property p = property(owner);
+
         PropertyPhoto photo1 = new PropertyPhoto();
         photo1.setId(UUID.randomUUID());
         photo1.setProperty(p);
@@ -136,21 +152,26 @@ public final class TestData {
 
     public static CreatePropertyRequest createPropertyRequest() {
         return new CreatePropertyRequest(
-                "buy", "apartment", "New Apartment", "Nice apartment in the center",
+                "buy", "apartment",
+                "Testa dzīvoklis", "Test Apartment", null,
+                "Apraksts latviski", "Description in English", null,
                 new BigDecimal("200000.00"), (short) 2, new BigDecimal("65.00"),
                 null, (short) 4, (short) 9, (short) 2020,
                 List.of("balcony", "parking"),
                 "centre", "riga", "Main Street 10",
                 new CoordsDto(56.9496, 24.1052),
                 List.of("https://cdn.test.local/uploads/p1.jpg"),
+                null,
                 List.of("+37120000000"),
-                null, null
+                null, null, 3
         );
     }
 
     public static UpdatePropertyRequest updatePropertyRequest() {
         return new UpdatePropertyRequest(
-                "buy", "apartment", "Updated Apartment", "Updated description",
+                "buy", "apartment",
+                "Atjaunots dzīvoklis", "Updated Apartment", null,
+                "Atjaunots apraksts", "Updated description", null,
                 new BigDecimal("210000.00"), (short) 3, new BigDecimal("70.00"),
                 null, (short) 5, (short) 9, (short) 2021,
                 List.of("elevator", "furnished"),

@@ -24,6 +24,10 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    create("mockitoAgent")
+}
+
 tasks.named<JavaCompile>("compileJava") {
     options.generatedSourceOutputDirectory.set(file("src/main/generated"))
 }
@@ -50,10 +54,12 @@ dependencies {
     testImplementation("org.instancio:instancio-junit:5.4.0")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    add("mockitoAgent", "org.mockito:mockito-core") { isTransitive = false }
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    jvmArgs("-javaagent:${configurations["mockitoAgent"].asPath}")
 }
 
 tasks.jacocoTestReport {

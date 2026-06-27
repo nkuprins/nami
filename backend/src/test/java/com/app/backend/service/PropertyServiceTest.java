@@ -2,15 +2,25 @@ package com.app.backend.service;
 
 import com.app.backend.dto.*;
 import com.app.backend.entity.Property;
-import com.app.backend.entity.PropertyPhoto;
+import com.app.backend.entity.Property_;
+import com.app.backend.entity.PropertyTranslation;
 import com.app.backend.entity.User;
+import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.mapper.PropertyMapper;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.data.domain.Sort;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,7 +29,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.stream.Stream;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -40,6 +55,21 @@ class PropertyServiceTest {
     @InjectMocks
     private PropertyService propertyService;
 
+    @BeforeEach
+    void initTransactionSync() {
+        TransactionSynchronizationManager.initSynchronization();
+    }
+
+    @AfterEach
+    void clearTransactionSync() {
+        TransactionSynchronizationManager.clearSynchronization();
+    }
+
+    private void triggerAfterCommit() {
+        new ArrayList<>(TransactionSynchronizationManager.getSynchronizations())
+                .forEach(TransactionSynchronization::afterCommit);
+    }
+
     private PropertyFilter defaultFilter() {
         return new PropertyFilter("buy", null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
@@ -51,7 +81,7 @@ class PropertyServiceTest {
         void appliesFilter_andPagination_withDefaultSort() {
             Property p = property(user());
             PropertyListItemDto dto = listItemDto(p);
-            when(propertyRepository.findAll(any(Specification.class), any(Pageable.class)))
+            when(propertyRepository.findAll(ArgumentMatchers.<Specification<Property>>any(), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(p)));
             when(propertyMapper.toListDto(p)).thenReturn(dto);
 
@@ -61,34 +91,52 @@ class PropertyServiceTest {
             assertThat(result.total()).isEqualTo(1);
         }
 
-        @Test
-        void sortsByPricePerM2Asc_withInMemorySorting() {
-            User owner = user();
-            Property cheap = property(owner);
-            cheap.setPrice(new BigDecimal("100000"));
-            cheap.setM2(new BigDecimal("100"));
+        @ParameterizedTest
+        @MethodSource("com.app.backend.service.PropertyServiceTest#sortOptions")
+        void list_passesCorrectSortToRepository(String sortParam, String expectedField, Sort.Direction expectedDir) {
+            ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+            when(propertyRepository.findAll(ArgumentMatchers.<Specification<Property>>any(), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of()));
 
-            Property expensive = property(owner);
-            expensive.setPrice(new BigDecimal("200000"));
-            expensive.setM2(new BigDecimal("50"));
+            propertyService.list(defaultFilter(), sortParam, 1);
 
-            when(propertyRepository.findAll(any(Specification.class))).thenReturn(List.of(expensive, cheap));
-            when(propertyMapper.toListDto(any())).thenAnswer(inv -> listItemDto(inv.getArgument(0)));
-
-            PropertyPageResponse result = propertyService.list(defaultFilter(), "price-per-m2-asc", 1);
-
-            assertThat(result.items()).hasSize(2);
-            assertThat(result.total()).isEqualTo(2);
+            verify(propertyRepository).findAll(ArgumentMatchers.<Specification<Property>>any(), captor.capture());
+            Sort.Order order = captor.getValue().getSort().iterator().next();
+            assertThat(order.getProperty()).isEqualTo(expectedField);
+            assertThat(order.getDirection()).isEqualTo(expectedDir);
         }
 
         @Test
         void returnsEmptyPage_whenPageExceedsTotalResults() {
-            when(propertyRepository.findAll(any(Specification.class))).thenReturn(List.of(property(user())));
+            when(propertyRepository.findAll(ArgumentMatchers.<Specification<Property>>any(), any(Pageable.class)))
+                    .thenAnswer(inv -> new PageImpl<>(List.of(), inv.getArgument(1), 1));
 
             PropertyPageResponse result = propertyService.list(defaultFilter(), "price-per-m2-asc", 100);
 
             assertThat(result.items()).isEmpty();
             assertThat(result.total()).isEqualTo(1);
+        }
+
+        @Test
+        void mapsFeatureFilter_whenFeaturesPresent() {
+            PropertyFilter filter = new PropertyFilter("buy", null, null, null, null, null, null,
+                    null, null, null, null, null, null, List.of("balcony"), null);
+            when(propertyRepository.findAll(ArgumentMatchers.<Specification<Property>>any(), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of()));
+
+            assertThatCode(() -> propertyService.list(filter, "newest", 1))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        void mapsCompletionFilter_whenCompletionPresent() {
+            PropertyFilter filter = new PropertyFilter("buy", null, null, null, null, null, null,
+                    null, null, null, null, null, null, null, "ready");
+            when(propertyRepository.findAll(ArgumentMatchers.<Specification<Property>>any(), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of()));
+
+            assertThatCode(() -> propertyService.list(filter, "newest", 1))
+                    .doesNotThrowAnyException();
         }
     }
 
@@ -179,6 +227,70 @@ class PropertyServiceTest {
             assertThatThrownBy(() -> propertyService.create(createPropertyRequest(), id))
                     .isInstanceOf(ResponseStatusException.class);
         }
+
+        @Test
+        void throwsBadRequest_whenBothTitlesBlank() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+
+            CreatePropertyRequest req = new CreatePropertyRequest(
+                    "buy", "apartment", null, null, null,
+                    "Desc LV", null, null,
+                    new BigDecimal("100000"), (short) 2, new BigDecimal("50"),
+                    null, (short) 1, (short) 5, (short) 2010, null,
+                    "centre", "riga", "Street 1", new CoordsDto(56.9, 24.1),
+                    null, null, null, null, null, 3
+            );
+
+            assertThatThrownBy(() -> propertyService.create(req, owner.getId()))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode().value()).isEqualTo(400));
+        }
+
+        @Test
+        void throwsBadRequest_whenBothDescriptionsBlank() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+
+            CreatePropertyRequest req = new CreatePropertyRequest(
+                    "buy", "apartment", "Title LV", null, null,
+                    null, null, null,
+                    new BigDecimal("100000"), (short) 2, new BigDecimal("50"),
+                    null, (short) 1, (short) 5, (short) 2010, null,
+                    "centre", "riga", "Street 1", new CoordsDto(56.9, 24.1),
+                    null, null, null, null, null, 3
+            );
+
+            assertThatThrownBy(() -> propertyService.create(req, owner.getId()))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode().value()).isEqualTo(400));
+        }
+
+        @Test
+        void setsCompletion_whenProvided() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            ArgumentCaptor<Property> captor = ArgumentCaptor.forClass(Property.class);
+            when(propertyRepository.save(captor.capture())).thenAnswer(inv -> {
+                Property p = inv.getArgument(0);
+                p.setId(UUID.randomUUID());
+                return p;
+            });
+            when(propertyMapper.toDto(any())).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+
+            CreatePropertyRequest req = new CreatePropertyRequest(
+                    "buy", "apartment", "Title LV", null, null,
+                    "Desc LV", null, null,
+                    new BigDecimal("100000"), (short) 2, new BigDecimal("50"),
+                    null, (short) 1, (short) 5, (short) 2010, null,
+                    "centre", "riga", "Street 1", new CoordsDto(56.9, 24.1),
+                    null, null, null, null, "ready", 3
+            );
+
+            propertyService.create(req, owner.getId());
+
+            assertThat(captor.getValue().getCompletion()).isEqualTo(PropertyCompletion.READY);
+        }
     }
 
     @Nested
@@ -217,6 +329,66 @@ class PropertyServiceTest {
             assertThatThrownBy(() -> propertyService.update(id, updatePropertyRequest(), UUID.randomUUID()))
                     .isInstanceOf(ResponseStatusException.class);
         }
+
+        @Test
+        void throwsBadRequest_whenBothTitlesBlank() {
+            User owner = user();
+            Property p = property(owner);
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+
+            UpdatePropertyRequest req = new UpdatePropertyRequest(
+                    "buy", "apartment", null, null, null,
+                    "Desc LV", null, null,
+                    new BigDecimal("100000"), (short) 2, new BigDecimal("50"),
+                    null, (short) 1, (short) 5, (short) 2010,
+                    null, null, null, null
+            );
+
+            assertThatThrownBy(() -> propertyService.update(p.getId(), req, owner.getId()))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode().value()).isEqualTo(400));
+        }
+
+        @Test
+        void throwsBadRequest_whenBothDescriptionsBlank() {
+            User owner = user();
+            Property p = property(owner);
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+
+            UpdatePropertyRequest req = new UpdatePropertyRequest(
+                    "buy", "apartment", "Title LV", null, null,
+                    null, null, null,
+                    new BigDecimal("100000"), (short) 2, new BigDecimal("50"),
+                    null, (short) 1, (short) 5, (short) 2010,
+                    null, null, null, null
+            );
+
+            assertThatThrownBy(() -> propertyService.update(p.getId(), req, owner.getId()))
+                    .isInstanceOf(ResponseStatusException.class)
+                    .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode().value()).isEqualTo(400));
+        }
+
+        @Test
+        void clearsCompletion_whenBlankInRequest() {
+            User owner = user();
+            Property p = property(owner);
+            p.setCompletion(PropertyCompletion.READY);
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+            when(propertyRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(propertyMapper.toDto(any())).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+
+            UpdatePropertyRequest req = new UpdatePropertyRequest(
+                    "buy", "apartment", "Title LV", null, null,
+                    "Desc LV", null, null,
+                    new BigDecimal("100000"), (short) 2, new BigDecimal("50"),
+                    null, (short) 1, (short) 5, (short) 2010,
+                    null, null, null, null
+            );
+
+            propertyService.update(p.getId(), req, owner.getId());
+
+            assertThat(p.getCompletion()).isNull();
+        }
     }
 
     @Nested
@@ -228,6 +400,7 @@ class PropertyServiceTest {
             when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
 
             propertyService.delete(p.getId(), owner.getId());
+            triggerAfterCommit();
 
             verify(propertyRepository).delete(p);
             verify(uploadService).deleteObjects(List.of(
@@ -254,30 +427,69 @@ class PropertyServiceTest {
             when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
             doThrow(new RuntimeException("S3 down")).when(uploadService).deleteObjects(any());
 
-            assertThatCode(() -> propertyService.delete(p.getId(), owner.getId()))
-                    .doesNotThrowAnyException();
+            propertyService.delete(p.getId(), owner.getId());
+            triggerAfterCommit();  // S3 throws inside afterCommit but is caught there
             verify(propertyRepository).delete(p);
+        }
+
+        @Test
+        void doesNotCallS3_whenPropertyHasNoPhotos() {
+            User owner = user();
+            Property p = property(owner); // no photos
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+
+            propertyService.delete(p.getId(), owner.getId());
+
+            verify(propertyRepository).delete(p);
+            verify(uploadService, never()).deleteObjects(any());
         }
     }
 
+    static Stream<Arguments> sortOptions() {
+        return Stream.of(
+                Arguments.of("newest",          Property_.POSTED_AT,    Sort.Direction.DESC),
+                Arguments.of("price-asc",        Property_.PRICE,        Sort.Direction.ASC),
+                Arguments.of("price-desc",       Property_.PRICE,        Sort.Direction.DESC),
+                Arguments.of("m2-desc",          Property_.M2,           Sort.Direction.DESC),
+                Arguments.of("price-per-m2-asc", Property_.PRICE_PER_M2, Sort.Direction.ASC)
+        );
+    }
+
     private PropertyListItemDto listItemDto(Property p) {
+        var tr = p.getTranslations();
         return new PropertyListItemDto(
                 p.getId(), p.getOwner().getId(), p.getListingType().getDbValue(),
-                p.getPropertyCategory().getDbValue(), p.getTitle(), p.getPrice(),
-                p.getRooms(), p.getM2(), p.getLandM2(), p.getFloor(), p.getTotalFloors(),
-                p.getYearBuilt(), List.of(), p.getDistrictSlug(), p.getCitySlug(),
-                p.getAddress(), null, p.getPostedAt(), null
+                p.getPropertyCategory().getDbValue(),
+                t(tr, "lv", PropertyTranslation::getTitle),
+                t(tr, "en", PropertyTranslation::getTitle),
+                t(tr, "ru", PropertyTranslation::getTitle),
+                p.getPrice(), p.getRooms(), p.getM2(), p.getLandM2(), p.getFloor(),
+                p.getTotalFloors(), p.getYearBuilt(), List.of(), p.getDistrictSlug(),
+                p.getCitySlug(), p.getAddress(), null, p.getPostedAt(), null, p.getExpiresAt()
         );
     }
 
     private PropertyItemDto itemDto(Property p) {
+        var tr = p.getTranslations();
         return new PropertyItemDto(
                 p.getId(), p.getOwner().getId(), p.getListingType().getDbValue(),
-                p.getPropertyCategory().getDbValue(), p.getTitle(), p.getDescription(),
-                p.getPrice(), p.getRooms(), p.getM2(), p.getLandM2(), p.getFloor(),
-                p.getTotalFloors(), p.getYearBuilt(), List.of(), p.getDistrictSlug(),
-                p.getCitySlug(), p.getAddress(), new CoordsDto(p.getLat(), p.getLng()),
-                List.of(), null, null, p.getPostedAt(), null
+                p.getPropertyCategory().getDbValue(),
+                t(tr, "lv", PropertyTranslation::getTitle),
+                t(tr, "en", PropertyTranslation::getTitle),
+                t(tr, "ru", PropertyTranslation::getTitle),
+                t(tr, "lv", PropertyTranslation::getDescription),
+                t(tr, "en", PropertyTranslation::getDescription),
+                t(tr, "ru", PropertyTranslation::getDescription),
+                p.getPrice(), p.getRooms(),
+                p.getM2(), p.getLandM2(), p.getFloor(), p.getTotalFloors(), p.getYearBuilt(),
+                List.of(), p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
+                new CoordsDto(p.getLat(), p.getLng()), List.of(), null, null, null, p.getPostedAt(), null, p.getExpiresAt()
         );
+    }
+
+    private static <R> R t(java.util.Map<String, PropertyTranslation> tr, String locale,
+                           java.util.function.Function<PropertyTranslation, R> fn) {
+        PropertyTranslation pt = tr.get(locale);
+        return pt != null ? fn.apply(pt) : null;
     }
 }

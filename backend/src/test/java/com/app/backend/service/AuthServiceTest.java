@@ -1,9 +1,11 @@
 package com.app.backend.service;
 
 import com.app.backend.config.AppProperties;
+import com.app.backend.dto.UserExportDto;
 import com.app.backend.dto.auth.*;
 import com.app.backend.entity.*;
 import com.app.backend.exception.AuthException;
+import com.app.backend.mapper.PropertyMapper;
 import com.app.backend.repository.*;
 import com.app.backend.security.CookieFactory;
 import com.app.backend.security.JwtService;
@@ -15,12 +17,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import org.junit.jupiter.api.AfterEach;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,9 +54,26 @@ class AuthServiceTest {
     @Mock private EmailService emailService;
     @Mock private UploadService uploadService;
     @Mock private AppProperties props;
+    @Mock private SavedPropertyRepository savedPropertyRepository;
+    @Spy @SuppressWarnings("unused") private PropertyMapper propertyMapper = new PropertyMapper();
 
     @InjectMocks
     private AuthService authService;
+
+    @BeforeEach
+    void initTransactionSync() {
+        TransactionSynchronizationManager.initSynchronization();
+    }
+
+    @AfterEach
+    void clearTransactionSync() {
+        TransactionSynchronizationManager.clearSynchronization();
+    }
+
+    private void triggerAfterCommit() {
+        new ArrayList<>(TransactionSynchronizationManager.getSynchronizations())
+                .forEach(TransactionSynchronization::afterCommit);
+    }
 
     private void stubCookieFactory() {
         lenient().when(cookieFactory.accessTokenCookie(anyString())).thenReturn(ResponseCookie.from("access_token", "v").build());
@@ -114,6 +140,7 @@ class AuthServiceTest {
             });
 
             authService.register(registerRequest());
+            triggerAfterCommit();
 
             verify(emailService).sendVerificationEmail(anyString(), anyString(), anyString());
             verify(emailVerificationTokenRepository).save(any(EmailVerificationToken.class));
@@ -142,6 +169,8 @@ class AuthServiceTest {
             AuthUserResponse result = authService.login(loginRequest("login@test.com"), response);
 
             assertThat(result.email()).isEqualTo("login@test.com");
+            assertThat(user.getLastLoginAt()).isNotNull()
+                    .isCloseToUtcNow(within(5, ChronoUnit.SECONDS));
             verify(response, times(2)).addHeader(eq("Set-Cookie"), anyString());
         }
 
@@ -285,6 +314,14 @@ class AuthServiceTest {
             verify(response, times(2)).addHeader(eq("Set-Cookie"), anyString());
             verify(refreshTokenRepository, never()).findByTokenHash(anyString());
         }
+
+        @Test
+        void clearsCookies_evenWhenTokenBlank() {
+            authService.logout("  ", response);
+
+            verify(response, times(2)).addHeader(eq("Set-Cookie"), anyString());
+            verify(refreshTokenRepository, never()).findByTokenHash(anyString());
+        }
     }
 
     @Nested
@@ -312,16 +349,24 @@ class AuthServiceTest {
 
     @Nested
     class DeleteAccount {
+
+        private HttpServletResponse response;
+
+        @BeforeEach
+        void setUp() {
+            response = mock(HttpServletResponse.class);
+            stubCookieFactory();
+        }
+
         @Test
         void deletesUser_andS3Photos_andClearsCookies() {
-            stubCookieFactory();
-            HttpServletResponse response = mock(HttpServletResponse.class);
             User user = user();
             Property prop = propertyWithPhotos(user);
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
             when(propertyRepository.findByOwner(user)).thenReturn(List.of(prop));
 
             authService.deleteAccount(user.getId(), response);
+            triggerAfterCommit();
 
             verify(userRepository).delete(user);
             verify(uploadService).deleteObjects(List.of(
@@ -333,17 +378,37 @@ class AuthServiceTest {
 
         @Test
         void handlesS3Failure_gracefully() {
-            stubCookieFactory();
-            HttpServletResponse response = mock(HttpServletResponse.class);
             User user = user();
             Property prop = propertyWithPhotos(user);
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
             when(propertyRepository.findByOwner(user)).thenReturn(List.of(prop));
             doThrow(new RuntimeException("S3 down")).when(uploadService).deleteObjects(any());
 
-            assertThatCode(() -> authService.deleteAccount(user.getId(), response))
-                    .doesNotThrowAnyException();
+            authService.deleteAccount(user.getId(), response);
+            triggerAfterCommit();  // S3 throws inside afterCommit but is caught there
             verify(userRepository).delete(user);
+        }
+
+        @Test
+        void throwsNotFound_whenUserNotFound() {
+            UUID id = UUID.randomUUID();
+            when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authService.deleteAccount(id, response))
+                    .isInstanceOf(AuthException.class)
+                    .satisfies(ex -> assertThat(((AuthException) ex).getStatus()).isEqualTo(HttpStatus.NOT_FOUND));
+        }
+
+        @Test
+        void doesNotCallS3_whenUserHasNoProperties() {
+            User user = user();
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+            when(propertyRepository.findByOwner(user)).thenReturn(List.of());
+
+            authService.deleteAccount(user.getId(), response);
+
+            verify(userRepository).delete(user);
+            verify(uploadService, never()).deleteObjects(any());
         }
     }
 
@@ -406,6 +471,7 @@ class AuthServiceTest {
             when(userRepository.findByEmailIgnoreCase("unverified@test.com")).thenReturn(Optional.of(user));
 
             authService.resendVerification(new ResendVerificationRequest("unverified@test.com"));
+            triggerAfterCommit();
 
             verify(emailVerificationTokenRepository).deleteByUser(user);
             verify(emailService).sendVerificationEmail(anyString(), anyString(), anyString());
@@ -440,6 +506,7 @@ class AuthServiceTest {
             when(userRepository.findByEmailIgnoreCase("forgot@test.com")).thenReturn(Optional.of(user));
 
             authService.forgotPassword(new ForgotPasswordRequest("forgot@test.com"));
+            triggerAfterCommit();
 
             verify(passwordResetTokenRepository).deleteByUser(user);
             verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
@@ -504,6 +571,139 @@ class AuthServiceTest {
             assertThatThrownBy(() -> authService.resetPassword(new ResetPasswordRequest("expired", "NewPassword123456")))
                     .isInstanceOf(AuthException.class)
                     .satisfies(ex -> assertThat(((AuthException) ex).getCode()).isEqualTo("TOKEN_EXPIRED"));
+        }
+    }
+
+    @Nested
+    class UpdateProfile {
+
+        @Test
+        void updatesName_whenOnlyNameProvided() {
+            User user = user();
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+            AuthUserResponse result = authService.updateProfile(user.getId(), new UpdateProfileRequest("New Name", null));
+
+            assertThat(result.name()).isEqualTo("New Name");
+            assertThat(user.getName()).isEqualTo("New Name");
+            verify(userRepository).save(user);
+        }
+
+        @Test
+        void updatesEmail_lowercasesAndStrips_andInvalidatesSessions_andSendsVerification() {
+            stubTokenGeneration();
+            User user = user("old@test.com");
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+            when(userRepository.findByEmailIgnoreCase("new@test.com")).thenReturn(Optional.empty());
+
+            authService.updateProfile(user.getId(), new UpdateProfileRequest(null, "  NEW@TEST.COM  "));
+            triggerAfterCommit();
+
+            assertThat(user.getEmail()).isEqualTo("new@test.com");
+            assertThat(user.isEmailVerified()).isFalse();
+            verify(refreshTokenRepository).deleteByUser(user);
+            verify(emailVerificationTokenRepository).save(any(EmailVerificationToken.class));
+            verify(emailService).sendVerificationEmail(eq("new@test.com"), anyString(), anyString());
+        }
+
+        @Test
+        void updatesNameAndEmail_whenBothProvided() {
+            stubTokenGeneration();
+            User user = user("old@test.com");
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+            when(userRepository.findByEmailIgnoreCase("new@test.com")).thenReturn(Optional.empty());
+
+            AuthUserResponse result = authService.updateProfile(user.getId(), new UpdateProfileRequest("Updated Name", "new@test.com"));
+
+            assertThat(result.name()).isEqualTo("Updated Name");
+            assertThat(user.getEmail()).isEqualTo("new@test.com");
+        }
+
+        @Test
+        void throwsConflict_whenNewEmailAlreadyTaken() {
+            User user = user("old@test.com");
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+            when(userRepository.findByEmailIgnoreCase("taken@test.com")).thenReturn(Optional.of(user("taken@test.com")));
+
+            assertThatThrownBy(() -> authService.updateProfile(user.getId(), new UpdateProfileRequest(null, "taken@test.com")))
+                    .isInstanceOf(AuthException.class)
+                    .satisfies(ex -> {
+                        AuthException ae = (AuthException) ex;
+                        assertThat(ae.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+                        assertThat(ae.getCode()).isEqualTo("EMAIL_TAKEN");
+                    });
+        }
+
+        @Test
+        void throwsBadRequest_whenNoChangesDetected() {
+            User user = user("same@test.com");
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+            assertThatThrownBy(() -> authService.updateProfile(user.getId(), new UpdateProfileRequest(null, "same@test.com")))
+                    .isInstanceOf(AuthException.class)
+                    .satisfies(ex -> {
+                        AuthException ae = (AuthException) ex;
+                        assertThat(ae.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+                        assertThat(ae.getCode()).isEqualTo("NO_CHANGES");
+                    });
+        }
+
+        @Test
+        void throwsUnauthorized_whenUserNotFound() {
+            UUID id = UUID.randomUUID();
+            when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authService.updateProfile(id, new UpdateProfileRequest("Name", null)))
+                    .isInstanceOf(AuthException.class)
+                    .satisfies(ex -> assertThat(((AuthException) ex).getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED));
+        }
+    }
+
+    @Nested
+    class Export {
+        @Test
+        void returnsDto_withOwnedAndSavedProperties() {
+            User user = user();
+            Property prop = property(user);
+            UUID savedPropId = UUID.randomUUID();
+            SavedProperty saved = new SavedProperty();
+            saved.setId(new SavedPropertyId(user.getId(), savedPropId));
+            saved.setSavedAt(OffsetDateTime.now());
+
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+            when(propertyRepository.findByOwner(user)).thenReturn(List.of(prop));
+            when(savedPropertyRepository.findByIdUserId(user.getId())).thenReturn(List.of(saved));
+
+            UserExportDto result = authService.export(user.getId());
+
+            assertThat(result.id()).isEqualTo(user.getId());
+            assertThat(result.email()).isEqualTo(user.getEmail());
+            assertThat(result.ownedProperties()).hasSize(1);
+            assertThat(result.savedProperties()).hasSize(1);
+            assertThat(result.savedProperties().getFirst().propertyId()).isEqualTo(savedPropId);
+        }
+
+        @Test
+        void returnsDto_withEmptyLists_whenNoPropertiesOrSaved() {
+            User user = user();
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+            when(propertyRepository.findByOwner(user)).thenReturn(List.of());
+            when(savedPropertyRepository.findByIdUserId(user.getId())).thenReturn(List.of());
+
+            UserExportDto result = authService.export(user.getId());
+
+            assertThat(result.ownedProperties()).isEmpty();
+            assertThat(result.savedProperties()).isEmpty();
+        }
+
+        @Test
+        void throwsUnauthorized_whenUserNotFound() {
+            UUID id = UUID.randomUUID();
+            when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> authService.export(id))
+                    .isInstanceOf(AuthException.class)
+                    .satisfies(ex -> assertThat(((AuthException) ex).getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED));
         }
     }
 }

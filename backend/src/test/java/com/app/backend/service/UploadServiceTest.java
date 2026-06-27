@@ -1,5 +1,6 @@
 package com.app.backend.service;
 
+import com.app.backend.config.AppProperties;
 import com.app.backend.dto.PresignResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -35,9 +37,9 @@ class UploadServiceTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(uploadService, "bucket", "test-bucket");
-        ReflectionTestUtils.setField(uploadService, "presignTtlMinutes", 5);
-        ReflectionTestUtils.setField(uploadService, "cdnUrl", "https://cdn.test.local");
+        AppProperties.S3Properties s3 = new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local");
+        AppProperties props = new AppProperties(null, s3, null, null, null, null);
+        ReflectionTestUtils.setField(uploadService, "props", props);
     }
 
     @Test
@@ -78,7 +80,7 @@ class UploadServiceTest {
         verify(s3Client).deleteObjects(captor.capture());
 
         List<String> keys = captor.getValue().delete().objects().stream()
-                .map(o -> o.key())
+                .map(ObjectIdentifier::key)
                 .toList();
         assertThat(keys).containsExactly("uploads/abc/photo.jpg", "uploads/def/photo2.jpg");
     }
