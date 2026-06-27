@@ -37,4 +37,8 @@ public interface PropertyRepository extends JpaRepository<Property, UUID>, JpaSp
 
     @Query("SELECT p FROM Property p WHERE p.status = :status AND p.expiresAt <= :warnCutoff AND p.expiryWarningSent = false")
     List<Property> findExpiringUnwarned(@Param("status") PropertyStatus status, @Param("warnCutoff") OffsetDateTime warnCutoff);
+
+    @EntityGraph(attributePaths = {"photos", "plans"})
+    @Query("SELECT p FROM Property p WHERE p.status = :status AND p.expiresAt < :purgeCutoff")
+    List<Property> findInactiveExpiredBefore(@Param("status") PropertyStatus status, @Param("purgeCutoff") OffsetDateTime purgeCutoff);
 }

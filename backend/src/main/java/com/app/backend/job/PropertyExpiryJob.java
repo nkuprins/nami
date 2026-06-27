@@ -1,10 +1,13 @@
 package com.app.backend.job;
 
 import com.app.backend.entity.Property;
+import com.app.backend.entity.PropertyPhoto;
+import com.app.backend.entity.PropertyPlan;
 import com.app.backend.entity.PropertyTranslation;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.service.EmailService;
+import com.app.backend.service.UploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -18,6 +21,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -26,12 +30,14 @@ public class PropertyExpiryJob {
 
     private final PropertyRepository propertyRepository;
     private final EmailService emailService;
+    private final UploadService uploadService;
 
     @Scheduled(cron = "0 0 2 * * *")
     @Transactional
     public void runPropertyExpiryJob() {
         sendExpiryWarnings();
         expireListings();
+        purgeExpiredInactiveListings();
     }
 
     private void sendExpiryWarnings() {
@@ -101,6 +107,37 @@ public class PropertyExpiryJob {
                 log.info("Property expiry: expired {} listings across {} owners", expired.size(), digests.size());
             }
         });
+    }
+
+    private void purgeExpiredInactiveListings() {
+        OffsetDateTime purgeCutoff = OffsetDateTime.now().minusDays(90);
+        List<Property> toPurge = propertyRepository.findInactiveExpiredBefore(PropertyStatus.INACTIVE, purgeCutoff);
+
+        if (toPurge.isEmpty()) return;
+
+        log.info("Property purge: found {} inactive listings to permanently delete", toPurge.size());
+
+        List<String> allMediaUrls = toPurge.stream()
+                .flatMap(p -> Stream.concat(
+                        p.getPhotos().stream().map(PropertyPhoto::getUrl),
+                        p.getPlans().stream().map(PropertyPlan::getUrl)))
+                .toList();
+
+        propertyRepository.deleteAll(toPurge);
+        log.info("Property purge: permanently deleted {} inactive listings", toPurge.size());
+
+        if (!allMediaUrls.isEmpty()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    try {
+                        uploadService.deleteObjects(allMediaUrls);
+                    } catch (Exception e) {
+                        log.warn("Failed to delete S3 objects during property purge: {}", e.getMessage());
+                    }
+                }
+            });
+        }
     }
 
     private static String resolveTitle(Map<String, PropertyTranslation> translations) {

@@ -6,6 +6,10 @@ plugins {
     id("io.freefair.lombok") version "8.13.1"
 }
 
+lombok {
+    version = "1.18.46"
+}
+
 group = "com.app"
 version = "0.0.1-SNAPSHOT"
 description = "backend"
