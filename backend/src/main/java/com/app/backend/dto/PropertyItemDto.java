@@ -38,5 +38,6 @@ public record PropertyItemDto(
         List<String> phones,
         String videoUrl,
         OffsetDateTime postedAt,
-        String completion
+        String completion,
+        OffsetDateTime expiresAt
 ) {}

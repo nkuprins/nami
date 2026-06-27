@@ -32,6 +32,7 @@ CREATE TABLE users (
     password_hash TEXT        NOT NULL
                               CHECK (char_length(password_hash) >= 60),
     email_verified BOOLEAN     NOT NULL DEFAULT false,
+    last_login_at TIMESTAMPTZ NULL,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -131,8 +132,10 @@ CREATE TABLE properties (
         CHECK (completion IS DISTINCT FROM 'not_ready' OR year_built IS NULL),
 
     -- Timestamps
-    posted_at         TIMESTAMPTZ          NOT NULL DEFAULT now(),
-    updated_at        TIMESTAMPTZ          NOT NULL DEFAULT now()
+    posted_at             TIMESTAMPTZ          NOT NULL DEFAULT now(),
+    updated_at            TIMESTAMPTZ          NOT NULL DEFAULT now(),
+    expires_at            TIMESTAMPTZ          NOT NULL,
+    expiry_warning_sent   BOOLEAN              NOT NULL DEFAULT false
 );
 
 CREATE INDEX idx_properties_listing_type          ON properties (listing_type);
@@ -151,6 +154,8 @@ CREATE INDEX idx_properties_city_posted_at
 -- Geospatial proximity (map view)
 CREATE INDEX idx_properties_coords
     ON properties USING gist (ll_to_earth(lat, lng));
+-- Expiry job: find active listings that are expiring
+CREATE INDEX idx_properties_expires_at ON properties (expires_at) WHERE status = 'active';
 
 -- ─────────────────────────────────────────────
 -- Property features

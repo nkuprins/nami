@@ -48,6 +48,33 @@ public class EmailService {
         send(toEmail, "Your Baltnami account will be deleted soon", html);
     }
 
+    public void sendListingExpiryWarningEmail(String toEmail, String name, List<String> listingTitles) {
+        String loginUrl = props.frontendUrl();
+        String items = listingTitles.stream()
+                .map(t -> "<li><strong>" + escapeHtml(t) + "</strong></li>")
+                .collect(java.util.stream.Collectors.joining());
+        String html = "<p>Hi " + escapeHtml(name) + ",</p>"
+                + "<p>The following listing" + (listingTitles.size() > 1 ? "s" : "") + " will expire within 7 days "
+                + "and will no longer be publicly visible:</p>"
+                + "<ul>" + items + "</ul>"
+                + "<p><a href=\"" + escapeHtml(loginUrl) + "\">Log in</a> to renew them and choose a new listing duration.</p>"
+                + "<p>If you no longer need these listings, no action is needed.</p>";
+        send(toEmail, "Your Baltnami listing" + (listingTitles.size() > 1 ? "s expire" : " expires") + " soon", html);
+    }
+
+    public void sendListingExpiredEmail(String toEmail, String name, List<String> listingTitles) {
+        String loginUrl = props.frontendUrl();
+        String items = listingTitles.stream()
+                .map(t -> "<li><strong>" + escapeHtml(t) + "</strong></li>")
+                .collect(java.util.stream.Collectors.joining());
+        String html = "<p>Hi " + escapeHtml(name) + ",</p>"
+                + "<p>The following listing" + (listingTitles.size() > 1 ? "s have" : " has") + " expired and "
+                + (listingTitles.size() > 1 ? "are" : "is") + " no longer publicly visible:</p>"
+                + "<ul>" + items + "</ul>"
+                + "<p><a href=\"" + escapeHtml(loginUrl) + "\">Log in</a> to renew them and make them active again.</p>";
+        send(toEmail, "Your Baltnami listing" + (listingTitles.size() > 1 ? "s have" : " has") + " expired", html);
+    }
+
     private void send(String to, String subject, String html) {
         String apiKey = props.resend().apiKey();
         if (apiKey == null || apiKey.isBlank()) {

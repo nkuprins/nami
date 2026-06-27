@@ -55,6 +55,15 @@ public class PropertyController {
         return propertyService.update(id, request, userId);
     }
 
+    @PostMapping("/{id}/renew")
+    public PropertyItemDto renew(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID id,
+            @RequestBody @Valid RenewPropertyRequest request
+    ) {
+        return propertyService.renew(id, request, userId);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(

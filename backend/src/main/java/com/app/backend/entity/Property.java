@@ -12,6 +12,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
+import org.jspecify.annotations.Nullable;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -63,7 +65,7 @@ public class Property {
     private BigDecimal price;
 
     @Column(name = "price_per_m2", precision = 14, scale = 6, insertable = false, updatable = false)
-    private BigDecimal pricePerM2;
+    private @Nullable BigDecimal pricePerM2;
 
     @Column(name = "rooms", nullable = false)
     private Short rooms;
@@ -72,21 +74,21 @@ public class Property {
     private BigDecimal m2;
 
     @Column(name = "land_m2", precision = 8, scale = 2)
-    private BigDecimal landM2;
+    private @Nullable BigDecimal landM2;
 
     @Column(name = "floor")
-    private Short floor;
+    private @Nullable Short floor;
 
     @Column(name = "total_floors")
-    private Short totalFloors;
+    private @Nullable Short totalFloors;
 
     @Column(name = "year_built")
-    private Short yearBuilt;
+    private @Nullable Short yearBuilt;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "completion")
-    private PropertyCompletion completion;
+    private @Nullable PropertyCompletion completion;
 
     @Column(name = "district_slug", nullable = false)
     private String districtSlug;
@@ -98,7 +100,7 @@ public class Property {
     private String address;
 
     @Column(name = "video_url")
-    private String videoUrl;
+    private @Nullable String videoUrl;
 
     @Column(name = "lat", nullable = false)
     private Double lat;
@@ -113,6 +115,12 @@ public class Property {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    @Column(name = "expires_at", nullable = false)
+    private OffsetDateTime expiresAt;
+
+    @Column(name = "expiry_warning_sent", nullable = false)
+    private boolean expiryWarningSent;
 
     @ElementCollection
     @CollectionTable(name = "property_features", joinColumns = @JoinColumn(name = "property_id"))

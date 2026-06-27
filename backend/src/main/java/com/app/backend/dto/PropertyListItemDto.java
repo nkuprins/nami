@@ -31,5 +31,6 @@ public record PropertyListItemDto(
         String address,
         String photo,
         OffsetDateTime postedAt,
-        String completion
+        String completion,
+        OffsetDateTime expiresAt
 ) {}

@@ -5,6 +5,7 @@ import com.app.backend.dto.PropertyFilter;
 import com.app.backend.dto.PropertyItemDto;
 import com.app.backend.dto.PropertyListItemDto;
 import com.app.backend.dto.PropertyPageResponse;
+import com.app.backend.dto.RenewPropertyRequest;
 import com.app.backend.dto.UpdatePropertyRequest;
 import com.app.backend.entity.Property;
 import com.app.backend.entity.Property_;
@@ -31,6 +32,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -63,17 +66,18 @@ public class PropertyService {
                 ? PropertyCompletion.fromDbValue(filter.completion())
                 : null;
 
-        PropertySearchCriteria criteria = new PropertySearchCriteria(
-                listingType,
-                parseLocFilter(filter.loc()),
-                filter.priceMin(), filter.priceMax(),
-                filter.rooms(),
-                filter.m2Min(), filter.m2Max(),
-                filter.floorMin(), filter.floorMax(),
-                filter.notGround(), filter.notTop(),
-                filter.yearMin(), filter.yearMax(),
-                featureEnums, completionEnum
-        );
+        PropertySearchCriteria criteria = PropertySearchCriteria.builder()
+                .listingType(listingType)
+                .locByCity(parseLocFilter(filter.loc()))
+                .priceMin(filter.priceMin()).priceMax(filter.priceMax())
+                .rooms(filter.rooms())
+                .m2Min(filter.m2Min()).m2Max(filter.m2Max())
+                .floorMin(filter.floorMin()).floorMax(filter.floorMax())
+                .notGround(filter.notGround()).notTop(filter.notTop())
+                .yearMin(filter.yearMin()).yearMax(filter.yearMax())
+                .features(featureEnums)
+                .completion(completionEnum)
+                .build();
         Specification<Property> spec = PropertySpec.build(criteria);
 
         PageRequest pageRequest = PageRequest.of(page - 1, PAGE_SIZE, buildSort(sort));
@@ -124,6 +128,7 @@ public class PropertyService {
         property.setLat(req.coords().lat());
         property.setLng(req.coords().lng());
         property.setStatus(PropertyStatus.ACTIVE);
+        property.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
         if (StringUtils.hasText(req.completion())) {
             property.setCompletion(PropertyCompletion.fromDbValue(req.completion()));
@@ -149,26 +154,27 @@ public class PropertyService {
     private static void applyTranslations(Property property,
                                            String titleLv, String titleEn, String titleRu,
                                            String descLv, String descEn, String descRu) {
-        List<String[]> candidates = List.of(
-                new String[]{SupportedLocale.LV.code, titleLv, descLv},
-                new String[]{SupportedLocale.EN.code, titleEn, descEn},
-                new String[]{SupportedLocale.RU.code, titleRu, descRu}
+        record Candidate(String locale, String title, String desc) {}
+        List<Candidate> candidates = List.of(
+                new Candidate(SupportedLocale.LV.code, titleLv, descLv),
+                new Candidate(SupportedLocale.EN.code, titleEn, descEn),
+                new Candidate(SupportedLocale.RU.code, titleRu, descRu)
         );
         boolean anyValid = candidates.stream()
-                .anyMatch(c -> StringUtils.hasText(c[1]) && StringUtils.hasText(c[2]));
+                .anyMatch(c -> StringUtils.hasText(c.title()) && StringUtils.hasText(c.desc()));
         if (!anyValid) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "At least one complete translation (title + description) is required");
         }
         property.getTranslations().clear();
-        for (String[] c : candidates) {
-            if (StringUtils.hasText(c[1]) && StringUtils.hasText(c[2])) {
+        for (Candidate c : candidates) {
+            if (StringUtils.hasText(c.title()) && StringUtils.hasText(c.desc())) {
                 PropertyTranslation pt = new PropertyTranslation();
                 pt.setProperty(property);
-                pt.setLocale(c[0]);
-                pt.setTitle(c[1].trim());
-                pt.setDescription(c[2].trim());
-                property.getTranslations().put(c[0], pt);
+                pt.setLocale(c.locale());
+                pt.setTitle(c.title().trim());
+                pt.setDescription(c.desc().trim());
+                property.getTranslations().put(c.locale(), pt);
             }
         }
     }
@@ -228,6 +234,19 @@ public class PropertyService {
     }
 
     @Transactional
+    public PropertyItemDto renew(UUID propertyId, RenewPropertyRequest req, UUID ownerId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!property.getOwner().getId().equals(ownerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        property.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
+        property.setStatus(PropertyStatus.ACTIVE);
+        property.setExpiryWarningSent(false);
+        return propertyMapper.toDto(propertyRepository.save(property));
+    }
+
+    @Transactional
     public void delete(UUID propertyId, UUID ownerId) {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
@@ -235,18 +254,13 @@ public class PropertyService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        List<String> photoUrls = property.getPhotos().stream()
-                .map(PropertyPhoto::getUrl)
-                .toList();
-        List<String> planUrls = property.getPlans().stream()
-                .map(PropertyPlan::getUrl)
+        List<String> allMediaUrls = Stream.concat(
+                property.getPhotos().stream().map(PropertyPhoto::getUrl),
+                property.getPlans().stream().map(PropertyPlan::getUrl))
                 .toList();
 
         propertyRepository.delete(property);
         log.info("Property deleted: {} by owner: {}", propertyId, ownerId);
-
-        List<String> allMediaUrls = new java.util.ArrayList<>(photoUrls);
-        allMediaUrls.addAll(planUrls);
         if (!allMediaUrls.isEmpty()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -295,7 +309,6 @@ public class PropertyService {
     }
 
     private static Sort buildSort(String sort) {
-        if (sort == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sort parameter is required");
         return switch (sort) {
             case "newest" -> Sort.by(Sort.Direction.DESC, Property_.POSTED_AT);
             case "price-asc" -> Sort.by(Sort.Direction.ASC, Property_.PRICE);

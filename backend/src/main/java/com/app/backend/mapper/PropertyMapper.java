@@ -12,6 +12,8 @@ import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.SupportedLocale;
 import org.springframework.stereotype.Component;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -54,12 +56,13 @@ public class PropertyMapper {
                 .videoUrl(p.getVideoUrl())
                 .postedAt(p.getPostedAt())
                 .completion(p.getCompletion() != null ? p.getCompletion().getDbValue() : null)
+                .expiresAt(p.getExpiresAt())
                 .build();
     }
 
     public PropertyListItemDto toListDto(Property p) {
         List<String> features = p.getFeatures().isEmpty() ? null : p.getFeatures().stream().map(PropertyFeature::getDbValue).toList();
-        String photo = p.getPhotos().isEmpty() ? null : p.getPhotos().get(0).getUrl();
+        String photo = p.getPhotos().isEmpty() ? null : p.getPhotos().getFirst().getUrl();
         Map<String, PropertyTranslation> tr = p.getTranslations();
         return PropertyListItemDto.builder()
                 .id(p.getId())
@@ -83,19 +86,20 @@ public class PropertyMapper {
                 .photo(photo)
                 .postedAt(p.getPostedAt())
                 .completion(p.getCompletion() != null ? p.getCompletion().getDbValue() : null)
+                .expiresAt(p.getExpiresAt())
                 .build();
     }
 
-    private static String title(Map<String, PropertyTranslation> tr, String locale) {
+    private static @Nullable String title(Map<String, PropertyTranslation> tr, String locale) {
         return field(tr, locale, PropertyTranslation::getTitle);
     }
 
-    private static String desc(Map<String, PropertyTranslation> tr, String locale) {
+    private static @Nullable String desc(Map<String, PropertyTranslation> tr, String locale) {
         return field(tr, locale, PropertyTranslation::getDescription);
     }
 
-    private static String field(Map<String, PropertyTranslation> tr, String locale,
-                                Function<PropertyTranslation, String> fn) {
+    private static @Nullable String field(Map<String, PropertyTranslation> tr, String locale,
+                                          Function<PropertyTranslation, String> fn) {
         PropertyTranslation t = tr.get(locale);
         return t != null ? fn.apply(t) : null;
     }
