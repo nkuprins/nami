@@ -55,11 +55,11 @@ public class PropertySpec {
 
             if (criteria.rooms() != null && !criteria.rooms().isEmpty()) {
                 List<Predicate> roomPredicates = new ArrayList<>();
-                boolean hasFivePlus = criteria.rooms().contains(5);
+                boolean hasSevenPlus = criteria.rooms().contains(7);
                 for (int r : criteria.rooms()) {
-                    if (r < 5) roomPredicates.add(cb.equal(root.get(Property_.rooms), (short) r));
+                    if (r < 7) roomPredicates.add(cb.equal(root.get(Property_.rooms), (short) r));
                 }
-                if (hasFivePlus) roomPredicates.add(cb.ge(root.get(Property_.rooms), (short) 5));
+                if (hasSevenPlus) roomPredicates.add(cb.ge(root.get(Property_.rooms), (short) 7));
                 if (!roomPredicates.isEmpty()) {
                     predicates.add(cb.or(roomPredicates.toArray(new Predicate[0])));
                 }

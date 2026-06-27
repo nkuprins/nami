@@ -3,11 +3,13 @@ package com.app.backend.spec;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+@Builder
 public record PropertySearchCriteria(
         ListingType listingType,
         Map<String, List<String>> locByCity,

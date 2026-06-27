@@ -3,6 +3,7 @@ plugins {
     jacoco
     id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
+    id("io.freefair.lombok") version "8.13.1"
 }
 
 group = "com.app"
@@ -19,6 +20,10 @@ repositories {
     mavenCentral()
 }
 
+tasks.named<JavaCompile>("compileJava") {
+    options.generatedSourceOutputDirectory.set(file("src/main/generated"))
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -30,8 +35,6 @@ dependencies {
     implementation("com.bucket4j:bucket4j-core:8.10.1")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
-    compileOnly("org.projectlombok:lombok")
-    annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("org.hibernate.orm:hibernate-processor")
     implementation(platform("software.amazon.awssdk:bom:2.30.17"))
     implementation("software.amazon.awssdk:s3")
@@ -42,8 +45,6 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.instancio:instancio-junit:5.4.0")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
-    testCompileOnly("org.projectlombok:lombok")
-    testAnnotationProcessor("org.projectlombok:lombok")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

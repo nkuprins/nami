@@ -30,7 +30,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
 
         String ip = getClientIp(request);
-        Bucket bucket = buckets.computeIfAbsent(ip, k -> newBucket());
+        Bucket bucket = buckets.computeIfAbsent(ip, _ -> newBucket());
 
         if (bucket.tryConsume(1)) {
             chain.doFilter(request, response);

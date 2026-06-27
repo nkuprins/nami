@@ -6,6 +6,7 @@ import com.app.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,7 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public AuthUserResponse refresh(
-            @CookieValue(name = "refresh_token", required = false) String refreshToken,
+            @CookieValue(name = "refresh_token", required = false) @Nullable String refreshToken,
             HttpServletResponse response) {
         return authService.refresh(refreshToken, response);
     }
@@ -40,7 +41,7 @@ public class AuthController {
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(
-            @CookieValue(name = "refresh_token", required = false) String refreshToken,
+            @CookieValue(name = "refresh_token", required = false) @Nullable String refreshToken,
             HttpServletResponse response) {
         authService.logout(refreshToken, response);
     }
@@ -68,21 +69,25 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void verifyEmail(@RequestBody @Valid VerifyEmailRequest req) {
         authService.verifyEmail(req);
     }
 
     @PostMapping("/resend-verification")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void resendVerification(@RequestBody @Valid ResendVerificationRequest req) {
         authService.resendVerification(req);
     }
 
     @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void forgotPassword(@RequestBody @Valid ForgotPasswordRequest req) {
         authService.forgotPassword(req);
     }
 
     @PostMapping("/reset-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void resetPassword(@RequestBody @Valid ResetPasswordRequest req) {
         authService.resetPassword(req);
     }
