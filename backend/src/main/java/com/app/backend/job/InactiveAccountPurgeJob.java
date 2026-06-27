@@ -31,24 +31,39 @@ public class InactiveAccountPurgeJob {
 
     @Scheduled(cron = "0 0 4 1 * *")
     @Transactional
-    public void purgeInactiveAccounts() {
+    public void runInactiveAccountJob() {
         OffsetDateTime purgeCutoff = OffsetDateTime.now().minusYears(2);
         OffsetDateTime warnCutoff  = OffsetDateTime.now().minusMonths(23);
+        sendInactivityWarnings(warnCutoff, purgeCutoff);
+        purgeInactiveAccounts(purgeCutoff);
+    }
 
+    private void sendInactivityWarnings(OffsetDateTime warnCutoff, OffsetDateTime purgeCutoff) {
         List<User> toWarn = userRepository.findAboutToBeInactive(warnCutoff, purgeCutoff, PropertyStatus.ACTIVE);
-        toWarn.forEach(u -> {
-            try {
-                emailService.sendInactivityWarningEmail(u.getEmail(), u.getName());
-            } catch (Exception e) {
-                log.warn("Failed to send inactivity warning to user {}: {}", u.getId(), e.getMessage());
+        if (toWarn.isEmpty()) return;
+
+        record EmailData(String email, String name) {}
+        List<EmailData> emails = toWarn.stream()
+                .map(u -> new EmailData(u.getEmail(), u.getName()))
+                .toList();
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                for (EmailData d : emails) {
+                    try {
+                        emailService.sendInactivityWarningEmail(d.email(), d.name());
+                    } catch (Exception e) {
+                        log.warn("Failed to send inactivity warning to {}: {}", d.email(), e.getMessage());
+                    }
+                }
+                log.info("Inactivity warning emails sent to {} accounts", emails.size());
             }
         });
-        if (!toWarn.isEmpty()) {
-            log.info("Inactivity warning emails sent to {} accounts", toWarn.size());
-        }
+    }
 
+    private void purgeInactiveAccounts(OffsetDateTime purgeCutoff) {
         List<User> inactive = userRepository.findInactiveWithoutActiveListings(purgeCutoff, PropertyStatus.ACTIVE);
-
         if (inactive.isEmpty()) return;
 
         log.info("Inactive account purge: found {} accounts to delete", inactive.size());

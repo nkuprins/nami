@@ -12,6 +12,8 @@ import com.app.backend.repository.*;
 import com.app.backend.security.CookieFactory;
 import com.app.backend.security.JwtService;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -54,7 +58,7 @@ public class AuthService {
         User user = new User();
         user.setName(req.name());
         user.setEmail(req.email().toLowerCase());
-        user.setPasswordHash(passwordEncoder.encode(req.password()));
+        user.setPasswordHash(Objects.requireNonNull(passwordEncoder.encode(req.password())));
         user.setEmailVerified(false);
         userRepository.save(user);
         log.info("User registered: {}", user.getId());
@@ -77,12 +81,13 @@ public class AuthService {
             throw new AuthException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED", "Email not verified");
         }
 
+        user.setLastLoginAt(OffsetDateTime.now());
         setAuthCookies(user, response);
         return toResponse(user);
     }
 
     @Transactional
-    public AuthUserResponse refresh(String rawToken, HttpServletResponse response) {
+    public AuthUserResponse refresh(@Nullable String rawToken, HttpServletResponse response) {
         if (rawToken == null || rawToken.isBlank()) {
             throw new AuthException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "Refresh token missing");
         }
@@ -104,7 +109,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String rawToken, HttpServletResponse response) {
+    public void logout(@Nullable String rawToken, HttpServletResponse response) {
         if (rawToken != null && !rawToken.isBlank()) {
             refreshTokenRepository.findByTokenHash(jwtService.hashToken(rawToken))
                     .ifPresent(t -> {
@@ -128,20 +133,21 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException(HttpStatus.NOT_FOUND, "NOT_FOUND", "User not found"));
 
-        List<String> allPhotoUrls = propertyRepository.findByOwner(user).stream()
-                .flatMap(p -> p.getPhotos().stream())
-                .map(PropertyPhoto::getUrl)
+        List<String> allFileUrls = propertyRepository.findByOwner(user).stream()
+                .flatMap(p -> Stream.concat(
+                        p.getPhotos().stream().map(PropertyPhoto::getUrl),
+                        p.getPlans().stream().map(PropertyPlan::getUrl)))
                 .toList();
 
         userRepository.delete(user);
         log.info("Account deleted: {}", userId);
 
-        if (!allPhotoUrls.isEmpty()) {
+        if (!allFileUrls.isEmpty()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
                     try {
-                        uploadService.deleteObjects(allPhotoUrls);
+                        uploadService.deleteObjects(allFileUrls);
                     } catch (Exception e) {
                         log.warn("Failed to delete S3 objects for user {}: {}", userId, e.getMessage());
                     }
@@ -183,7 +189,6 @@ public class AuthService {
                 sendVerificationEmail(user);
             }
         });
-        // Always return 200 - never reveal whether the email exists
     }
 
     @Transactional
@@ -208,7 +213,6 @@ public class AuthService {
                 }
             });
         });
-        // Always return 200
     }
 
     @Transactional
@@ -228,7 +232,7 @@ public class AuthService {
         passwordResetTokenRepository.save(token);
 
         User user = token.getUser();
-        user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
+        user.setPasswordHash(Objects.requireNonNull(passwordEncoder.encode(req.newPassword())));
         userRepository.save(user);
 
         log.info("Password reset for user: {}", user.getId());

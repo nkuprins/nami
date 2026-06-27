@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    @Column(name = "last_login_at")
+    private @Nullable OffsetDateTime lastLoginAt;
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
     private List<Property> ownedProperties = new ArrayList<>();
