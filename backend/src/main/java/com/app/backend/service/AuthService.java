@@ -5,7 +5,10 @@ import com.app.backend.dto.PropertyItemDto;
 import com.app.backend.dto.SavedPropertyExportDto;
 import com.app.backend.dto.UserExportDto;
 import com.app.backend.dto.auth.*;
-import com.app.backend.entity.*;
+import com.app.backend.entity.EmailVerificationToken;
+import com.app.backend.entity.PasswordResetToken;
+import com.app.backend.entity.RefreshToken;
+import com.app.backend.entity.User;
 import com.app.backend.exception.AuthException;
 import com.app.backend.mapper.PropertyMapper;
 import com.app.backend.repository.*;
@@ -13,7 +16,6 @@ import com.app.backend.security.CookieFactory;
 import com.app.backend.security.JwtService;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -134,9 +136,7 @@ public class AuthService {
                 .orElseThrow(() -> new AuthException(HttpStatus.NOT_FOUND, "NOT_FOUND", "User not found"));
 
         List<String> allFileUrls = propertyRepository.findByOwner(user).stream()
-                .flatMap(p -> Stream.concat(
-                        p.getPhotos().stream().map(PropertyPhoto::getUrl),
-                        p.getPlans().stream().map(PropertyPlan::getUrl)))
+                .flatMap(p -> p.allMediaUrls().stream())
                 .toList();
 
         userRepository.delete(user);

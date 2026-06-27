@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -254,10 +253,7 @@ public class PropertyService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
 
-        List<String> allMediaUrls = Stream.concat(
-                property.getPhotos().stream().map(PropertyPhoto::getUrl),
-                property.getPlans().stream().map(PropertyPlan::getUrl))
-                .toList();
+        List<String> allMediaUrls = property.allMediaUrls();
 
         propertyRepository.delete(property);
         log.info("Property deleted: {} by owner: {}", propertyId, ownerId);

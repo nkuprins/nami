@@ -1,6 +1,5 @@
 package com.app.backend.job;
 
-import com.app.backend.entity.PropertyPhoto;
 import com.app.backend.entity.User;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.repository.PropertyRepository;
@@ -71,8 +70,7 @@ public class InactiveAccountPurgeJob {
         List<String> allPhotoUrls = new ArrayList<>();
         for (User user : inactive) {
             propertyRepository.findByOwner(user).stream()
-                    .flatMap(p -> p.getPhotos().stream())
-                    .map(PropertyPhoto::getUrl)
+                    .flatMap(p -> p.allMediaUrls().stream())
                     .forEach(allPhotoUrls::add);
             userRepository.delete(user);
         }

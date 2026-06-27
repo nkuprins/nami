@@ -1,8 +1,6 @@
 package com.app.backend.job;
 
 import com.app.backend.entity.Property;
-import com.app.backend.entity.PropertyPhoto;
-import com.app.backend.entity.PropertyPlan;
 import com.app.backend.entity.PropertyTranslation;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.repository.PropertyRepository;
@@ -21,7 +19,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -118,9 +115,7 @@ public class PropertyExpiryJob {
         log.info("Property purge: found {} inactive listings to permanently delete", toPurge.size());
 
         List<String> allMediaUrls = toPurge.stream()
-                .flatMap(p -> Stream.concat(
-                        p.getPhotos().stream().map(PropertyPhoto::getUrl),
-                        p.getPlans().stream().map(PropertyPlan::getUrl)))
+                .flatMap(p -> p.allMediaUrls().stream())
                 .toList();
 
         propertyRepository.deleteAll(toPurge);

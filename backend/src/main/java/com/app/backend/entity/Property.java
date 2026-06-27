@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Entity
 @Table(name = "properties")
@@ -146,4 +147,10 @@ public class Property {
     @OneToMany(mappedBy = "property", fetch = FetchType.LAZY)
     private List<SavedProperty> savedByUsers = new ArrayList<>();
 
+    public List<String> allMediaUrls() {
+        return Stream.concat(
+                photos.stream().map(PropertyPhoto::getUrl),
+                plans.stream().map(PropertyPlan::getUrl))
+                .toList();
+    }
 }
