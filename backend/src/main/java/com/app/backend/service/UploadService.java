@@ -3,12 +3,10 @@ package com.app.backend.service;
 import com.app.backend.config.AppProperties;
 import com.app.backend.dto.PresignResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.Delete;
-import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -17,6 +15,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UploadService {
@@ -57,9 +56,15 @@ public class UploadService {
                 .map(key -> ObjectIdentifier.builder().key(key).build())
                 .toList();
 
-        s3Client.deleteObjects(DeleteObjectsRequest.builder()
+        DeleteObjectsResponse response = s3Client.deleteObjects(DeleteObjectsRequest.builder()
                 .bucket(props.s3().bucket())
                 .delete(Delete.builder().objects(keys).build())
                 .build());
+
+        if (!response.errors().isEmpty()) {
+            log.warn("S3 delete failed for {} object(s): {}",
+                    response.errors().size(),
+                    response.errors().stream().map(S3Error::code).distinct().toList());
+        }
     }
 }
