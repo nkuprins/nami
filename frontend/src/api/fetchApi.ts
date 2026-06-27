@@ -1,5 +1,7 @@
 import { logger } from '../utils/logger';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+
 let refreshPromise: Promise<boolean> | null = null;
 
 /**
@@ -9,7 +11,7 @@ export async function fetchApi(
   input: string,
   init?: RequestInit
 ): Promise<Response> {
-  const res = await fetch(input, init);
+  const res = await fetch(API_BASE + input, init);
   if (res.status !== 401) return res;
 
   logger.info(`[fetchApi] 401 Unauthorized encountered for: ${input}`);
@@ -19,7 +21,7 @@ export async function fetchApi(
       '[fetchApi] No active refresh cycle found. Starting token refresh POST...'
     );
 
-    refreshPromise = fetch('/api/auth/refresh', { method: 'POST' })
+    refreshPromise = fetch(`${API_BASE}/api/auth/refresh`, { method: 'POST' })
       .then((r) => {
         logger.debug(`[fetchApi] Refresh network response status: ${r.status}`);
         return r.ok;
@@ -51,5 +53,5 @@ export async function fetchApi(
   logger.info(
     `[fetchApi] Refresh successful. Retrying original request: ${input}`
   );
-  return fetch(input, init);
+  return fetch(API_BASE + input, init);
 }
