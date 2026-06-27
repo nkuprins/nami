@@ -8,7 +8,7 @@ import { useAuthStore } from '../../stores/authStore';
 const { t } = useI18n();
 
 const props = defineProps<{ open: boolean }>();
-const emit = defineEmits<{ 'update:open': [value: boolean] }>();
+const emit = defineEmits<{ 'update:open': [value: boolean]; 'delete-account': [] }>();
 
 const auth = useAuthStore();
 
@@ -95,6 +95,16 @@ async function submit() {
       <p v-if="successMsg" class="text-sm text-green-600">{{ successMsg }}</p>
       <p v-if="genericError" class="text-sm text-warn">{{ genericError }}</p>
     </form>
+
+    <div class="mt-6 pt-4 border-t border-line">
+      <button
+        type="button"
+        class="text-sm text-warn/60 hover:text-warn transition-colors"
+        @click="emit('update:open', false); emit('delete-account');"
+      >
+        {{ t('nav.deleteAccount') }}
+      </button>
+    </div>
     <template #footer>
       <div class="flex gap-3">
         <button

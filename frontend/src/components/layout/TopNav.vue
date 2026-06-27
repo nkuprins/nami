@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import IconHeart from '../icons/IconHeart.vue';
 import { useSavedStore } from '../../stores/savedStore';
@@ -30,6 +30,20 @@ const myPropertiesOpen = ref(false);
 const deleteAccountOpen = ref(false);
 const editProfileOpen = ref(false);
 const userMenuOpen = ref(false);
+const userMenuRef = ref<HTMLElement | null>(null);
+
+watch(userMenuOpen, (open) => {
+  function onOutsideClick(e: MouseEvent) {
+    if (!userMenuRef.value?.contains(e.target as Node)) {
+      userMenuOpen.value = false;
+    }
+  }
+  if (open) {
+    document.addEventListener('click', onOutsideClick);
+  } else {
+    document.removeEventListener('click', onOutsideClick);
+  }
+});
 const mobileMenuOpen = ref(false);
 const langMenuOpen = ref(false);
 const mobileLangOpen = ref(false);
@@ -187,9 +201,8 @@ async function handleExportData() {
         <!-- Authenticated: user dropdown -->
         <template v-if="auth.isAuthenticated">
           <div
+            ref="userMenuRef"
             class="relative"
-            @mouseenter="userMenuOpen = true"
-            @mouseleave="userMenuOpen = false"
           >
             <button
               class="focus-ring inline-flex items-center gap-1.5 h-9 px-3 rounded-full text-sm text-ink-2 hover:text-ink hover:bg-surface transition-colors"
@@ -235,16 +248,6 @@ async function handleExportData() {
                   "
                 >
                   {{ t('nav.signOut') }}
-                </button>
-                <div class="border-t border-line" />
-                <button
-                  class="w-full text-left px-4 py-2.5 text-sm text-warn/70 hover:text-warn hover:bg-warn/5 transition-colors"
-                  @click="
-                    deleteAccountOpen = true;
-                    userMenuOpen = false;
-                  "
-                >
-                  {{ t('nav.deleteAccount') }}
                 </button>
               </div>
             </Transition>
@@ -350,6 +353,9 @@ async function handleExportData() {
   <AuthModal v-model:open="authOpen" />
   <SavedDrawer v-model:open="savedOpen" />
   <MyPropertiesDrawer v-model:open="myPropertiesOpen" />
-  <EditProfileDialog v-model:open="editProfileOpen" />
+  <EditProfileDialog
+    v-model:open="editProfileOpen"
+    @delete-account="editProfileOpen = false; deleteAccountOpen = true;"
+  />
   <DeleteAccountDialog v-model:open="deleteAccountOpen" />
 </template>
