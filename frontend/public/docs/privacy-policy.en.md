@@ -118,8 +118,8 @@ We share data with the following processors, each bound by a Data Processing Agr
 
 ### 5.2 Resend
 
-- **Purpose:** Delivery of transactional emails (verification and password reset)
-- **Data processed:** Your email address; the content of verification and reset emails
+- **Purpose:** Delivery of all transactional emails (email verification, password reset, listing expiry notifications, and account inactivity warnings)
+- **Data processed:** Your email address and name; the content of each email type listed in Section 3.6
 - **Location:** United States (third country)
 - **Safeguards:** Standard Contractual Clauses (Module 2: Controller to Processor); Resend Data Processing Agreement
 

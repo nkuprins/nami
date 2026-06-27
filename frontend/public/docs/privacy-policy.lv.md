@@ -118,8 +118,8 @@ Mēs kopīgojam datus ar šādiem apstrādātājiem, katrs no kuriem ir saistīt
 
 ### 5.2 Resend
 
-- **Mērķis:** Transakciju e-pastu piegāde (verifikācija un paroles atjaunošana)
-- **Apstrādātie dati:** Jūsu e-pasta adrese; verifikācijas un atjaunošanas e-pastu saturs
+- **Mērķis:** Visu transakciju e-pastu piegāde (e-pasta verifikācija, paroles atjaunošana, sludinājumu derīguma termiņa paziņojumi un konta neaktivitātes brīdinājumi)
+- **Apstrādātie dati:** Jūsu e-pasta adrese un vārds; katras 3.6. sadaļā norādītās e-pasta kategorijas saturs
 - **Atrašanās vieta:** Amerikas Savienotās Valstis (trešā valsts)
 - **Aizsardzības pasākumi:** Standarta līguma klauzulas (2. modulis: pārzinis apstrādātājam); Resend Datu apstrādes līgums
 
