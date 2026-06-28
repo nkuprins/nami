@@ -200,10 +200,7 @@ async function handleExportData() {
 
         <!-- Authenticated: user dropdown -->
         <template v-if="auth.isAuthenticated">
-          <div
-            ref="userMenuRef"
-            class="relative"
-          >
+          <div ref="userMenuRef" class="relative">
             <button
               class="focus-ring inline-flex items-center gap-1.5 h-9 px-3 rounded-full text-sm text-ink-2 hover:text-ink hover:bg-surface transition-colors"
               @click="userMenuOpen = !userMenuOpen"
@@ -355,7 +352,10 @@ async function handleExportData() {
   <MyPropertiesDrawer v-model:open="myPropertiesOpen" />
   <EditProfileDialog
     v-model:open="editProfileOpen"
-    @delete-account="editProfileOpen = false; deleteAccountOpen = true;"
+    @delete-account="
+      editProfileOpen = false;
+      deleteAccountOpen = true;
+    "
   />
   <DeleteAccountDialog v-model:open="deleteAccountOpen" />
 </template>

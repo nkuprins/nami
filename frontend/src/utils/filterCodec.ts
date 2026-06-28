@@ -90,8 +90,7 @@ export const FilterCodec = {
       type: parse.enum(q.type, KNOWN_TYPES, defaults.type),
       sort: parse.enum(q.sort, KNOWN_SORTS, defaults.sort),
       completion: parse.optionalEnum(q.completion, KNOWN_COMPLETION) as
-        | PropertyCompletion
-        | undefined,
+        PropertyCompletion | undefined,
 
       // Arrays & CSV Collections
       loc: parse.locationList(q.loc),

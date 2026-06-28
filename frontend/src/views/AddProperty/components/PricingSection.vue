@@ -43,7 +43,9 @@ defineProps<{
         v-model.number="form.durationMonths"
         class="h-10 rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
       >
-        <option v-for="n in 6" :key="n" :value="n">{{ n }} {{ t('addProperty.months') }}</option>
+        <option v-for="n in 6" :key="n" :value="n">
+          {{ n }} {{ t('addProperty.months') }}
+        </option>
       </select>
       <p class="text-xs text-ink-3">{{ t('addProperty.durationHint') }}</p>
     </div>

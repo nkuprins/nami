@@ -5,7 +5,11 @@ import Drawer from '../ui/Drawer.vue';
 import EmptyState from '../ui/EmptyState.vue';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
 import PropertyListItem from './PropertyListItem.vue';
-import { getMyProperties, deleteProperty, renewProperty } from '../../api/propertiesApi';
+import {
+  getMyProperties,
+  deleteProperty,
+  renewProperty,
+} from '../../api/propertiesApi';
 import type { PropertySummary } from '../../types/propertyItem';
 import { resolveTitle } from '../../types/propertyItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';

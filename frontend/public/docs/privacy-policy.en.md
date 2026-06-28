@@ -129,17 +129,17 @@ No other third parties receive your personal data. We do not use Google Analytic
 
 ## 6. Data Retention
 
-| Data                                  | Retention period                                                                                                                   |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Account data (name, email)            | Until you delete your account, or automatically after 2 years of account inactivity with no active listings (whichever is earlier) |
+| Data                                  | Retention period                                                                                                                                                                                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Account data (name, email)            | Until you delete your account, or automatically after 2 years of account inactivity with no active listings (whichever is earlier)                                                                                                               |
 | Property listings and associated data | Until you delete the listing or your account, or until the listing expires (max 6 months from creation or last renewal); expired listings become inactive and remain in your account for up to 90 days, after which they are permanently deleted |
-| Uploaded photos and floor plans       | Deleted from storage within hours of listing or account deletion                                                                   |
-| Saved property records                | Until you remove the save or your account is deleted                                                                               |
-| Access token cookie                   | 15 minutes                                                                                                                         |
-| Refresh token                         | 7 days (or until logout)                                                                                                           |
-| Email verification tokens             | 24 hours                                                                                                                           |
-| Password reset tokens                 | 1 hour                                                                                                                             |
-| Last login timestamp                  | Until your account is deleted                                                                                                      |
+| Uploaded photos and floor plans       | Deleted from storage within hours of listing or account deletion                                                                                                                                                                                 |
+| Saved property records                | Until you remove the save or your account is deleted                                                                                                                                                                                             |
+| Access token cookie                   | 15 minutes                                                                                                                                                                                                                                       |
+| Refresh token                         | 7 days (or until logout)                                                                                                                                                                                                                         |
+| Email verification tokens             | 24 hours                                                                                                                                                                                                                                         |
+| Password reset tokens                 | 1 hour                                                                                                                                                                                                                                           |
+| Last login timestamp                  | Until your account is deleted                                                                                                                                                                                                                    |
 
 **Automatic inactivity deletion:** If you have not logged in for 2 consecutive years and you have no active property listings, your account and all associated data are automatically and permanently deleted. We will send a notification email to your registered address approximately 30 days before deletion occurs.
 

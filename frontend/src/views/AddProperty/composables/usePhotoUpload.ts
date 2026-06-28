@@ -5,10 +5,10 @@ export interface PhotoEntry {
   preview: string;
 }
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-export function usePhotoUpload(max = 20) {
+export function usePhotoUpload(max = 30) {
   const photos = ref<PhotoEntry[]>([]);
 
   function addFiles(e: Event) {

@@ -197,7 +197,8 @@ export default {
     plansHint: 'Optional. Upload plan images (max 3).',
     listingDuration: 'Listing duration',
     months: 'months',
-    durationHint: 'Your listing will expire after the selected period. You can renew it at any time.',
+    durationHint:
+      'Your listing will expire after the selected period. You can renew it at any time.',
     required: 'Required',
     enterValidPrice: 'Enter a valid price',
     enterRooms: 'Enter number of rooms',

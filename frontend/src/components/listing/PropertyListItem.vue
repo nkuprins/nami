@@ -27,7 +27,9 @@ const emit = defineEmits<{
         class="flex flex-1 min-w-0 gap-3"
         @click="emit('navigate')"
       >
-        <div class="shrink-0 w-24 sm:w-32 self-stretch overflow-hidden bg-surface">
+        <div
+          class="shrink-0 w-24 sm:w-32 self-stretch overflow-hidden bg-surface"
+        >
           <img
             v-if="photo"
             :src="photo"
@@ -36,13 +38,19 @@ const emit = defineEmits<{
           />
         </div>
 
-        <div class="flex-1 min-w-0 py-3 sm:py-4 pr-2 flex flex-col justify-between">
+        <div
+          class="flex-1 min-w-0 py-3 sm:py-4 pr-2 flex flex-col justify-between"
+        >
           <div>
-            <p class="text-sm sm:text-base font-semibold text-ink line-clamp-1">{{ title }}</p>
+            <p class="text-sm sm:text-base font-semibold text-ink line-clamp-1">
+              {{ title }}
+            </p>
             <p class="text-xs text-ink-2 mt-0.5 line-clamp-1">
               {{ district }}, {{ city }}
             </p>
-            <div class="min-w-0 overflow-hidden mt-0.5"><slot name="subtitle" /></div>
+            <div class="min-w-0 overflow-hidden mt-0.5">
+              <slot name="subtitle" />
+            </div>
           </div>
           <p class="text-sm sm:text-lg font-bold text-ink">
             {{ formatPrice(price, type) }}

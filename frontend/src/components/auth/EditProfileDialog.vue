@@ -8,7 +8,10 @@ import { useAuthStore } from '../../stores/authStore';
 const { t } = useI18n();
 
 const props = defineProps<{ open: boolean }>();
-const emit = defineEmits<{ 'update:open': [value: boolean]; 'delete-account': [] }>();
+const emit = defineEmits<{
+  'update:open': [value: boolean];
+  'delete-account': [];
+}>();
 
 const auth = useAuthStore();
 
@@ -100,7 +103,10 @@ async function submit() {
       <button
         type="button"
         class="text-sm text-warn/60 hover:text-warn transition-colors"
-        @click="emit('update:open', false); emit('delete-account');"
+        @click="
+          emit('update:open', false);
+          emit('delete-account');
+        "
       >
         {{ t('nav.deleteAccount') }}
       </button>

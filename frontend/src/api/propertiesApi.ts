@@ -36,7 +36,9 @@ export async function getProperty(
 }
 
 export async function addProperty(
-  data: Omit<PropertyDetail, 'id' | 'postedAt' | 'expiresAt'> & { durationMonths: number }
+  data: Omit<PropertyDetail, 'id' | 'postedAt' | 'expiresAt'> & {
+    durationMonths: number;
+  }
 ): Promise<PropertyDetail> {
   const res = await fetchApi(`/api/properties`, {
     method: 'POST',

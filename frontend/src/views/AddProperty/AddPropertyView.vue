@@ -71,7 +71,11 @@ const {
 
         <BasicInfoSection :form="form" :field-error="fieldError" />
 
-        <PricingSection :form="form" :field-error="fieldError" :is-edit="isEdit" />
+        <PricingSection
+          :form="form"
+          :field-error="fieldError"
+          :is-edit="isEdit"
+        />
 
         <template v-if="!isEdit">
           <LocationSection

@@ -41,11 +41,7 @@ let mockUser: {
 const mockSavedIds = new Set<string>();
 
 type SortKey =
-  | 'newest'
-  | 'price-asc'
-  | 'price-desc'
-  | 'price-per-m2-asc'
-  | 'm2-desc';
+  'newest' | 'price-asc' | 'price-desc' | 'price-per-m2-asc' | 'm2-desc';
 
 function applyFilters(params: URLSearchParams) {
   let items = [...dtoCatalog];
@@ -210,8 +206,12 @@ export const handlers = [
   http.get('/api/properties/mine', () => {
     if (!mockUser) return HttpResponse.json([]);
     const now = new Date();
-    const soonExpiry = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000).toISOString();
-    const pastExpiry = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString();
+    const soonExpiry = new Date(
+      now.getTime() + 10 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const pastExpiry = new Date(
+      now.getTime() - 2 * 24 * 60 * 60 * 1000
+    ).toISOString();
     return HttpResponse.json(
       dtoCatalog.slice(0, 2).map((item, i) => ({
         ...toListItem(item),
@@ -224,7 +224,9 @@ export const handlers = [
     if (!mockUser) return new HttpResponse(null, { status: 401 });
     const item = dtoCatalog.find((i) => i.id === params.id);
     if (!item) return new HttpResponse(null, { status: 404 });
-    const { durationMonths = 3 } = (await request.json()) as { durationMonths?: number };
+    const { durationMonths = 3 } = (await request.json()) as {
+      durationMonths?: number;
+    };
     const newExpiry = new Date();
     newExpiry.setMonth(newExpiry.getMonth() + durationMonths);
     return HttpResponse.json({ ...item, expiresAt: newExpiry.toISOString() });
@@ -297,7 +299,10 @@ export const handlers = [
 
   http.get('/api/auth/export', () => {
     if (!mockUser) return new HttpResponse(null, { status: 401 });
-    return HttpResponse.json({ user: mockUser, exportedAt: new Date().toISOString() });
+    return HttpResponse.json({
+      user: mockUser,
+      exportedAt: new Date().toISOString(),
+    });
   }),
 
   http.all('/api/*', ({ request }) => {

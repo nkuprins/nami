@@ -197,7 +197,8 @@ export default {
     plansHint: 'Nav obligāti. Augšupielādējiet plānu attēlus (maks. 3).',
     listingDuration: 'Sludinājuma ilgums',
     months: 'mēneši',
-    durationHint: 'Sludinājums beigsies pēc izvēlētā perioda. To var pagarināt jebkurā laikā.',
+    durationHint:
+      'Sludinājums beigsies pēc izvēlētā perioda. To var pagarināt jebkurā laikā.',
     required: 'Obligāts',
     enterValidPrice: 'Ievadiet derīgu cenu',
     enterRooms: 'Ievadiet istabu skaitu',
