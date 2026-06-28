@@ -166,9 +166,10 @@ onMounted(() => {
     scrollWheelZoom: false,
   }).setView([56.946, 24.105], INITIAL_ZOOM);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution:
-      '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
+    subdomains: 'abcd',
     maxZoom: MAX_ZOOM,
   }).addTo(map);
 
