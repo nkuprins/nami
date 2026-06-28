@@ -1,6 +1,6 @@
 # Baltnami
 
-Real estate marketplace for Latvia — browse, post, and manage property listings across buying, renting, and new development projects.
+Open-source real estate marketplace for Latvia
 
 ## Tech Stack
 
@@ -15,7 +15,7 @@ Real estate marketplace for Latvia — browse, post, and manage property listing
 
 ## Features
 
-- Property listings: buy, rent, new projects — apartments and houses
+- Property listings: buy, rent, new projects - apartments and houses
 - Multilingual: Latvian, English, Russian
 - Photo and floor plan uploads (direct-to-S3 via presigned URLs)
 - Geospatial proximity search
