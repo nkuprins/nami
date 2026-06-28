@@ -65,6 +65,15 @@ public class Property {
     @Column(name = "price", nullable = false, precision = 14, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "buy_vat_included", nullable = false)
+    private boolean buyVatIncluded;
+
+    @Column(name = "rent_price", precision = 14, scale = 2)
+    private @Nullable BigDecimal rentPrice;
+
+    @Column(name = "rent_vat_included", nullable = false)
+    private boolean rentVatIncluded;
+
     @Column(name = "price_per_m2", precision = 14, scale = 6, insertable = false, updatable = false)
     private @Nullable BigDecimal pricePerM2;
 

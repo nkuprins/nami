@@ -3,6 +3,7 @@ package com.app.backend.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -19,10 +20,13 @@ public record CreatePropertyRequest(
         String descriptionLv,
         String descriptionEn,
         String descriptionRu,
-        @NotNull @DecimalMin("0.01") @DecimalMax("999999999999.99") BigDecimal price,
+        @NotNull @DecimalMin("0.01") @DecimalMax("999999999999.99") @Digits(integer = 12, fraction = 2) BigDecimal price,
+        Boolean buyVatIncluded,
+        @DecimalMin("0.01") @DecimalMax("999999999999.99") @Digits(integer = 12, fraction = 2) BigDecimal rentPrice,
+        Boolean rentVatIncluded,
         @NotNull @Min(1) Short rooms,
-        @NotNull @DecimalMin("1.00") @DecimalMax("9999.99") BigDecimal m2,
-        @DecimalMin("0.01") @DecimalMax("999999.99") BigDecimal landM2,
+        @NotNull @DecimalMin("1.00") @DecimalMax("9999.99") @Digits(integer = 4, fraction = 2) BigDecimal m2,
+        @DecimalMin("0.01") @DecimalMax("999999.99") @Digits(integer = 6, fraction = 2) BigDecimal landM2,
         @Min(0) @Max(100) Short floor,
         @Min(1) @Max(100) Short totalFloors,
         @Min(1800) @Max(2035) Short yearBuilt,

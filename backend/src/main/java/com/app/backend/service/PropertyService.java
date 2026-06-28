@@ -115,6 +115,9 @@ public class PropertyService {
         applyTranslations(property, req.titleLv(), req.titleEn(), req.titleRu(),
                 req.descriptionLv(), req.descriptionEn(), req.descriptionRu());
         property.setPrice(req.price());
+        property.setBuyVatIncluded(Boolean.TRUE.equals(req.buyVatIncluded()));
+        property.setRentPrice(req.rentPrice());
+        property.setRentVatIncluded(Boolean.TRUE.equals(req.rentVatIncluded()));
         property.setRooms(req.rooms());
         property.setM2(req.m2());
         property.setLandM2(req.landM2());
@@ -204,6 +207,9 @@ public class PropertyService {
         applyTranslations(property, req.titleLv(), req.titleEn(), req.titleRu(),
                 req.descriptionLv(), req.descriptionEn(), req.descriptionRu());
         property.setPrice(req.price());
+        property.setBuyVatIncluded(Boolean.TRUE.equals(req.buyVatIncluded()));
+        property.setRentPrice(req.rentPrice());
+        property.setRentVatIncluded(Boolean.TRUE.equals(req.rentVatIncluded()));
         property.setRooms(req.rooms());
         property.setM2(req.m2());
         property.setLandM2(req.landM2());

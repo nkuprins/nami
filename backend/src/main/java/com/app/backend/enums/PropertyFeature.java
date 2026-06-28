@@ -12,7 +12,8 @@ public enum PropertyFeature {
     ELEVATOR("elevator"),
     FURNISHED("furnished"),
     PETS("pets"),
-    NEW_BUILDING("new_building");
+    NEW_BUILDING("new_building"),
+    BASEMENT("basement");
 
     @EnumeratedValue
     private final String dbValue;

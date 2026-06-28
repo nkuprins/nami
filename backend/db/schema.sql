@@ -18,7 +18,8 @@ CREATE TYPE property_feature    AS ENUM (
     'elevator',
     'furnished',
     'pets',
-    'new_building'
+    'new_building',
+    'basement'
 );
 
 -- ─────────────────────────────────────────────
@@ -90,7 +91,10 @@ CREATE TABLE properties (
 	status            property_status      NOT NULL DEFAULT 'active',
 
     -- Pricing
-    price             NUMERIC(14, 2)       NOT NULL CHECK (price >= 0),
+    price              NUMERIC(14, 2)  NOT NULL CHECK (price >= 0),
+    buy_vat_included   BOOLEAN         NOT NULL DEFAULT false,
+    rent_price         NUMERIC(14, 2)  CHECK (rent_price > 0),
+    rent_vat_included  BOOLEAN         NOT NULL DEFAULT false,
 
     -- Physical attributes
     rooms             SMALLINT             NOT NULL CHECK (rooms > 0),
@@ -130,6 +134,10 @@ CREATE TABLE properties (
 	-- completion field when 'not_ready' can not have year_built
   	CONSTRAINT chk_year_built_not_ready
         CHECK (completion IS DISTINCT FROM 'not_ready' OR year_built IS NULL),
+
+    -- rent_price is only allowed on buy listings
+    CONSTRAINT chk_rent_price_buy_only
+        CHECK (listing_type = 'buy' OR rent_price IS NULL),
 
     -- Timestamps
     posted_at             TIMESTAMPTZ          NOT NULL DEFAULT now(),

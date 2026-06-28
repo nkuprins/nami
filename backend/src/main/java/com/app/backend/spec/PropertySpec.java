@@ -2,6 +2,7 @@ package com.app.backend.spec;
 
 import com.app.backend.entity.Property;
 import com.app.backend.entity.Property_;
+import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.PropertyStatus;
 import jakarta.persistence.criteria.*;
