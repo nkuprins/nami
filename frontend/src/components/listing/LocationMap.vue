@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import IconSpinner from '../icons/IconSpinner.vue';
 
 const props = defineProps<{
@@ -65,7 +67,7 @@ function buildQueries(): string[] {
   return [...new Set(queries)]; // deduplicate
 }
 
-function makeIcon(L: any) {
+function makeIcon() {
   const cursor = props.readonly ? 'default' : 'grab';
   const html = `
     <div style="cursor:${cursor}; filter: drop-shadow(0 3px 6px rgba(20,17,13,0.4));">
@@ -87,12 +89,11 @@ function makeIcon(L: any) {
 }
 
 function placeMarker(lat: number, lng: number, fly = true) {
-  const L = (window as any).L;
   if (marker) {
     marker.setLatLng([lat, lng]);
   } else {
     marker = L.marker([lat, lng], {
-      icon: makeIcon(L),
+      icon: makeIcon(),
       draggable: !props.readonly,
     }).addTo(map);
 
@@ -157,33 +158,8 @@ function scheduleGeocode() {
   debounceTimer = setTimeout(geocode, 800);
 }
 
-function loadLeaflet(): Promise<void> {
-  return new Promise((resolve) => {
-    if ((window as any).L) {
-      resolve();
-      return;
-    }
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    link.integrity =
-      'sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H';
-    link.crossOrigin = 'anonymous';
-    document.head.appendChild(link);
-    const script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.integrity =
-      'sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH';
-    script.crossOrigin = 'anonymous';
-    script.onload = () => resolve();
-    document.head.appendChild(script);
-  });
-}
-
-onMounted(async () => {
-  await loadLeaflet();
-  const L = (window as any).L;
-  if (!mapEl.value || !L) return;
+onMounted(() => {
+  if (!mapEl.value) return;
 
   map = L.map(mapEl.value, {
     zoomControl: true,
