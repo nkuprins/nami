@@ -18,4 +18,4 @@ WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 USER app
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=60.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
