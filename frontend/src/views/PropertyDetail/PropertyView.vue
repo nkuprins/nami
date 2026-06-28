@@ -11,6 +11,7 @@ import {
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
+import { renderMarkdown } from '../../utils/renderMarkdown';
 import { getProperty, deleteProperty } from '../../api/propertiesApi';
 import { useSavedStore } from '../../stores/savedStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -76,6 +77,9 @@ const displayTitle = computed(() =>
 const displayDescription = computed(() =>
   property.value ? resolveDescription(property.value, contentLocale.value) : ''
 );
+const renderedDescription = computed(() =>
+  displayDescription.value ? renderMarkdown(displayDescription.value) : ''
+);
 const availableLanguages = computed(() =>
   (['lv', 'en', 'ru'] as const).filter(
     (l) => property.value && hasLanguage(property.value, l)
@@ -89,6 +93,11 @@ const price = computed(() =>
   property.value
     ? formatPrice(property.value.price, property.value.type, locale.value)
     : ''
+);
+const rentPrice = computed(() =>
+  property.value?.rentPrice != null
+    ? formatPrice(property.value.rentPrice, 'rent', locale.value)
+    : null
 );
 const pricePerM2 = computed(() =>
   property.value
@@ -268,9 +277,10 @@ function openPlanLightbox(i: number) {
 
           <hr class="border-none border-t border-line my-5" />
 
-          <p class="text-sm text-ink-2 leading-relaxed">
-            {{ displayDescription }}
-          </p>
+          <div
+            class="text-sm text-ink-2 leading-relaxed prose-description"
+            v-html="renderedDescription"
+          />
 
           <hr class="border-none border-t border-line my-5" />
 
@@ -386,7 +396,16 @@ function openPlanLightbox(i: number) {
           <div class="sticky top-20 space-y-4">
             <div class="rounded-xl border border-line p-5 shadow-soft">
               <p class="display-price text-2xl text-ink">{{ price }}</p>
+              <p v-if="rentPrice" class="text-sm text-ink-2 mt-0.5">
+                {{ t('property.alsoForRent') }}: {{ rentPrice }}
+              </p>
               <p class="text-xs text-ink-2 tabular mt-1">{{ pricePerM2 }}</p>
+              <p
+                v-if="property.buyVatIncluded"
+                class="text-xs text-ink-3 mt-0.5"
+              >
+                {{ t('property.vatIncluded') }}
+              </p>
 
               <SpecDots
                 :parts="specRow"

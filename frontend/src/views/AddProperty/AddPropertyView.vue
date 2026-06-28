@@ -67,15 +67,15 @@ const {
       </div>
 
       <form class="flex flex-col gap-10" @submit.prevent="submit">
-        <ListingTypeSection :form="form" />
-
-        <BasicInfoSection :form="form" :field-error="fieldError" />
+        <ListingTypeSection :form="form" :field-error="fieldError" />
 
         <PricingSection
           :form="form"
           :field-error="fieldError"
           :is-edit="isEdit"
         />
+
+        <BasicInfoSection :form="form" :field-error="fieldError" />
 
         <template v-if="!isEdit">
           <LocationSection

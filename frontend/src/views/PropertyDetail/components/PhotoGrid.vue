@@ -31,7 +31,7 @@ function open(i: number) {
   <div>
     <div class="grid grid-cols-3 md:grid-cols-5 gap-1.5">
       <div
-        v-for="(src, i) in photos"
+        v-for="(src, i) in photos.slice(0, GRID_MAX_VISIBLE)"
         :key="i"
         class="relative overflow-hidden rounded-lg cursor-zoom-in bg-surface group aspect-square"
         @click="open(i)"

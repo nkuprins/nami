@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
 import IconChevron from '../icons/IconChevron.vue';
 import IconClose from '../icons/IconClose.vue';
 import { usePinchZoom } from '../../composables/usePinchZoom';
@@ -15,6 +15,30 @@ const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
 const index = ref(props.initialIndex ?? 0);
 const direction = ref<'forward' | 'backward'>('forward');
+const thumbnailStrip = ref<HTMLElement>();
+const imageAreaEl = ref<HTMLElement>();
+const barWidth = ref(0); // px of black pillarbox bar on each side (0 when image fills full width)
+
+// object-contain centers the image in the container, leaving black bars on the sides
+// when the image is narrower than the container (portrait photo on wide screen).
+// barWidth drives both the nav arrow positions and the thumbnail strip insets.
+function computeImageLayout() {
+  const el = imageAreaEl.value;
+  const img = el?.querySelectorAll<HTMLImageElement>('img')[0];
+  if (!el || !img?.naturalWidth) return;
+  const iAspect = img.naturalWidth / img.naturalHeight;
+  const cAspect = el.clientWidth / el.clientHeight;
+  barWidth.value =
+    iAspect < cAspect
+      ? Math.max(
+          0,
+          Math.round((el.clientWidth - el.clientHeight * iAspect) / 2)
+        )
+      : 0;
+}
+
+// Arrow sits just outside the image edge: bar minus button(48) minus gap(8)
+const arrowInset = computed(() => Math.max(8, barWidth.value - 56));
 
 const {
   scale,
@@ -32,6 +56,17 @@ const {
   },
 });
 
+function scrollActiveThumbnail() {
+  nextTick(() => {
+    const thumb = thumbnailStrip.value?.children[index.value] as HTMLElement;
+    thumb?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    });
+  });
+}
+
 watch(
   () => props.open,
   (val) => {
@@ -39,9 +74,12 @@ watch(
       index.value = props.initialIndex ?? 0;
       resetZoom();
       document.addEventListener('keydown', onKey);
+      window.addEventListener('resize', computeImageLayout);
       document.body.style.overflow = 'hidden';
+      scrollActiveThumbnail();
     } else {
       document.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', computeImageLayout);
       document.body.style.overflow = '';
     }
   }
@@ -53,6 +91,11 @@ watch(
     if (props.open) index.value = val ?? 0;
   }
 );
+
+watch(index, () => {
+  nextTick(computeImageLayout);
+  scrollActiveThumbnail();
+});
 
 function close() {
   emit('update:open', false);
@@ -123,6 +166,7 @@ function handleImageClick(e: MouseEvent) {
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKey);
+  window.removeEventListener('resize', computeImageLayout);
   document.body.style.overflow = '';
 });
 </script>
@@ -163,6 +207,7 @@ onBeforeUnmount(() => {
 
         <!-- Image area -->
         <div
+          ref="imageAreaEl"
           class="relative flex-1 min-h-0 overflow-hidden"
           @touchstart="onTouchStart"
           @touchmove="onTouchMove"
@@ -189,16 +234,15 @@ onBeforeUnmount(() => {
               }"
               draggable="false"
               @click="handleImageClick"
+              @load="computeImageLayout"
             />
           </Transition>
 
-          <!-- Desktop-only nav arrows -->
-          <div
-            v-if="photos.length > 1 && scale <= 1"
-            class="absolute inset-0 max-w-6xl mx-auto pointer-events-none z-10"
-          >
+          <!-- Desktop nav arrows -->
+          <template v-if="photos.length > 1 && scale <= 1">
             <button
-              class="hidden sm:grid pointer-events-auto focus-ring absolute left-2 top-1/2 -translate-y-1/2 size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors"
+              class="hidden sm:grid focus-ring size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors absolute top-1/2 -translate-y-1/2 z-10"
+              :style="{ left: `${arrowInset}px` }"
               aria-label="Previous"
               @click="prev"
             >
@@ -207,7 +251,8 @@ onBeforeUnmount(() => {
               /></span>
             </button>
             <button
-              class="hidden sm:grid pointer-events-auto focus-ring absolute right-2 top-1/2 -translate-y-1/2 size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors"
+              class="hidden sm:grid focus-ring size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors absolute top-1/2 -translate-y-1/2 z-10"
+              :style="{ right: `${arrowInset}px` }"
               aria-label="Next"
               @click="next"
             >
@@ -215,31 +260,45 @@ onBeforeUnmount(() => {
                 ><IconChevron dir="right"
               /></span>
             </button>
-          </div>
+          </template>
         </div>
 
-        <!-- Thumbnail strip -->
+        <!-- Spacer when single photo: matches thumbnail strip height -->
+        <div v-if="photos.length === 1" class="shrink-0 py-3 sm:py-4">
+          <div class="h-20 sm:h-[72px] p-1" />
+        </div>
+
+        <!-- Thumbnail strip: bounded to image width, scrolls when thumbnails overflow -->
         <div
-          v-if="photos.length > 1"
-          class="shrink-0 flex justify-center gap-1.5 sm:gap-2 px-4 py-3 sm:py-4 overflow-x-auto scroll-snap-x"
+          v-else
+          class="shrink-0 py-3 sm:py-4"
+          :style="{
+            paddingLeft: `${barWidth}px`,
+            paddingRight: `${barWidth}px`,
+          }"
         >
-          <button
-            v-for="(src, i) in photos"
-            :key="i"
-            class="shrink-0 size-14 sm:size-18 rounded-md overflow-hidden transition-all duration-150"
-            :class="
-              i === index
-                ? 'ring-2 ring-cream ring-offset-1 ring-offset-ink opacity-100'
-                : 'opacity-35 hover:opacity-65'
-            "
-            @click="goTo(i)"
+          <div
+            ref="thumbnailStrip"
+            class="flex gap-1.5 sm:gap-2 overflow-x-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            <img
-              :src="src"
-              :alt="`Thumbnail ${i + 1}`"
-              class="size-full object-cover"
-            />
-          </button>
+            <button
+              v-for="(src, i) in photos"
+              :key="i"
+              class="shrink-0 size-20 sm:size-18 rounded-md overflow-hidden transition-all duration-150"
+              :class="
+                i === index
+                  ? 'ring-2 ring-cream ring-offset-1 ring-offset-ink opacity-100'
+                  : 'opacity-35 hover:opacity-65'
+              "
+              @click="goTo(i)"
+            >
+              <img
+                :src="src"
+                :alt="`Thumbnail ${i + 1}`"
+                class="size-full object-cover"
+              />
+            </button>
+          </div>
         </div>
       </div>
     </Transition>

@@ -1,9 +1,12 @@
 import type { PropertyDetail } from '../types/propertyItem';
 
-const photo = (seed: string) =>
-  `https://picsum.photos/seed/realestate-${seed}/1200/900`;
+const photo = (seed: string, wide = false) =>
+  wide
+    ? `https://picsum.photos/seed/realestate-${seed}/1920/1080`
+    : `https://picsum.photos/seed/realestate-${seed}/1200/900`;
 
-const photos = (...seeds: string[]) => seeds.map(photo);
+const photos = (...seeds: string[]) => seeds.map((s) => photo(s));
+const widePhotos = (...seeds: string[]) => seeds.map((s) => photo(s, true));
 
 const plans = (...seeds: string[]) =>
   seeds.map((s) => `https://picsum.photos/seed/plan-${s}/1200/900`);
@@ -20,18 +23,42 @@ export const mockListings: PropertyDetail[] = [
     descriptionEn:
       "A meticulously restored apartment in one of Riga's landmark Art Nouveau buildings. Original ceiling reliefs, herringbone parquet, and tall casement windows facing a quiet courtyard.",
     price: 285_000,
+    buyVatIncluded: false,
+    rentPrice: 1_460,
+    rentVatIncluded: false,
     rooms: 3,
     m2: 108,
     floor: 4,
     totalFloors: 6,
     yearBuilt: 1908,
-    features: ['balcony', 'elevator'],
+    features: ['balcony', 'elevator', 'basement'],
     district: 'Centrs',
     city: 'Rīga',
     address: 'Elizabetes iela 21',
     coords: { lat: 56.9559, lng: 24.1145 },
     phones: ['+371 29 123 456', '+371 26 789 012'],
-    photos: photos('001a', '001b', '001c', '001d', '001e'),
+    photos: widePhotos(
+      '001a',
+      '001b',
+      '001c',
+      '001d',
+      '001e',
+      '001f',
+      '001g',
+      '001h',
+      '001i',
+      '001j',
+      '001k',
+      '001l',
+      '001m',
+      '001n',
+      '001o',
+      '001p',
+      '001q',
+      '001r',
+      '001s',
+      '001t'
+    ),
     plans: plans('001a', '001b'),
     videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     postedAt: '2026-05-19T10:00:00Z',
@@ -173,6 +200,7 @@ export const mockListings: PropertyDetail[] = [
     descriptionEn:
       'Contemporary unit in the well-known riverside development. Floor-to-ceiling glazing, river views.',
     price: 695_000,
+    buyVatIncluded: true,
     rooms: 4,
     m2: 150,
     floor: 6,

@@ -1,4 +1,4 @@
-import { computed, reactive, ref } from 'vue';
+import { computed, nextTick, reactive, ref } from 'vue';
 import type {
   Feature,
   PropertyCompletion,
@@ -14,10 +14,12 @@ import {
 } from '../../../api/propertiesApi';
 import { requestPresignedUrls, uploadFilesToS3 } from '../../../api/uploadApi';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
+import { parseDecimal } from '../../../utils/utils';
 import type { PhotoEntry } from './usePhotoUpload';
 
 export interface PropertyFormState {
-  type: PropertyType;
+  type: PropertyType | '';
+  alsoRent: boolean;
   propertyKind: PropertyKind;
   titleLv: string;
   titleEn: string;
@@ -26,6 +28,9 @@ export interface PropertyFormState {
   descriptionEn: string;
   descriptionRu: string;
   price: string;
+  buyVatIncluded: boolean;
+  rentPrice: string;
+  rentVatIncluded: boolean;
   address: string;
   rooms: string;
   m2: string;
@@ -42,7 +47,8 @@ export interface PropertyFormState {
 }
 
 const INITIAL_FORM: PropertyFormState = {
-  type: 'buy',
+  type: '',
+  alsoRent: false,
   propertyKind: 'apartment',
   titleLv: '',
   titleEn: '',
@@ -51,6 +57,9 @@ const INITIAL_FORM: PropertyFormState = {
   descriptionEn: '',
   descriptionRu: '',
   price: '',
+  buyVatIncluded: false,
+  rentPrice: '',
+  rentVatIncluded: false,
   address: '',
   rooms: '',
   m2: '',
@@ -98,6 +107,7 @@ export function usePropertyForm(
           return;
         }
         form.type = p.type;
+        form.alsoRent = p.type === 'buy' && p.rentPrice != null;
         form.propertyKind = p.propertyKind;
         form.titleLv = p.titleLv ?? '';
         form.titleEn = p.titleEn ?? '';
@@ -106,6 +116,9 @@ export function usePropertyForm(
         form.descriptionEn = p.descriptionEn ?? '';
         form.descriptionRu = p.descriptionRu ?? '';
         form.price = String(p.price);
+        form.buyVatIncluded = p.buyVatIncluded ?? false;
+        form.rentPrice = p.rentPrice != null ? String(p.rentPrice) : '';
+        form.rentVatIncluded = p.rentVatIncluded ?? false;
         form.address = p.address;
         form.rooms = String(p.rooms);
         form.m2 = String(p.m2);
@@ -134,15 +147,33 @@ export function usePropertyForm(
 
   const errors = computed(() => {
     const e: Record<string, string> = {};
+    if (!form.type) e.type = 'Select a transaction type';
     if (!form.titleLv.trim() && !form.titleEn.trim() && !form.titleRu.trim())
       e.title = 'Enter a title in at least one language';
-    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
+    if (
+      !form.descriptionLv.trim() &&
+      !form.descriptionEn.trim() &&
+      !form.descriptionRu.trim()
+    )
+      e.description = 'Enter a description in at least one language';
+    if (
+      !form.price ||
+      isNaN(parseDecimal(form.price)) ||
+      parseDecimal(form.price) <= 0
+    )
       e.price = 'Enter a valid price';
+    if (
+      form.alsoRent &&
+      (!form.rentPrice ||
+        isNaN(parseDecimal(form.rentPrice)) ||
+        parseDecimal(form.rentPrice) <= 0)
+    )
+      e.rentPrice = 'Enter a valid rent price';
     if (!isEdit && !getLocation()) e.district = 'Required';
     if (!isEdit && !form.address.trim()) e.address = 'Required';
     if (!form.rooms || isNaN(Number(form.rooms)) || Number(form.rooms) < 1)
       e.rooms = 'Enter number of rooms';
-    if (!form.m2 || isNaN(Number(form.m2)) || Number(form.m2) <= 0)
+    if (!form.m2 || isNaN(parseDecimal(form.m2)) || parseDecimal(form.m2) <= 0)
       e.m2 = 'Enter area in m²';
     if (!isEdit && getPhotos().length === 0)
       e.photos = 'At least one photo required';
@@ -189,7 +220,13 @@ export function usePropertyForm(
 
   async function submit() {
     touched.value = true;
-    if (!isValid.value) return;
+    if (!isValid.value) {
+      await nextTick();
+      document
+        .querySelector('.text-red-500')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
 
     submitting.value = true;
     submitError.value = '';
@@ -197,7 +234,7 @@ export function usePropertyForm(
     try {
       if (isEdit) {
         const item = await updateProperty(editId!, {
-          type: form.type,
+          type: form.type as PropertyType,
           propertyKind: form.propertyKind,
           titleLv: form.titleLv.trim() || undefined,
           titleEn: form.titleEn.trim() || undefined,
@@ -205,12 +242,19 @@ export function usePropertyForm(
           descriptionLv: form.descriptionLv.trim() || undefined,
           descriptionEn: form.descriptionEn.trim() || undefined,
           descriptionRu: form.descriptionRu.trim() || undefined,
-          price: Number(form.price),
+          price: parseDecimal(form.price),
+          buyVatIncluded: form.buyVatIncluded || undefined,
+          rentPrice:
+            form.alsoRent && form.rentPrice
+              ? parseDecimal(form.rentPrice)
+              : undefined,
+          rentVatIncluded:
+            form.alsoRent && form.rentVatIncluded ? true : undefined,
           rooms: Number(form.rooms),
-          m2: Number(form.m2),
+          m2: parseDecimal(form.m2),
           landM2:
             form.propertyKind === 'house' && form.landM2
-              ? Number(form.landM2)
+              ? parseDecimal(form.landM2)
               : undefined,
           floor: form.floor ? Number(form.floor) : undefined,
           totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,
@@ -251,7 +295,7 @@ export function usePropertyForm(
         const location = getLocation()!;
 
         const item = await addProperty({
-          type: form.type,
+          type: form.type as PropertyType,
           propertyKind: form.propertyKind,
           titleLv: form.titleLv.trim() || undefined,
           titleEn: form.titleEn.trim() || undefined,
@@ -259,12 +303,19 @@ export function usePropertyForm(
           descriptionLv: form.descriptionLv.trim() || undefined,
           descriptionEn: form.descriptionEn.trim() || undefined,
           descriptionRu: form.descriptionRu.trim() || undefined,
-          price: Number(form.price),
+          price: parseDecimal(form.price),
+          buyVatIncluded: form.buyVatIncluded || undefined,
+          rentPrice:
+            form.alsoRent && form.rentPrice
+              ? parseDecimal(form.rentPrice)
+              : undefined,
+          rentVatIncluded:
+            form.alsoRent && form.rentVatIncluded ? true : undefined,
           rooms: Number(form.rooms),
-          m2: Number(form.m2),
+          m2: parseDecimal(form.m2),
           landM2:
             form.propertyKind === 'house' && form.landM2
-              ? Number(form.landM2)
+              ? parseDecimal(form.landM2)
               : undefined,
           floor: form.floor ? Number(form.floor) : undefined,
           totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,

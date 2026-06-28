@@ -34,7 +34,7 @@ function go(p: number) {
 <template>
   <nav
     v-if="pageCount > 1"
-    class="flex items-center justify-center gap-1 pt-6 mt-6 pb-6 mb-6 border-t border-line"
+    class="flex items-center justify-center gap-1 py-6 border-t border-line"
   >
     <button
       type="button"

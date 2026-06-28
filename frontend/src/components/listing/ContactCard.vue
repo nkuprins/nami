@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import IconPhone from '../../../components/icons/IconPhone.vue';
-import { formatPhone } from '../../../utils/utils';
+import IconPhone from '../icons/IconPhone.vue';
+import { formatPhone } from '../../utils/utils';
 
 defineProps<{
   phones?: string[];

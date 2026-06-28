@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { numericInput } from '../../../utils/utils';
+import { numericInput, decimalInput } from '../../../utils/utils';
 import FormField from '../../../components/ui/FormField.vue';
 
 const { t } = useI18n();
@@ -36,9 +36,9 @@ defineProps<{
         v-model="form.m2"
         :error="fieldError('m2')"
         required
-        inputmode="numeric"
-        placeholder="e.g. 72"
-        @beforeinput="numericInput"
+        inputmode="decimal"
+        placeholder="e.g. 72.5"
+        @beforeinput="decimalInput"
       />
     </div>
 
@@ -47,9 +47,9 @@ defineProps<{
       id="ap-land"
       :label="t('addProperty.landAreaLabel')"
       v-model="form.landM2"
-      inputmode="numeric"
+      inputmode="decimal"
       placeholder="e.g. 600"
-      @beforeinput="numericInput"
+      @beforeinput="decimalInput"
     />
 
     <div class="grid grid-cols-2 gap-4">

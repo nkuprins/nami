@@ -60,8 +60,8 @@ export default {
     sort: 'Сортировка',
     sortListings: 'Сортировать объявления',
     newest: 'Новые',
-    priceAsc: 'Цена — от низкой к высокой',
-    priceDesc: 'Цена — от высокой к низкой',
+    priceAsc: 'Цена - от низкой к высокой',
+    priceDesc: 'Цена - от высокой к низкой',
     bestPerM2: 'Лучшая цена за м²',
     largestFirst: 'Сначала большие',
     newestHint: 'Последние добавленные',
@@ -77,7 +77,7 @@ export default {
     updating: 'Обновление…',
     noMatches: 'Ничего не найдено',
     nothingFits: 'Ни одно объявление не подходит',
-    yet: '— пока.',
+    yet: '- пока.',
     loosenFilters:
       'Попробуйте изменить один из фильтров или начните новый поиск.',
     clearAll: 'Сбросить все фильтры',
@@ -112,6 +112,8 @@ export default {
     deleteConfirmDesc:
       'Объявление будет удалено навсегда и не может быть восстановлено.',
     deleteConfirmLabel: 'Удалить',
+    vatIncluded: 'НДС включён',
+    alsoForRent: 'Также в аренду',
   },
   types: {
     buy: 'Продажа',
@@ -140,12 +142,14 @@ export default {
     furnished: 'С мебелью',
     pets: 'Животные разрешены',
     new_building: 'Новостройка',
+    basement: 'Подвал',
     balconyHint: 'Открытая платформа',
     parkingHint: 'Гараж или выделенное место',
     elevatorHint: 'Доступ на верхние этажи',
     furnishedHint: 'Готово к заселению',
     petsHint: 'Животные приветствуются',
     new_buildingHint: 'Построено после 2010 г.',
+    basementHint: 'Место для хранения или парковки',
   },
   addProperty: {
     title: 'Добавить объявление',
@@ -172,6 +176,9 @@ export default {
     propertyKind: 'Тип недвижимости',
     pricing: 'Цена',
     priceField: 'Цена (€)',
+    rentPriceField: 'Ежемесячная аренда (€)',
+    buyVatIncluded: 'Цена покупки включает НДС',
+    rentVatIncluded: 'Арендная цена включает НДС',
     completionStatus: 'Статус готовности',
     locationSection: 'Расположение',
     districtLabel: 'Район',
@@ -287,6 +294,7 @@ export default {
   common: {
     cancel: 'Отмена',
     confirm: 'Подтвердить',
+    or: 'или',
   },
   footer: {
     allRights: 'Все права защищены.',

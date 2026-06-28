@@ -23,6 +23,11 @@ const price = computed(() =>
 const pricePerM2 = computed(() =>
   formatPricePerM2(props.property.price / props.property.m2, locale.value)
 );
+const rentPrice = computed(() =>
+  props.property.rentPrice != null
+    ? formatPrice(props.property.rentPrice, 'rent', locale.value)
+    : null
+);
 
 const specRow = computed(() => {
   const { rooms, m2, floor, totalFloors, landM2, propertyKind } =
@@ -70,12 +75,28 @@ const specRow = computed(() => {
         </div>
 
         <div class="flex items-baseline justify-between gap-4 mt-2">
-          <p class="display-price text-2xl text-ink whitespace-nowrap">
-            {{ price }}
-          </p>
-          <p class="text-sm text-ink-2 tabular whitespace-nowrap shrink-0">
-            {{ pricePerM2 }}
-          </p>
+          <div>
+            <p class="display-price text-2xl text-ink whitespace-nowrap">
+              {{ price }}
+            </p>
+            <p
+              v-if="rentPrice"
+              class="text-sm text-ink-2 whitespace-nowrap mt-0.5"
+            >
+              {{ t('property.alsoForRent') }}: {{ rentPrice }}
+            </p>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="text-sm text-ink-2 tabular whitespace-nowrap">
+              {{ pricePerM2 }}
+            </p>
+            <p
+              v-if="property.buyVatIncluded"
+              class="text-xs text-ink-3 whitespace-nowrap mt-0.5"
+            >
+              {{ t('property.vatIncluded') }}
+            </p>
+          </div>
         </div>
 
         <h3

@@ -47,7 +47,9 @@ function applyFilters(params: URLSearchParams) {
   let items = [...dtoCatalog];
 
   const type = params.get('type');
-  if (type) items = items.filter((i) => i.type === type);
+  if (type) {
+    items = items.filter((i) => i.type === type);
+  }
 
   const locs = params.getAll('loc');
   if (locs.length) {

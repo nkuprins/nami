@@ -28,6 +28,7 @@ const state = ref<GeoState>('idle');
 let map: any = null;
 let marker: any = null;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+let resizeObserver: ResizeObserver | null = null;
 
 const query = computed(() =>
   [props.address, props.district, props.city, 'Latvia']
@@ -161,33 +162,43 @@ function scheduleGeocode() {
 onMounted(() => {
   if (!mapEl.value) return;
 
-  map = L.map(mapEl.value, {
-    zoomControl: true,
-    scrollWheelZoom: false,
-  }).setView([56.946, 24.105], INITIAL_ZOOM);
+  // Defer init to after the browser has laid out the grid column (rAF fires post-reflow)
+  requestAnimationFrame(() => {
+    if (!mapEl.value) return;
 
-  L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-    {
-      attribution:
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: MAX_ZOOM,
+    map = L.map(mapEl.value, {
+      zoomControl: true,
+      scrollWheelZoom: false,
+    }).setView([56.946, 24.105], INITIAL_ZOOM);
+
+    L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+      {
+        attribution:
+          '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: MAX_ZOOM,
+      }
+    ).addTo(map);
+
+    // Keep ResizeObserver for window-resize / responsive breakpoint changes
+    resizeObserver = new ResizeObserver(() => map?.invalidateSize());
+    resizeObserver.observe(mapEl.value);
+
+    setupClickToPlace();
+
+    if (props.modelValue) {
+      placeMarker(props.modelValue.lat, props.modelValue.lng);
+      state.value = 'ok';
+    } else if (query.value.trim()) {
+      geocode();
     }
-  ).addTo(map);
-
-  setupClickToPlace();
-
-  if (props.modelValue) {
-    placeMarker(props.modelValue.lat, props.modelValue.lng);
-    state.value = 'ok';
-  } else if (query.value.trim()) {
-    geocode();
-  }
+  });
 });
 
 onUnmounted(() => {
   if (debounceTimer) clearTimeout(debounceTimer);
+  resizeObserver?.disconnect();
   if (map) {
     map.remove();
     map = null;

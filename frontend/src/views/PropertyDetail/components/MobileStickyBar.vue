@@ -2,6 +2,7 @@
 import { onBeforeUnmount, ref, watch } from 'vue';
 import IconPhone from '../../../components/icons/IconPhone.vue';
 import IconChevron from '../../../components/icons/IconChevron.vue';
+import { formatPhone } from '../../../utils/utils';
 
 defineProps<{
   price: string;
@@ -56,11 +57,11 @@ onBeforeUnmount(() => {
       >
         <div class="flex items-stretch bg-ink rounded-lg overflow-hidden">
           <a
-            :href="`tel:${phones[0].replace(/\s/g, '')}`"
+            :href="`tel:${formatPhone(phones[0]).replace(/\s/g, '')}`"
             class="flex items-center gap-1.5 px-5 py-2.5 text-cream text-sm font-medium hover:opacity-90 transition-opacity"
           >
             <span class="size-4 shrink-0"><IconPhone /></span>
-            {{ phones[0] }}
+            {{ formatPhone(phones[0]) }}
           </a>
           <button
             v-if="phones.length > 1"
@@ -82,11 +83,11 @@ onBeforeUnmount(() => {
             <a
               v-for="(phone, i) in phones"
               :key="i"
-              :href="`tel:${phone.replace(/\s/g, '')}`"
+              :href="`tel:${formatPhone(phone).replace(/\s/g, '')}`"
               class="flex items-center gap-2 px-3 py-2.5 text-sm text-ink font-medium rounded-lg hover:bg-surface transition-colors"
             >
               <span class="size-4 shrink-0"><IconPhone /></span>
-              {{ phone }}
+              {{ formatPhone(phone) }}
             </a>
           </div>
         </Transition>

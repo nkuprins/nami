@@ -27,6 +27,7 @@ const hasRu = computed(
 );
 
 const titleError = computed(() => props.fieldError('title'));
+const descriptionError = computed(() => props.fieldError('description'));
 
 const lvTitleWarning = computed(() => detectLvFieldWarning(props.form.titleLv));
 const enTitleWarning = computed(() => detectEnFieldWarning(props.form.titleEn));
@@ -86,8 +87,11 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
         </button>
       </div>
 
-      <p v-if="titleError" class="text-xs text-red-500 mb-2">
-        {{ titleError }}
+      <p
+        v-if="titleError || descriptionError"
+        class="text-xs text-red-500 mb-2"
+      >
+        {{ titleError || descriptionError }}
       </p>
       <p v-else class="text-xs text-ink-3 mb-2">
         {{ t('addProperty.atLeastOneLang') }}
@@ -100,6 +104,7 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           :label="t('addProperty.titleLabel')"
           v-model="form.titleLv"
           :placeholder="t('addProperty.titlePlaceholder')"
+          required
         />
         <p v-if="lvTitleWarning" class="text-xs text-amber-600 -mt-2">
           {{ warningMessage(lvTitleWarning) }}
@@ -108,13 +113,14 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="ap-desc-lv">
             {{ t('addProperty.descriptionLabel') }}
+            <span class="text-red-500">*</span>
           </label>
           <textarea
             id="ap-desc-lv"
             v-model="form.descriptionLv"
-            rows="4"
+            rows="14"
             :placeholder="t('addProperty.descriptionPlaceholder')"
-            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-none focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
           <p v-if="lvDescWarning" class="text-xs text-amber-600">
             {{ warningMessage(lvDescWarning) }}
@@ -129,6 +135,7 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           :label="t('addProperty.titleLabel')"
           v-model="form.titleEn"
           :placeholder="t('addProperty.titlePlaceholder')"
+          required
         />
         <p v-if="enTitleWarning" class="text-xs text-amber-600 -mt-2">
           {{ warningMessage(enTitleWarning) }}
@@ -137,13 +144,14 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="ap-desc-en">
             {{ t('addProperty.descriptionLabel') }}
+            <span class="text-red-500">*</span>
           </label>
           <textarea
             id="ap-desc-en"
             v-model="form.descriptionEn"
-            rows="4"
+            rows="14"
             :placeholder="t('addProperty.descriptionPlaceholder')"
-            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-none focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
           <p v-if="enDescWarning" class="text-xs text-amber-600">
             {{ warningMessage(enDescWarning) }}
@@ -158,18 +166,20 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           :label="t('addProperty.titleLabel')"
           v-model="form.titleRu"
           :placeholder="t('addProperty.titlePlaceholder')"
+          required
         />
 
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="ap-desc-ru">
             {{ t('addProperty.descriptionLabel') }}
+            <span class="text-red-500">*</span>
           </label>
           <textarea
             id="ap-desc-ru"
             v-model="form.descriptionRu"
-            rows="4"
+            rows="14"
             :placeholder="t('addProperty.descriptionPlaceholder')"
-            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-none focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
       </div>

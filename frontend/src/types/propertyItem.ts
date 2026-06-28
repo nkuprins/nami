@@ -8,6 +8,7 @@ export const KNOWN_FEATURES = [
   'furnished',
   'pets',
   'new_building',
+  'basement',
 ] as const;
 
 export type PropertyType = (typeof KNOWN_TYPES)[number];
@@ -27,6 +28,9 @@ interface PropertyBase {
   descriptionEn?: string;
   descriptionRu?: string;
   price: number;
+  buyVatIncluded?: boolean;
+  rentPrice?: number;
+  rentVatIncluded?: boolean;
   rooms: number;
   m2: number;
   landM2?: number;
