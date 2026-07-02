@@ -1,0 +1,208 @@
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+import { ref, watch } from 'vue';
+import { usePhotoUpload } from './composables/usePhotoUpload';
+import { useLocationDropdown } from './composables/useLocationDropdown';
+import { useListingForm } from './composables/useListingForm';
+import { useDuplicatePropertyNudge } from './composables/useDuplicatePropertyNudge';
+import { useLocaleRoute } from '../../composables/useLocaleRoute';
+import AddListingModal from '../../components/listing/AddListingModal.vue';
+import type { ListingType } from '../../types/listingItem';
+
+import ListingTypeSection from './components/ListingTypeSection.vue';
+import BasicInfoSection from './components/BasicInfoSection.vue';
+import PricingSection from './components/PricingSection.vue';
+import LocationSection from './components/LocationSection.vue';
+import DetailsSection from './components/DetailsSection.vue';
+import FeaturesSection from './components/FeaturesSection.vue';
+import PhonesSection from './components/PhonesSection.vue';
+import PhotosSection from './components/PhotosSection.vue';
+import PlansSection from './components/PlansSection.vue';
+
+const { t } = useI18n();
+const { localePath, localePush } = useLocaleRoute();
+
+const photoUpload = usePhotoUpload();
+const planUpload = usePhotoUpload(3);
+const { selectedLocation, isOpen, districtName, onSelect } =
+  useLocationDropdown();
+const {
+  form,
+  submitting,
+  submitError,
+  rentListingWarning,
+  fieldError,
+  addPhone,
+  removePhone,
+  submit,
+} = useListingForm(() => selectedLocation.value, photoUpload, planUpload);
+
+const nudge = useDuplicatePropertyNudge();
+const addListingFromNudge = ref(false);
+const addListingFromNudgePropertyId = ref('');
+const addListingFromNudgeTypes = ref<ListingType[]>([]);
+let nudgeTimer: ReturnType<typeof setTimeout> | undefined;
+
+function openAddListingFromNudge() {
+  if (!nudge.match.value) return;
+  addListingFromNudgePropertyId.value = nudge.match.value.propertyId;
+  addListingFromNudgeTypes.value = nudge.matchTypes.value;
+  addListingFromNudge.value = true;
+  nudge.dismiss();
+}
+
+watch(
+  () =>
+    [
+      form.address,
+      selectedLocation.value?.district,
+      selectedLocation.value?.city,
+    ] as const,
+  ([address, district, city]) => {
+    clearTimeout(nudgeTimer);
+    nudgeTimer = setTimeout(() => nudge.check(address, district, city), 400);
+  }
+);
+</script>
+
+<template>
+  <div class="mx-auto max-w-2xl px-4 sm:px-6 py-10 sm:py-14">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-ink">{{ t('addListing.title') }}</h1>
+      <p class="text-sm text-ink-3 mt-1">{{ t('addListing.subtitle') }}</p>
+    </div>
+
+    <Teleport to="body">
+      <Transition name="scrim">
+        <div
+          v-if="nudge.match.value"
+          class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+        >
+          <div
+            class="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+            @click="nudge.dismiss()"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            class="relative z-10 w-full max-w-sm bg-bg rounded-2xl shadow-lift border border-line p-6 flex flex-col gap-5"
+          >
+            <div class="flex flex-col gap-1.5">
+              <h2 class="text-base font-semibold text-ink">
+                {{ t('addListing.duplicateNudgeTitle') }}
+              </h2>
+              <p class="text-sm text-ink-2 leading-relaxed">
+                {{
+                  t('addListing.duplicateNudge', {
+                    address: nudge.match.value.location.address,
+                  })
+                }}
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <RouterLink
+                :to="localePath(`/listing/${nudge.match.value.id}`)"
+                class="focus-ring h-9 px-4 rounded-lg bg-ink text-bg text-sm font-medium flex items-center justify-center hover:bg-accent-2 transition-colors"
+                @click="nudge.dismiss()"
+              >
+                {{ t('addListing.duplicateNudgeView') }}
+              </RouterLink>
+              <button
+                type="button"
+                class="focus-ring h-9 px-4 rounded-lg border border-line text-sm text-ink-2 hover:bg-surface transition-colors"
+                @click="openAddListingFromNudge()"
+              >
+                {{ t('addListing.duplicateNudgeAddListing') }}
+              </button>
+              <button
+                type="button"
+                class="text-sm text-ink-3 hover:text-ink transition-colors self-center"
+                @click="nudge.dismiss()"
+              >
+                {{ t('common.dismiss') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <form class="flex flex-col gap-10" @submit.prevent="submit">
+      <ListingTypeSection :form="form" :field-error="fieldError" />
+
+      <PricingSection :form="form" :field-error="fieldError" :is-edit="false" />
+
+      <BasicInfoSection :form="form" :field-error="fieldError" />
+
+      <LocationSection
+        :form="form"
+        :field-error="fieldError"
+        :district-name="districtName"
+        :selected-location="selectedLocation"
+        v-model:is-open="isOpen"
+        @select="onSelect"
+      />
+
+      <DetailsSection :form="form" :field-error="fieldError" />
+
+      <FeaturesSection :form="form" />
+
+      <PhonesSection
+        :form="form"
+        :field-error="fieldError"
+        @add-phone="addPhone"
+        @remove-phone="removePhone"
+      />
+
+      <PhotosSection
+        :form="form"
+        :photos="photoUpload.photos.value"
+        :field-error="fieldError"
+        @add-files="photoUpload.addFiles"
+        @remove-photo="photoUpload.remove"
+        @move="photoUpload.move"
+      />
+      <PlansSection
+        :plans="planUpload.photos.value"
+        @add-files="planUpload.addFiles"
+        @remove-plan="planUpload.remove"
+        @move="planUpload.move"
+      />
+
+      <p v-if="rentListingWarning" class="text-sm text-amber-600">
+        {{ t('addListing.rentListingFailed') }}
+      </p>
+
+      <div class="flex items-center gap-4 pt-2">
+        <button
+          type="submit"
+          :disabled="submitting"
+          class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{
+            submitting
+              ? t('addListing.submitting')
+              : t('addListing.publishListing')
+          }}
+        </button>
+        <RouterLink
+          :to="localePath('/')"
+          class="text-sm text-ink-2 hover:text-ink underline underline-offset-2 transition-colors"
+        >
+          {{ t('addListing.cancel') }}
+        </RouterLink>
+      </div>
+
+      <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
+    </form>
+
+    <AddListingModal
+      v-if="addListingFromNudgePropertyId"
+      :open="addListingFromNudge"
+      :property-id="addListingFromNudgePropertyId"
+      :already-has="addListingFromNudgeTypes"
+      @update:open="addListingFromNudge = $event"
+      @added="localePush('/')"
+    />
+  </div>
+</template>

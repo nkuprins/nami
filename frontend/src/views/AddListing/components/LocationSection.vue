@@ -6,11 +6,11 @@ const { t } = useI18n();
 import LocationPopover from '../../../components/listing/LocationPopover.vue';
 import LocationMap from '../../../components/listing/LocationMap.vue';
 import FormField from '../../../components/ui/FormField.vue';
-import type { PropertyFormState } from '../composables/usePropertyForm';
+import type { PropertyFieldsForm } from '../composables/formTypes';
 import type { Location } from '../../../data/rawLocations';
 
 defineProps<{
-  form: PropertyFormState;
+  form: PropertyFieldsForm;
   fieldError: (field: string) => string | undefined;
   districtName: string;
   selectedLocation: Location | null;
@@ -26,12 +26,12 @@ defineEmits<{
 <template>
   <section class="flex flex-col gap-4">
     <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
-      {{ t('addProperty.locationSection') }}
+      {{ t('addListing.locationSection') }}
     </h2>
 
     <div class="flex flex-col gap-1.5 relative">
       <label class="text-sm font-medium text-ink" for="ap-district-toggle"
-        >{{ t('addProperty.districtLabel') }}
+        >{{ t('addListing.districtLabel') }}
         <span class="text-red-500">*</span></label
       >
       <button
@@ -47,7 +47,7 @@ defineEmits<{
           districtName
         }}</span>
         <span v-else class="text-ink-3">{{
-          t('addProperty.selectDistrict')
+          t('addListing.selectDistrict')
         }}</span>
         <span class="size-4 text-ink-2">
           <IconChevron :dir="isOpen ? 'up' : 'down'" />
@@ -78,7 +78,7 @@ defineEmits<{
 
     <FormField
       id="ap-address"
-      :label="t('addProperty.streetAddress')"
+      :label="t('addListing.streetAddress')"
       v-model="form.address"
       :error="fieldError('address')"
       required

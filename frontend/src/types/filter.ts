@@ -1,13 +1,21 @@
-import { Feature, PropertyCompletion, PropertyType } from './propertyItem';
+import {
+  EnergyClass,
+  Feature,
+  HeatingType,
+  PropertyCompletion,
+  ListingType,
+} from './listingItem';
 import { SortKey } from './sort';
 import { Location } from '../data/rawLocations';
 
 export interface FilterState {
-  type: PropertyType;
+  type: ListingType;
   loc: Location[];
   priceMin?: number;
   priceMax?: number;
   rooms: number[];
+  bedrooms: number[];
+  bathrooms: number[];
   m2Min?: number;
   m2Max?: number;
   floorMin?: number;
@@ -16,6 +24,8 @@ export interface FilterState {
   notTop?: boolean;
   yearMin?: number;
   yearMax?: number;
+  heating: HeatingType[];
+  energyClass: EnergyClass[];
   features: Feature[];
   completion?: PropertyCompletion;
   sort: SortKey;
@@ -29,6 +39,8 @@ export const ALL_FILTER_KEYS = Object.keys({
   priceMin: 0,
   priceMax: 0,
   rooms: 0,
+  bedrooms: 0,
+  bathrooms: 0,
   m2Min: 0,
   m2Max: 0,
   floorMin: 0,
@@ -37,6 +49,8 @@ export const ALL_FILTER_KEYS = Object.keys({
   notTop: 0,
   yearMin: 0,
   yearMax: 0,
+  heating: 0,
+  energyClass: 0,
   features: 0,
   completion: 0,
   sort: 0,
@@ -47,6 +61,10 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   type: 'buy',
   loc: [],
   rooms: [],
+  bedrooms: [],
+  bathrooms: [],
+  heating: [],
+  energyClass: [],
   features: [],
   sort: 'newest',
   page: 1,

@@ -2,17 +2,17 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import type { PropertyDetail } from '../../types/propertyItem';
+import type { ListingDetail } from '../../types/listingItem';
 import {
   resolveTitle,
   resolveDescription,
   hasLanguage,
-} from '../../types/propertyItem';
+} from '../../types/listingItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
 import { renderMarkdown } from '../../utils/renderMarkdown';
-import { getProperty, deleteProperty } from '../../api/propertiesApi';
+import { getListing, deleteListing } from '../../api/listingsApi';
 import { useSavedStore } from '../../stores/savedStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useShare } from '../../composables/useShare';
@@ -42,15 +42,15 @@ const { featureLabel } = usePropertyLabels();
 const savedStore = useSavedStore();
 const authStore = useAuthStore();
 
-const property = ref<PropertyDetail | null>(null);
+const listing = ref<ListingDetail | null>(null);
 onMounted(async () => {
-  property.value = (await getProperty(props.id)) ?? null;
+  listing.value = (await getListing(props.id)) ?? null;
 });
 
 const saved = computed(() => savedStore.isSaved(props.id));
 const isOwner = computed(
   () =>
-    authStore.user?.id != null && authStore.user.id === property.value?.ownerId
+    authStore.user?.id != null && authStore.user.id === listing.value?.ownerId
 );
 
 const confirmingDelete = ref(false);
@@ -59,7 +59,7 @@ const deleting = ref(false);
 async function confirmDelete() {
   deleting.value = true;
   try {
-    await deleteProperty(props.id);
+    await deleteListing(props.id);
     await router.replace(localePath('/'));
   } catch {
     deleting.value = false;
@@ -72,17 +72,17 @@ watch(locale, (l) => {
 });
 
 const displayTitle = computed(() =>
-  property.value ? resolveTitle(property.value, contentLocale.value) : ''
+  listing.value ? resolveTitle(listing.value, contentLocale.value) : ''
 );
 const displayDescription = computed(() =>
-  property.value ? resolveDescription(property.value, contentLocale.value) : ''
+  listing.value ? resolveDescription(listing.value, contentLocale.value) : ''
 );
 const renderedDescription = computed(() =>
   displayDescription.value ? renderMarkdown(displayDescription.value) : ''
 );
 const availableLanguages = computed(() =>
   (['lv', 'en', 'ru'] as const).filter(
-    (l) => property.value && hasLanguage(property.value, l)
+    (l) => listing.value && hasLanguage(listing.value, l)
   )
 );
 const hasMultipleLanguages = computed(
@@ -90,34 +90,33 @@ const hasMultipleLanguages = computed(
 );
 
 const price = computed(() =>
-  property.value
-    ? formatPrice(property.value.price, property.value.type, locale.value)
+  listing.value
+    ? formatPrice(listing.value.price.amount, listing.value.type, locale.value)
     : ''
 );
-const rentPrice = computed(() =>
-  property.value?.rentPrice != null
-    ? formatPrice(property.value.rentPrice, 'rent', locale.value)
-    : null
-);
 const pricePerM2 = computed(() =>
-  property.value
-    ? formatPricePerM2(property.value.price / property.value.m2, locale.value)
+  listing.value
+    ? formatPricePerM2(
+        listing.value.price.amount / listing.value.details.m2,
+        locale.value
+      )
     : ''
 );
 
 const specRow = computed(() => {
-  if (!property.value) return [];
-  const { rooms, m2, floor, totalFloors, landM2, propertyKind, yearBuilt } =
-    property.value;
+  if (!listing.value) return [];
+  const { rooms, m2, floor, totalFloors, landM2, yearBuilt } =
+    listing.value.details;
+  const { propertyKind } = listing.value;
   const parts: string[] = [];
-  parts.push(`${rooms} ${t('property.rm')}`);
+  parts.push(`${rooms} ${t('listing.rm')}`);
   parts.push(`${m2} m²`);
   if (propertyKind === 'house' && landM2) {
-    parts.push(`${landM2.toLocaleString()} ${t('property.land')}`);
+    parts.push(`${landM2.toLocaleString()} ${t('listing.land')}`);
   } else if (floor) {
     parts.push(formatFloor(floor, totalFloors, locale.value));
   }
-  if (yearBuilt) parts.push(`${t('property.built')} ${yearBuilt}`);
+  if (yearBuilt) parts.push(`${t('listing.built')} ${yearBuilt}`);
   return parts;
 });
 
@@ -129,14 +128,14 @@ function switchToVideo() {
 }
 
 const videoTourUrl = computed(() => {
-  const raw = property.value?.videoUrl;
+  const raw = listing.value?.media.videoUrl;
   return typeof raw === 'string' ? raw.trim() : '';
 });
 
 const { share, justCopied } = useShare();
 
-function shareProperty() {
-  if (!property.value) return;
+function shareListing() {
+  if (!listing.value) return;
   share({ title: displayTitle.value, url: window.location.href });
 }
 
@@ -160,22 +159,22 @@ function openPlanLightbox(i: number) {
 <template>
   <div class="max-w-5xl mx-auto px-4 py-6 lg:px-6">
     <button
-      v-if="!property"
+      v-if="!listing"
       class="inline-flex items-center gap-1.5 text-sm font-medium text-ink-2 hover:text-ink transition-colors bg-transparent border-none p-0 cursor-pointer mb-6"
       @click="router.back()"
     >
       <span class="size-4 shrink-0"><IconArrowLeft /></span>
-      {{ t('property.back') }}
+      {{ t('listing.back') }}
     </button>
-    <p v-if="!property" class="text-sm text-ink-2">Loading&hellip;</p>
+    <p v-if="!listing" class="text-sm text-ink-2">Loading&hellip;</p>
 
-    <template v-if="property">
+    <template v-if="listing">
       <button
         class="inline-flex items-center gap-1.5 text-sm font-medium text-ink-2 hover:text-ink transition-colors mb-6 bg-transparent border-none p-0 cursor-pointer"
         @click="router.back()"
       >
         <span class="size-4 shrink-0"><IconArrowLeft /></span>
-        {{ t('property.back') }}
+        {{ t('listing.back') }}
       </button>
 
       <!-- Language toggle -->
@@ -197,7 +196,7 @@ function openPlanLightbox(i: number) {
       </div>
 
       <BentoPhotoGrid
-        :photos="property.photos"
+        :photos="listing.media.photos ?? []"
         :alt="displayTitle"
         @open-lightbox="openBento"
       />
@@ -206,11 +205,15 @@ function openPlanLightbox(i: number) {
       <div
         class="lg:hidden relative aspect-4/3 rounded-lg overflow-hidden mb-6"
       >
-        <CardCarousel :photos="property.photos" :alt="displayTitle" zoomable />
+        <CardCarousel
+          :photos="listing.media.photos ?? []"
+          :alt="displayTitle"
+          zoomable
+        />
         <div class="absolute top-3 right-3 z-10 flex items-center gap-2">
           <RouterLink
             v-if="isOwner"
-            :to="localePath(`/property/${property.id}/edit`)"
+            :to="localePath(`/listing/${listing.id}/edit`)"
             class="size-9 grid place-items-center rounded-full bg-bg/90 backdrop-blur text-ink-2 hover:bg-bg hover:scale-105 active:scale-95 transition-all duration-200"
           >
             <span class="size-4"><IconEdit /></span>
@@ -226,17 +229,17 @@ function openPlanLightbox(i: number) {
           <button
             type="button"
             class="size-9 grid place-items-center rounded-full bg-bg/90 backdrop-blur text-ink-2 cursor-pointer hover:bg-bg hover:scale-105 active:scale-95 transition-all duration-200"
-            @click.stop="shareProperty"
+            @click.stop="shareListing"
           >
             <span class="size-4"><IconShare /></span>
           </button>
-          <SaveHeart :property-id="property.id" />
+          <SaveHeart :listing-id="listing.id" />
         </div>
       </div>
 
       <PhotoLightBox
         v-model:open="bentoLightboxOpen"
-        :photos="property.photos"
+        :photos="listing.media.photos ?? []"
         :alt="displayTitle"
         :initial-index="bentoLightboxIndex"
       />
@@ -247,13 +250,13 @@ function openPlanLightbox(i: number) {
         <div>
           <div class="mb-1">
             <p class="micro-label">
-              {{ property.district }} · {{ property.city }}
+              {{ listing.location.district }} · {{ listing.location.city }}
             </p>
             <h1 class="mt-1 text-xl leading-snug text-ink font-medium">
               {{ displayTitle }}
             </h1>
             <p class="mt-1 text-sm text-ink-2">
-              {{ property.address }}
+              {{ listing.location.address }}
             </p>
           </div>
 
@@ -263,11 +266,11 @@ function openPlanLightbox(i: number) {
           />
 
           <div
-            v-if="property.features.length"
+            v-if="listing.features?.length"
             class="flex flex-wrap gap-2 mt-4"
           >
             <span
-              v-for="f in property.features"
+              v-for="f in listing.features"
               :key="f"
               class="micro-label bg-surface border border-line rounded-md px-2 py-1"
             >
@@ -287,7 +290,7 @@ function openPlanLightbox(i: number) {
           <!-- Media toggle + content -->
           <div>
             <div
-              v-if="videoTourUrl || property.plans?.length"
+              v-if="videoTourUrl || listing.media.plans?.length"
               class="flex items-center gap-1.5 mb-4"
             >
               <button
@@ -300,10 +303,10 @@ function openPlanLightbox(i: number) {
                 "
                 @click="mediaTab = 'photos'"
               >
-                {{ t('property.photos') }}
+                {{ t('listing.photos') }}
               </button>
               <button
-                v-if="property.plans?.length"
+                v-if="listing.media.plans?.length"
                 type="button"
                 class="focus-ring px-4 py-1.5 text-sm font-medium rounded-full border transition-colors cursor-pointer"
                 :class="
@@ -313,7 +316,7 @@ function openPlanLightbox(i: number) {
                 "
                 @click="mediaTab = 'plans'"
               >
-                {{ t('property.plans') }}
+                {{ t('listing.plans') }}
               </button>
               <button
                 v-if="videoTourUrl"
@@ -326,28 +329,28 @@ function openPlanLightbox(i: number) {
                 "
                 @click="switchToVideo()"
               >
-                {{ t('property.video') }}
+                {{ t('listing.video') }}
               </button>
             </div>
 
             <PhotoGrid
               v-if="mediaTab === 'photos'"
-              :photos="property.photos"
+              :photos="listing.media.photos ?? []"
               :alt="displayTitle"
               :video-url="videoTourUrl"
               @play-video="switchToVideo()"
             />
 
             <div
-              v-else-if="mediaTab === 'plans' && property.plans?.length"
+              v-else-if="mediaTab === 'plans' && listing.media.plans?.length"
               class="grid grid-cols-2 sm:grid-cols-3 gap-2"
             >
               <img
-                v-for="(url, i) in property.plans"
+                v-for="(url, i) in listing.media.plans"
                 :key="i"
                 :src="url"
                 class="w-full rounded-lg object-contain bg-surface cursor-pointer"
-                :alt="`${t('property.plans')} ${i + 1}`"
+                :alt="`${t('listing.plans')} ${i + 1}`"
                 @click="openPlanLightbox(i)"
               />
             </div>
@@ -361,18 +364,18 @@ function openPlanLightbox(i: number) {
 
           <PhotoLightBox
             v-model:open="planLightboxOpen"
-            :photos="property.plans ?? []"
-            :alt="t('property.plans')"
+            :photos="listing.media.plans ?? []"
+            :alt="t('listing.plans')"
             :initial-index="planLightboxIndex"
           />
 
-          <div v-if="property.coords" class="my-5">
-            <p class="micro-label mb-3">{{ t('property.location') }}</p>
+          <div v-if="listing.location.coords" class="my-5">
+            <p class="micro-label mb-3">{{ t('listing.location') }}</p>
             <LocationMap
-              :model-value="property.coords"
-              :address="property.address"
-              :district="property.district"
-              :city="property.city"
+              :model-value="listing.location.coords"
+              :address="listing.location.address"
+              :district="listing.location.district"
+              :city="listing.location.city"
               readonly
             />
           </div>
@@ -381,9 +384,9 @@ function openPlanLightbox(i: number) {
           <div class="lg:hidden">
             <hr class="border-none border-t border-line my-5" />
             <div>
-              <p class="micro-label mb-4">{{ t('property.contact') }}</p>
+              <p class="micro-label mb-4">{{ t('listing.contact') }}</p>
               <ContactCard
-                :phones="property.phones"
+                :phones="listing.phones ?? undefined"
                 :phone-revealed="phoneRevealed"
                 @reveal-phone="phoneRevealed = true"
               />
@@ -396,15 +399,12 @@ function openPlanLightbox(i: number) {
           <div class="sticky top-20 space-y-4">
             <div class="rounded-xl border border-line p-5 shadow-soft">
               <p class="display-price text-2xl text-ink">{{ price }}</p>
-              <p v-if="rentPrice" class="text-sm text-ink-2 mt-0.5">
-                {{ t('property.alsoForRent') }}: {{ rentPrice }}
-              </p>
               <p class="text-xs text-ink-2 tabular mt-1">{{ pricePerM2 }}</p>
               <p
-                v-if="property.buyVatIncluded"
+                v-if="listing.price.vatIncluded"
                 class="text-xs text-ink-3 mt-0.5"
               >
-                {{ t('property.vatIncluded') }}
+                {{ t('listing.vatIncluded') }}
               </p>
 
               <SpecDots
@@ -416,32 +416,30 @@ function openPlanLightbox(i: number) {
                 type="button"
                 class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-4 text-sm font-medium bg-transparent border border-line rounded-lg cursor-pointer hover:bg-surface transition-colors"
                 :class="saved ? 'text-accent-2' : 'text-ink-2 hover:text-ink'"
-                @click="savedStore.toggle(property.id)"
+                @click="savedStore.toggle(listing.id)"
               >
                 <span class="size-4 shrink-0"
                   ><IconHeart :filled="saved"
                 /></span>
-                {{ saved ? t('property.saved') : t('property.save') }}
+                {{ saved ? t('listing.saved') : t('listing.save') }}
               </button>
 
               <button
                 type="button"
                 class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line rounded-lg cursor-pointer hover:bg-surface hover:text-ink transition-colors"
-                @click="shareProperty"
+                @click="shareListing"
               >
                 <span class="size-4 shrink-0"><IconShare /></span>
-                {{
-                  justCopied ? t('property.linkCopied') : t('property.share')
-                }}
+                {{ justCopied ? t('listing.linkCopied') : t('listing.share') }}
               </button>
 
               <RouterLink
                 v-if="isOwner"
-                :to="localePath(`/property/${property.id}/edit`)"
+                :to="localePath(`/listing/${listing.id}/edit`)"
                 class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line rounded-lg hover:bg-surface hover:text-ink transition-colors"
               >
                 <span class="size-4 shrink-0"><IconEdit /></span>
-                {{ t('property.edit') }}
+                {{ t('listing.edit') }}
               </RouterLink>
 
               <button
@@ -452,12 +450,12 @@ function openPlanLightbox(i: number) {
                 @click="confirmingDelete = true"
               >
                 <span class="size-4 shrink-0"><IconTrash /></span>
-                {{ t('property.delete') }}
+                {{ t('listing.delete') }}
               </button>
 
               <ContactCard
                 class="mt-5"
-                :phones="property.phones"
+                :phones="listing.phones ?? undefined"
                 :phone-revealed="phoneRevealed"
                 @reveal-phone="phoneRevealed = true"
               />
@@ -469,7 +467,7 @@ function openPlanLightbox(i: number) {
       <MobileStickyBar
         :price="price"
         :price-per-m2="pricePerM2"
-        :phones="property.phones"
+        :phones="listing.phones ?? undefined"
         :phone-revealed="phoneRevealed"
         @reveal-phone="phoneRevealed = true"
       />
@@ -477,9 +475,9 @@ function openPlanLightbox(i: number) {
 
     <ConfirmDialog
       :open="confirmingDelete"
-      :title="t('property.deleteConfirmTitle')"
-      :description="t('property.deleteConfirmDesc')"
-      :confirm-label="t('property.deleteConfirmLabel')"
+      :title="t('listing.deleteConfirmTitle')"
+      :description="t('listing.deleteConfirmDesc')"
+      :confirm-label="t('listing.deleteConfirmLabel')"
       danger
       @update:open="confirmingDelete = false"
       @confirm="confirmDelete"

@@ -1,4 +1,9 @@
-import type { PropertySummary, PropertyDetail } from '../types/propertyItem';
+import type {
+  ListingSummary,
+  ListingDetail,
+  PropertyDetail,
+  PropertyLocation,
+} from '../types/listingItem';
 import type { FilterState } from '../types/filter';
 import {
   cityBySlug,
@@ -7,46 +12,59 @@ import {
   districtSlugByName,
 } from '../data/locations';
 
-// The API speaks slugs ("agenskalns", "riga").
+// The API speaks slugs ("agenskalns", "riga") for location.district/location.city.
 
-export type PropertySummaryDto = Omit<PropertySummary, 'district' | 'city'> & {
-  district: string; // slug
-  city: string; // slug
-};
+export type ListingSummaryDto = ListingSummary;
+export type ListingDetailDto = ListingDetail;
 
-export type PropertyDetailDto = Omit<PropertyDetail, 'district' | 'city'> & {
-  district: string; // slug
-  city: string; // slug
-};
-
-export type PropertyPayload = Omit<PropertyDetailDto, 'id' | 'postedAt'>;
-
-export function toSummaryDisplayNames(
-  dto: PropertySummaryDto
-): PropertySummary {
+export function toListingSummaryDisplayNames(
+  dto: ListingSummaryDto
+): ListingSummary {
   return {
     ...dto,
-    district: districtNameBySlug.get(dto.district) ?? dto.district,
-    city: cityBySlug.get(dto.city) ?? dto.city,
+    location: {
+      ...dto.location,
+      district:
+        districtNameBySlug.get(dto.location.district) ?? dto.location.district,
+      city: cityBySlug.get(dto.location.city) ?? dto.location.city,
+    },
   };
 }
 
-export function toDetailDisplayNames(dto: PropertyDetailDto): PropertyDetail {
+export function toListingDetailDisplayNames(
+  dto: ListingDetailDto
+): ListingDetail {
   return {
     ...dto,
-    district: districtNameBySlug.get(dto.district) ?? dto.district,
-    city: cityBySlug.get(dto.city) ?? dto.city,
+    location: {
+      ...dto.location,
+      district:
+        districtNameBySlug.get(dto.location.district) ?? dto.location.district,
+      city: cityBySlug.get(dto.location.city) ?? dto.location.city,
+    },
   };
 }
 
-export function toSlugs(
-  data: Omit<PropertyDetail, 'id' | 'postedAt'>
-): PropertyPayload {
+export type PropertyDetailDto = PropertyDetail;
+
+export function toPropertyDisplayNames(dto: PropertyDetailDto): PropertyDetail {
   return {
-    ...data,
+    ...dto,
+    location: {
+      ...dto.location,
+      district:
+        districtNameBySlug.get(dto.location.district) ?? dto.location.district,
+      city: cityBySlug.get(dto.location.city) ?? dto.location.city,
+    },
+  };
+}
+
+export function toSlugs(loc: PropertyLocation): PropertyLocation {
+  return {
+    ...loc,
     district:
-      districtSlugByName.get(data.district) ?? data.district.toLowerCase(),
-    city: cityByName.get(data.city) ?? data.city.toLowerCase(),
+      districtSlugByName.get(loc.district) ?? loc.district.toLowerCase(),
+    city: cityByName.get(loc.city) ?? loc.city.toLowerCase(),
   };
 }
 
@@ -57,6 +75,8 @@ export function buildParams(f: FilterState): URLSearchParams {
   if (f.priceMin != null) p.set('priceMin', String(f.priceMin));
   if (f.priceMax != null) p.set('priceMax', String(f.priceMax));
   f.rooms.forEach((r) => p.append('rooms', String(r)));
+  f.bedrooms.forEach((r) => p.append('bedrooms', String(r)));
+  f.bathrooms.forEach((r) => p.append('bathrooms', String(r)));
   if (f.m2Min != null) p.set('m2Min', String(f.m2Min));
   if (f.m2Max != null) p.set('m2Max', String(f.m2Max));
   if (f.floorMin != null) p.set('floorMin', String(f.floorMin));
@@ -65,6 +85,8 @@ export function buildParams(f: FilterState): URLSearchParams {
   if (f.notTop) p.set('notTop', 'true');
   if (f.yearMin != null) p.set('yearMin', String(f.yearMin));
   if (f.yearMax != null) p.set('yearMax', String(f.yearMax));
+  f.heating.forEach((h) => p.append('heating', h));
+  f.energyClass.forEach((e) => p.append('energyClass', e));
   f.features.forEach((ft) => p.append('features', ft));
   if (f.completion) p.set('completion', f.completion);
   p.set('sort', f.sort);

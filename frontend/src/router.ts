@@ -23,20 +23,26 @@ export const router = createRouter({
           component: () => import('./views/Home/HomeView.vue'),
         },
         {
-          path: 'property/:id',
-          name: 'property',
-          component: () => import('./views/PropertyDetail/PropertyView.vue'),
+          path: 'listing/:id',
+          name: 'listing',
+          component: () => import('./views/ListingDetail/ListingView.vue'),
           props: true,
         },
         {
-          path: 'add-property',
-          name: 'add-property',
-          component: () => import('./views/AddProperty/AddPropertyView.vue'),
+          path: 'add-listing',
+          name: 'add-listing',
+          component: () => import('./views/AddListing/AddListingView.vue'),
+        },
+        {
+          path: 'listing/:id/edit',
+          name: 'edit-listing',
+          component: () => import('./views/AddListing/EditListingView.vue'),
+          props: true,
         },
         {
           path: 'property/:id/edit',
           name: 'edit-property',
-          component: () => import('./views/AddProperty/AddPropertyView.vue'),
+          component: () => import('./views/AddListing/EditPropertyView.vue'),
           props: true,
         },
         {
@@ -84,7 +90,9 @@ router.beforeEach(async (to) => {
 
   const auth = useAuthStore();
   if (
-    (to.name === 'add-property' || to.name === 'edit-property') &&
+    (to.name === 'add-listing' ||
+      to.name === 'edit-listing' ||
+      to.name === 'edit-property') &&
     !auth.isAuthenticated
   ) {
     return { name: 'home', params: { locale: locale ?? 'lv' } };

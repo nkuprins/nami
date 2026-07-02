@@ -1,4 +1,13 @@
-import type { PropertyDetail } from '../types/propertyItem';
+import type {
+  BathroomLayout,
+  EnergyClass,
+  Feature,
+  HeatingType,
+  ListingDetail,
+  ListingType,
+  PropertyCompletion,
+  PropertyKind,
+} from '../types/listingItem';
 
 const photo = (seed: string, wide = false) =>
   wide
@@ -11,9 +20,99 @@ const widePhotos = (...seeds: string[]) => seeds.map((s) => photo(s, true));
 const plans = (...seeds: string[]) =>
   seeds.map((s) => `https://picsum.photos/seed/plan-${s}/1200/900`);
 
-export const mockListings: PropertyDetail[] = [
+// Flat, human-writable shape for mock fixtures — converted to the nested
+// ListingDetail shape by toListingDetail() below. Multiple raw entries can
+// share a propertyId to model "one property, several listings".
+interface RawListing {
+  id: string;
+  propertyId: string;
+  type: ListingType;
+  propertyKind: PropertyKind;
+  titleLv?: string;
+  titleEn?: string;
+  titleRu?: string;
+  descriptionLv?: string;
+  descriptionEn?: string;
+  descriptionRu?: string;
+  price: number;
+  vatIncluded?: boolean;
+  rooms: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  bathroomLayout?: BathroomLayout;
+  m2: number;
+  landM2?: number;
+  floor?: number;
+  totalFloors?: number;
+  yearBuilt?: number;
+  heating?: HeatingType;
+  energyClass?: EnergyClass;
+  maintenanceCost?: number;
+  features: Feature[];
+  district: string;
+  city: string;
+  address: string;
+  coords: { lat: number; lng: number };
+  phones?: string[];
+  photos: string[];
+  plans?: string[];
+  videoUrl?: string;
+  postedAt: string;
+  completion?: PropertyCompletion;
+}
+
+function toListingDetail(r: RawListing): ListingDetail {
+  const translations: ListingDetail['translations'] = {};
+  if (r.titleLv)
+    translations.lv = { title: r.titleLv, description: r.descriptionLv };
+  if (r.titleEn)
+    translations.en = { title: r.titleEn, description: r.descriptionEn };
+  if (r.titleRu)
+    translations.ru = { title: r.titleRu, description: r.descriptionRu };
+
+  return {
+    id: r.id,
+    propertyId: r.propertyId,
+    type: r.type,
+    propertyKind: r.propertyKind,
+    price: { amount: r.price, vatIncluded: r.vatIncluded },
+    details: {
+      rooms: r.rooms,
+      bedrooms: r.bedrooms,
+      bathrooms: r.bathrooms,
+      bathroomLayout: r.bathroomLayout,
+      m2: r.m2,
+      landM2: r.landM2,
+      floor: r.floor,
+      totalFloors: r.totalFloors,
+      yearBuilt: r.yearBuilt,
+      heating: r.heating,
+      energyClass: r.energyClass,
+      maintenanceCost: r.maintenanceCost,
+    },
+    translations,
+    location: {
+      district: r.district,
+      city: r.city,
+      address: r.address,
+      coords: r.coords,
+    },
+    features: r.features,
+    media: {
+      photos: r.photos,
+      plans: r.plans ?? null,
+      videoUrl: r.videoUrl ?? null,
+    },
+    phones: r.phones ?? null,
+    postedAt: r.postedAt,
+    completion: r.completion,
+  };
+}
+
+const rawListings: RawListing[] = [
   {
     id: 'lst-001',
+    propertyId: 'prop-001',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Restaurēts jūgendstila dzīvoklis Elizabetes ielā',
@@ -23,14 +122,17 @@ export const mockListings: PropertyDetail[] = [
     descriptionEn:
       "A meticulously restored apartment in one of Riga's landmark Art Nouveau buildings. Original ceiling reliefs, herringbone parquet, and tall casement windows facing a quiet courtyard.",
     price: 285_000,
-    buyVatIncluded: false,
-    rentPrice: 1_460,
-    rentVatIncluded: false,
+    vatIncluded: false,
     rooms: 3,
+    bedrooms: 2,
+    bathrooms: 1,
+    bathroomLayout: 'separate',
     m2: 108,
     floor: 4,
     totalFloors: 6,
     yearBuilt: 1908,
+    heating: 'central',
+    energyClass: 'C',
     features: ['balcony', 'elevator', 'basement'],
     district: 'Centrs',
     city: 'Rīga',
@@ -64,7 +166,40 @@ export const mockListings: PropertyDetail[] = [
     postedAt: '2026-05-19T10:00:00Z',
   },
   {
+    // Same physical property as lst-001 — exercises multi-listing grouping.
+    id: 'lst-001r',
+    propertyId: 'prop-001',
+    type: 'rent',
+    propertyKind: 'apartment',
+    titleLv: 'Restaurēts jūgendstila dzīvoklis Elizabetes ielā (īre)',
+    titleEn: 'Restored Art Nouveau apartment on Elizabetes (rent)',
+    descriptionLv: 'Tas pats dzīvoklis pieejams arī ilgtermiņa īrei.',
+    descriptionEn: 'The same apartment is also available for long-term rent.',
+    price: 1_460,
+    vatIncluded: false,
+    rooms: 3,
+    bedrooms: 2,
+    bathrooms: 1,
+    bathroomLayout: 'separate',
+    m2: 108,
+    floor: 4,
+    totalFloors: 6,
+    yearBuilt: 1908,
+    heating: 'central',
+    energyClass: 'C',
+    features: ['balcony', 'elevator', 'basement'],
+    district: 'Centrs',
+    city: 'Rīga',
+    address: 'Elizabetes iela 21',
+    coords: { lat: 56.9559, lng: 24.1145 },
+    phones: ['+371 29 123 456', '+371 26 789 012'],
+    photos: widePhotos('001a', '001b', '001c', '001d'),
+    plans: plans('001a', '001b'),
+    postedAt: '2026-05-19T10:00:00Z',
+  },
+  {
     id: 'lst-002',
+    propertyId: 'prop-002',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Gaišs lofts pārveidotā Vecrīgas noliktavā',
@@ -92,6 +227,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-003',
+    propertyId: 'prop-003',
     type: 'buy',
     propertyKind: 'house',
     titleLv: 'Koka ģimenes māja pie Mežaparka',
@@ -102,9 +238,13 @@ export const mockListings: PropertyDetail[] = [
       'A 1930s wooden house lovingly restored. Walking distance to the Mežaparks open-air stage and the lake.',
     price: 540_000,
     rooms: 5,
+    bedrooms: 4,
+    bathrooms: 2,
+    bathroomLayout: 'separate',
     m2: 200,
     landM2: 820,
     yearBuilt: 1932,
+    heating: 'solid_fuel',
     features: ['parking', 'pets'],
     district: 'Mežaparks',
     city: 'Rīga',
@@ -116,6 +256,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-004',
+    propertyId: 'prop-004',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Ģimenes dzīvoklis pie Āgenskalna tirgus',
@@ -141,6 +282,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-005',
+    propertyId: 'prop-005',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Kompakts studijas dzīvoklis restaurētā pirmskara ēkā',
@@ -166,6 +308,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-006',
+    propertyId: 'prop-006',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Saulains stūra dzīvoklis Purvciemā',
@@ -191,6 +334,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-007',
+    propertyId: 'prop-007',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Stiklota siena dzīvoklis Ķīpsalā',
@@ -200,7 +344,7 @@ export const mockListings: PropertyDetail[] = [
     descriptionEn:
       'Contemporary unit in the well-known riverside development. Floor-to-ceiling glazing, river views.',
     price: 695_000,
-    buyVatIncluded: true,
+    vatIncluded: true,
     rooms: 4,
     m2: 150,
     floor: 6,
@@ -219,6 +363,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-008',
+    propertyId: 'prop-008',
     type: 'buy',
     propertyKind: 'house',
     // LV only — exercises single-language fallback in EN mode
@@ -241,6 +386,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-009',
+    propertyId: 'prop-009',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Penthouse ar jumta terasi, Centrs',
@@ -251,10 +397,14 @@ export const mockListings: PropertyDetail[] = [
       'Full-floor penthouse spanning the top of a small boutique building. Wraparound terrace.',
     price: 925_000,
     rooms: 4,
+    bedrooms: 3,
+    bathrooms: 2,
+    bathroomLayout: 'combined',
     m2: 180,
     floor: 7,
     totalFloors: 7,
     yearBuilt: 2008,
+    maintenanceCost: 220,
     features: ['parking', 'elevator', 'new_building'],
     district: 'Centrs',
     city: 'Rīga',
@@ -265,7 +415,37 @@ export const mockListings: PropertyDetail[] = [
     postedAt: '2026-05-20T08:00:00Z',
   },
   {
+    // Same physical property as lst-009 — second multi-listing example.
+    id: 'lst-009r',
+    propertyId: 'prop-009',
+    type: 'rent',
+    propertyKind: 'apartment',
+    titleLv: 'Penthouse ar jumta terasi, Centrs (īre)',
+    titleEn: 'Penthouse with rooftop terrace, Centrs (rent)',
+    descriptionLv: 'Tas pats penthouse pieejams arī īrei.',
+    descriptionEn: 'The same penthouse is also available for rent.',
+    price: 3_600,
+    rooms: 4,
+    bedrooms: 3,
+    bathrooms: 2,
+    bathroomLayout: 'combined',
+    m2: 180,
+    floor: 7,
+    totalFloors: 7,
+    yearBuilt: 2008,
+    maintenanceCost: 220,
+    features: ['parking', 'elevator', 'new_building'],
+    district: 'Centrs',
+    city: 'Rīga',
+    address: 'Strēlnieku iela 9',
+    coords: { lat: 56.961, lng: 24.1099 },
+    phones: ['+371 22 987 654', '+371 29 321 987'],
+    photos: photos('009a', '009b', '009c'),
+    postedAt: '2026-05-20T08:00:00Z',
+  },
+  {
     id: 'lst-010',
+    propertyId: 'prop-010',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Kluss divistabu dzīvoklis pie Imanta stacijas',
@@ -291,6 +471,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-011',
+    propertyId: 'prop-011',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Arhitekta dzīvoklis Vecrīgā',
@@ -316,6 +497,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-012',
+    propertyId: 'prop-012',
     type: 'buy',
     propertyKind: 'apartment',
     // EN only — exercises single-language fallback in LV mode
@@ -339,6 +521,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-013',
+    propertyId: 'prop-013',
     type: 'buy',
     propertyKind: 'house',
     titleLv: 'Lauku māja Siguldas ielejā',
@@ -352,6 +535,7 @@ export const mockListings: PropertyDetail[] = [
     m2: 120,
     landM2: 2_400,
     yearBuilt: 1978,
+    heating: 'solid_fuel',
     features: ['parking', 'pets'],
     district: 'Sigulda',
     city: 'Sigulda',
@@ -363,6 +547,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-014',
+    propertyId: 'prop-014',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Studija mazā Mežaparka ēkā',
@@ -388,6 +573,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-015',
+    propertyId: 'prop-015',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Trīsistabu dzīvoklis restaurētā 1930. gadu ēkā',
@@ -413,6 +599,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-016',
+    propertyId: 'prop-016',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Upes divistabu dzīvoklis ar privātu piestātni',
@@ -436,9 +623,9 @@ export const mockListings: PropertyDetail[] = [
     photos: photos('016a', '016b', '016c', '016d', '016e'),
     postedAt: '2026-04-22T08:00:00Z',
   },
-
   {
     id: 'lst-017',
+    propertyId: 'prop-017',
     type: 'rent',
     propertyKind: 'apartment',
     titleLv: 'Mēbelēts vienistabu dzīvoklis Tērbatas ielā',
@@ -464,6 +651,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-018',
+    propertyId: 'prop-018',
     type: 'rent',
     propertyKind: 'apartment',
     titleLv: 'Dizainera studija pie Vērmanes dārza',
@@ -489,6 +677,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-019',
+    propertyId: 'prop-019',
     type: 'rent',
     propertyKind: 'apartment',
     titleLv: 'Ģimenes trīsistabu dzīvoklis Teikā',
@@ -514,6 +703,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-020',
+    propertyId: 'prop-020',
     type: 'rent',
     propertyKind: 'house',
     titleLv: 'Koka vasaras māja Jūrmalā',
@@ -538,6 +728,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-021',
+    propertyId: 'prop-021',
     type: 'rent',
     propertyKind: 'apartment',
     titleLv: 'Kompakts divistabu dzīvoklis pie Stockmann',
@@ -561,9 +752,9 @@ export const mockListings: PropertyDetail[] = [
     photos: photos('021a', '021b', '021c'),
     postedAt: '2026-04-25T08:00:00Z',
   },
-
   {
     id: 'lst-022',
+    propertyId: 'prop-022',
     type: 'new_project',
     propertyKind: 'apartment',
     titleLv: 'Kalnciema kvartāls — C ēka',
@@ -578,6 +769,8 @@ export const mockListings: PropertyDetail[] = [
     floor: 4,
     totalFloors: 6,
     yearBuilt: 2026,
+    heating: 'heat_pump',
+    energyClass: 'A',
     features: ['parking', 'elevator', 'new_building'],
     district: 'Āgenskalns',
     city: 'Rīga',
@@ -590,6 +783,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-023',
+    propertyId: 'prop-023',
     type: 'new_project',
     propertyKind: 'apartment',
     titleLv: 'Skanstes upes krasts — 2. tornis',
@@ -616,6 +810,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-025',
+    propertyId: 'prop-025',
     type: 'buy',
     propertyKind: 'apartment',
     titleLv: 'Mazpagrabstāva istaba netālu no Centrāltirgus',
@@ -641,6 +836,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-026',
+    propertyId: 'prop-026',
     type: 'rent',
     propertyKind: 'apartment',
     titleLv: 'Gaiša divistabu dzīvoklis Čaka ielā',
@@ -666,6 +862,7 @@ export const mockListings: PropertyDetail[] = [
   },
   {
     id: 'lst-024',
+    propertyId: 'prop-024',
     type: 'new_project',
     propertyKind: 'house',
     titleLv: 'Mežaparka koka mājas — 11. zemesgabals',
@@ -690,3 +887,5 @@ export const mockListings: PropertyDetail[] = [
     completion: 'ready',
   },
 ];
+
+export const mockListings: ListingDetail[] = rawListings.map(toListingDetail);

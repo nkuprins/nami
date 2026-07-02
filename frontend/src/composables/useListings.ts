@@ -1,11 +1,11 @@
 import { computed, ref, toValue, watch, type MaybeRefOrGetter } from 'vue';
-import type { PropertySummary } from '../types/propertyItem';
+import type { ListingSummary } from '../types/listingItem';
 import { type FilterState, PAGE_SIZE } from '../types/filter';
-import { listProperties } from '../api/propertiesApi';
+import { listListings } from '../api/listingsApi';
 import { logger } from '../utils/logger';
 
 export function useListings(source: MaybeRefOrGetter<FilterState>) {
-  const items = ref<PropertySummary[]>([]);
+  const items = ref<ListingSummary[]>([]);
   const total = ref(0);
   const loading = ref(true);
   const error = ref<string | null>(null);
@@ -24,7 +24,7 @@ export function useListings(source: MaybeRefOrGetter<FilterState>) {
 
       try {
         const q = toValue(source);
-        const out = await listProperties(q, { signal: controller.signal });
+        const out = await listListings(q, { signal: controller.signal });
 
         items.value = out.items;
         total.value = out.total;

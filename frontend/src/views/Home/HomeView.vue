@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useFiltersStore } from '../../stores/filterStore';
 import { useListings } from '../../composables/useListings';
 import ResultsHeader from '../../components/listing/ResultsHeader.vue';
-import PropertyGrid from '../../components/listing/PropertyGrid.vue';
+import ListingGrid from '../../components/listing/ListingGrid.vue';
 import Pagination from '../../components/listing/Pagination.vue';
 import HeroSection from './components/HeroSection.vue';
 import MoreFiltersDrawer from './components/MoreFiltersDrawer.vue';
@@ -44,7 +44,7 @@ async function goToPage(p: number) {
     <div ref="gridRef" />
     <ResultsHeader :total="total" :loading="loading" />
 
-    <PropertyGrid :items="items" :loading="loading">
+    <ListingGrid :items="items" :loading="loading">
       <template #empty>
         <div
           class="border border-dashed border-line rounded-2xl py-24 px-8 text-center bg-cream/40"
@@ -68,7 +68,7 @@ async function goToPage(p: number) {
           </button>
         </div>
       </template>
-    </PropertyGrid>
+    </ListingGrid>
 
     <Pagination :page="state.page" :page-count="pageCount" @change="goToPage" />
   </section>

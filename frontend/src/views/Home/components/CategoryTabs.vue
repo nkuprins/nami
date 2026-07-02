@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { PropertyType } from '../../../types/propertyItem';
+import type { ListingType } from '../../../types/listingItem';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 
-defineProps<{ modelValue: PropertyType }>();
-const emit = defineEmits<{ 'update:modelValue': [value: PropertyType] }>();
+defineProps<{ modelValue: ListingType }>();
+const emit = defineEmits<{ 'update:modelValue': [value: ListingType] }>();
 
 const { categoryOptions } = usePropertyLabels();
 
-function pick(id: PropertyType) {
+function pick(id: ListingType) {
   emit('update:modelValue', id);
 }
 </script>

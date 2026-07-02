@@ -5,14 +5,21 @@ import Drawer from '../../../components/ui/Drawer.vue';
 import { useFiltersStore } from '../../../stores/filterStore';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import type { FilterState } from '../../../types/filter';
-import { Feature } from '../../../types/propertyItem';
+import { Feature } from '../../../types/listingItem';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
 const { t } = useI18n();
 const { state, applyAdvanced, resetAdvanced } = useFiltersStore();
-const { featureOptions, completionOptions } = usePropertyLabels();
+const {
+  featureOptions,
+  completionOptions,
+  heatingOptions,
+  energyClassOptions,
+} = usePropertyLabels();
+
+const BEDROOM_BATHROOM_OPTIONS = [1, 2, 3, 4, 5];
 
 type Draft = Pick<
   FilterState,
@@ -24,6 +31,10 @@ type Draft = Pick<
   | 'notTop'
   | 'yearMin'
   | 'yearMax'
+  | 'bedrooms'
+  | 'bathrooms'
+  | 'heating'
+  | 'energyClass'
   | 'features'
   | 'completion'
 >;
@@ -40,9 +51,34 @@ function makeDraftFromState(): Draft {
     notTop: state.notTop,
     yearMin: state.yearMin,
     yearMax: state.yearMax,
+    bedrooms: [...state.bedrooms],
+    bathrooms: [...state.bathrooms],
+    heating: [...state.heating],
+    energyClass: [...state.energyClass],
     features: [...state.features],
     completion: state.completion,
   };
+}
+
+function toggleNumeric(key: 'bedrooms' | 'bathrooms', v: number) {
+  const set = new Set(draft[key]);
+  if (set.has(v)) set.delete(v);
+  else set.add(v);
+  draft[key] = [...set].sort((a, b) => a - b);
+}
+
+function toggleHeating(id: (typeof draft.heating)[number]) {
+  const set = new Set(draft.heating);
+  if (set.has(id)) set.delete(id);
+  else set.add(id);
+  draft.heating = [...set];
+}
+
+function toggleEnergyClass(id: (typeof draft.energyClass)[number]) {
+  const set = new Set(draft.energyClass);
+  if (set.has(id)) set.delete(id);
+  else set.add(id);
+  draft.energyClass = [...set];
 }
 
 watch(
@@ -164,6 +200,46 @@ function reset() {
       </section>
 
       <section>
+        <p class="micro-label mb-2">{{ t('advFilters.bedrooms') }}</p>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            v-for="n in BEDROOM_BATHROOM_OPTIONS"
+            :key="n"
+            type="button"
+            @click="toggleNumeric('bedrooms', n)"
+            class="focus-ring inline-flex items-center justify-center min-w-11 h-10 px-3 rounded-md border text-sm transition-colors"
+            :class="
+              draft.bedrooms.includes(n)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line text-ink hover:border-line-2'
+            "
+          >
+            {{ n }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">{{ t('advFilters.bathrooms') }}</p>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            v-for="n in BEDROOM_BATHROOM_OPTIONS"
+            :key="n"
+            type="button"
+            @click="toggleNumeric('bathrooms', n)"
+            class="focus-ring inline-flex items-center justify-center min-w-11 h-10 px-3 rounded-md border text-sm transition-colors"
+            :class="
+              draft.bathrooms.includes(n)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line text-ink hover:border-line-2'
+            "
+          >
+            {{ n }}
+          </button>
+        </div>
+      </section>
+
+      <section>
         <p class="micro-label mb-2">{{ t('advFilters.yearBuilt') }}</p>
         <div class="grid grid-cols-2 gap-2">
           <input
@@ -209,6 +285,48 @@ function reset() {
               </div>
             </div>
           </label>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-3">{{ t('advFilters.heating') }}</p>
+        <div class="grid grid-cols-1 gap-1.5">
+          <label
+            v-for="opt in heatingOptions"
+            :key="opt.id"
+            class="focus-ring flex items-center gap-3 px-3 py-2.5 rounded-md border border-line hover:border-line-2 cursor-pointer transition-colors"
+            :class="
+              draft.heating.includes(opt.id) ? 'bg-cream/70 border-line-2' : ''
+            "
+          >
+            <input
+              type="checkbox"
+              :checked="draft.heating.includes(opt.id)"
+              @change="toggleHeating(opt.id)"
+              class="accent-ink size-4"
+            />
+            <p class="text-sm text-ink leading-tight">{{ opt.label }}</p>
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-3">{{ t('advFilters.energyClass') }}</p>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            v-for="opt in energyClassOptions"
+            :key="opt.id"
+            type="button"
+            @click="toggleEnergyClass(opt.id)"
+            class="focus-ring inline-flex items-center justify-center min-w-10 h-10 px-3 rounded-md border text-sm transition-colors"
+            :class="
+              draft.energyClass.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line text-ink hover:border-line-2'
+            "
+          >
+            {{ opt.label }}
+          </button>
         </div>
       </section>
 

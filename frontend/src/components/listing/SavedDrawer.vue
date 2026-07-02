@@ -3,12 +3,12 @@ import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Drawer from '../ui/Drawer.vue';
 import EmptyState from '../ui/EmptyState.vue';
-import PropertyListItem from './PropertyListItem.vue';
+import ListingListItem from './ListingListItem.vue';
 import IconHeart from '../icons/IconHeart.vue';
 import { useSavedStore } from '../../stores/savedStore';
-import { getProperty } from '../../api/propertiesApi';
-import type { PropertyDetail } from '../../types/propertyItem';
-import { resolveTitle } from '../../types/propertyItem';
+import { getListing } from '../../api/listingsApi';
+import type { ListingDetail } from '../../types/listingItem';
+import { resolveTitle } from '../../types/listingItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 
 const props = defineProps<{ open: boolean }>();
@@ -17,7 +17,7 @@ const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 const { t } = useI18n();
 const { locale, localePath } = useLocaleRoute();
 const savedStore = useSavedStore();
-const items = ref<PropertyDetail[]>([]);
+const items = ref<ListingDetail[]>([]);
 const loading = ref(false);
 
 async function loadSaved() {
@@ -30,9 +30,9 @@ async function loadSaved() {
   loading.value = true;
   try {
     const results = await Promise.all(
-      savedStore.ids.map((id) => getProperty(id))
+      savedStore.ids.map((id) => getListing(id))
     );
-    items.value = results.filter((p): p is PropertyDetail => p !== undefined);
+    items.value = results.filter((p): p is ListingDetail => p !== undefined);
   } catch {
     items.value = [];
   }
@@ -77,16 +77,16 @@ watch(() => props.open, loadSaved);
     </EmptyState>
 
     <div v-else class="flex flex-col gap-3">
-      <PropertyListItem
+      <ListingListItem
         v-for="item in items"
         :key="item.id"
         :id="item.id"
         :title="resolveTitle(item, locale)"
-        :district="item.district"
-        :city="item.city"
-        :price="item.price"
+        :district="item.location.district"
+        :city="item.location.city"
+        :price="item.price.amount"
         :type="item.type"
-        :photo="item.photos[0]"
+        :photo="item.media.photos?.[0]"
         @navigate="emit('update:open', false)"
       >
         <template #action>
@@ -100,7 +100,7 @@ watch(() => props.open, loadSaved);
             /></span>
           </button>
         </template>
-      </PropertyListItem>
+      </ListingListItem>
     </div>
   </Drawer>
 </template>

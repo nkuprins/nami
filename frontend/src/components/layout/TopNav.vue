@@ -51,7 +51,7 @@ const mobileLangOpen = ref(false);
 function handleAddProperty() {
   mobileMenuOpen.value = false;
   if (auth.isAuthenticated) {
-    localePush('/add-property');
+    localePush('/add-listing');
   } else {
     authOpen.value = true;
   }

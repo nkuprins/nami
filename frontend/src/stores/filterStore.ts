@@ -7,7 +7,7 @@ import {
   FilterKey,
   type FilterState,
 } from '../types/filter';
-import { PropertyType } from '../types/propertyItem';
+import { ListingType } from '../types/listingItem';
 import { logger } from '../utils/logger';
 import { FilterCodec } from '../utils/filterCodec';
 import { SortKey } from '../types/sort';
@@ -61,7 +61,7 @@ export const useFiltersStore = defineStore('filters', () => {
 
   // --- Actions ---
 
-  function setType(type: PropertyType) {
+  function setType(type: ListingType) {
     if (state.type === type) return;
     logger.info(`[FiltersStore] Mode mutation: ${state.type} ➔ ${type}`);
     state.type = type;
@@ -137,6 +137,10 @@ export const useFiltersStore = defineStore('filters', () => {
     state.notTop = undefined;
     state.yearMin = undefined;
     state.yearMax = undefined;
+    state.bedrooms = [];
+    state.bathrooms = [];
+    state.heating = [];
+    state.energyClass = [];
     state.features = [];
     state.completion = undefined;
     state.page = 1;

@@ -2,14 +2,14 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import FormField from '../../../components/ui/FormField.vue';
-import type { PropertyFormState } from '../composables/usePropertyForm';
+import type { ListingFieldsForm } from '../composables/formTypes';
 import {
   detectEnFieldWarning,
   detectLvFieldWarning,
 } from '../../../utils/languageDetect';
 
 const props = defineProps<{
-  form: PropertyFormState;
+  form: ListingFieldsForm;
   fieldError: (field: string) => string | undefined;
 }>();
 
@@ -39,9 +39,9 @@ const enDescWarning = computed(() =>
 );
 
 function tabLabel(lang: 'lv' | 'en' | 'ru'): string {
-  if (lang === 'lv') return t('addProperty.langTabLv');
-  if (lang === 'en') return t('addProperty.langTabEn');
-  return t('addProperty.langTabRu');
+  if (lang === 'lv') return t('addListing.langTabLv');
+  if (lang === 'en') return t('addListing.langTabEn');
+  return t('addListing.langTabRu');
 }
 
 function hasContent(lang: 'lv' | 'en' | 'ru'): boolean {
@@ -51,8 +51,8 @@ function hasContent(lang: 'lv' | 'en' | 'ru'): boolean {
 }
 
 function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
-  if (w === 'latvianInEn') return t('addProperty.langWarningLatvianInEn');
-  if (w === 'separator') return t('addProperty.langWarningSeparator');
+  if (w === 'latvianInEn') return t('addListing.langWarningLatvianInEn');
+  if (w === 'separator') return t('addListing.langWarningSeparator');
   return '';
 }
 </script>
@@ -60,7 +60,7 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
 <template>
   <section class="flex flex-col gap-4">
     <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
-      {{ t('addProperty.basicInfo') }}
+      {{ t('addListing.basicInfo') }}
     </h2>
 
     <!-- Language tabs -->
@@ -94,16 +94,16 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
         {{ titleError || descriptionError }}
       </p>
       <p v-else class="text-xs text-ink-3 mb-2">
-        {{ t('addProperty.atLeastOneLang') }}
+        {{ t('addListing.atLeastOneLang') }}
       </p>
 
       <!-- Latvian fields -->
       <div v-show="activeLang === 'lv'" class="flex flex-col gap-3">
         <FormField
           id="ap-title-lv"
-          :label="t('addProperty.titleLabel')"
+          :label="t('addListing.titleLabel')"
           v-model="form.titleLv"
-          :placeholder="t('addProperty.titlePlaceholder')"
+          :placeholder="t('addListing.titlePlaceholder')"
           required
         />
         <p v-if="lvTitleWarning" class="text-xs text-amber-600 -mt-2">
@@ -112,14 +112,14 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
 
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="ap-desc-lv">
-            {{ t('addProperty.descriptionLabel') }}
+            {{ t('addListing.descriptionLabel') }}
             <span class="text-red-500">*</span>
           </label>
           <textarea
             id="ap-desc-lv"
             v-model="form.descriptionLv"
             rows="14"
-            :placeholder="t('addProperty.descriptionPlaceholder')"
+            :placeholder="t('addListing.descriptionPlaceholder')"
             class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
           <p v-if="lvDescWarning" class="text-xs text-amber-600">
@@ -132,9 +132,9 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
       <div v-show="activeLang === 'en'" class="flex flex-col gap-3">
         <FormField
           id="ap-title-en"
-          :label="t('addProperty.titleLabel')"
+          :label="t('addListing.titleLabel')"
           v-model="form.titleEn"
-          :placeholder="t('addProperty.titlePlaceholder')"
+          :placeholder="t('addListing.titlePlaceholder')"
           required
         />
         <p v-if="enTitleWarning" class="text-xs text-amber-600 -mt-2">
@@ -143,14 +143,14 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
 
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="ap-desc-en">
-            {{ t('addProperty.descriptionLabel') }}
+            {{ t('addListing.descriptionLabel') }}
             <span class="text-red-500">*</span>
           </label>
           <textarea
             id="ap-desc-en"
             v-model="form.descriptionEn"
             rows="14"
-            :placeholder="t('addProperty.descriptionPlaceholder')"
+            :placeholder="t('addListing.descriptionPlaceholder')"
             class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
           <p v-if="enDescWarning" class="text-xs text-amber-600">
@@ -163,22 +163,22 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
       <div v-show="activeLang === 'ru'" class="flex flex-col gap-3">
         <FormField
           id="ap-title-ru"
-          :label="t('addProperty.titleLabel')"
+          :label="t('addListing.titleLabel')"
           v-model="form.titleRu"
-          :placeholder="t('addProperty.titlePlaceholder')"
+          :placeholder="t('addListing.titlePlaceholder')"
           required
         />
 
         <div class="flex flex-col gap-1.5">
           <label class="text-sm font-medium text-ink" for="ap-desc-ru">
-            {{ t('addProperty.descriptionLabel') }}
+            {{ t('addListing.descriptionLabel') }}
             <span class="text-red-500">*</span>
           </label>
           <textarea
             id="ap-desc-ru"
             v-model="form.descriptionRu"
             rows="14"
-            :placeholder="t('addProperty.descriptionPlaceholder')"
+            :placeholder="t('addListing.descriptionPlaceholder')"
             class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>

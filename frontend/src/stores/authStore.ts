@@ -1,6 +1,7 @@
 import { computed, readonly, ref, onScopeDispose } from 'vue';
 import { defineStore } from 'pinia';
 import { logger } from '../utils/logger';
+import { hasSessionHint } from '../utils/hasSessionHint';
 import {
   authApi,
   type AuthUser,
@@ -27,6 +28,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function init(): Promise<void> {
     logger.info('[AuthStore] Initializing auth session checking...');
+    if (!hasSessionHint()) {
+      logger.info(
+        '[AuthStore] No session hint cookie found. Skipping getMe() for anonymous visitor.'
+      );
+      user.value = null;
+      initializing.value = false;
+      return;
+    }
     try {
       const userData = await authApi.getMe();
       if (userData) {

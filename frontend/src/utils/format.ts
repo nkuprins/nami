@@ -1,5 +1,5 @@
 import type { Locale } from '../i18n';
-import { PropertyType } from '../types/propertyItem';
+import { ListingType } from '../types/listingItem';
 
 const fmtLv = new Intl.NumberFormat('lv-LV', {
   style: 'currency',
@@ -27,7 +27,7 @@ function fmt(locale: Locale) {
 
 export function formatPrice(
   value: number,
-  type: PropertyType,
+  type: ListingType,
   locale: Locale = 'lv'
 ): string {
   const formatted = fmt(locale).format(value);

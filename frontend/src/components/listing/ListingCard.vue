@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { PropertySummary } from '../../types/propertyItem';
+import type { ListingSummary } from '../../types/listingItem';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { resolveTitle } from '../../types/propertyItem';
+import { resolveTitle } from '../../types/listingItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import StatusPill from './StatusPill.vue';
@@ -10,33 +10,30 @@ import SaveHeart from './SaveHeart.vue';
 import SpecDots from './SpecDots.vue';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
 
-const props = defineProps<{ property: PropertySummary }>();
+const props = defineProps<{ property: ListingSummary }>();
 const { t } = useI18n();
 const { locale, localePath } = useLocaleRoute();
-const { typeLabel } = usePropertyLabels();
 
 const title = computed(() => resolveTitle(props.property, locale.value));
 
 const price = computed(() =>
-  formatPrice(props.property.price, props.property.type, locale.value)
+  formatPrice(props.property.price.amount, props.property.type, locale.value)
 );
 const pricePerM2 = computed(() =>
-  formatPricePerM2(props.property.price / props.property.m2, locale.value)
-);
-const rentPrice = computed(() =>
-  props.property.rentPrice != null
-    ? formatPrice(props.property.rentPrice, 'rent', locale.value)
-    : null
+  formatPricePerM2(
+    props.property.price.amount / props.property.details.m2,
+    locale.value
+  )
 );
 
 const specRow = computed(() => {
-  const { rooms, m2, floor, totalFloors, landM2, propertyKind } =
-    props.property;
+  const { rooms, m2, floor, totalFloors, landM2 } = props.property.details;
+  const { propertyKind } = props.property;
   const parts: string[] = [];
-  parts.push(`${rooms} ${t('property.rm')}`);
+  parts.push(`${rooms} ${t('listing.rm')}`);
   parts.push(`${m2} m²`);
   if (propertyKind === 'house' && landM2) {
-    parts.push(`${landM2.toLocaleString()} ${t('property.land')}`);
+    parts.push(`${landM2.toLocaleString()} ${t('listing.land')}`);
   } else if (floor) {
     parts.push(formatFloor(floor, totalFloors, locale.value));
   }
@@ -46,7 +43,7 @@ const specRow = computed(() => {
 
 <template>
   <RouterLink
-    :to="localePath(`/property/${property.id}`)"
+    :to="localePath(`/listing/${property.id}`)"
     class="focus-ring block group h-full"
   >
     <article
@@ -54,7 +51,7 @@ const specRow = computed(() => {
     >
       <div class="relative aspect-4/3 overflow-hidden shrink-0">
         <img
-          :src="property.photo"
+          :src="property.photo ?? undefined"
           :alt="title"
           class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         />
@@ -64,14 +61,16 @@ const specRow = computed(() => {
         </div>
 
         <div class="absolute top-3 right-3 z-10">
-          <SaveHeart :property-id="property.id" />
+          <SaveHeart :listing-id="property.id" />
         </div>
       </div>
 
       <div class="p-5 flex flex-col flex-1">
         <div class="micro-label">
-          <p class="truncate">{{ property.city }} · {{ property.district }}</p>
-          <p class="truncate">{{ property.address }}</p>
+          <p class="truncate">
+            {{ property.location.city }} · {{ property.location.district }}
+          </p>
+          <p class="truncate">{{ property.location.address }}</p>
         </div>
 
         <div class="flex items-baseline justify-between gap-4 mt-2">
@@ -79,22 +78,16 @@ const specRow = computed(() => {
             <p class="display-price text-2xl text-ink whitespace-nowrap">
               {{ price }}
             </p>
-            <p
-              v-if="rentPrice"
-              class="text-sm text-ink-2 whitespace-nowrap mt-0.5"
-            >
-              {{ t('property.alsoForRent') }}: {{ rentPrice }}
-            </p>
           </div>
           <div class="text-right shrink-0">
             <p class="text-sm text-ink-2 tabular whitespace-nowrap">
               {{ pricePerM2 }}
             </p>
             <p
-              v-if="property.buyVatIncluded"
+              v-if="property.price.vatIncluded"
               class="text-xs text-ink-3 whitespace-nowrap mt-0.5"
             >
-              {{ t('property.vatIncluded') }}
+              {{ t('listing.vatIncluded') }}
             </p>
           </div>
         </div>

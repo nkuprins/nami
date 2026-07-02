@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
 import { formatPrice } from '../../utils/format';
+import type { ListingType } from '../../types/listingItem';
 
 defineProps<{
   id: string;
@@ -8,7 +9,7 @@ defineProps<{
   district: string;
   city: string;
   price: number;
-  type: string;
+  type: ListingType;
   photo: string | undefined;
 }>();
 
@@ -23,7 +24,7 @@ const emit = defineEmits<{
   >
     <div class="flex min-h-20 sm:min-h-24">
       <RouterLink
-        :to="`/property/${id}`"
+        :to="`/listing/${id}`"
         class="flex flex-1 min-w-0 gap-3"
         @click="emit('navigate')"
       >

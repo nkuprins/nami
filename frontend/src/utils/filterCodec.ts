@@ -2,12 +2,16 @@ import type { LocationQuery } from 'vue-router';
 import { DEFAULT_FILTER_STATE } from '../types/filter';
 import { type FilterState } from '../types/filter';
 import {
+  EnergyClass,
   Feature,
+  HeatingType,
   KNOWN_COMPLETION,
+  KNOWN_ENERGY_CLASS,
   KNOWN_FEATURES,
+  KNOWN_HEATING,
   KNOWN_TYPES,
   PropertyCompletion,
-} from '../types/propertyItem';
+} from '../types/listingItem';
 import { KNOWN_SORTS } from '../types/sort';
 import { Location } from '../data/rawLocations';
 import { cityBySlug, districtNameBySlug } from '../data/locations';
@@ -96,6 +100,13 @@ export const FilterCodec = {
       loc: parse.locationList(q.loc),
       features: parse.enumList(q.features, KNOWN_FEATURES) as Feature[],
       rooms: parse.numericList(q.rooms),
+      bedrooms: parse.numericList(q.bedrooms),
+      bathrooms: parse.numericList(q.bathrooms),
+      heating: parse.enumList(q.heating, KNOWN_HEATING) as HeatingType[],
+      energyClass: parse.enumList(
+        q.energyClass,
+        KNOWN_ENERGY_CLASS
+      ) as EnergyClass[],
 
       // Range Parameters (Numbers)
       priceMin: parse.number(q.priceMin),
@@ -124,6 +135,10 @@ export const FilterCodec = {
       q.loc = state.loc.map((l) => `${l.city}:${l.district}`).join(',');
     }
     if (state.rooms.length) q.rooms = state.rooms.join(',');
+    if (state.bedrooms.length) q.bedrooms = state.bedrooms.join(',');
+    if (state.bathrooms.length) q.bathrooms = state.bathrooms.join(',');
+    if (state.heating.length) q.heating = state.heating.join(',');
+    if (state.energyClass.length) q.energyClass = state.energyClass.join(',');
     if (state.features.length) q.features = state.features.join(',');
 
     if (state.priceMin !== undefined) q.priceMin = String(state.priceMin);

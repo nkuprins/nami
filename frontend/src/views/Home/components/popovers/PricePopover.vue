@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { PropertyType } from '../../../../types/propertyItem';
+import type { ListingType } from '../../../../types/listingItem';
 
 const DEBOUNCE_MS = 280;
 
@@ -12,7 +12,7 @@ const fmt = new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 });
 const props = defineProps<{
   min: number | undefined;
   max: number | undefined;
-  type: PropertyType;
+  type: ListingType;
 }>();
 const emit = defineEmits<{
   'update:range': [min: number | undefined, max: number | undefined];

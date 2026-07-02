@@ -23,7 +23,7 @@ function toggle(id: string) {
       current.includes(id) ? current.filter((v) => v !== id) : [...current, id]
     );
   } else {
-    emit('update:modelValue', id);
+    emit('update:modelValue', props.modelValue === id ? '' : id);
   }
 }
 </script>

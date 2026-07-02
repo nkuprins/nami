@@ -1,50 +1,57 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import Drawer from '../ui/Drawer.vue';
 import EmptyState from '../ui/EmptyState.vue';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
-import PropertyListItem from './PropertyListItem.vue';
+import PropertyGroupCard from './PropertyGroupCard.vue';
+import AddListingModal from './AddListingModal.vue';
+import IconClose from '../icons/IconClose.vue';
+import IconArrowLeft from '../icons/IconArrowLeft.vue';
 import {
-  getMyProperties,
+  getMyListings,
+  deleteListing,
   deleteProperty,
-  renewProperty,
-} from '../../api/propertiesApi';
-import type { PropertySummary } from '../../types/propertyItem';
-import { resolveTitle } from '../../types/propertyItem';
+  renewListing,
+} from '../../api/listingsApi';
+import type { ListingSummary, ListingType } from '../../types/listingItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
-import IconTrash from '../icons/IconTrash.vue';
-import IconEdit from '../icons/IconEdit.vue';
-import IconRefresh from '../icons/IconRefresh.vue';
-import IconSpinner from '../icons/IconSpinner.vue';
 
 const ERROR_DISPLAY_MS = 3000;
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
-const items = ref<PropertySummary[]>([]);
+function close() {
+  emit('update:open', false);
+}
+
+const items = ref<ListingSummary[]>([]);
 
 const { t } = useI18n();
-const { locale, localePath } = useLocaleRoute();
+const { localePath } = useLocaleRoute();
 
 const loading = ref(false);
 const error = ref(false);
-const confirmId = ref<string | null>(null);
-const deletingId = ref<string | null>(null);
-const deleteError = ref(false);
 
-const renewId = ref<string | null>(null);
-const renewMonths = ref(3);
-const renewingId = ref<string | null>(null);
-const renewError = ref(false);
+const groups = computed(() => {
+  const map = new Map<string, ListingSummary[]>();
+  for (const item of items.value) {
+    const arr = map.get(item.propertyId) ?? [];
+    arr.push(item);
+    map.set(item.propertyId, arr);
+  }
+  return [...map.entries()].map(([propertyId, listings]) => ({
+    propertyId,
+    listings,
+  }));
+});
 
 async function load() {
   if (!props.open) return;
   loading.value = true;
   error.value = false;
   try {
-    items.value = await getMyProperties();
+    items.value = await getMyListings();
   } catch {
     error.value = true;
     items.value = [];
@@ -52,19 +59,22 @@ async function load() {
   loading.value = false;
 }
 
-function requestDelete(event: MouseEvent, id: string) {
-  event.preventDefault();
-  event.stopPropagation();
-  confirmId.value = id;
+// Delete a single listing (property + sibling listings survive)
+const confirmListingId = ref<string | null>(null);
+const deletingId = ref<string | null>(null);
+const deleteError = ref(false);
+
+function requestDeleteListing(id: string) {
+  confirmListingId.value = id;
 }
 
-async function confirmDelete() {
-  const id = confirmId.value;
+async function confirmDeleteListing() {
+  const id = confirmListingId.value;
   if (!id) return;
-  confirmId.value = null;
+  confirmListingId.value = null;
   deletingId.value = id;
   try {
-    await deleteProperty(id);
+    await deleteListing(id);
     items.value = items.value.filter((item) => item.id !== id);
   } catch {
     deleteError.value = true;
@@ -74,9 +84,38 @@ async function confirmDelete() {
   }
 }
 
-function requestRenew(event: MouseEvent, id: string) {
-  event.preventDefault();
-  event.stopPropagation();
+// Delete the whole property (cascades to all its listings)
+const confirmPropertyId = ref<string | null>(null);
+const deletingPropertyId = ref<string | null>(null);
+const deletePropertyError = ref(false);
+
+function requestDeleteProperty(propertyId: string) {
+  confirmPropertyId.value = propertyId;
+}
+
+async function confirmDeleteProperty() {
+  const propertyId = confirmPropertyId.value;
+  if (!propertyId) return;
+  confirmPropertyId.value = null;
+  deletingPropertyId.value = propertyId;
+  try {
+    await deleteProperty(propertyId);
+    items.value = items.value.filter((item) => item.propertyId !== propertyId);
+  } catch {
+    deletePropertyError.value = true;
+    setTimeout(() => (deletePropertyError.value = false), ERROR_DISPLAY_MS);
+  } finally {
+    deletingPropertyId.value = null;
+  }
+}
+
+// Renew a single listing
+const renewId = ref<string | null>(null);
+const renewMonths = ref(3);
+const renewingId = ref<string | null>(null);
+const renewError = ref(false);
+
+function requestRenew(id: string) {
   renewMonths.value = 3;
   renewId.value = id;
 }
@@ -87,7 +126,7 @@ async function confirmRenew() {
   renewId.value = null;
   renewingId.value = id;
   try {
-    const updated = await renewProperty(id, renewMonths.value);
+    const updated = await renewListing(id, renewMonths.value);
     items.value = items.value.map((item) =>
       item.id === id ? { ...item, expiresAt: updated.expiresAt } : item
     );
@@ -99,134 +138,196 @@ async function confirmRenew() {
   }
 }
 
-function isExpired(item: PropertySummary): boolean {
-  return !!item.expiresAt && new Date(item.expiresAt) < new Date();
-}
+// Add a second/third listing type to an existing property
+const addListingPropertyId = ref<string | null>(null);
+const addListingExistingTypes = computed<ListingType[]>(() => {
+  if (!addListingPropertyId.value) return [];
+  return items.value
+    .filter((item) => item.propertyId === addListingPropertyId.value)
+    .map((item) => item.type);
+});
 
-function formatExpiry(item: PropertySummary): string {
-  if (!item.expiresAt) return '';
-  const date = new Date(item.expiresAt).toLocaleDateString(undefined, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-  return t('drawers.expiresOn', { date });
+function requestAddListing(propertyId: string) {
+  addListingPropertyId.value = propertyId;
 }
 
 watch(() => props.open, load);
+
+function onKey(e: KeyboardEvent) {
+  if (e.key === 'Escape') close();
+}
+
+watch(
+  () => props.open,
+  (val) => {
+    if (val) {
+      document.addEventListener('keydown', onKey);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    }
+  }
+);
+
+onBeforeUnmount(() => {
+  document.removeEventListener('keydown', onKey);
+  document.body.style.overflow = '';
+});
+
+// AddListingModal is itself Drawer-based and also toggles body.style.overflow;
+// re-lock scroll if it closes while this panel is still open, otherwise its
+// unconditional unlock-on-close would leak through.
+watch(addListingPropertyId, (val, oldVal) => {
+  if (val === null && oldVal !== null && props.open) {
+    document.body.style.overflow = 'hidden';
+  }
+});
 </script>
 
 <template>
-  <Drawer
-    :open="open"
-    :title="t('drawers.myProperties')"
-    @update:open="emit('update:open', $event)"
-  >
-    <div v-if="loading" class="flex flex-col gap-3">
+  <Teleport to="body">
+    <Transition name="scrim">
       <div
-        v-for="i in 3"
-        :key="i"
-        class="h-20 rounded-xl bg-surface animate-pulse"
+        v-if="open"
+        class="hidden md:block fixed inset-0 z-[45] bg-ink/45 backdrop-blur-sm"
+        aria-hidden="true"
       />
-    </div>
+    </Transition>
 
-    <div v-else-if="error" class="py-16 text-center">
-      <p class="text-sm text-ink-2">{{ t('drawers.failedToLoad') }}</p>
-    </div>
-
-    <EmptyState
-      v-else-if="items.length === 0"
-      :message="t('drawers.noPropertiesYet')"
-    >
-      <template #action>
-        <RouterLink
-          :to="localePath('/add-property')"
-          class="text-sm text-ink underline underline-offset-2"
-          @click="emit('update:open', false)"
-        >
-          {{ t('drawers.addPropertyLink') }}
-        </RouterLink>
-      </template>
-    </EmptyState>
-
-    <div v-else class="flex flex-col gap-3">
-      <Transition name="fade">
-        <p v-if="deleteError" class="text-xs text-warn text-center py-1">
-          {{ t('drawers.failedToDelete') }}
-        </p>
-      </Transition>
-      <Transition name="fade">
-        <p v-if="renewError" class="text-xs text-warn text-center py-1">
-          {{ t('drawers.renewError') }}
-        </p>
-      </Transition>
-
-      <PropertyListItem
-        v-for="item in items"
-        :key="item.id"
-        :id="item.id"
-        :title="resolveTitle(item, locale)"
-        :district="item.district"
-        :city="item.city"
-        :price="item.price"
-        :type="item.type"
-        :photo="item.photo"
-        @navigate="emit('update:open', false)"
+    <Transition name="pop">
+      <div
+        v-if="open"
+        class="fixed inset-0 z-[45] flex flex-col md:items-center md:justify-center md:p-6"
+        @click="close"
       >
-        <template #subtitle>
-          <span
-            v-if="isExpired(item)"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-warn/10 text-warn"
+        <div
+          class="flex flex-col w-full h-full md:h-auto md:max-w-3xl md:max-h-[85vh] md:rounded-2xl md:shadow-lift md:border md:border-line bg-bg"
+          @click.stop
+        >
+          <header
+            class="flex items-center gap-3 px-4 md:px-6 h-14 md:h-16 border-b border-line shrink-0"
           >
-            {{ t('drawers.expired') }}
-          </span>
-          <p v-else-if="item.expiresAt" class="text-xs text-ink-2 truncate">
-            {{ formatExpiry(item) }}
-          </p>
-        </template>
+            <button
+              type="button"
+              class="md:hidden focus-ring size-9 -ml-1 grid place-items-center text-ink-2 hover:text-ink"
+              :aria-label="t('listing.back')"
+              @click="close"
+            >
+              <span class="size-5"><IconArrowLeft /></span>
+            </button>
+            <div class="flex-1 md:flex-none">
+              <p class="micro-label">{{ t('drawers.myProperties') }}</p>
+              <p class="hidden md:block text-xs text-ink-3 mt-0.5">
+                {{ t('drawers.escToClose') }}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="hidden md:grid ml-auto focus-ring size-10 -mr-2 place-items-center text-ink-2 hover:text-ink"
+              :aria-label="t('drawers.close')"
+              @click="close"
+            >
+              <span class="size-5"><IconClose /></span>
+            </button>
+          </header>
 
-        <template #footer>
-          <div class="grid grid-cols-3 divide-x divide-line">
-            <button
-              class="flex flex-col items-center gap-1.5 py-2.5 text-ink-3 hover:text-ink hover:bg-surface transition-colors disabled:opacity-40"
-              :disabled="renewingId === item.id"
-              @click="requestRenew($event, item.id)"
+          <div class="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
+            <div v-if="loading" class="flex flex-col gap-3">
+              <div
+                v-for="i in 3"
+                :key="i"
+                class="h-20 rounded-xl bg-surface animate-pulse"
+              />
+            </div>
+
+            <div v-else-if="error" class="py-16 text-center">
+              <p class="text-sm text-ink-2">{{ t('drawers.failedToLoad') }}</p>
+            </div>
+
+            <EmptyState
+              v-else-if="groups.length === 0"
+              :message="t('drawers.noPropertiesYet')"
             >
-              <IconSpinner v-if="renewingId === item.id" class="size-4" />
-              <IconRefresh v-else class="size-4" />
-              <span class="text-xs font-medium">{{ t('drawers.renew') }}</span>
-            </button>
-            <RouterLink
-              :to="localePath(`/property/${item.id}/edit`)"
-              class="flex flex-col items-center gap-1.5 py-2.5 text-ink-3 hover:text-ink hover:bg-surface transition-colors"
-              @click.stop="emit('update:open', false)"
-            >
-              <IconEdit class="size-4" />
-              <span class="text-xs font-medium">{{ t('drawers.edit') }}</span>
-            </RouterLink>
-            <button
-              class="flex flex-col items-center gap-1.5 py-2.5 text-ink-3 hover:text-warn hover:bg-warn/5 transition-colors disabled:opacity-40"
-              :disabled="deletingId === item.id"
-              @click="requestDelete($event, item.id)"
-            >
-              <IconSpinner v-if="deletingId === item.id" class="size-4" />
-              <IconTrash v-else class="size-4" />
-              <span class="text-xs font-medium">{{ t('drawers.delete') }}</span>
-            </button>
+              <template #action>
+                <RouterLink
+                  :to="localePath('/add-listing')"
+                  class="text-sm text-ink underline underline-offset-2"
+                  @click="close"
+                >
+                  {{ t('drawers.addPropertyLink') }}
+                </RouterLink>
+              </template>
+            </EmptyState>
+
+            <div v-else class="flex flex-col gap-4">
+              <Transition name="fade">
+                <p
+                  v-if="deleteError"
+                  class="text-xs text-warn text-center py-1"
+                >
+                  {{ t('drawers.failedToDelete') }}
+                </p>
+              </Transition>
+              <Transition name="fade">
+                <p
+                  v-if="deletePropertyError"
+                  class="text-xs text-warn text-center py-1"
+                >
+                  {{ t('drawers.failedToDelete') }}
+                </p>
+              </Transition>
+              <Transition name="fade">
+                <p v-if="renewError" class="text-xs text-warn text-center py-1">
+                  {{ t('drawers.renewError') }}
+                </p>
+              </Transition>
+
+              <PropertyGroupCard
+                v-for="group in groups"
+                :key="group.propertyId"
+                :listings="group.listings"
+                :renewing-id="renewingId"
+                :deleting-id="deletingId"
+                @navigate="close"
+                @renew="requestRenew"
+                @delete-listing="requestDeleteListing"
+                @add-listing="requestAddListing"
+                @delete-property="requestDeleteProperty"
+              />
+            </div>
           </div>
-        </template>
-      </PropertyListItem>
-    </div>
-  </Drawer>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <AddListingModal
+    :open="addListingPropertyId !== null"
+    :property-id="addListingPropertyId ?? ''"
+    :already-has="addListingExistingTypes"
+    @update:open="(v) => !v && (addListingPropertyId = null)"
+    @added="load"
+  />
 
   <ConfirmDialog
-    :open="confirmId !== null"
+    :open="confirmListingId !== null"
     :title="t('drawers.deleteListing')"
     :description="t('drawers.deleteListingDesc')"
     :confirm-label="t('drawers.delete')"
     danger
-    @update:open="confirmId = null"
-    @confirm="confirmDelete"
+    @update:open="confirmListingId = null"
+    @confirm="confirmDeleteListing"
+  />
+
+  <ConfirmDialog
+    :open="confirmPropertyId !== null"
+    :title="t('drawers.deletePropertyTitle')"
+    :description="t('drawers.deletePropertyDesc')"
+    :confirm-label="t('drawers.deletePropertyAction')"
+    danger
+    @update:open="confirmPropertyId = null"
+    @confirm="confirmDeleteProperty"
   />
 
   <ConfirmDialog
@@ -242,7 +343,7 @@ watch(() => props.open, load);
       class="mt-2 h-10 w-full rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
     >
       <option v-for="n in 6" :key="n" :value="n">
-        {{ n }} {{ t('addProperty.months') }}
+        {{ n }} {{ t('addListing.months') }}
       </option>
     </select>
   </ConfirmDialog>

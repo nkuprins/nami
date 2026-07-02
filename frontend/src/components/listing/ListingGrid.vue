@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { type PropertySummary } from '../../types/propertyItem';
-import PropertyItem from '../../components/listing/PropertyItem.vue';
+import { type ListingSummary } from '../../types/listingItem';
+import ListingCard from '../../components/listing/ListingCard.vue';
 
 defineProps<{
-  items: PropertySummary[];
+  items: ListingSummary[];
   loading: boolean;
 }>();
 
@@ -36,7 +36,7 @@ const skeletons = Array.from({ length: 8 });
       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8"
       :class="{ 'opacity-60 pointer-events-none': loading }"
     >
-      <PropertyItem
+      <ListingCard
         v-for="property in items"
         :key="property.id"
         :property="property"

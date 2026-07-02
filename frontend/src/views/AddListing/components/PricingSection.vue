@@ -5,28 +5,30 @@ import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import { decimalInput } from '../../../utils/utils';
 import FormField from '../../../components/ui/FormField.vue';
 import ToggleButtons from '../../../components/ui/ToggleButtons.vue';
-import type { PropertyFormState } from '../composables/usePropertyForm';
+import type { ListingFieldsForm } from '../composables/formTypes';
 
 const { t } = useI18n();
 const { completionOptions } = usePropertyLabels();
 
 const props = defineProps<{
-  form: PropertyFormState;
+  form: ListingFieldsForm;
   fieldError: (field: string) => string | undefined;
   isEdit: boolean;
 }>();
 
 const priceLabel = computed(() =>
   props.form.type === 'rent'
-    ? t('addProperty.rentPriceField')
-    : t('addProperty.priceField')
+    ? t('addListing.rentPriceField')
+    : t('addListing.priceField')
 );
 
 const pricePlaceholder = computed(() =>
   props.form.type === 'rent' ? 'e.g. 1200' : 'e.g. 185000'
 );
 
-const isDual = computed(() => props.form.type === 'buy' && props.form.alsoRent);
+const isDual = computed(
+  () => !props.isEdit && props.form.type === 'buy' && props.form.alsoRent
+);
 
 const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
 </script>
@@ -34,10 +36,10 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
 <template>
   <section class="flex flex-col gap-4">
     <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
-      {{ t('addProperty.pricing') }}
+      {{ t('addListing.pricing') }}
     </h2>
 
-    <!-- Dual mode: two labeled price cards -->
+    <!-- Dual mode: two labeled price cards, second becomes a separate listing on submit -->
     <template v-if="isDual">
       <div class="rounded-lg border border-line p-4 flex flex-col gap-3">
         <p class="text-xs font-semibold uppercase tracking-wide text-ink-3">
@@ -45,7 +47,7 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
         </p>
         <FormField
           id="ap-price"
-          :label="t('addProperty.priceField')"
+          :label="t('addListing.priceField')"
           v-model="form.price"
           :error="fieldError('price')"
           required
@@ -56,22 +58,37 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
         <label class="flex items-center gap-2.5 cursor-pointer select-none">
           <input
             type="checkbox"
-            v-model="form.buyVatIncluded"
+            v-model="form.vatIncluded"
             :class="vatCheckboxClass"
           />
           <span class="text-sm text-ink">{{
-            t('addProperty.buyVatIncluded')
+            t('addListing.vatIncluded')
           }}</span>
         </label>
+        <div class="flex flex-col gap-1.5">
+          <label for="ap-duration" class="text-sm font-medium text-ink">
+            {{ t('addListing.listingDuration') }}
+            <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="ap-duration"
+            v-model.number="form.durationMonths"
+            class="h-10 rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
+          >
+            <option v-for="n in 6" :key="n" :value="n">
+              {{ n }} {{ t('addListing.months') }}
+            </option>
+          </select>
+        </div>
       </div>
 
       <div class="rounded-lg border border-line p-4 flex flex-col gap-3">
         <p class="text-xs font-semibold uppercase tracking-wide text-ink-3">
-          {{ t('types.rent') }} / {{ t('addProperty.months') }}
+          {{ t('types.rent') }}
         </p>
         <FormField
           id="ap-rent-price"
-          :label="t('addProperty.rentPriceField')"
+          :label="t('addListing.rentPriceField')"
           v-model="form.rentPrice"
           :error="fieldError('rentPrice')"
           required
@@ -86,9 +103,24 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
             :class="vatCheckboxClass"
           />
           <span class="text-sm text-ink">{{
-            t('addProperty.rentVatIncluded')
+            t('addListing.vatIncluded')
           }}</span>
         </label>
+        <div class="flex flex-col gap-1.5">
+          <label for="ap-rent-duration" class="text-sm font-medium text-ink">
+            {{ t('addListing.listingDuration') }}
+            <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="ap-rent-duration"
+            v-model.number="form.rentDurationMonths"
+            class="h-10 rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
+          >
+            <option v-for="n in 6" :key="n" :value="n">
+              {{ n }} {{ t('addListing.months') }}
+            </option>
+          </select>
+        </div>
       </div>
     </template>
 
@@ -107,35 +139,33 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
       <label class="flex items-center gap-2.5 cursor-pointer select-none">
         <input
           type="checkbox"
-          v-model="form.buyVatIncluded"
+          v-model="form.vatIncluded"
           :class="vatCheckboxClass"
         />
-        <span class="text-sm text-ink">{{
-          t('addProperty.buyVatIncluded')
-        }}</span>
+        <span class="text-sm text-ink">{{ t('addListing.vatIncluded') }}</span>
       </label>
-    </template>
 
-    <div v-if="!isEdit" class="flex flex-col gap-1.5">
-      <label for="ap-duration" class="text-sm font-medium text-ink">
-        {{ t('addProperty.listingDuration') }}
-        <span class="text-red-500">*</span>
-      </label>
-      <select
-        id="ap-duration"
-        v-model.number="form.durationMonths"
-        class="h-10 rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
-      >
-        <option v-for="n in 6" :key="n" :value="n">
-          {{ n }} {{ t('addProperty.months') }}
-        </option>
-      </select>
-      <p class="text-xs text-ink-3">{{ t('addProperty.durationHint') }}</p>
-    </div>
+      <div v-if="!isEdit" class="flex flex-col gap-1.5">
+        <label for="ap-duration" class="text-sm font-medium text-ink">
+          {{ t('addListing.listingDuration') }}
+          <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="ap-duration"
+          v-model.number="form.durationMonths"
+          class="h-10 rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
+        >
+          <option v-for="n in 6" :key="n" :value="n">
+            {{ n }} {{ t('addListing.months') }}
+          </option>
+        </select>
+        <p class="text-xs text-ink-3">{{ t('addListing.durationHint') }}</p>
+      </div>
+    </template>
 
     <div v-if="form.type === 'new_project'" class="flex flex-col gap-1.5">
       <p class="text-sm font-medium text-ink">
-        {{ t('addProperty.completionStatus') }}
+        {{ t('addListing.completionStatus') }}
         <span class="text-red-500">*</span>
       </p>
       <ToggleButtons

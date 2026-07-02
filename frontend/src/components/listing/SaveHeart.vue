@@ -3,15 +3,15 @@ import { computed } from 'vue';
 import IconHeart from '../icons/IconHeart.vue';
 import { useSavedStore } from '../../stores/savedStore';
 
-const props = defineProps<{ propertyId: string }>();
+const props = defineProps<{ listingId: string }>();
 const savedStore = useSavedStore();
 
-const saved = computed(() => savedStore.isSaved(props.propertyId));
+const saved = computed(() => savedStore.isSaved(props.listingId));
 
 function handle(e: Event) {
   e.preventDefault();
   e.stopPropagation();
-  savedStore.toggle(props.propertyId);
+  savedStore.toggle(props.listingId);
 }
 </script>
 

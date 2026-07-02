@@ -5,11 +5,17 @@ import {
   KNOWN_KINDS,
   KNOWN_COMPLETION,
   KNOWN_FEATURES,
-  type PropertyType,
+  KNOWN_HEATING,
+  KNOWN_ENERGY_CLASS,
+  KNOWN_BATHROOM_LAYOUT,
+  type ListingType,
   type PropertyKind,
   type PropertyCompletion,
   type Feature,
-} from '../types/propertyItem';
+  type HeatingType,
+  type EnergyClass,
+  type BathroomLayout,
+} from '../types/listingItem';
 
 export function usePropertyLabels() {
   const { t } = useI18n();
@@ -19,7 +25,7 @@ export function usePropertyLabels() {
   );
 
   const categoryOptions = computed(() =>
-    KNOWN_TYPES.map((id: PropertyType) => ({
+    KNOWN_TYPES.map((id: ListingType) => ({
       id,
       label: t(`categoryTabs.${id}.label`),
       hint: t(`categoryTabs.${id}.hint`),
@@ -42,7 +48,22 @@ export function usePropertyLabels() {
     }))
   );
 
-  function typeLabel(id: PropertyType): string {
+  const heatingOptions = computed(() =>
+    KNOWN_HEATING.map((id) => ({ id, label: t(`heating.${id}`) }))
+  );
+
+  const energyClassOptions = computed(() =>
+    KNOWN_ENERGY_CLASS.map((id) => ({ id, label: t(`energyClass.${id}`) }))
+  );
+
+  const bathroomLayoutOptions = computed(() =>
+    KNOWN_BATHROOM_LAYOUT.map((id) => ({
+      id,
+      label: t(`bathroomLayout.${id}`),
+    }))
+  );
+
+  function typeLabel(id: ListingType): string {
     return t(`types.${id}`);
   }
 
@@ -58,15 +79,33 @@ export function usePropertyLabels() {
     return t(`features.${id}`);
   }
 
+  function heatingLabel(id: HeatingType): string {
+    return t(`heating.${id}`);
+  }
+
+  function energyClassLabel(id: EnergyClass): string {
+    return t(`energyClass.${id}`);
+  }
+
+  function bathroomLayoutLabel(id: BathroomLayout): string {
+    return t(`bathroomLayout.${id}`);
+  }
+
   return {
     typeOptions,
     categoryOptions,
     kindOptions,
     completionOptions,
     featureOptions,
+    heatingOptions,
+    energyClassOptions,
+    bathroomLayoutOptions,
     typeLabel,
     kindLabel,
     completionLabel,
     featureLabel,
+    heatingLabel,
+    energyClassLabel,
+    bathroomLayoutLabel,
   };
 }
