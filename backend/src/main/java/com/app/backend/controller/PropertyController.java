@@ -46,6 +46,16 @@ public class PropertyController {
         return propertyService.create(request, userId);
     }
 
+    @PostMapping("/{propertyId}/listings")
+    @ResponseStatus(HttpStatus.CREATED)
+    public PropertyItemDto addListing(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID propertyId,
+            @RequestBody @Valid AddListingRequest request
+    ) {
+        return propertyService.addListing(propertyId, request, userId);
+    }
+
     @PutMapping("/{id}")
     public PropertyItemDto update(
             @AuthenticationPrincipal UUID userId,
@@ -70,6 +80,15 @@ public class PropertyController {
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id
     ) {
-        propertyService.delete(id, userId);
+        propertyService.deleteListing(id, userId);
+    }
+
+    @DeleteMapping("/{propertyId}/listings")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProperty(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID propertyId
+    ) {
+        propertyService.deleteProperty(propertyId, userId);
     }
 }

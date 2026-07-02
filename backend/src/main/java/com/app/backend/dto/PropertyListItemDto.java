@@ -1,39 +1,32 @@
 package com.app.backend.dto;
 
+import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
+import com.app.backend.enums.PropertyCompletion;
+import com.app.backend.enums.PropertyFeature;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record PropertyListItemDto(
         UUID id,
+        UUID propertyId,
         UUID ownerId,
-        String type,
-        String propertyKind,
-        String titleLv,
-        String titleEn,
-        String titleRu,
-        BigDecimal price,
-        Boolean buyVatIncluded,
-        BigDecimal rentPrice,
-        Boolean rentVatIncluded,
-        Short rooms,
-        BigDecimal m2,
-        BigDecimal landM2,
-        Short floor,
-        Short totalFloors,
-        Short yearBuilt,
-        List<String> features,
-        String district,
-        String city,
-        String address,
+        ListingType type,
+        PropertyCategory propertyKind,
+        Price price,
+        PropertyDetails details,
+        Map<String, LocalizedText> translations,
+        Location location,
+        List<PropertyFeature> features,
         String photo,
         OffsetDateTime postedAt,
-        String completion,
+        PropertyCompletion completion,
         OffsetDateTime expiresAt
 ) {}

@@ -8,20 +8,19 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ListingType implements DbValueEnum {
-    BUY("buy"),
-    RENT("rent"),
-    NEW_PROJECT("new_project");
+public enum BathroomLayout implements DbValueEnum {
+    SEPARATE("separate"),
+    COMBINED("combined");
 
     @EnumeratedValue
     @JsonValue
     private final String dbValue;
 
     @JsonCreator
-    public static ListingType fromDbValue(String value) {
-        for (ListingType t : values()) {
-            if (t.dbValue.equals(value)) return t;
+    public static BathroomLayout fromDbValue(String value) {
+        for (BathroomLayout b : values()) {
+            if (b.dbValue.equals(value)) return b;
         }
-        throw new IllegalArgumentException("Unknown listing_type: " + value);
+        throw new IllegalArgumentException("Unknown bathroom_layout: " + value);
     }
 }

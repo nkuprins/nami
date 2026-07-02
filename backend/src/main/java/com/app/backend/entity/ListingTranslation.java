@@ -6,17 +6,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "property_translations")
-@IdClass(PropertyTranslationId.class)
+@Table(name = "listing_translations")
+@IdClass(ListingTranslationId.class)
 @Getter
 @Setter
 @NoArgsConstructor
-public class PropertyTranslation {
+public class ListingTranslation {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "property_id", nullable = false)
-    private Property property;
+    @JoinColumn(name = "listing_id", nullable = false)
+    private Listing listing;
 
     @Id
     @Column(name = "locale", nullable = false)

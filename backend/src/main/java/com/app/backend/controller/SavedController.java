@@ -21,15 +21,15 @@ public class SavedController {
         return savedService.getSavedIds(userId);
     }
 
-    @PostMapping("/{propertyId}")
+    @PostMapping("/{listingId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void save(@AuthenticationPrincipal UUID userId, @PathVariable UUID propertyId) {
-        savedService.save(userId, propertyId);
+    public void save(@AuthenticationPrincipal UUID userId, @PathVariable UUID listingId) {
+        savedService.save(userId, listingId);
     }
 
-    @DeleteMapping("/{propertyId}")
+    @DeleteMapping("/{listingId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void unsave(@AuthenticationPrincipal UUID userId, @PathVariable UUID propertyId) {
-        savedService.unsave(userId, propertyId);
+    public void unsave(@AuthenticationPrincipal UUID userId, @PathVariable UUID listingId) {
+        savedService.unsave(userId, listingId);
     }
 }

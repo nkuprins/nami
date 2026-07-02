@@ -8,20 +8,24 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ListingType implements DbValueEnum {
-    BUY("buy"),
-    RENT("rent"),
-    NEW_PROJECT("new_project");
+public enum EnergyClass implements DbValueEnum {
+    A("A"),
+    B("B"),
+    C("C"),
+    D("D"),
+    E("E"),
+    F("F"),
+    G("G");
 
     @EnumeratedValue
     @JsonValue
     private final String dbValue;
 
     @JsonCreator
-    public static ListingType fromDbValue(String value) {
-        for (ListingType t : values()) {
-            if (t.dbValue.equals(value)) return t;
+    public static EnergyClass fromDbValue(String value) {
+        for (EnergyClass e : values()) {
+            if (e.dbValue.equals(value)) return e;
         }
-        throw new IllegalArgumentException("Unknown listing_type: " + value);
+        throw new IllegalArgumentException("Unknown energy_class: " + value);
     }
 }

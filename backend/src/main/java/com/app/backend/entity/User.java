@@ -10,8 +10,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -19,7 +17,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = {"ownedProperties", "savedProperties"})
+@ToString
 public class User {
 
     @Id
@@ -49,11 +47,5 @@ public class User {
 
     @Column(name = "last_login_at")
     private @Nullable OffsetDateTime lastLoginAt;
-
-    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
-    private List<Property> ownedProperties = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<SavedProperty> savedProperties = new ArrayList<>();
 
 }

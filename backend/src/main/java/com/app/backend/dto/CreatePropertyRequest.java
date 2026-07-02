@@ -1,44 +1,32 @@
 package com.app.backend.dto;
 
+import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
+import com.app.backend.enums.PropertyCompletion;
+import com.app.backend.enums.PropertyFeature;
+import com.app.backend.validation.ValidPropertyRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.math.BigDecimal;
-import java.util.List;
+import lombok.Builder;
 
+import java.util.List;
+import java.util.Map;
+
+@Builder(toBuilder = true)
+@ValidPropertyRequest
 public record CreatePropertyRequest(
-        @NotBlank String type,
-        @NotBlank String propertyKind,
-        String titleLv,
-        String titleEn,
-        String titleRu,
-        String descriptionLv,
-        String descriptionEn,
-        String descriptionRu,
-        @NotNull @DecimalMin("0.01") @DecimalMax("999999999999.99") @Digits(integer = 12, fraction = 2) BigDecimal price,
-        Boolean buyVatIncluded,
-        @DecimalMin("0.01") @DecimalMax("999999999999.99") @Digits(integer = 12, fraction = 2) BigDecimal rentPrice,
-        Boolean rentVatIncluded,
-        @NotNull @Min(1) Short rooms,
-        @NotNull @DecimalMin("1.00") @DecimalMax("9999.99") @Digits(integer = 4, fraction = 2) BigDecimal m2,
-        @DecimalMin("0.01") @DecimalMax("999999.99") @Digits(integer = 6, fraction = 2) BigDecimal landM2,
-        @Min(0) @Max(100) Short floor,
-        @Min(1) @Max(100) Short totalFloors,
-        @Min(1800) @Max(2035) Short yearBuilt,
-        List<@NotBlank String> features,
-        @NotBlank String district,
-        @NotBlank String city,
-        @NotBlank String address,
-        @NotNull @Valid CoordsDto coords,
-        List<@NotBlank String> photos,
-        List<@NotBlank String> plans,
+        @NotNull ListingType type,
+        @NotNull PropertyCategory propertyKind,
+        @NotNull @Valid Price price,
+        @NotNull @Valid PropertyDetails details,
+        Map<String, LocalizedText> translations,
+        @NotNull @Valid Location location,
+        List<PropertyFeature> features,
+        @Valid Media media,
         List<@NotBlank String> phones,
-        String videoUrl,
-        String completion,
+        PropertyCompletion completion,
         @NotNull @Min(1) @Max(6) Integer durationMonths
-) {}
+) implements PropertyRequest {}
