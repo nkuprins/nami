@@ -16,14 +16,14 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmailIgnoreCase(String email);
 
     @Query("SELECT u FROM User u WHERE COALESCE(u.lastLoginAt, u.createdAt) < :cutoff AND NOT EXISTS " +
-           "(SELECT p FROM Property p WHERE p.owner = u AND p.status = :status)")
+           "(SELECT l FROM Listing l WHERE l.owner = u AND l.status = :status)")
     List<User> findInactiveWithoutActiveListings(
             @Param("cutoff") OffsetDateTime cutoff,
             @Param("status") PropertyStatus status);
 
     @Query("SELECT u FROM User u WHERE COALESCE(u.lastLoginAt, u.createdAt) < :warnCutoff " +
            "AND COALESCE(u.lastLoginAt, u.createdAt) >= :purgeCutoff " +
-           "AND NOT EXISTS (SELECT p FROM Property p WHERE p.owner = u AND p.status = :status)")
+           "AND NOT EXISTS (SELECT l FROM Listing l WHERE l.owner = u AND l.status = :status)")
     List<User> findAboutToBeInactive(
             @Param("warnCutoff") OffsetDateTime warnCutoff,
             @Param("purgeCutoff") OffsetDateTime purgeCutoff,

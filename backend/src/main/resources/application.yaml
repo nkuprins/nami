@@ -9,6 +9,12 @@ spring:
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 8
+      minimum-idle: 0  # drain idle connections so Neon compute can autosuspend
+      idle-timeout: 30000
+      max-lifetime: 900000
+      connection-timeout: 30000
   jpa:
     hibernate:
       ddl-auto: validate
@@ -33,7 +39,7 @@ app:
     refresh-token-ttl-seconds: 604800
   resend:
     api-key: ${RESEND_API_KEY:}
-    from: onboarding@resend.dev
+    from: ${RESEND_FROM:onboarding@resend.dev}
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   cookie:
     secure: ${COOKIE_SECURE:false}

@@ -1,27 +1,31 @@
 package com.app.backend.service;
 
+import com.app.backend.dto.AddListingRequest;
 import com.app.backend.dto.CreatePropertyRequest;
+import com.app.backend.dto.Location;
 import com.app.backend.dto.PropertyFilter;
 import com.app.backend.dto.PropertyItemDto;
 import com.app.backend.dto.PropertyListItemDto;
 import com.app.backend.dto.PropertyPageResponse;
 import com.app.backend.dto.RenewPropertyRequest;
 import com.app.backend.dto.UpdatePropertyRequest;
+import com.app.backend.entity.Listing;
+import com.app.backend.entity.Listing_;
 import com.app.backend.entity.Property;
-import com.app.backend.entity.Property_;
-import com.app.backend.entity.PropertyPhone;
-import com.app.backend.entity.PropertyPhoto;
-import com.app.backend.entity.PropertyPlan;
-import com.app.backend.entity.PropertyTranslation;
 import com.app.backend.entity.User;
 import com.app.backend.enums.*;
 import com.app.backend.mapper.PropertyMapper;
+import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.spec.PropertySearchCriteria;
 import com.app.backend.spec.PropertySpec;
+import com.app.backend.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -29,17 +33,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
+import com.app.backend.exception.ApiException;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -48,221 +49,177 @@ public class PropertyService {
 
     private static final int PAGE_SIZE = 12;
 
+    private final ListingRepository listingRepository;
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final PropertyMapper propertyMapper;
     private final UploadService uploadService;
 
+    @Cacheable(cacheNames = CacheConfig.PROPERTY_LIST, key = "{#filter, #sort, #page}")
     @Transactional(readOnly = true)
     public PropertyPageResponse list(PropertyFilter filter, String sort, int page) {
-        ListingType listingType = ListingType.fromDbValue(filter.type());
-
-        List<PropertyFeature> featureEnums = (filter.features() == null || filter.features().isEmpty())
-                ? List.of()
-                : filter.features().stream().map(PropertyFeature::fromDbValue).toList();
-
-        PropertyCompletion completionEnum = StringUtils.hasText(filter.completion())
-                ? PropertyCompletion.fromDbValue(filter.completion())
-                : null;
-
-        PropertySearchCriteria criteria = PropertySearchCriteria.builder()
-                .listingType(listingType)
-                .locByCity(parseLocFilter(filter.loc()))
-                .priceMin(filter.priceMin()).priceMax(filter.priceMax())
-                .rooms(filter.rooms())
-                .m2Min(filter.m2Min()).m2Max(filter.m2Max())
-                .floorMin(filter.floorMin()).floorMax(filter.floorMax())
-                .notGround(filter.notGround()).notTop(filter.notTop())
-                .yearMin(filter.yearMin()).yearMax(filter.yearMax())
-                .features(featureEnums)
-                .completion(completionEnum)
-                .build();
-        Specification<Property> spec = PropertySpec.build(criteria);
+        PropertySearchCriteria criteria = PropertySearchCriteria.from(filter, parseLocFilter(filter.loc()));
+        Specification<Listing> spec = PropertySpec.build(criteria);
 
         PageRequest pageRequest = PageRequest.of(page - 1, PAGE_SIZE, buildSort(sort));
-        Page<Property> result = propertyRepository.findAll(spec, pageRequest);
-        List<PropertyListItemDto> items = result.getContent().stream().map(propertyMapper::toListDto).toList();
-        return new PropertyPageResponse(items, result.getTotalElements());
+        Page<PropertyListItemDto> result = listingRepository.findAllForList(spec, pageRequest);
+        return new PropertyPageResponse(result.getContent(), result.getTotalElements());
     }
 
     @Transactional(readOnly = true)
     public List<PropertyListItemDto> listByOwner(UUID ownerId) {
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        return propertyRepository.findByOwner(owner).stream()
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+        return listingRepository.findByOwner(owner).stream()
                 .map(propertyMapper::toListDto)
                 .toList();
     }
 
+    @Cacheable(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#id")
     @Transactional(readOnly = true)
     public PropertyItemDto getById(UUID id) {
-        return propertyRepository.findById(id)
-                .filter(p -> p.getStatus() == PropertyStatus.ACTIVE)
+        return listingRepository.findById(id)
+                .filter(l -> l.getStatus() == PropertyStatus.ACTIVE)
                 .map(propertyMapper::toDto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
     }
 
+    @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true)
     @Transactional
     public PropertyItemDto create(CreatePropertyRequest req, UUID ownerId) {
         User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
 
         Property property = new Property();
         property.setOwner(owner);
-        property.setListingType(ListingType.fromDbValue(req.type()));
-        property.setPropertyCategory(PropertyCategory.fromDbValue(req.propertyKind()));
+        Listing listing = new Listing();
+        listing.setProperty(property);
+        listing.setOwner(owner);
 
-        applyTranslations(property, req.titleLv(), req.titleEn(), req.titleRu(),
-                req.descriptionLv(), req.descriptionEn(), req.descriptionRu());
-        property.setPrice(req.price());
-        property.setBuyVatIncluded(Boolean.TRUE.equals(req.buyVatIncluded()));
-        property.setRentPrice(req.rentPrice());
-        property.setRentVatIncluded(Boolean.TRUE.equals(req.rentVatIncluded()));
-        property.setRooms(req.rooms());
-        property.setM2(req.m2());
-        property.setLandM2(req.landM2());
-        property.setFloor(req.floor());
-        property.setTotalFloors(req.totalFloors());
-        property.setYearBuilt(req.yearBuilt());
-        property.setDistrictSlug(req.district());
-        property.setCitySlug(req.city());
-        property.setAddress(req.address());
-        property.setLat(req.coords().lat());
-        property.setLng(req.coords().lng());
-        property.setStatus(PropertyStatus.ACTIVE);
-        property.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
+        propertyMapper.applyCommon(listing, property, req);
 
-        if (StringUtils.hasText(req.completion())) {
-            property.setCompletion(PropertyCompletion.fromDbValue(req.completion()));
-        }
+        Location location = req.location();
+        property.setDistrictSlug(location.district());
+        property.setCitySlug(location.city());
+        property.setAddress(location.address());
+        property.setLat(location.coords().lat());
+        property.setLng(location.coords().lng());
 
-        if (req.features() != null) {
-            Set<PropertyFeature> featureSet = req.features().stream()
-                    .map(PropertyFeature::fromDbValue)
-                    .collect(Collectors.toSet());
-            property.setFeatures(featureSet);
-        }
+        listing.setStatus(PropertyStatus.ACTIVE);
+        listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
-        addPhotos(property, req.photos());
-        addPlans(property, req.plans());
-        property.setVideoUrl(req.videoUrl());
-        addPhones(property, req.phones());
-
-        Property saved = propertyRepository.save(property);
-        log.info("Property created: {} by owner: {}", saved.getId(), ownerId);
+        propertyRepository.save(property);
+        Listing saved = listingRepository.save(listing);
+        log.info("Listing created: {} for property: {} by owner: {}", saved.getId(), property.getId(), ownerId);
         return propertyMapper.toDto(saved);
     }
 
-    private static void applyTranslations(Property property,
-                                           String titleLv, String titleEn, String titleRu,
-                                           String descLv, String descEn, String descRu) {
-        record Candidate(String locale, String title, String desc) {}
-        List<Candidate> candidates = List.of(
-                new Candidate(SupportedLocale.LV.code, titleLv, descLv),
-                new Candidate(SupportedLocale.EN.code, titleEn, descEn),
-                new Candidate(SupportedLocale.RU.code, titleRu, descRu)
-        );
-        boolean anyValid = candidates.stream()
-                .anyMatch(c -> StringUtils.hasText(c.title()) && StringUtils.hasText(c.desc()));
-        if (!anyValid) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "At least one complete translation (title + description) is required");
-        }
-        property.getTranslations().clear();
-        for (Candidate c : candidates) {
-            if (StringUtils.hasText(c.title()) && StringUtils.hasText(c.desc())) {
-                PropertyTranslation pt = new PropertyTranslation();
-                pt.setProperty(property);
-                pt.setLocale(c.locale());
-                pt.setTitle(c.title().trim());
-                pt.setDescription(c.desc().trim());
-                property.getTranslations().put(c.locale(), pt);
-            }
-        }
-    }
-
-    private static Map<String, List<String>> parseLocFilter(List<String> loc) {
-        if (loc == null || loc.isEmpty()) return Map.of();
-        Map<String, List<String>> byCity = new HashMap<>();
-        for (String entry : loc) {
-            int colon = entry.indexOf(':');
-            if (colon <= 0 || colon >= entry.length() - 1) continue;
-            byCity.computeIfAbsent(entry.substring(0, colon), k -> new ArrayList<>())
-                    .add(entry.substring(colon + 1));
-        }
-        return byCity;
-    }
-
+    /** Adds another listing (e.g. rent) to a property that already has at least one other listing (e.g. buy). */
+    @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true)
     @Transactional
-    public PropertyItemDto update(UUID propertyId, UpdatePropertyRequest req, UUID ownerId) {
+    public PropertyItemDto addListing(UUID propertyId, AddListingRequest req, UUID ownerId) {
         Property property = propertyRepository.findById(propertyId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
         if (!property.getOwner().getId().equals(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ApiException(HttpStatus.FORBIDDEN);
+        }
+        if (listingRepository.existsByPropertyIdAndListingType(propertyId, req.type())) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "A " + req.type().getDbValue() + " listing already exists for this property");
+        }
+        if (req.completion() == PropertyCompletion.NOT_READY && property.getYearBuilt() != null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "A 'not_ready' new project cannot have a year_built");
+        }
+        if (req.completion() != null && req.type() != ListingType.NEW_PROJECT) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "completion is only valid for a new_project listing");
         }
 
-        property.setListingType(ListingType.fromDbValue(req.type()));
-        property.setPropertyCategory(PropertyCategory.fromDbValue(req.propertyKind()));
+        Listing listing = new Listing();
+        listing.setProperty(property);
+        listing.setOwner(property.getOwner());
+        listing.setListingType(req.type());
+        listing.setPrice(req.price().amount());
+        listing.setVatIncluded(Boolean.TRUE.equals(req.price().vatIncluded()));
+        listing.setCompletion(req.completion());
+        propertyMapper.applyTranslations(listing, req.translations());
+        listing.setPhones(nullToEmpty(req.phones()));
+        listing.setStatus(PropertyStatus.ACTIVE);
+        listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
-        applyTranslations(property, req.titleLv(), req.titleEn(), req.titleRu(),
-                req.descriptionLv(), req.descriptionEn(), req.descriptionRu());
-        property.setPrice(req.price());
-        property.setBuyVatIncluded(Boolean.TRUE.equals(req.buyVatIncluded()));
-        property.setRentPrice(req.rentPrice());
-        property.setRentVatIncluded(Boolean.TRUE.equals(req.rentVatIncluded()));
-        property.setRooms(req.rooms());
-        property.setM2(req.m2());
-        property.setLandM2(req.landM2());
-        property.setFloor(req.floor());
-        property.setTotalFloors(req.totalFloors());
-        property.setYearBuilt(req.yearBuilt());
-        property.setVideoUrl(req.videoUrl());
-
-        if (StringUtils.hasText(req.completion())) {
-            property.setCompletion(PropertyCompletion.fromDbValue(req.completion()));
-        } else {
-            property.setCompletion(null);
-        }
-
-        property.getFeatures().clear();
-        if (req.features() != null) {
-            Set<PropertyFeature> featureSet = req.features().stream()
-                    .map(PropertyFeature::fromDbValue)
-                    .collect(Collectors.toSet());
-            property.setFeatures(featureSet);
-        }
-
-        property.getPhones().clear();
-        addPhones(property, req.phones());
-
-        return propertyMapper.toDto(propertyRepository.save(property));
+        Listing saved = listingRepository.save(listing);
+        log.info("Listing created: {} for existing property: {} by owner: {}", saved.getId(), propertyId, ownerId);
+        return propertyMapper.toDto(saved);
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId")
+    })
     @Transactional
-    public PropertyItemDto renew(UUID propertyId, RenewPropertyRequest req, UUID ownerId) {
-        Property property = propertyRepository.findById(propertyId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        if (!property.getOwner().getId().equals(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+    public PropertyItemDto update(UUID listingId, UpdatePropertyRequest req, UUID ownerId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+        if (!listing.getOwner().getId().equals(ownerId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN);
         }
-        property.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
-        property.setStatus(PropertyStatus.ACTIVE);
-        property.setExpiryWarningSent(false);
-        return propertyMapper.toDto(propertyRepository.save(property));
+
+        propertyMapper.applyCommon(listing, listing.getProperty(), req);
+
+        return propertyMapper.toDto(listingRepository.save(listing));
     }
 
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId")
+    })
     @Transactional
-    public void delete(UUID propertyId, UUID ownerId) {
+    public PropertyItemDto renew(UUID listingId, RenewPropertyRequest req, UUID ownerId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+        if (!listing.getOwner().getId().equals(ownerId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN);
+        }
+        listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
+        listing.setStatus(PropertyStatus.ACTIVE);
+        listing.setExpiryWarningSent(false);
+        return propertyMapper.toDto(listingRepository.save(listing));
+    }
+
+    /** Deletes a single listing. The property (and any other listings on it) is left intact. */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId")
+    })
+    @Transactional
+    public void deleteListing(UUID listingId, UUID ownerId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+        if (!listing.getOwner().getId().equals(ownerId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN);
+        }
+
+        listingRepository.delete(listing);
+        log.info("Listing {} (property {}) deleted by owner: {}", listingId, listing.getProperty().getId(), ownerId);
+    }
+
+    /** Deletes a property and, via cascade, every listing on it. */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true)
+    })
+    @Transactional
+    public void deleteProperty(UUID propertyId, UUID ownerId) {
         Property property = propertyRepository.findById(propertyId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
         if (!property.getOwner().getId().equals(ownerId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+            throw new ApiException(HttpStatus.FORBIDDEN);
         }
 
         List<String> allMediaUrls = property.allMediaUrls();
 
         propertyRepository.delete(property);
-        log.info("Property deleted: {} by owner: {}", propertyId, ownerId);
+        log.info("Property {} (and all its listings) deleted by owner: {}", propertyId, ownerId);
+
         if (!allMediaUrls.isEmpty()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
@@ -277,47 +234,33 @@ public class PropertyService {
         }
     }
 
-    private static void addPhotos(Property property, List<String> urls) {
-        if (urls == null) return;
-        for (int i = 0; i < urls.size(); i++) {
-            PropertyPhoto photo = new PropertyPhoto();
-            photo.setProperty(property);
-            photo.setUrl(urls.get(i));
-            photo.setPosition((short) i);
-            property.getPhotos().add(photo);
+    /** Parses {@code city:district} filter entries; rejects malformed ones rather than silently dropping. */
+    private static Map<String, List<String>> parseLocFilter(List<String> loc) {
+        if (loc == null || loc.isEmpty()) return Map.of();
+        Map<String, List<String>> byCity = new HashMap<>();
+        for (String entry : loc) {
+            int colon = entry.indexOf(':');
+            if (colon <= 0 || colon >= entry.length() - 1) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Malformed loc filter entry: " + entry);
+            }
+            byCity.computeIfAbsent(entry.substring(0, colon), k -> new ArrayList<>())
+                    .add(entry.substring(colon + 1));
         }
+        return byCity;
     }
 
-    private static void addPlans(Property property, List<String> urls) {
-        if (urls == null) return;
-        for (int i = 0; i < urls.size(); i++) {
-            PropertyPlan plan = new PropertyPlan();
-            plan.setProperty(property);
-            plan.setUrl(urls.get(i));
-            plan.setPosition((short) i);
-            property.getPlans().add(plan);
-        }
-    }
-
-    private static void addPhones(Property property, List<String> numbers) {
-        if (numbers == null) return;
-        for (int i = 0; i < numbers.size(); i++) {
-            PropertyPhone phone = new PropertyPhone();
-            phone.setProperty(property);
-            phone.setPhone(numbers.get(i));
-            phone.setPosition((short) i);
-            property.getPhones().add(phone);
-        }
+    private static List<String> nullToEmpty(List<String> values) {
+        return values != null ? new ArrayList<>(values) : new ArrayList<>();
     }
 
     private static Sort buildSort(String sort) {
         return switch (sort) {
-            case "newest" -> Sort.by(Sort.Direction.DESC, Property_.POSTED_AT);
-            case "price-asc" -> Sort.by(Sort.Direction.ASC, Property_.PRICE);
-            case "price-desc" -> Sort.by(Sort.Direction.DESC, Property_.PRICE);
-            case "m2-desc" -> Sort.by(Sort.Direction.DESC, Property_.M2);
-            case "price-per-m2-asc" -> Sort.by(Sort.Direction.ASC, Property_.PRICE_PER_M2);
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unknown sort option: " + sort);
+            case "newest" -> Sort.by(Sort.Direction.DESC, Listing_.POSTED_AT);
+            case "price-asc" -> Sort.by(Sort.Direction.ASC, Listing_.PRICE);
+            case "price-desc" -> Sort.by(Sort.Direction.DESC, Listing_.PRICE);
+            case "m2-desc" -> Sort.by(Sort.Direction.DESC, "m2");
+            case "price-per-m2-asc" -> Sort.by(Sort.Direction.ASC, "pricePerM2");
+            default -> throw new ApiException(HttpStatus.BAD_REQUEST, "Unknown sort option: " + sort);
         };
     }
 }

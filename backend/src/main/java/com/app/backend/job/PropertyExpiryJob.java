@@ -1,8 +1,9 @@
 package com.app.backend.job;
 
-import com.app.backend.entity.Property;
-import com.app.backend.entity.PropertyTranslation;
+import com.app.backend.entity.Listing;
+import com.app.backend.entity.ListingTranslation;
 import com.app.backend.enums.PropertyStatus;
+import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.service.EmailService;
 import com.app.backend.service.UploadService;
@@ -19,12 +20,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class PropertyExpiryJob {
 
+    private final ListingRepository listingRepository;
     private final PropertyRepository propertyRepository;
     private final EmailService emailService;
     private final UploadService uploadService;
@@ -39,19 +42,19 @@ public class PropertyExpiryJob {
 
     private void sendExpiryWarnings() {
         OffsetDateTime warnCutoff = OffsetDateTime.now().plusDays(7);
-        List<Property> expiring = propertyRepository.findExpiringUnwarned(PropertyStatus.ACTIVE, warnCutoff);
+        List<Listing> expiring = listingRepository.findExpiringUnwarned(PropertyStatus.ACTIVE, warnCutoff);
 
         if (expiring.isEmpty()) return;
 
         record OwnerDigest(String email, String name, List<String> titles) {}
         Map<String, OwnerDigest> byOwner = new LinkedHashMap<>();
-        for (Property p : expiring) {
-            p.setExpiryWarningSent(true);
-            String email = p.getOwner().getEmail();
+        for (Listing l : expiring) {
+            l.setExpiryWarningSent(true);
+            String email = l.getOwner().getEmail();
             byOwner.compute(email, (k, existing) -> {
                 List<String> titles = existing != null ? existing.titles() : new ArrayList<>();
-                titles.add(resolveTitle(p.getTranslations()));
-                return new OwnerDigest(email, p.getOwner().getName(), titles);
+                titles.add(resolveTitle(l.getTranslations()));
+                return new OwnerDigest(email, l.getOwner().getName(), titles);
             });
         }
 
@@ -72,21 +75,21 @@ public class PropertyExpiryJob {
     }
 
     private void expireListings() {
-        List<Property> expired = propertyRepository.findExpired(PropertyStatus.ACTIVE, OffsetDateTime.now());
+        List<Listing> expired = listingRepository.findExpired(PropertyStatus.ACTIVE, OffsetDateTime.now());
 
         if (expired.isEmpty()) return;
 
-        log.info("Property expiry: found {} listings to expire", expired.size());
+        log.info("Listing expiry: found {} listings to expire", expired.size());
 
         record OwnerDigest(String email, String name, List<String> titles) {}
         Map<String, OwnerDigest> byOwner = new LinkedHashMap<>();
-        for (Property p : expired) {
-            p.setStatus(PropertyStatus.INACTIVE);
-            String email = p.getOwner().getEmail();
+        for (Listing l : expired) {
+            l.setStatus(PropertyStatus.INACTIVE);
+            String email = l.getOwner().getEmail();
             byOwner.compute(email, (k, existing) -> {
                 List<String> titles = existing != null ? existing.titles() : new ArrayList<>();
-                titles.add(resolveTitle(p.getTranslations()));
-                return new OwnerDigest(email, p.getOwner().getName(), titles);
+                titles.add(resolveTitle(l.getTranslations()));
+                return new OwnerDigest(email, l.getOwner().getName(), titles);
             });
         }
 
@@ -101,25 +104,37 @@ public class PropertyExpiryJob {
                         log.warn("Failed to send expiry notification to {}: {}", d.email(), e.getMessage());
                     }
                 }
-                log.info("Property expiry: expired {} listings across {} owners", expired.size(), digests.size());
+                log.info("Listing expiry: expired {} listings across {} owners", expired.size(), digests.size());
             }
         });
     }
 
     private void purgeExpiredInactiveListings() {
         OffsetDateTime purgeCutoff = OffsetDateTime.now().minusDays(90);
-        List<Property> toPurge = propertyRepository.findInactiveExpiredBefore(PropertyStatus.INACTIVE, purgeCutoff);
+        List<Listing> toPurge = listingRepository.findInactiveExpiredBefore(PropertyStatus.INACTIVE, purgeCutoff);
 
         if (toPurge.isEmpty()) return;
 
-        log.info("Property purge: found {} inactive listings to permanently delete", toPurge.size());
+        log.info("Listing purge: found {} inactive listings to permanently delete", toPurge.size());
 
-        List<String> allMediaUrls = toPurge.stream()
-                .flatMap(p -> p.allMediaUrls().stream())
-                .toList();
+        // Collect media URLs and property IDs before deletion
+        List<String> allMediaUrls = new ArrayList<>();
+        List<UUID> propertyIds = new ArrayList<>();
+        for (Listing l : toPurge) {
+            allMediaUrls.addAll(l.getProperty().allMediaUrls());
+            propertyIds.add(l.getProperty().getId());
+        }
 
-        propertyRepository.deleteAll(toPurge);
-        log.info("Property purge: permanently deleted {} inactive listings", toPurge.size());
+        listingRepository.deleteAll(toPurge);
+
+        // Delete orphan properties (those with no remaining listings)
+        for (UUID propId : propertyIds) {
+            if (listingRepository.countByPropertyId(propId) == 0) {
+                propertyRepository.deleteById(propId);
+            }
+        }
+
+        log.info("Listing purge: permanently deleted {} inactive listings", toPurge.size());
 
         if (!allMediaUrls.isEmpty()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
@@ -128,19 +143,19 @@ public class PropertyExpiryJob {
                     try {
                         uploadService.deleteObjects(allMediaUrls);
                     } catch (Exception e) {
-                        log.warn("Failed to delete S3 objects during property purge: {}", e.getMessage());
+                        log.warn("Failed to delete S3 objects during listing purge: {}", e.getMessage());
                     }
                 }
             });
         }
     }
 
-    private static String resolveTitle(Map<String, PropertyTranslation> translations) {
-        PropertyTranslation lv = translations.get("lv");
+    private static String resolveTitle(Map<String, ListingTranslation> translations) {
+        ListingTranslation lv = translations.get("lv");
         if (lv != null) return lv.getTitle();
-        PropertyTranslation en = translations.get("en");
+        ListingTranslation en = translations.get("en");
         if (en != null) return en.getTitle();
-        PropertyTranslation ru = translations.get("ru");
+        ListingTranslation ru = translations.get("ru");
         return ru != null ? ru.getTitle() : "";
     }
 }

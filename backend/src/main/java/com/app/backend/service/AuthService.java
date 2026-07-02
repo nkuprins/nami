@@ -39,7 +39,8 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PropertyRepository propertyRepository;
-    private final SavedPropertyRepository savedPropertyRepository;
+    private final ListingRepository listingRepository;
+    private final SavedListingRepository savedListingRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
@@ -121,6 +122,7 @@ public class AuthService {
         }
         response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearAccessToken().toString());
         response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearRefreshToken().toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearHasSessionCookie().toString());
     }
 
     @Transactional(readOnly = true)
@@ -157,6 +159,7 @@ public class AuthService {
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearAccessToken().toString());
         response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearRefreshToken().toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearHasSessionCookie().toString());
     }
 
     @Transactional
@@ -244,11 +247,11 @@ public class AuthService {
     public UserExportDto export(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "User not found"));
-        List<PropertyItemDto> ownedProps = propertyRepository.findByOwner(user)
+        List<PropertyItemDto> ownedProps = listingRepository.findByOwner(user)
                 .stream().map(propertyMapper::toDto).toList();
-        List<SavedPropertyExportDto> saved = savedPropertyRepository.findByIdUserId(userId)
+        List<SavedPropertyExportDto> saved = savedListingRepository.findByIdUserId(userId)
                 .stream()
-                .map(sp -> new SavedPropertyExportDto(sp.getId().getPropertyId(), sp.getSavedAt()))
+                .map(sl -> new SavedPropertyExportDto(sl.getId().listingId(), sl.getSavedAt()))
                 .toList();
         return UserExportDto.builder()
                 .id(user.getId()).name(user.getName()).email(user.getEmail())
@@ -303,6 +306,7 @@ public class AuthService {
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.accessTokenCookie(accessToken).toString());
         response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.refreshTokenCookie(rawRefresh).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.hasSessionCookie().toString());
     }
 
     private void sendVerificationEmail(User user) {
