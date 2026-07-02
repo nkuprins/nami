@@ -43,3 +43,5 @@ app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   cookie:
     secure: ${COOKIE_SECURE:false}
+  turnstile:
+    secret-key: ${TURNSTILE_SECRET_KEY:}

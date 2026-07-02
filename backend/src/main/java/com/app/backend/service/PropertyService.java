@@ -52,6 +52,7 @@ import java.util.UUID;
 public class PropertyService {
 
     private static final int PAGE_SIZE = 12;
+    private static final long MAX_PROPERTIES_PER_USER = 50;
 
     private final ListingRepository listingRepository;
     private final PropertyRepository propertyRepository;
@@ -94,6 +95,7 @@ public class PropertyService {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
 
+        checkPropertyLimit(owner);
         checkNoDuplicateProperty(owner, req.location(), Boolean.TRUE.equals(req.confirmedDuplicate()), null);
 
         Property property = new Property();
@@ -215,6 +217,14 @@ public class PropertyService {
      * typo or disguised copy) is blocked unless the caller has confirmed it is a
      * genuinely different property.
      */
+    /** Caps how many properties a single account can create, to bound storage/compute use. */
+    private void checkPropertyLimit(User owner) {
+        if (propertyRepository.countByOwner(owner) >= MAX_PROPERTIES_PER_USER) {
+            throw new ApiException(HttpStatus.CONFLICT,
+                    "You have reached the maximum number of properties (" + MAX_PROPERTIES_PER_USER + ")");
+        }
+    }
+
     private void checkNoDuplicateProperty(User owner, Location location, boolean confirmedDuplicate,
                                           @Nullable UUID excludeId) {
         for (Property existing : propertyRepository.findByOwner(owner)) {

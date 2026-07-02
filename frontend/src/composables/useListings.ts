@@ -4,7 +4,10 @@ import { type FilterState, PAGE_SIZE } from '../types/filter';
 import { listListings } from '../api/listingsApi';
 import { logger } from '../utils/logger';
 
-export function useListings(source: MaybeRefOrGetter<FilterState>) {
+export function useListings(
+  source: MaybeRefOrGetter<FilterState>,
+  trigger: MaybeRefOrGetter<number>
+) {
   const items = ref<ListingSummary[]>([]);
   const total = ref(0);
   const loading = ref(true);
@@ -14,7 +17,15 @@ export function useListings(source: MaybeRefOrGetter<FilterState>) {
   );
 
   watch(
-    () => JSON.stringify(toValue(source)),
+    () => {
+      const s = toValue(source);
+      return JSON.stringify({
+        type: s.type,
+        sort: s.sort,
+        page: s.page,
+        nonce: toValue(trigger),
+      });
+    },
     async (_newValue, _oldValue, onCleanup) => {
       const controller = new AbortController();
       onCleanup(() => controller.abort());

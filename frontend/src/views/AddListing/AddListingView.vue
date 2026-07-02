@@ -7,6 +7,7 @@ import { useListingForm } from './composables/useListingForm';
 import { useDuplicatePropertyNudge } from './composables/useDuplicatePropertyNudge';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import AddListingModal from '../../components/listing/AddListingModal.vue';
+import TurnstileWidget from '../../components/ui/TurnstileWidget.vue';
 import type { ListingType } from '../../types/listingItem';
 
 import ListingTypeSection from './components/ListingTypeSection.vue';
@@ -27,6 +28,13 @@ const planUpload = usePhotoUpload(3);
 const { selectedLocation, isOpen, districtName, onSelect } =
   useLocationDropdown();
 const nudge = useDuplicatePropertyNudge();
+
+// Cloudflare Turnstile human-check on submission. Inactive locally when no site
+// key is configured, so dev/mock flows aren't blocked.
+const turnstileEnabled = !!import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const turnstileToken = ref('');
+const turnstileWidget = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+
 const {
   form,
   submitting,
@@ -36,10 +44,19 @@ const {
   addPhone,
   removePhone,
   submit,
-} = useListingForm(() => selectedLocation.value, photoUpload, planUpload, {
-  blocked: () => nudge.blockSubmit.value,
-  confirmed: () => nudge.acknowledged.value,
-});
+} = useListingForm(
+  () => selectedLocation.value,
+  photoUpload,
+  planUpload,
+  {
+    blocked: () => nudge.blockSubmit.value,
+    confirmed: () => nudge.acknowledged.value,
+  },
+  {
+    token: () => turnstileToken.value,
+    reset: () => turnstileWidget.value?.reset(),
+  }
+);
 
 const addListingFromNudge = ref(false);
 const addListingFromNudgePropertyId = ref('');
@@ -182,10 +199,20 @@ watch(
         {{ t('addListing.rentListingFailed') }}
       </p>
 
+      <TurnstileWidget
+        v-if="turnstileEnabled"
+        ref="turnstileWidget"
+        v-model="turnstileToken"
+      />
+
       <div class="flex items-center gap-4 pt-2">
         <button
           type="submit"
-          :disabled="submitting || nudge.blockSubmit.value"
+          :disabled="
+            submitting ||
+            nudge.blockSubmit.value ||
+            (turnstileEnabled && !turnstileToken)
+          "
           class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{

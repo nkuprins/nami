@@ -21,16 +21,95 @@ class RateLimitFilterTest {
     }
 
     @Test
-    void doFilter_allowsNonAuthRequests_withoutRateLimiting() throws Exception {
-        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/properties");
-        request.setRequestURI("/api/properties");
+    void doFilter_allowsUnclassifiedRequests_withoutRateLimiting() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/saved");
+        request.setRequestURI("/api/saved");
+        request.setRemoteAddr("192.168.1.1");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             filter.doFilterInternal(request, response, filterChain);
         }
 
-        verify(filterChain, times(10)).doFilter(request, response);
+        verify(filterChain, times(100)).doFilter(request, response);
+    }
+
+    @Test
+    void doFilter_limitsPropertyReads_at60PerMinute() throws Exception {
+        for (int i = 0; i < 60; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("GET", "/api/properties");
+            req.setRequestURI("/api/properties");
+            req.setRemoteAddr("5.5.5.5");
+            filter.doFilterInternal(req, new MockHttpServletResponse(), filterChain);
+        }
+
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/properties");
+        request.setRequestURI("/api/properties");
+        request.setRemoteAddr("5.5.5.5");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(429);
+    }
+
+    @Test
+    void doFilter_limitsPropertyWrites_at10PerMinute() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/properties");
+            req.setRequestURI("/api/properties");
+            req.setRemoteAddr("6.6.6.6");
+            filter.doFilterInternal(req, new MockHttpServletResponse(), filterChain);
+        }
+
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/properties");
+        request.setRequestURI("/api/properties");
+        request.setRemoteAddr("6.6.6.6");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(429);
+    }
+
+    @Test
+    void doFilter_limitsPresignUploads_at10PerMinute() throws Exception {
+        for (int i = 0; i < 10; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/uploads/presign");
+            req.setRequestURI("/api/uploads/presign");
+            req.setRemoteAddr("7.7.7.7");
+            filter.doFilterInternal(req, new MockHttpServletResponse(), filterChain);
+        }
+
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/uploads/presign");
+        request.setRequestURI("/api/uploads/presign");
+        request.setRemoteAddr("7.7.7.7");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(429);
+    }
+
+    @Test
+    void doFilter_separatesReadAndWriteBuckets_forSameIp() throws Exception {
+        // Exhaust the write budget (10) for an IP.
+        for (int i = 0; i < 10; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/properties");
+            req.setRequestURI("/api/properties");
+            req.setRemoteAddr("8.8.8.8");
+            filter.doFilterInternal(req, new MockHttpServletResponse(), filterChain);
+        }
+
+        // Reads for the same IP still have their own (untouched) budget.
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/properties");
+        request.setRequestURI("/api/properties");
+        request.setRemoteAddr("8.8.8.8");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        filter.doFilterInternal(request, response, filterChain);
+
+        assertThat(response.getStatus()).isEqualTo(200);
     }
 
     @Test

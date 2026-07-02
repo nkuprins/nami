@@ -107,13 +107,19 @@ export async function getListing(
   return toListingDetailDisplayNames(await res.json());
 }
 
-// Creates the property + its first listing.
+// Creates the property + its first listing. `turnstileToken` is the Cloudflare
+// human-check token; omitted when Turnstile is not configured (local dev).
 export async function createListing(
-  data: CreateListingPayload
+  data: CreateListingPayload,
+  turnstileToken?: string
 ): Promise<ListingDetail> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (turnstileToken) headers['X-Turnstile-Token'] = turnstileToken;
   const res = await fetchApi(`/api/properties`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ ...data, location: toSlugs(data.location) }),
   });
   if (res.status === 409) {

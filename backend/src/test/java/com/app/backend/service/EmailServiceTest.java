@@ -19,7 +19,8 @@ class EmailServiceTest {
                 new AppProperties.JwtProperties("secret-32-chars-long-enough-here!", 900, 604800),
                 new AppProperties.ResendProperties("", "test@test.local"),
                 "http://localhost:3000",
-                new AppProperties.CookieProperties(false)
+                new AppProperties.CookieProperties(false),
+                null
         );
         EmailService service = new EmailService(props, new ObjectMapper());
 
@@ -35,7 +36,8 @@ class EmailServiceTest {
                 new AppProperties.JwtProperties("secret-32-chars-long-enough-here!", 900, 604800),
                 new AppProperties.ResendProperties(null, "test@test.local"),
                 "http://localhost:3000",
-                new AppProperties.CookieProperties(false)
+                new AppProperties.CookieProperties(false),
+                null
         );
         EmailService service = new EmailService(props, new ObjectMapper());
 

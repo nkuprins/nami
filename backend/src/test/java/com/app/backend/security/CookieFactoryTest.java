@@ -15,7 +15,8 @@ class CookieFactoryTest {
                 new AppProperties.JwtProperties("secret-32chars-long-enough-for-hmac", 900, 604800),
                 new AppProperties.ResendProperties("", "test@test.local"),
                 "http://localhost:3000",
-                new AppProperties.CookieProperties(secure)
+                new AppProperties.CookieProperties(secure),
+                null
         );
         return new CookieFactory(props);
     }

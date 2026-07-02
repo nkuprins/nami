@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface PropertyRepository extends JpaRepository<Property, UUID> {
 
     List<Property> findByOwner(User owner);
+
+    long countByOwner(User owner);
 }

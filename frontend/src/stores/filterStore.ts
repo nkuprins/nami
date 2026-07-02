@@ -1,4 +1,4 @@
-import { computed, reactive, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { useRoute, useRouter } from 'vue-router';
 import {
@@ -24,6 +24,9 @@ export const useFiltersStore = defineStore('filters', () => {
   const router = useRouter();
 
   const state = reactive<FilterState>(FilterCodec.fromQuery(route.query));
+
+  // Bumped to trigger a listings refetch for deferred (Search-gated) filters.
+  const searchNonce = ref(0);
   logger.info(
     '[FiltersStore] Initial structural query parsing complete.',
     FilterCodec.toQuery(state)
@@ -87,8 +90,6 @@ export const useFiltersStore = defineStore('filters', () => {
 
       return [];
     });
-
-    state.page = 1;
   }
 
   function setPriceRange(min: number | undefined, max: number | undefined) {
@@ -97,13 +98,17 @@ export const useFiltersStore = defineStore('filters', () => {
     );
     state.priceMin = min;
     state.priceMax = max;
-    state.page = 1;
   }
 
   function setRooms(rooms: number[]) {
     logger.info('[FiltersStore] Targeted rooms selection changed:', rooms);
     state.rooms = [...rooms];
+  }
+
+  // Commits the deferred pill filters (location / price / rooms) and refetches.
+  function applySearch() {
     state.page = 1;
+    searchNonce.value++;
   }
 
   function setSort(sort: SortKey) {
@@ -125,6 +130,7 @@ export const useFiltersStore = defineStore('filters', () => {
     );
     Object.assign(state, patch);
     state.page = 1;
+    searchNonce.value++;
   }
 
   function resetAdvanced() {
@@ -144,6 +150,7 @@ export const useFiltersStore = defineStore('filters', () => {
     state.features = [];
     state.completion = undefined;
     state.page = 1;
+    searchNonce.value++;
   }
 
   function resetAll() {
@@ -153,6 +160,7 @@ export const useFiltersStore = defineStore('filters', () => {
     ALL_FILTER_KEYS.forEach((key: FilterKey) => {
       (state[key] as FilterState[FilterKey]) = DEFAULT_FILTER_STATE[key];
     });
+    searchNonce.value++;
   }
 
   return {
@@ -160,10 +168,12 @@ export const useFiltersStore = defineStore('filters', () => {
     districts,
     cities,
     state,
+    searchNonce,
     setType,
     setLocations,
     setPriceRange,
     setRooms,
+    applySearch,
     setSort,
     setPage,
     applyAdvanced,

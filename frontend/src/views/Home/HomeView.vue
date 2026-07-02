@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { useFiltersStore } from '../../stores/filterStore';
 import { useListings } from '../../composables/useListings';
@@ -13,8 +14,13 @@ const { t } = useI18n();
 
 const HEADER_HEIGHT = 64;
 
-const { state, setPage, resetAll } = useFiltersStore();
-const { items, total, pageCount, loading } = useListings(() => state);
+const store = useFiltersStore();
+const { state, setPage, applySearch, resetAll } = store;
+const { searchNonce } = storeToRefs(store);
+const { items, total, pageCount, loading } = useListings(
+  () => state,
+  () => searchNonce.value
+);
 
 const drawerOpen = ref(false);
 const gridRef = ref<HTMLElement | null>(null);
@@ -31,10 +37,15 @@ async function goToPage(p: number) {
   await nextTick();
   scrollToGrid();
 }
+
+function onSearch() {
+  applySearch();
+  scrollToGrid();
+}
 </script>
 
 <template>
-  <HeroSection @search="scrollToGrid" @open-more="drawerOpen = true" />
+  <HeroSection @search="onSearch" @open-more="drawerOpen = true" />
   <MoreFiltersDrawer
     :open="drawerOpen"
     @update:open="(v) => (drawerOpen = v)"

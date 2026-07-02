@@ -108,7 +108,8 @@ export function useListingForm(
   getLocation: () => Location | null,
   photoUpload: ReturnType<typeof usePhotoUpload>,
   planUpload: ReturnType<typeof usePhotoUpload>,
-  duplicate?: { blocked: () => boolean; confirmed: () => boolean }
+  duplicate?: { blocked: () => boolean; confirmed: () => boolean },
+  turnstile?: { token: () => string; reset: () => void }
 ) {
   const { localePush } = useLocaleRoute();
   const form = reactive<ListingFormState>({ ...INITIAL_FORM });
@@ -215,35 +216,38 @@ export function useListingForm(
       const location = getLocation()!;
       const translations = buildTranslations(form);
 
-      const created = await createListing({
-        type: form.type as ListingType,
-        propertyKind: form.propertyKind,
-        price: {
-          amount: parseDecimal(form.price),
-          vatIncluded: form.vatIncluded || undefined,
+      const created = await createListing(
+        {
+          type: form.type as ListingType,
+          propertyKind: form.propertyKind,
+          price: {
+            amount: parseDecimal(form.price),
+            vatIncluded: form.vatIncluded || undefined,
+          },
+          details: buildDetails(form),
+          translations,
+          location: {
+            district: location.district,
+            city: location.city,
+            address: form.address.trim(),
+            coords: form.coords ?? DEFAULT_COORDS,
+          },
+          features: form.features,
+          media: {
+            photos,
+            plans: plans.length ? plans : null,
+            videoUrl: form.videoUrl.trim() || null,
+          },
+          phones: filledPhones,
+          completion:
+            form.type === 'new_project' && form.completion
+              ? form.completion
+              : undefined,
+          durationMonths: form.durationMonths,
+          confirmedDuplicate: duplicate?.confirmed() || undefined,
         },
-        details: buildDetails(form),
-        translations,
-        location: {
-          district: location.district,
-          city: location.city,
-          address: form.address.trim(),
-          coords: form.coords ?? DEFAULT_COORDS,
-        },
-        features: form.features,
-        media: {
-          photos,
-          plans: plans.length ? plans : null,
-          videoUrl: form.videoUrl.trim() || null,
-        },
-        phones: filledPhones,
-        completion:
-          form.type === 'new_project' && form.completion
-            ? form.completion
-            : undefined,
-        durationMonths: form.durationMonths,
-        confirmedDuplicate: duplicate?.confirmed() || undefined,
-      });
+        turnstile?.token()
+      );
 
       if (form.alsoRent) {
         try {
@@ -265,6 +269,9 @@ export function useListingForm(
 
       await localePush(`/listing/${created.id}`);
     } catch (e) {
+      // The Turnstile token is spent once the backend verifies it; reset the
+      // widget so a retry gets a fresh one.
+      turnstile?.reset();
       submitError.value =
         e instanceof DuplicatePropertyError
           ? e.nearDuplicate

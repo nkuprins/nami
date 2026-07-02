@@ -2,6 +2,8 @@ package com.app.backend.controller;
 
 import com.app.backend.dto.*;
 import com.app.backend.service.PropertyService;
+import com.app.backend.service.TurnstileService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,7 @@ import java.util.UUID;
 public class PropertyController {
 
     private final PropertyService propertyService;
+    private final TurnstileService turnstileService;
 
     @GetMapping
     public PropertyPageResponse list(
@@ -41,9 +44,20 @@ public class PropertyController {
     @ResponseStatus(HttpStatus.CREATED)
     public PropertyItemDto create(
             @AuthenticationPrincipal UUID userId,
-            @RequestBody @Valid CreatePropertyRequest request
+            @RequestHeader(value = "X-Turnstile-Token", required = false) String turnstileToken,
+            @RequestBody @Valid CreatePropertyRequest request,
+            HttpServletRequest httpRequest
     ) {
+        turnstileService.verify(turnstileToken, clientIp(httpRequest));
         return propertyService.create(request, userId);
+    }
+
+    private static String clientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     @PostMapping("/{propertyId}/listings")

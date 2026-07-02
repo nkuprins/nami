@@ -9,11 +9,13 @@ public record AppProperties(
         JwtProperties jwt,
         ResendProperties resend,
         String frontendUrl,
-        CookieProperties cookie
+        CookieProperties cookie,
+        TurnstileProperties turnstile
 ) {
     public record JwtProperties(String secret, long accessTokenTtlSeconds, long refreshTokenTtlSeconds) {}
     public record ResendProperties(String apiKey, String from) {}
     public record CookieProperties(boolean secure) {}
+    public record TurnstileProperties(String secretKey) {}
     public record CorsProperties(String allowedOrigins) {}
     public record S3Properties(String bucket, String region, long presignTtlMinutes, String cdnUrl) {}
 }

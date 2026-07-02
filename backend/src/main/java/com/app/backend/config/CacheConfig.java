@@ -19,11 +19,11 @@ public class CacheConfig {
     public CaffeineCacheManager cacheManager() {
         CaffeineCacheManager manager = new CaffeineCacheManager();
         manager.registerCustomCache(PROPERTY_DETAIL, Caffeine.newBuilder()
-                .maximumSize(500)
+                .maximumSize(2000)
                 .expireAfterWrite(Duration.ofDays(1))
                 .build());
         manager.registerCustomCache(PROPERTY_LIST, Caffeine.newBuilder()
-                .maximumSize(200)
+                .maximumSize(1000)
                 .expireAfterWrite(Duration.ofDays(1))
                 .build());
         return manager;
