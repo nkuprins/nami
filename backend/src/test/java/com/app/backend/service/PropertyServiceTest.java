@@ -273,16 +273,16 @@ class PropertyServiceTest {
     }
 
     @Nested
-    class Update {
+    class UpdateListing {
         @Test
-        void updatesAllFields() {
+        void updatesListingFields() {
             User owner = user();
             Listing l = listing(owner);
             when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
             when(listingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
 
-            PropertyItemDto result = propertyService.update(l.getId(), updatePropertyRequest(), owner.getId());
+            PropertyItemDto result = propertyService.updateListing(l.getId(), updateListingRequest(), owner.getId());
 
             assertThat(result).isNotNull();
             verify(listingRepository).save(l);
@@ -295,7 +295,7 @@ class PropertyServiceTest {
             UUID otherId = UUID.randomUUID();
             when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
 
-            assertThatThrownBy(() -> propertyService.update(l.getId(), updatePropertyRequest(), otherId))
+            assertThatThrownBy(() -> propertyService.updateListing(l.getId(), updateListingRequest(), otherId))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(403));
         }
@@ -305,7 +305,7 @@ class PropertyServiceTest {
             UUID id = UUID.randomUUID();
             when(listingRepository.findById(id)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> propertyService.update(id, updatePropertyRequest(), UUID.randomUUID()))
+            assertThatThrownBy(() -> propertyService.updateListing(id, updateListingRequest(), UUID.randomUUID()))
                     .isInstanceOf(ApiException.class);
         }
 
@@ -318,15 +318,93 @@ class PropertyServiceTest {
             when(listingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
             doAnswer(inv -> {
-                inv.<Listing>getArgument(0).setCompletion(inv.<PropertyRequest>getArgument(2).completion());
+                inv.<Listing>getArgument(0).setCompletion(inv.<UpdateListingRequest>getArgument(1).completion());
                 return null;
-            }).when(propertyMapper).applyCommon(any(), any(), any());
+            }).when(propertyMapper).applyListingFields(any(), any());
 
-            UpdatePropertyRequest req = updatePropertyRequest();
+            UpdateListingRequest req = updateListingRequest();
 
-            propertyService.update(l.getId(), req, owner.getId());
+            propertyService.updateListing(l.getId(), req, owner.getId());
 
             assertThat(l.getCompletion()).isNull();
+        }
+    }
+
+    @Nested
+    class UpdateProperty {
+        @Test
+        void updatesPropertyFields() {
+            User owner = user();
+            Listing l = listing(owner);
+            Property p = l.getProperty();
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+            when(propertyRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
+
+            PropertyDto result = propertyService.updateProperty(p.getId(), updatePropertyRequest(), owner.getId());
+
+            assertThat(result).isNotNull();
+            verify(propertyRepository).save(p);
+        }
+
+        @Test
+        void throwsForbidden_whenNotOwner() {
+            User owner = user();
+            Listing l = listing(owner);
+            Property p = l.getProperty();
+            UUID otherId = UUID.randomUUID();
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+
+            assertThatThrownBy(() -> propertyService.updateProperty(p.getId(), updatePropertyRequest(), otherId))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(403));
+        }
+
+        @Test
+        void throwsNotFound_whenPropertyNotFound() {
+            UUID id = UUID.randomUUID();
+            when(propertyRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> propertyService.updateProperty(id, updatePropertyRequest(), UUID.randomUUID()))
+                    .isInstanceOf(ApiException.class);
+        }
+    }
+
+    @Nested
+    class GetProperty {
+        @Test
+        void returnsProperty_forOwner() {
+            User owner = user();
+            Listing l = listing(owner);
+            Property p = l.getProperty();
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+            when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
+
+            PropertyDto result = propertyService.getProperty(p.getId(), owner.getId());
+
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        void throwsForbidden_whenNotOwner() {
+            User owner = user();
+            Listing l = listing(owner);
+            Property p = l.getProperty();
+            UUID otherId = UUID.randomUUID();
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+
+            assertThatThrownBy(() -> propertyService.getProperty(p.getId(), otherId))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(403));
+        }
+
+        @Test
+        void throwsNotFound_whenPropertyNotFound() {
+            UUID id = UUID.randomUUID();
+            when(propertyRepository.findById(id)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> propertyService.getProperty(id, UUID.randomUUID()))
+                    .isInstanceOf(ApiException.class);
         }
     }
 
@@ -513,6 +591,19 @@ class PropertyServiceTest {
                 .features(List.of())
                 .postedAt(l.getPostedAt())
                 .expiresAt(l.getExpiresAt())
+                .build();
+    }
+
+    private PropertyDto propertyDto(Property p) {
+        return PropertyDto.builder()
+                .id(p.getId())
+                .ownerId(p.getOwner().getId())
+                .propertyKind(p.getPropertyCategory())
+                .details(PropertyDetails.builder().rooms(p.getRooms()).m2(p.getM2()).build())
+                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
+                        new CoordsDto(p.getLat(), p.getLng())))
+                .features(List.of())
+                .media(Media.builder().photos(List.of()).build())
                 .build();
     }
 

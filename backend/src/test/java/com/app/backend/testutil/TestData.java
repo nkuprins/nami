@@ -8,6 +8,7 @@ import com.app.backend.dto.Location;
 import com.app.backend.dto.Media;
 import com.app.backend.dto.Price;
 import com.app.backend.dto.PropertyDetails;
+import com.app.backend.dto.UpdateListingRequest;
 import com.app.backend.dto.UpdatePropertyRequest;
 import com.app.backend.dto.auth.LoginRequest;
 import com.app.backend.dto.auth.RegisterRequest;
@@ -182,11 +183,20 @@ public final class TestData {
                 .build();
     }
 
+    public static UpdateListingRequest updateListingRequest() {
+        return UpdateListingRequest.builder()
+                .type(ListingType.BUY)
+                .price(new Price(new BigDecimal("210000.00"), null))
+                .translations(Map.of(
+                        "lv", new LocalizedText("Atjaunots dzīvoklis", "Atjaunots apraksts"),
+                        "en", new LocalizedText("Updated Apartment", "Updated description")))
+                .phones(List.of("+37120000001"))
+                .build();
+    }
+
     public static UpdatePropertyRequest updatePropertyRequest() {
         return UpdatePropertyRequest.builder()
-                .type(ListingType.BUY)
                 .propertyKind(PropertyCategory.APARTMENT)
-                .price(new Price(new BigDecimal("210000.00"), null))
                 .details(PropertyDetails.builder()
                         .rooms((short) 3)
                         .bedrooms((short) 2)
@@ -200,11 +210,9 @@ public final class TestData {
                         .energyClass(EnergyClass.C)
                         .maintenanceCost(new BigDecimal("95.00"))
                         .build())
-                .translations(Map.of(
-                        "lv", new LocalizedText("Atjaunots dzīvoklis", "Atjaunots apraksts"),
-                        "en", new LocalizedText("Updated Apartment", "Updated description")))
                 .features(List.of(PropertyFeature.ELEVATOR, PropertyFeature.FURNISHED))
-                .phones(List.of("+37120000001"))
+                .location(new Location("centre", "riga", "Main Street 10",
+                        new CoordsDto(56.9496, 24.1052)))
                 .build();
     }
 

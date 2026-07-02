@@ -57,12 +57,29 @@ public class PropertyController {
     }
 
     @PutMapping("/{id}")
-    public PropertyItemDto update(
+    public PropertyItemDto updateListing(
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id,
+            @RequestBody @Valid UpdateListingRequest request
+    ) {
+        return propertyService.updateListing(id, request, userId);
+    }
+
+    @GetMapping("/{propertyId}/property")
+    public PropertyDto getProperty(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID propertyId
+    ) {
+        return propertyService.getProperty(propertyId, userId);
+    }
+
+    @PutMapping("/{propertyId}/property")
+    public PropertyDto updateProperty(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID propertyId,
             @RequestBody @Valid UpdatePropertyRequest request
     ) {
-        return propertyService.update(id, request, userId);
+        return propertyService.updateProperty(propertyId, request, userId);
     }
 
     @PostMapping("/{id}/renew")

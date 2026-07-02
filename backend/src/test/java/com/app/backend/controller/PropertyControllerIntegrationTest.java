@@ -136,7 +136,7 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
         mockMvc.perform(put("/api/properties/{id}", saved.getId())
                         .cookie(ownerCookie)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatePropertyRequest())))
+                        .content(objectMapper.writeValueAsString(updateListingRequest())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.translations.en.title").value("Updated Apartment"));
     }
@@ -155,6 +155,75 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
         Cookie otherCookie = authTestHelper.accessTokenCookie(other.getId());
 
         mockMvc.perform(put("/api/properties/{id}", saved.getId())
+                        .cookie(otherCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateListingRequest())))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getProperty_returns200_whenOwner() throws Exception {
+        Listing saved = saveListing();
+
+        mockMvc.perform(get("/api/properties/{propertyId}/property", saved.getProperty().getId())
+                        .cookie(ownerCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(saved.getProperty().getId().toString()));
+    }
+
+    @Test
+    void getProperty_returns401_whenNotAuthenticated() throws Exception {
+        Listing saved = saveListing();
+
+        mockMvc.perform(get("/api/properties/{propertyId}/property", saved.getProperty().getId()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void getProperty_returns403_whenNotOwner() throws Exception {
+        Listing saved = saveListing();
+
+        User other = new User();
+        other.setName("Other");
+        other.setEmail("other-get@test.com");
+        other.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
+        other.setEmailVerified(true);
+        other = userRepository.save(other);
+
+        Cookie otherCookie = authTestHelper.accessTokenCookie(other.getId());
+
+        mockMvc.perform(get("/api/properties/{propertyId}/property", saved.getProperty().getId())
+                        .cookie(otherCookie))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void updateProperty_returns200_whenOwner() throws Exception {
+        Listing saved = saveListing();
+
+        mockMvc.perform(put("/api/properties/{propertyId}/property", saved.getProperty().getId())
+                        .cookie(ownerCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updatePropertyRequest())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.details.rooms").value(3))
+                .andExpect(jsonPath("$.location.address").value("Main Street 10"));
+    }
+
+    @Test
+    void updateProperty_returns403_whenNotOwner() throws Exception {
+        Listing saved = saveListing();
+
+        User other = new User();
+        other.setName("Other");
+        other.setEmail("other-update@test.com");
+        other.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
+        other.setEmailVerified(true);
+        other = userRepository.save(other);
+
+        Cookie otherCookie = authTestHelper.accessTokenCookie(other.getId());
+
+        mockMvc.perform(put("/api/properties/{propertyId}/property", saved.getProperty().getId())
                         .cookie(otherCookie)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatePropertyRequest())))

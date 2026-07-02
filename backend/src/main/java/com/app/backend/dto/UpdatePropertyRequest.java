@@ -1,28 +1,30 @@
 package com.app.backend.dto;
 
-import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
-import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
-import com.app.backend.validation.ValidPropertyRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.util.List;
-import java.util.Map;
 
+/**
+ * Updates a property's own fields (physical attributes, media, features,
+ * location). The listings on it (price, translations, phones, completion)
+ * are not touched — edit them via the separate listing endpoint instead.
+ */
 @Builder(toBuilder = true)
-@ValidPropertyRequest
 public record UpdatePropertyRequest(
-        @NotNull ListingType type,
         @NotNull PropertyCategory propertyKind,
-        @NotNull @Valid Price price,
         @NotNull @Valid PropertyDetails details,
-        Map<String, LocalizedText> translations,
         List<PropertyFeature> features,
         @Valid Media media,
-        List<@NotBlank String> phones,
-        PropertyCompletion completion
-) implements PropertyRequest {}
+        @NotNull @Valid Location location
+) {
+
+    @AssertTrue(message = "land_m2 is not valid for an apartment")
+    public boolean isLandM2Valid() {
+        return details == null || details.landM2() == null || propertyKind != PropertyCategory.APARTMENT;
+    }
+}

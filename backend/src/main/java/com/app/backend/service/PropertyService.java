@@ -3,11 +3,13 @@ package com.app.backend.service;
 import com.app.backend.dto.AddListingRequest;
 import com.app.backend.dto.CreatePropertyRequest;
 import com.app.backend.dto.Location;
+import com.app.backend.dto.PropertyDto;
 import com.app.backend.dto.PropertyFilter;
 import com.app.backend.dto.PropertyItemDto;
 import com.app.backend.dto.PropertyListItemDto;
 import com.app.backend.dto.PropertyPageResponse;
 import com.app.backend.dto.RenewPropertyRequest;
+import com.app.backend.dto.UpdateListingRequest;
 import com.app.backend.dto.UpdatePropertyRequest;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.Listing_;
@@ -23,6 +25,7 @@ import com.app.backend.spec.PropertySpec;
 import com.app.backend.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -127,12 +130,7 @@ public class PropertyService {
             throw new ApiException(HttpStatus.CONFLICT,
                     "A " + req.type().getDbValue() + " listing already exists for this property");
         }
-        if (req.completion() == PropertyCompletion.NOT_READY && property.getYearBuilt() != null) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "A 'not_ready' new project cannot have a year_built");
-        }
-        if (req.completion() != null && req.type() != ListingType.NEW_PROJECT) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "completion is only valid for a new_project listing");
-        }
+        validateCompletion(req.completion(), req.type(), property.getYearBuilt());
 
         Listing listing = new Listing();
         listing.setProperty(property);
@@ -151,21 +149,61 @@ public class PropertyService {
         return propertyMapper.toDto(saved);
     }
 
+    /** Updates only a listing's own fields (price, translations, phones, completion). The property is untouched. */
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId")
     })
     @Transactional
-    public PropertyItemDto update(UUID listingId, UpdatePropertyRequest req, UUID ownerId) {
+    public PropertyItemDto updateListing(UUID listingId, UpdateListingRequest req, UUID ownerId) {
         Listing listing = listingRepository.findById(listingId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
         if (!listing.getOwner().getId().equals(ownerId)) {
             throw new ApiException(HttpStatus.FORBIDDEN);
         }
+        validateCompletion(req.completion(), req.type(), listing.getProperty().getYearBuilt());
 
-        propertyMapper.applyCommon(listing, listing.getProperty(), req);
+        propertyMapper.applyListingFields(listing, req);
 
         return propertyMapper.toDto(listingRepository.save(listing));
+    }
+
+    @Transactional(readOnly = true)
+    public PropertyDto getProperty(UUID propertyId, UUID ownerId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+        if (!property.getOwner().getId().equals(ownerId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN);
+        }
+        return propertyMapper.toPropertyDto(property);
+    }
+
+    /** Updates only a property's own fields (details, media, features, location). Its listings are untouched. */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true)
+    })
+    @Transactional
+    public PropertyDto updateProperty(UUID propertyId, UpdatePropertyRequest req, UUID ownerId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+        if (!property.getOwner().getId().equals(ownerId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN);
+        }
+
+        propertyMapper.applyPropertyFields(property, req);
+
+        return propertyMapper.toPropertyDto(propertyRepository.save(property));
+    }
+
+    private static void validateCompletion(PropertyCompletion completion, ListingType type,
+                                            @Nullable Short yearBuilt) {
+        if (completion == PropertyCompletion.NOT_READY && yearBuilt != null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "A 'not_ready' new project cannot have a year_built");
+        }
+        if (completion != null && type != ListingType.NEW_PROJECT) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "completion is only valid for a new_project listing");
+        }
     }
 
     @Caching(evict = {
