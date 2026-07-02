@@ -8,7 +8,7 @@ Open-source real estate marketplace for Latvia
 |---|---|
 | Frontend | Vue 3, TypeScript, Tailwind CSS v4, Vite |
 | Backend | Java 25, Spring Boot 4, Gradle |
-| Database | PostgreSQL 17 (pgcrypto, cube, earthdistance) |
+| Database | PostgreSQL 17 (pgcrypto) |
 | Storage | AWS S3 + CloudFront CDN |
 | Email | Resend |
 | Auth | JWT (access token) + HttpOnly refresh cookie |
@@ -22,7 +22,9 @@ Open-source real estate marketplace for Latvia
 - Saved listings, user profiles, GDPR data export
 - Email verification, password reset
 - Listing expiry and renewal lifecycle
-- Rate limiting on auth endpoints
+- Duplicate property address detection on listing creation
+- Bot protection on listing creation (Cloudflare Turnstile)
+- Rate limiting on auth, upload, and property write endpoints
 
 ## Prerequisites
 
@@ -40,8 +42,6 @@ Create a local PostgreSQL 17 database and run the schema:
 ```bash
 psql -U postgres -c "CREATE DATABASE baltnami;"
 psql -U postgres -d baltnami -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
-psql -U postgres -d baltnami -c "CREATE EXTENSION IF NOT EXISTS cube;"
-psql -U postgres -d baltnami -c "CREATE EXTENSION IF NOT EXISTS earthdistance;"
 psql -U postgres -d baltnami -f backend/db/schema.sql
 # Optional: load sample data
 psql -U postgres -d baltnami -f backend/db/seed.sql
@@ -90,12 +90,28 @@ Key variables for production:
 | `CORS_ALLOWED_ORIGINS` | Frontend origin (e.g. `https://your-app.vercel.app`) |
 | `FRONTEND_URL` | Used in email links |
 | `COOKIE_SECURE` | Set `true` in production (requires HTTPS) |
+| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile secret key (bot protection on listing creation); leave unset to skip verification |
 
 For the frontend, set `VITE_API_BASE_URL` to your backend URL in production (e.g. `https://your-backend.up.railway.app`). In local dev, leave it unset — the Vite proxy handles routing.
+
+Set `VITE_TURNSTILE_SITE_KEY` to your Cloudflare Turnstile site key to render the CAPTCHA widget on the add-listing form; leave it unset to disable it (matches `TURNSTILE_SECRET_KEY` unset on the backend).
 
 ## Running Tests
 
 ```bash
 # Backend (requires Docker for Testcontainers)
-cd backend && ./gradlew test
+# Runs tests + JaCoCo coverage check (minimum 70% line coverage)
+cd backend && ./gradlew check
 ```
+
+## Deployment
+
+Deployment is fully Git-driven — no manual build or push steps required.
+
+| Layer | Platform | Trigger |
+|---|---|---|
+| Frontend | Vercel | Push to `main` — Vercel builds and deploys automatically |
+| Backend | Railway | Push to `main` — Railway reads `backend/Dockerfile` and builds on their infrastructure |
+| Database | Neon | Managed Postgres 17; `DB_URL` points at it — no deploy trigger |
+
+Configure the [environment variables](#environment-variables) in each platform's dashboard. No GitHub Actions runner minutes are consumed by deployment.
