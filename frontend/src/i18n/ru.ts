@@ -250,6 +250,10 @@ export default {
     duplicateNudge: 'У вас уже есть объект по адресу {address}.',
     duplicateNudgeView: 'Посмотреть',
     duplicateNudgeAddListing: 'Добавить тип объявления вместо этого',
+    duplicateNudgeFuzzyTitle: 'Похожий адрес',
+    duplicateNudgeFuzzy:
+      'Этот адрес очень похож на ваш объект по адресу {address}. Если это другой объект, подтвердите, чтобы продолжить.',
+    duplicateNudgeFuzzyContinue: 'Это другой объект — продолжить',
   },
   editListing: {
     title: 'Редактировать объявление',

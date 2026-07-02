@@ -28,5 +28,6 @@ public record CreatePropertyRequest(
         @Valid Media media,
         List<@NotBlank String> phones,
         PropertyCompletion completion,
-        @NotNull @Min(1) @Max(6) Integer durationMonths
+        @NotNull @Min(1) @Max(6) Integer durationMonths,
+        Boolean confirmedDuplicate
 ) implements PropertyRequest {}

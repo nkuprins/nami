@@ -22,6 +22,7 @@ import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.spec.PropertySearchCriteria;
 import com.app.backend.spec.PropertySpec;
+import com.app.backend.validation.AddressMatcher;
 import com.app.backend.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -92,6 +93,8 @@ public class PropertyService {
     public PropertyItemDto create(CreatePropertyRequest req, UUID ownerId) {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
+
+        checkNoDuplicateProperty(owner, req.location(), Boolean.TRUE.equals(req.confirmedDuplicate()), null);
 
         Property property = new Property();
         property.setOwner(owner);
@@ -191,9 +194,43 @@ public class PropertyService {
             throw new ApiException(HttpStatus.FORBIDDEN);
         }
 
-        propertyMapper.applyPropertyFields(property, req);
+        checkNoDuplicateProperty(property.getOwner(), req.location(), true, propertyId);
 
-        return propertyMapper.toPropertyDto(propertyRepository.save(property));
+        List<String> oldMedia = new ArrayList<>(property.allMediaUrls());
+
+        propertyMapper.applyPropertyFields(property, req);
+        PropertyDto dto = propertyMapper.toPropertyDto(propertyRepository.save(property));
+
+        List<String> newMedia = property.allMediaUrls();
+        List<String> removed = oldMedia.stream().filter(u -> !newMedia.contains(u)).toList();
+        if (!removed.isEmpty()) {
+            registerMediaCleanup(propertyId, removed);
+        }
+        return dto;
+    }
+
+    /**
+     * Rejects creating (or editing into) a second property at a location the owner
+     * already has. An exact address match is always blocked; a near match (likely
+     * typo or disguised copy) is blocked unless the caller has confirmed it is a
+     * genuinely different property.
+     */
+    private void checkNoDuplicateProperty(User owner, Location location, boolean confirmedDuplicate,
+                                          @Nullable UUID excludeId) {
+        for (Property existing : propertyRepository.findByOwner(owner)) {
+            if (existing.getId().equals(excludeId)
+                    || !existing.getCitySlug().equals(location.city())
+                    || !existing.getDistrictSlug().equals(location.district())) {
+                continue;
+            }
+            if (AddressMatcher.isDuplicate(existing.getAddress(), location.address())) {
+                throw new ApiException(HttpStatus.CONFLICT, "You already have a property at this address");
+            }
+            if (!confirmedDuplicate && AddressMatcher.isNearMatch(existing.getAddress(), location.address())) {
+                throw new ApiException(HttpStatus.CONFLICT,
+                        "NEAR_DUPLICATE: this looks very similar to a property you already have");
+            }
+        }
     }
 
     private static void validateCompletion(PropertyCompletion completion, ListingType type,
@@ -259,17 +296,22 @@ public class PropertyService {
         log.info("Property {} (and all its listings) deleted by owner: {}", propertyId, ownerId);
 
         if (!allMediaUrls.isEmpty()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    try {
-                        uploadService.deleteObjects(allMediaUrls);
-                    } catch (Exception e) {
-                        log.warn("Failed to delete S3 objects for property {}: {}", propertyId, e.getMessage());
-                    }
-                }
-            });
+            registerMediaCleanup(propertyId, allMediaUrls);
         }
+    }
+
+    /** Deletes the given media from S3 only after the surrounding transaction commits. */
+    private void registerMediaCleanup(UUID propertyId, List<String> urls) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    uploadService.deleteObjects(urls);
+                } catch (Exception e) {
+                    log.warn("Failed to delete S3 objects for property {}: {}", propertyId, e.getMessage());
+                }
+            }
+        });
     }
 
     /** Parses {@code city:district} filter entries; rejects malformed ones rather than silently dropping. */

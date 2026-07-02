@@ -250,6 +250,10 @@ export default {
     duplicateNudge: 'You already have a property at {address}.',
     duplicateNudgeView: 'View it',
     duplicateNudgeAddListing: 'Add a listing type instead',
+    duplicateNudgeFuzzyTitle: 'Similar address found',
+    duplicateNudgeFuzzy:
+      'This looks very similar to your property at {address}. If this is a different property, confirm to continue.',
+    duplicateNudgeFuzzyContinue: 'This is a different property — continue',
   },
   editListing: {
     title: 'Edit a listing',

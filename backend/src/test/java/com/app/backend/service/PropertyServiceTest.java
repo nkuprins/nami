@@ -241,6 +241,59 @@ class PropertyServiceTest {
         }
 
         @Test
+        void throwsConflict_whenOwnerAlreadyHasSameAddress() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            Property existing = listing(owner).getProperty();
+            existing.setAddress("Main Street 10"); // same as createPropertyRequest() location
+            when(propertyRepository.findByOwner(owner)).thenReturn(List.of(existing));
+
+            assertThatThrownBy(() -> propertyService.create(createPropertyRequest(), owner.getId()))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(409));
+        }
+
+        @Test
+        void throwsConflict_whenNearMatchAndNotConfirmed() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            Property existing = listing(owner).getProperty();
+            existing.setAddress("Main Street 10a"); // near match to "Main Street 10"
+            when(propertyRepository.findByOwner(owner)).thenReturn(List.of(existing));
+
+            assertThatThrownBy(() -> propertyService.create(createPropertyRequest(), owner.getId()))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> {
+                        assertThat(((ApiException) ex).getStatus().value()).isEqualTo(409);
+                        assertThat(ex.getMessage()).contains("NEAR_DUPLICATE");
+                    });
+        }
+
+        @Test
+        void allowsCreate_whenNearMatchConfirmed() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            Property existing = listing(owner).getProperty();
+            existing.setAddress("Main Street 10a");
+            when(propertyRepository.findByOwner(owner)).thenReturn(List.of(existing));
+            when(propertyRepository.save(any())).thenAnswer(inv -> {
+                Property p = inv.getArgument(0);
+                p.setId(UUID.randomUUID());
+                return p;
+            });
+            when(listingRepository.save(any())).thenAnswer(inv -> {
+                Listing l = inv.getArgument(0);
+                l.setId(UUID.randomUUID());
+                return l;
+            });
+            when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+
+            CreatePropertyRequest req = createPropertyRequest().toBuilder().confirmedDuplicate(true).build();
+
+            assertThat(propertyService.create(req, owner.getId())).isNotNull();
+        }
+
+        @Test
         void setsCompletion_whenProvided() {
             User owner = user();
             when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
@@ -345,6 +398,40 @@ class PropertyServiceTest {
 
             assertThat(result).isNotNull();
             verify(propertyRepository).save(p);
+        }
+
+        @Test
+        void deletesRemovedPhotosFromS3_afterCommit() {
+            User owner = user();
+            Property p = listingWithPhotos(owner).getProperty(); // photo1, photo2
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+            when(propertyRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
+            doAnswer(inv -> {
+                Property prop = inv.getArgument(0);
+                prop.setPhotos(new ArrayList<>(List.of("https://cdn.test.local/uploads/photo1.jpg")));
+                prop.setPlans(new ArrayList<>());
+                return null;
+            }).when(propertyMapper).applyPropertyFields(any(), any());
+
+            propertyService.updateProperty(p.getId(), updatePropertyRequest(), owner.getId());
+            triggerAfterCommit();
+
+            verify(uploadService).deleteObjects(List.of("https://cdn.test.local/uploads/photo2.jpg"));
+        }
+
+        @Test
+        void doesNotDeleteS3_whenNoPhotosRemoved() {
+            User owner = user();
+            Property p = listingWithPhotos(owner).getProperty();
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+            when(propertyRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
+
+            propertyService.updateProperty(p.getId(), updatePropertyRequest(), owner.getId());
+            triggerAfterCommit();
+
+            verify(uploadService, never()).deleteObjects(any());
         }
 
         @Test

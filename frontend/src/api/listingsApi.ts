@@ -28,6 +28,15 @@ export class ListingTypeExistsError extends Error {
   }
 }
 
+// Backend rejected a property because the owner already has one at this
+// location. `nearDuplicate` distinguishes a fuzzy typo match (overridable with
+// confirmedDuplicate) from an exact match (never overridable).
+export class DuplicatePropertyError extends Error {
+  constructor(public readonly nearDuplicate: boolean) {
+    super('DUPLICATE_PROPERTY');
+  }
+}
+
 export interface CreateListingPayload {
   type: ListingType;
   propertyKind: PropertyKind;
@@ -40,6 +49,7 @@ export interface CreateListingPayload {
   phones: string[];
   completion?: PropertyCompletion;
   durationMonths: number;
+  confirmedDuplicate?: boolean; // set once the user confirms past a fuzzy near-match
 }
 
 export interface AddListingPayload {
@@ -106,6 +116,15 @@ export async function createListing(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...data, location: toSlugs(data.location) }),
   });
+  if (res.status === 409) {
+    let detail = '';
+    try {
+      detail = (await res.json())?.detail ?? '';
+    } catch {
+      // no body — treat as an exact (non-overridable) duplicate
+    }
+    throw new DuplicatePropertyError(detail.includes('NEAR_DUPLICATE'));
+  }
   if (!res.ok) throw new Error(`createListing: ${res.status}`);
   return toListingDetailDisplayNames(await res.json());
 }

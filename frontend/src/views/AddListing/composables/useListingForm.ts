@@ -7,7 +7,11 @@ import type {
 } from '../../../types/listingItem';
 import type { Location } from '../../../data/rawLocations';
 import type { PropertyFieldsForm, ListingFieldsForm } from './formTypes';
-import { addListing, createListing } from '../../../api/listingsApi';
+import {
+  addListing,
+  createListing,
+  DuplicatePropertyError,
+} from '../../../api/listingsApi';
 import { requestPresignedUrls, uploadFilesToS3 } from '../../../api/uploadApi';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
 import { parseDecimal } from '../../../utils/utils';
@@ -103,7 +107,8 @@ export async function uploadNewFiles(files: File[]): Promise<string[]> {
 export function useListingForm(
   getLocation: () => Location | null,
   photoUpload: ReturnType<typeof usePhotoUpload>,
-  planUpload: ReturnType<typeof usePhotoUpload>
+  planUpload: ReturnType<typeof usePhotoUpload>,
+  duplicate?: { blocked: () => boolean; confirmed: () => boolean }
 ) {
   const { localePush } = useLocaleRoute();
   const form = reactive<ListingFormState>({ ...INITIAL_FORM });
@@ -195,6 +200,9 @@ export function useListingForm(
       return;
     }
 
+    // A duplicate property is blocking submission — the nudge dialog is showing.
+    if (duplicate?.blocked()) return;
+
     submitting.value = true;
     submitError.value = '';
     rentListingWarning.value = false;
@@ -234,6 +242,7 @@ export function useListingForm(
             ? form.completion
             : undefined,
         durationMonths: form.durationMonths,
+        confirmedDuplicate: duplicate?.confirmed() || undefined,
       });
 
       if (form.alsoRent) {
@@ -255,8 +264,13 @@ export function useListingForm(
       }
 
       await localePush(`/listing/${created.id}`);
-    } catch {
-      submitError.value = 'Something went wrong. Please try again.';
+    } catch (e) {
+      submitError.value =
+        e instanceof DuplicatePropertyError
+          ? e.nearDuplicate
+            ? 'This looks very similar to a property you already have.'
+            : 'You already have a property at this address.'
+          : 'Something went wrong. Please try again.';
       submitting.value = false;
     }
   }

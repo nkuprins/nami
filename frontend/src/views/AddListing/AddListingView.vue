@@ -26,6 +26,7 @@ const photoUpload = usePhotoUpload();
 const planUpload = usePhotoUpload(3);
 const { selectedLocation, isOpen, districtName, onSelect } =
   useLocationDropdown();
+const nudge = useDuplicatePropertyNudge();
 const {
   form,
   submitting,
@@ -35,9 +36,11 @@ const {
   addPhone,
   removePhone,
   submit,
-} = useListingForm(() => selectedLocation.value, photoUpload, planUpload);
+} = useListingForm(() => selectedLocation.value, photoUpload, planUpload, {
+  blocked: () => nudge.blockSubmit.value,
+  confirmed: () => nudge.acknowledged.value,
+});
 
-const nudge = useDuplicatePropertyNudge();
 const addListingFromNudge = ref(false);
 const addListingFromNudgePropertyId = ref('');
 const addListingFromNudgeTypes = ref<ListingType[]>([]);
@@ -48,7 +51,6 @@ function openAddListingFromNudge() {
   addListingFromNudgePropertyId.value = nudge.match.value.propertyId;
   addListingFromNudgeTypes.value = nudge.matchTypes.value;
   addListingFromNudge.value = true;
-  nudge.dismiss();
 }
 
 watch(
@@ -75,13 +77,12 @@ watch(
     <Teleport to="body">
       <Transition name="scrim">
         <div
-          v-if="nudge.match.value"
+          v-if="
+            nudge.blockSubmit.value && !addListingFromNudge && nudge.match.value
+          "
           class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
         >
-          <div
-            class="absolute inset-0 bg-ink/40 backdrop-blur-sm"
-            @click="nudge.dismiss()"
-          />
+          <div class="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
           <div
             role="dialog"
             aria-modal="true"
@@ -89,13 +90,21 @@ watch(
           >
             <div class="flex flex-col gap-1.5">
               <h2 class="text-base font-semibold text-ink">
-                {{ t('addListing.duplicateNudgeTitle') }}
+                {{
+                  nudge.matchKind.value === 'fuzzy'
+                    ? t('addListing.duplicateNudgeFuzzyTitle')
+                    : t('addListing.duplicateNudgeTitle')
+                }}
               </h2>
               <p class="text-sm text-ink-2 leading-relaxed">
                 {{
-                  t('addListing.duplicateNudge', {
-                    address: nudge.match.value.location.address,
-                  })
+                  nudge.matchKind.value === 'fuzzy'
+                    ? t('addListing.duplicateNudgeFuzzy', {
+                        address: nudge.match.value.location.address,
+                      })
+                    : t('addListing.duplicateNudge', {
+                        address: nudge.match.value.location.address,
+                      })
                 }}
               </p>
             </div>
@@ -103,7 +112,6 @@ watch(
               <RouterLink
                 :to="localePath(`/listing/${nudge.match.value.id}`)"
                 class="focus-ring h-9 px-4 rounded-lg bg-ink text-bg text-sm font-medium flex items-center justify-center hover:bg-accent-2 transition-colors"
-                @click="nudge.dismiss()"
               >
                 {{ t('addListing.duplicateNudgeView') }}
               </RouterLink>
@@ -115,11 +123,12 @@ watch(
                 {{ t('addListing.duplicateNudgeAddListing') }}
               </button>
               <button
+                v-if="nudge.matchKind.value === 'fuzzy'"
                 type="button"
                 class="text-sm text-ink-3 hover:text-ink transition-colors self-center"
-                @click="nudge.dismiss()"
+                @click="nudge.acknowledgeFuzzy()"
               >
-                {{ t('common.dismiss') }}
+                {{ t('addListing.duplicateNudgeFuzzyContinue') }}
               </button>
             </div>
           </div>
@@ -176,7 +185,7 @@ watch(
       <div class="flex items-center gap-4 pt-2">
         <button
           type="submit"
-          :disabled="submitting"
+          :disabled="submitting || nudge.blockSubmit.value"
           class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{
