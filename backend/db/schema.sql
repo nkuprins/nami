@@ -2,8 +2,6 @@
 -- Extensions
 -- ─────────────────────────────────────────────
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE EXTENSION IF NOT EXISTS "cube";
-CREATE EXTENSION IF NOT EXISTS "earthdistance";
 
 -- ─────────────────────────────────────────────
 -- Enum types
@@ -21,6 +19,10 @@ CREATE TYPE property_feature    AS ENUM (
     'new_building',
     'basement'
 );
+CREATE TYPE heating_type        AS ENUM ('central', 'gas', 'electric', 'heat_pump', 'solid_fuel', 'none');
+-- Uppercase: canonical EU energy-performance-certificate letters, shown to users verbatim
+CREATE TYPE energy_class        AS ENUM ('A', 'B', 'C', 'D', 'E', 'F', 'G');
+CREATE TYPE bathroom_layout     AS ENUM ('separate', 'combined');
 
 -- ─────────────────────────────────────────────
 -- Users
@@ -79,91 +81,58 @@ CREATE TABLE email_verification_tokens (
 CREATE INDEX idx_email_verification_tokens_user ON email_verification_tokens(user_id);
 
 -- ─────────────────────────────────────────────
--- Properties
+-- Properties (physical asset)
 -- ─────────────────────────────────────────────
 CREATE TABLE properties (
-    id                UUID                 PRIMARY KEY DEFAULT gen_random_uuid(),
-    owner_id          UUID                 NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    id                UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id          UUID              NOT NULL REFERENCES users (id) ON DELETE CASCADE,
 
-    -- Listing metadata
-    listing_type      listing_type         NOT NULL,
-    property_category property_category    NOT NULL,
-	status            property_status      NOT NULL DEFAULT 'active',
+    property_category property_category NOT NULL,
 
-    -- Pricing
-    price              NUMERIC(14, 2)  NOT NULL CHECK (price >= 0),
-    buy_vat_included   BOOLEAN         NOT NULL DEFAULT false,
-    rent_price         NUMERIC(14, 2)  CHECK (rent_price > 0),
-    rent_vat_included  BOOLEAN         NOT NULL DEFAULT false,
+    -- Physical dimensions
+    rooms             SMALLINT          NOT NULL CHECK (rooms > 0),
+    bedrooms          SMALLINT          CHECK (bedrooms >= 0 AND bedrooms <= rooms),
+    bathrooms         SMALLINT          CHECK (bathrooms >= 0),
+    bathroom_layout   bathroom_layout,
+    m2                NUMERIC(6, 2)     NOT NULL CHECK (m2 > 0),
+    land_m2           NUMERIC(8, 2)     CHECK (land_m2 > 0),
+    floor             SMALLINT          CHECK (floor >= 0),
+    total_floors      SMALLINT          CHECK (total_floors > 0),
+    year_built        SMALLINT          CHECK (year_built BETWEEN 1800 AND 2200),
 
-    -- Physical attributes
-    rooms             SMALLINT             NOT NULL CHECK (rooms > 0),
-    m2                NUMERIC(6, 2)        NOT NULL CHECK (m2 > 0),
-    price_per_m2      NUMERIC(14, 6)       GENERATED ALWAYS AS (price / m2) STORED,
-    land_m2           NUMERIC(8, 2)        CHECK (land_m2 > 0),
-    floor             SMALLINT             CHECK (floor >= 0),  -- 0 = ground floor (EU convention)
-    total_floors      SMALLINT             CHECK (total_floors > 0),
-    year_built        SMALLINT             CHECK (year_built BETWEEN 1800 AND 2200),
+    -- Building characteristics
+    heating           heating_type,
+    energy_class      energy_class,
+    maintenance_cost  NUMERIC(10, 2)    CHECK (maintenance_cost >= 0),   -- monthly, EUR
 
-    -- new_project specific
-    completion        property_completion,
+    -- Media: ordered arrays of URL strings; array order is display order
+    photos            JSONB             NOT NULL DEFAULT '[]',
+    plans             JSONB             NOT NULL DEFAULT '[]',
 
     -- Video
     video_url         TEXT,
 
     -- Location: slugs validated at API layer; mapping owned by frontend locations.ts
-    district_slug     TEXT                 NOT NULL CHECK (district_slug ~ '^[a-z0-9-]+$'),
-    city_slug         TEXT                 NOT NULL CHECK (city_slug ~ '^[a-z0-9-]+$'),
-    address           TEXT                 NOT NULL CHECK (char_length(address) > 0),
-    lat               DOUBLE PRECISION     NOT NULL,
-    lng               DOUBLE PRECISION     NOT NULL,
+    district_slug     TEXT              NOT NULL CHECK (district_slug ~ '^[a-z0-9-]+$'),
+    city_slug         TEXT              NOT NULL CHECK (city_slug ~ '^[a-z0-9-]+$'),
+    address           TEXT              NOT NULL CHECK (char_length(address) > 0),
+    lat               DOUBLE PRECISION  NOT NULL,
+    lng               DOUBLE PRECISION  NOT NULL,
 
-    -- Cross-column constraints
+    updated_at        TIMESTAMPTZ       NOT NULL DEFAULT now(),
+
     CONSTRAINT chk_land_m2_apartment
         CHECK (property_category != 'apartment' OR land_m2 IS NULL),
-
-    -- If floor is provided, total_floors must also be provided
     CONSTRAINT chk_floor_requires_total
         CHECK (floor IS NULL OR total_floors IS NOT NULL),
     CONSTRAINT chk_floor_lte_total
-        CHECK (floor IS NULL OR floor <= total_floors),
-
-	-- completion field is only valid on new_project listings
-    CONSTRAINT chk_completion_new_project_only
-        CHECK (listing_type = 'new_project' OR completion IS NULL),
-	-- completion field when 'not_ready' can not have year_built
-  	CONSTRAINT chk_year_built_not_ready
-        CHECK (completion IS DISTINCT FROM 'not_ready' OR year_built IS NULL),
-
-    -- rent_price is only allowed on buy listings
-    CONSTRAINT chk_rent_price_buy_only
-        CHECK (listing_type = 'buy' OR rent_price IS NULL),
-
-    -- Timestamps
-    posted_at             TIMESTAMPTZ          NOT NULL DEFAULT now(),
-    updated_at            TIMESTAMPTZ          NOT NULL DEFAULT now(),
-    expires_at            TIMESTAMPTZ          NOT NULL,
-    expiry_warning_sent   BOOLEAN              NOT NULL DEFAULT false
+        CHECK (floor IS NULL OR floor <= total_floors)
 );
 
-CREATE INDEX idx_properties_listing_type          ON properties (listing_type);
-CREATE INDEX idx_properties_district              ON properties (district_slug);
-CREATE INDEX idx_properties_city                  ON properties (city_slug);
-CREATE INDEX idx_properties_price                 ON properties (price);
-CREATE INDEX idx_properties_price_per_m2          ON properties (price_per_m2);
-CREATE INDEX idx_properties_posted_at             ON properties (posted_at DESC);
-CREATE INDEX idx_properties_owner                 ON properties (owner_id);
--- Covers the primary browse query: type + city + price range
-CREATE INDEX idx_properties_type_city_price
-    ON properties (listing_type, city_slug, price);
--- Covers city-scoped browsing sorted by recency (no type filter)
-CREATE INDEX idx_properties_city_posted_at
-    ON properties (city_slug, posted_at DESC);
--- Geospatial proximity (map view)
-CREATE INDEX idx_properties_coords
-    ON properties USING gist (ll_to_earth(lat, lng));
--- Expiry job: find active listings that are expiring
-CREATE INDEX idx_properties_expires_at ON properties (expires_at) WHERE status = 'active';
+CREATE INDEX idx_properties_owner         ON properties (owner_id);
+CREATE INDEX idx_properties_city          ON properties (city_slug);
+CREATE INDEX idx_properties_district      ON properties (district_slug);
+CREATE INDEX idx_properties_city_district ON properties (city_slug, district_slug);
 
 -- ─────────────────────────────────────────────
 -- Property features
@@ -174,78 +143,75 @@ CREATE TABLE property_features (
     PRIMARY KEY (property_id, feature)
 );
 
--- Supports "find all properties with feature X" queries
 CREATE INDEX idx_property_features_feature ON property_features (feature);
 
 -- ─────────────────────────────────────────────
--- Property photos
+-- Listings (market offer)
 -- ─────────────────────────────────────────────
-CREATE TABLE property_photos (
-    id          UUID     PRIMARY KEY DEFAULT gen_random_uuid(),
-    property_id UUID     NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
-    url         TEXT     NOT NULL CHECK (url ~ '^https?://'),
-    position    SMALLINT NOT NULL DEFAULT 0 CHECK (position >= 0),
-    -- DEFERRABLE so position swaps within a transaction don't violate uniqueness mid-flight
-    UNIQUE (property_id, position) DEFERRABLE INITIALLY DEFERRED
+CREATE TABLE listings (
+    id                  UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
+    property_id         UUID              NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
+    owner_id            UUID              NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+
+    listing_type        listing_type      NOT NULL,
+    price               NUMERIC(14, 2)    NOT NULL CHECK (price >= 0),
+    vat_included        BOOLEAN           NOT NULL DEFAULT false,
+
+    -- new_project specific; year_built on properties — cross-table 'not_ready → no year_built'
+    -- rule enforced at service layer
+    completion          property_completion,
+
+    status              property_status   NOT NULL DEFAULT 'active',
+    posted_at           TIMESTAMPTZ       NOT NULL DEFAULT now(),
+    updated_at          TIMESTAMPTZ       NOT NULL DEFAULT now(),
+    expires_at          TIMESTAMPTZ       NOT NULL,
+    expiry_warning_sent BOOLEAN           NOT NULL DEFAULT false,
+
+    -- Contact phones: ordered array of strings; array order is display order
+    phones              JSONB             NOT NULL DEFAULT '[]',
+
+    CONSTRAINT chk_completion_new_project_only
+        CHECK (listing_type = 'new_project' OR completion IS NULL),
+    -- A property can have at most one listing per type (buy/rent/new_project)
+    CONSTRAINT uq_listings_property_type
+        UNIQUE (property_id, listing_type)
 );
 
-CREATE INDEX idx_property_photos_property ON property_photos (property_id, position);
+CREATE INDEX idx_listings_type_status_price ON listings (listing_type, status, price);
+CREATE INDEX idx_listings_owner             ON listings (owner_id);
+CREATE INDEX idx_listings_property          ON listings (property_id);
+CREATE INDEX idx_listings_posted_at         ON listings (posted_at DESC);
+-- Expiry job: find active listings that are expiring
+CREATE INDEX idx_listings_expires_at ON listings (expires_at) WHERE status = 'active';
 
 -- ─────────────────────────────────────────────
--- Property plans (floor plan images)
+-- Listing translations
 -- ─────────────────────────────────────────────
-CREATE TABLE property_plans (
-    id          UUID     PRIMARY KEY DEFAULT gen_random_uuid(),
-    property_id UUID     NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
-    url         TEXT     NOT NULL CHECK (url ~ '^https?://'),
-    position    SMALLINT NOT NULL DEFAULT 0 CHECK (position >= 0),
-    UNIQUE (property_id, position) DEFERRABLE INITIALLY DEFERRED
-);
-
-CREATE INDEX idx_property_plans_property ON property_plans (property_id, position);
-
--- ─────────────────────────────────────────────
--- Property phones
--- ─────────────────────────────────────────────
-CREATE TABLE property_phones (
-    id          UUID     PRIMARY KEY DEFAULT gen_random_uuid(),
-    property_id UUID     NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
-    phone       TEXT     NOT NULL CHECK (char_length(phone) >= 7),
-    position    SMALLINT NOT NULL DEFAULT 0 CHECK (position >= 0),
-    UNIQUE (property_id, position) DEFERRABLE INITIALLY DEFERRED
-);
-
-CREATE INDEX idx_property_phones_property ON property_phones (property_id, position);
-
--- ─────────────────────────────────────────────
--- Property translations
--- ─────────────────────────────────────────────
-CREATE TABLE property_translations (
-    property_id UUID NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
+CREATE TABLE listing_translations (
+    listing_id  UUID NOT NULL REFERENCES listings (id) ON DELETE CASCADE,
     locale      TEXT NOT NULL CHECK (locale IN ('lv', 'en', 'ru')),
     title       TEXT NOT NULL CHECK (char_length(title) > 0),
     description TEXT NOT NULL CHECK (char_length(description) > 0),
-    PRIMARY KEY (property_id, locale)
+    PRIMARY KEY (listing_id, locale)
 );
 
-CREATE INDEX idx_property_translations_property ON property_translations (property_id);
+CREATE INDEX idx_listing_translations_listing ON listing_translations (listing_id);
 
 -- ─────────────────────────────────────────────
 -- Saved listings
 -- ─────────────────────────────────────────────
-CREATE TABLE saved_properties (
-    user_id     UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    property_id UUID        NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
-    saved_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (user_id, property_id)
+CREATE TABLE saved_listings (
+    user_id    UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    listing_id UUID        NOT NULL REFERENCES listings (id) ON DELETE CASCADE,
+    saved_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (user_id, listing_id)
 );
 
-CREATE INDEX idx_saved_properties_user     ON saved_properties (user_id);
--- Required for efficient cascade delete from properties
-CREATE INDEX idx_saved_properties_property ON saved_properties (property_id);
+CREATE INDEX idx_saved_listings_user    ON saved_listings (user_id);
+CREATE INDEX idx_saved_listings_listing ON saved_listings (listing_id);
 
 -- ─────────────────────────────────────────────
--- updated_at trigger
+-- updated_at triggers
 -- ─────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
@@ -261,4 +227,8 @@ CREATE TRIGGER trg_users_updated_at
 
 CREATE TRIGGER trg_properties_updated_at
     BEFORE UPDATE ON properties
+    FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_listings_updated_at
+    BEFORE UPDATE ON listings
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
