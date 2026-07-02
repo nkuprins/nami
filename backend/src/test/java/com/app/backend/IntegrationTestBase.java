@@ -5,6 +5,7 @@ import com.app.backend.testutil.AuthTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -52,10 +53,13 @@ public abstract class IntegrationTestBase {
 
     @Autowired private WebApplicationContext webApplicationContext;
     @Autowired private RateLimitFilter rateLimitFilter;
+    @Autowired private CacheManager cacheManager;
 
     @BeforeEach
     void setUpMockMvc() {
         ReflectionTestUtils.invokeMethod(rateLimitFilter, "evictStaleBuckets");
+        // Caffeine caches are not transactional, so evict between rollback-isolated tests.
+        cacheManager.getCacheNames().forEach(name -> cacheManager.getCache(name).clear());
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
                 .apply(springSecurity())
                 .build();

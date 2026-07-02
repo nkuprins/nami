@@ -1,9 +1,11 @@
 package com.app.backend.spec;
 
 import com.app.backend.IntegrationTestBase;
+import com.app.backend.entity.Listing;
 import com.app.backend.entity.Property;
 import com.app.backend.entity.User;
 import com.app.backend.enums.*;
+import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.testutil.TestData;
@@ -25,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class PropertySpecIntegrationTest extends IntegrationTestBase {
 
     @Autowired private PropertyRepository propertyRepository;
+    @Autowired private ListingRepository listingRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
@@ -40,14 +43,18 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
         owner = userRepository.save(u);
     }
 
-    private Property save(Property p) {
-        p.setId(null);
-        p.setPostedAt(null);
-        p.setUpdatedAt(null);
-        return propertyRepository.save(p);
+    private Listing save(Listing l) {
+        l.setId(null);
+        l.getProperty().setId(null);
+        l.getProperty().setUpdatedAt(null);
+        Property savedProperty = propertyRepository.save(l.getProperty());
+        l.setProperty(savedProperty);
+        l.setPostedAt(null);
+        l.setUpdatedAt(null);
+        return listingRepository.save(l);
     }
 
-    private static Specification<Property> spec(
+    private static Specification<Listing> spec(
             ListingType type, List<String> loc,
             BigDecimal priceMin, BigDecimal priceMax,
             List<Integer> rooms,
@@ -83,180 +90,264 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
         return PropertySpec.build(criteria);
     }
 
-    private static Specification<Property> buySpec() {
+    private static Specification<Listing> buySpec() {
         return spec(ListingType.BUY, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test
     void returnsOnlyActiveProperties() {
-        Property active = TestData.property(owner);
+        Listing active = TestData.listing(owner);
         active.setStatus(PropertyStatus.ACTIVE);
         save(active);
 
-        Property inactive = TestData.property(owner);
+        Listing inactive = TestData.listing(owner);
         inactive.setStatus(PropertyStatus.INACTIVE);
         save(inactive);
 
-        List<Property> results = propertyRepository.findAll(buySpec());
-        assertThat(results).hasSize(1).allMatch(p -> p.getStatus() == PropertyStatus.ACTIVE);
+        List<Listing> results = listingRepository.findAll(buySpec());
+        assertThat(results).hasSize(1).allMatch(l -> l.getStatus() == PropertyStatus.ACTIVE);
     }
 
     @Test
     void filtersByListingType() {
-        save(TestData.property(owner)); // BUY
+        save(TestData.listing(owner)); // BUY
 
-        Property rent = TestData.property(owner);
+        Listing rent = TestData.listing(owner);
         rent.setListingType(ListingType.RENT);
         save(rent);
 
-        List<Property> buyResults = propertyRepository.findAll(
+        List<Listing> buyResults = listingRepository.findAll(
                 spec(ListingType.BUY, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
-        List<Property> rentResults = propertyRepository.findAll(
+        List<Listing> rentResults = listingRepository.findAll(
                 spec(ListingType.RENT, null, null, null, null, null, null, null, null, null, null, null, null, null, null));
 
-        assertThat(buyResults).hasSize(1).allMatch(p -> p.getListingType() == ListingType.BUY);
-        assertThat(rentResults).hasSize(1).allMatch(p -> p.getListingType() == ListingType.RENT);
+        assertThat(buyResults).hasSize(1).allMatch(l -> l.getListingType() == ListingType.BUY);
+        assertThat(rentResults).hasSize(1).allMatch(l -> l.getListingType() == ListingType.RENT);
     }
 
     @Test
     void filtersByLocation() {
-        Property riga = TestData.property(owner);
-        riga.setCitySlug("riga");
-        riga.setDistrictSlug("centre");
+        Listing riga = TestData.listing(owner);
+        riga.getProperty().setCitySlug("riga");
+        riga.getProperty().setDistrictSlug("centre");
         save(riga);
 
-        Property jurmala = TestData.property(owner);
-        jurmala.setCitySlug("jurmala");
-        jurmala.setDistrictSlug("majori");
+        Listing jurmala = TestData.listing(owner);
+        jurmala.getProperty().setCitySlug("jurmala");
+        jurmala.getProperty().setDistrictSlug("majori");
         save(jurmala);
 
-        List<Property> results = propertyRepository.findAll(
+        List<Listing> results = listingRepository.findAll(
                 spec(ListingType.BUY, List.of("riga:centre"), null, null, null, null, null, null, null, null, null, null, null, null, null));
 
         assertThat(results).hasSize(1)
-                .allMatch(p -> p.getCitySlug().equals("riga") && p.getDistrictSlug().equals("centre"));
+                .allMatch(l -> l.getProperty().getCitySlug().equals("riga")
+                        && l.getProperty().getDistrictSlug().equals("centre"));
     }
 
     @Test
     void filtersByPriceRange() {
-        Property cheap = TestData.property(owner);
+        Listing cheap = TestData.listing(owner);
         cheap.setPrice(new BigDecimal("50000.00"));
         save(cheap);
 
-        Property mid = TestData.property(owner);
+        Listing mid = TestData.listing(owner);
         mid.setPrice(new BigDecimal("150000.00"));
         save(mid);
 
-        Property expensive = TestData.property(owner);
+        Listing expensive = TestData.listing(owner);
         expensive.setPrice(new BigDecimal("500000.00"));
         save(expensive);
 
-        List<Property> results = propertyRepository.findAll(
+        List<Listing> results = listingRepository.findAll(
                 spec(ListingType.BUY, null, new BigDecimal("100000"), new BigDecimal("200000"), null, null, null, null, null, null, null, null, null, null, null));
 
-        assertThat(results).hasSize(1).allMatch(p -> p.getPrice().compareTo(new BigDecimal("150000")) == 0);
+        assertThat(results).hasSize(1).allMatch(l -> l.getPrice().compareTo(new BigDecimal("150000")) == 0);
     }
 
     @Test
     void filtersByRooms_includingSevenPlus() {
-        Property twoRoom = TestData.property(owner);
-        twoRoom.setRooms((short) 2);
+        Listing twoRoom = TestData.listing(owner);
+        twoRoom.getProperty().setRooms((short) 2);
         save(twoRoom);
 
-        Property fiveRoom = TestData.property(owner);
-        fiveRoom.setRooms((short) 5);
+        Listing fiveRoom = TestData.listing(owner);
+        fiveRoom.getProperty().setRooms((short) 5);
         save(fiveRoom);
 
-        Property sevenRoom = TestData.property(owner);
-        sevenRoom.setRooms((short) 7);
+        Listing sevenRoom = TestData.listing(owner);
+        sevenRoom.getProperty().setRooms((short) 7);
         save(sevenRoom);
 
-        Property nineRoom = TestData.property(owner);
-        nineRoom.setRooms((short) 9);
+        Listing nineRoom = TestData.listing(owner);
+        nineRoom.getProperty().setRooms((short) 9);
         save(nineRoom);
 
         // rooms=[2, 7] → exact 2-room + all 7+ room properties (5-room excluded)
-        List<Property> results = propertyRepository.findAll(
+        List<Listing> results = listingRepository.findAll(
                 spec(ListingType.BUY, null, null, null, List.of(2, 7), null, null, null, null, null, null, null, null, null, null));
 
-        assertThat(results).hasSize(3).allMatch(p -> p.getRooms() != 5);
+        assertThat(results).hasSize(3).allMatch(l -> l.getProperty().getRooms() != 5);
     }
 
     @Test
     void filtersByFeatures_requiresAll() {
-        Property withBoth = TestData.property(owner);
-        withBoth.setFeatures(Set.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR));
+        Listing withBoth = TestData.listing(owner);
+        withBoth.getProperty().setFeatures(Set.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR));
         save(withBoth);
 
-        Property withOnly = TestData.property(owner);
-        withOnly.setFeatures(Set.of(PropertyFeature.BALCONY));
+        Listing withOnly = TestData.listing(owner);
+        withOnly.getProperty().setFeatures(Set.of(PropertyFeature.BALCONY));
         save(withOnly);
 
-        List<Property> results = propertyRepository.findAll(
+        List<Listing> results = listingRepository.findAll(
                 spec(ListingType.BUY, null, null, null, null, null, null, null, null, null, null, null, null,
                         List.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR), null));
 
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getFeatures()).contains(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR);
+        assertThat(results.get(0).getProperty().getFeatures()).contains(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR);
     }
 
     @Test
     void filtersByCompletion_forNewProject() {
-        Property ready = TestData.property(owner);
+        Listing ready = TestData.listing(owner);
         ready.setListingType(ListingType.NEW_PROJECT);
         ready.setCompletion(PropertyCompletion.READY);
-        ready.setYearBuilt(null);
+        ready.getProperty().setYearBuilt(null);
         save(ready);
 
-        Property notReady = TestData.property(owner);
+        Listing notReady = TestData.listing(owner);
         notReady.setListingType(ListingType.NEW_PROJECT);
         notReady.setCompletion(PropertyCompletion.NOT_READY);
-        notReady.setYearBuilt(null);
+        notReady.getProperty().setYearBuilt(null);
         save(notReady);
 
-        List<Property> results = propertyRepository.findAll(
+        List<Listing> results = listingRepository.findAll(
                 spec(ListingType.NEW_PROJECT, null, null, null, null, null, null, null, null, null, null, null, null, null,
                         PropertyCompletion.READY));
 
-        assertThat(results).hasSize(1).allMatch(p -> p.getCompletion() == PropertyCompletion.READY);
+        assertThat(results).hasSize(1).allMatch(l -> l.getCompletion() == PropertyCompletion.READY);
     }
 
     @Test
     void filtersByYearRange() {
-        Property old = TestData.property(owner);
-        old.setYearBuilt((short) 1990);
+        Listing old = TestData.listing(owner);
+        old.getProperty().setYearBuilt((short) 1990);
         save(old);
 
-        Property modern = TestData.property(owner);
-        modern.setYearBuilt((short) 2020);
+        Listing modern = TestData.listing(owner);
+        modern.getProperty().setYearBuilt((short) 2020);
         save(modern);
 
-        List<Property> results = propertyRepository.findAll(
+        List<Listing> results = listingRepository.findAll(
                 spec(ListingType.BUY, null, null, null, null, null, null, null, null, null, null, 2010, 2025, null, null));
 
-        assertThat(results).hasSize(1).allMatch(p -> p.getYearBuilt() == 2020);
+        assertThat(results).hasSize(1).allMatch(l -> l.getProperty().getYearBuilt() == 2020);
     }
 
     @Test
     void combinedFilters() {
-        Property match = TestData.property(owner);
-        match.setCitySlug("riga");
-        match.setDistrictSlug("centre");
+        Listing match = TestData.listing(owner);
+        match.getProperty().setCitySlug("riga");
+        match.getProperty().setDistrictSlug("centre");
         match.setPrice(new BigDecimal("200000.00"));
-        match.setRooms((short) 3);
+        match.getProperty().setRooms((short) 3);
         save(match);
 
-        Property noMatch = TestData.property(owner);
-        noMatch.setCitySlug("riga");
-        noMatch.setDistrictSlug("centre");
+        Listing noMatch = TestData.listing(owner);
+        noMatch.getProperty().setCitySlug("riga");
+        noMatch.getProperty().setDistrictSlug("centre");
         noMatch.setPrice(new BigDecimal("50000.00"));
-        noMatch.setRooms((short) 1);
+        noMatch.getProperty().setRooms((short) 1);
         save(noMatch);
 
-        List<Property> results = propertyRepository.findAll(
+        List<Listing> results = listingRepository.findAll(
                 spec(ListingType.BUY, List.of("riga:centre"), new BigDecimal("100000"), null,
                         List.of(3), null, null, null, null, null, null, null, null, null, null));
 
-        assertThat(results).hasSize(1).allMatch(p -> p.getRooms() == 3);
+        assertThat(results).hasSize(1).allMatch(l -> l.getProperty().getRooms() == 3);
+    }
+
+    private static Specification<Listing> buildSpec(PropertySearchCriteria.PropertySearchCriteriaBuilder builder) {
+        return PropertySpec.build(builder.listingType(ListingType.BUY).build());
+    }
+
+    @Test
+    void filtersByBedrooms_includingSevenPlus() {
+        Listing two = TestData.listing(owner);
+        two.getProperty().setRooms((short) 5);
+        two.getProperty().setBedrooms((short) 2);
+        save(two);
+
+        Listing four = TestData.listing(owner);
+        four.getProperty().setRooms((short) 5);
+        four.getProperty().setBedrooms((short) 4);
+        save(four);
+
+        Listing eight = TestData.listing(owner);
+        eight.getProperty().setRooms((short) 9);
+        eight.getProperty().setBedrooms((short) 8);
+        save(eight);
+
+        // bedrooms=[2, 7] → exact 2 + all 7+ (4-bedroom excluded)
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().bedrooms(List.of(2, 7))));
+
+        assertThat(results).hasSize(2)
+                .allMatch(l -> l.getProperty().getBedrooms() == 2 || l.getProperty().getBedrooms() >= 7);
+    }
+
+    @Test
+    void filtersByBathrooms() {
+        Listing one = TestData.listing(owner);
+        one.getProperty().setBathrooms((short) 1);
+        save(one);
+
+        Listing three = TestData.listing(owner);
+        three.getProperty().setBathrooms((short) 3);
+        save(three);
+
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().bathrooms(List.of(1))));
+
+        assertThat(results).hasSize(1).allMatch(l -> l.getProperty().getBathrooms() == 1);
+    }
+
+    @Test
+    void filtersByHeating() {
+        Listing gas = TestData.listing(owner);
+        gas.getProperty().setHeating(HeatingType.GAS);
+        save(gas);
+
+        Listing central = TestData.listing(owner);
+        central.getProperty().setHeating(HeatingType.CENTRAL);
+        save(central);
+
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().heating(List.of(HeatingType.GAS))));
+
+        assertThat(results).hasSize(1).allMatch(l -> l.getProperty().getHeating() == HeatingType.GAS);
+    }
+
+    @Test
+    void filtersByEnergyClass() {
+        Listing a = TestData.listing(owner);
+        a.getProperty().setEnergyClass(EnergyClass.A);
+        save(a);
+
+        Listing c = TestData.listing(owner);
+        c.getProperty().setEnergyClass(EnergyClass.C);
+        save(c);
+
+        Listing e = TestData.listing(owner);
+        e.getProperty().setEnergyClass(EnergyClass.E);
+        save(e);
+
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().energyClass(List.of(EnergyClass.A, EnergyClass.C))));
+
+        assertThat(results).hasSize(2)
+                .allMatch(l -> l.getProperty().getEnergyClass() == EnergyClass.A
+                        || l.getProperty().getEnergyClass() == EnergyClass.C);
     }
 }

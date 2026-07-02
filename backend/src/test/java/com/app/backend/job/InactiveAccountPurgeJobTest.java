@@ -1,6 +1,6 @@
 package com.app.backend.job;
 
-import com.app.backend.entity.Property;
+import com.app.backend.entity.Listing;
 import com.app.backend.entity.User;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
@@ -57,10 +57,10 @@ class InactiveAccountPurgeJobTest {
     @Test
     void deletesInactiveUsers_andCleansUpS3Photos() {
         User inactive = user("inactive@test.com");
-        Property prop = propertyWithPhotos(inactive);
+        Listing listing = listingWithPhotos(inactive);
         when(userRepository.findAboutToBeInactive(any(), any(), any())).thenReturn(List.of());
         when(userRepository.findInactiveWithoutActiveListings(any(OffsetDateTime.class), any(PropertyStatus.class))).thenReturn(List.of(inactive));
-        when(propertyRepository.findByOwner(inactive)).thenReturn(List.of(prop));
+        when(propertyRepository.findByOwner(inactive)).thenReturn(List.of(listing.getProperty()));
 
         purgeJob.runInactiveAccountJob();
         triggerAfterCommit();
@@ -86,10 +86,10 @@ class InactiveAccountPurgeJobTest {
     @Test
     void handlesS3Failure_gracefully() {
         User inactive = user("inactive@test.com");
-        Property prop = propertyWithPhotos(inactive);
+        Listing listing = listingWithPhotos(inactive);
         when(userRepository.findAboutToBeInactive(any(), any(), any())).thenReturn(List.of());
         when(userRepository.findInactiveWithoutActiveListings(any(), any())).thenReturn(List.of(inactive));
-        when(propertyRepository.findByOwner(inactive)).thenReturn(List.of(prop));
+        when(propertyRepository.findByOwner(inactive)).thenReturn(List.of(listing.getProperty()));
         doThrow(new RuntimeException("S3 down")).when(uploadService).deleteObjects(any());
 
         purgeJob.runInactiveAccountJob();

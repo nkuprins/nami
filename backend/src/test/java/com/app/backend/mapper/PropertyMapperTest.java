@@ -3,6 +3,9 @@ package com.app.backend.mapper;
 import com.app.backend.dto.PropertyItemDto;
 import com.app.backend.dto.PropertyListItemDto;
 import com.app.backend.entity.*;
+import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
+import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
 import org.junit.jupiter.api.Test;
 
@@ -17,93 +20,94 @@ class PropertyMapperTest {
 
     @Test
     void toDto_mapsAllScalarFields() {
-        Property p = propertyWithPhotos(user());
+        Listing l = listingWithPhotos(user());
 
-        PropertyItemDto dto = mapper.toDto(p);
+        PropertyItemDto dto = mapper.toDto(l);
 
-        assertThat(dto.id()).isEqualTo(p.getId());
-        assertThat(dto.ownerId()).isEqualTo(p.getOwner().getId());
-        assertThat(dto.type()).isEqualTo("buy");
-        assertThat(dto.propertyKind()).isEqualTo("apartment");
-        assertThat(dto.titleLv()).isEqualTo(p.getTranslations().get("lv").getTitle());
-        assertThat(dto.titleEn()).isEqualTo(p.getTranslations().get("en").getTitle());
-        assertThat(dto.descriptionLv()).isEqualTo(p.getTranslations().get("lv").getDescription());
-        assertThat(dto.descriptionEn()).isEqualTo(p.getTranslations().get("en").getDescription());
-        assertThat(dto.price()).isEqualByComparingTo(p.getPrice());
-        assertThat(dto.rooms()).isEqualTo(p.getRooms());
-        assertThat(dto.m2()).isEqualByComparingTo(p.getM2());
-        assertThat(dto.district()).isEqualTo(p.getDistrictSlug());
-        assertThat(dto.city()).isEqualTo(p.getCitySlug());
+        assertThat(dto.id()).isEqualTo(l.getId());
+        assertThat(dto.propertyId()).isEqualTo(l.getProperty().getId());
+        assertThat(dto.ownerId()).isEqualTo(l.getOwner().getId());
+        assertThat(dto.type()).isEqualTo(ListingType.BUY);
+        assertThat(dto.propertyKind()).isEqualTo(PropertyCategory.APARTMENT);
+        assertThat(dto.translations().get("lv").title()).isEqualTo(l.getTranslations().get("lv").getTitle());
+        assertThat(dto.translations().get("en").title()).isEqualTo(l.getTranslations().get("en").getTitle());
+        assertThat(dto.translations().get("lv").description()).isEqualTo(l.getTranslations().get("lv").getDescription());
+        assertThat(dto.translations().get("en").description()).isEqualTo(l.getTranslations().get("en").getDescription());
+        assertThat(dto.price().amount()).isEqualByComparingTo(l.getPrice());
+        assertThat(dto.details().rooms()).isEqualTo(l.getProperty().getRooms());
+        assertThat(dto.details().m2()).isEqualByComparingTo(l.getProperty().getM2());
+        assertThat(dto.location().district()).isEqualTo(l.getProperty().getDistrictSlug());
+        assertThat(dto.location().city()).isEqualTo(l.getProperty().getCitySlug());
     }
 
     @Test
     void toDto_mapsPhotos_andFeatures() {
-        Property p = propertyWithPhotos(user());
-        p.setFeatures(Set.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR));
+        Listing l = listingWithPhotos(user());
+        l.getProperty().setFeatures(Set.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR));
 
-        PropertyItemDto dto = mapper.toDto(p);
+        PropertyItemDto dto = mapper.toDto(l);
 
-        assertThat(dto.photos()).hasSize(2);
-        assertThat(dto.photos()).containsExactly(
+        assertThat(dto.media().photos()).hasSize(2);
+        assertThat(dto.media().photos()).containsExactly(
                 "https://cdn.test.local/uploads/photo1.jpg",
                 "https://cdn.test.local/uploads/photo2.jpg"
         );
-        assertThat(dto.features()).containsExactlyInAnyOrder("balcony", "elevator");
+        assertThat(dto.features()).containsExactlyInAnyOrder(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR);
     }
 
     @Test
     void toDto_returnsNullPhones_whenEmpty() {
-        Property p = property(user());
+        Listing l = listing(user());
 
-        PropertyItemDto dto = mapper.toDto(p);
+        PropertyItemDto dto = mapper.toDto(l);
 
         assertThat(dto.phones()).isNull();
     }
 
     @Test
     void toDto_mapsCompletion_whenPresent() {
-        Property p = property(user());
-        p.setCompletion(com.app.backend.enums.PropertyCompletion.READY);
+        Listing l = listing(user());
+        l.setCompletion(com.app.backend.enums.PropertyCompletion.READY);
 
-        PropertyItemDto dto = mapper.toDto(p);
+        PropertyItemDto dto = mapper.toDto(l);
 
-        assertThat(dto.completion()).isEqualTo("ready");
+        assertThat(dto.completion()).isEqualTo(PropertyCompletion.READY);
     }
 
     @Test
     void toListDto_mapsFirstPhotoOnly() {
-        Property p = propertyWithPhotos(user());
+        Listing l = listingWithPhotos(user());
 
-        PropertyListItemDto dto = mapper.toListDto(p);
+        PropertyListItemDto dto = mapper.toListDto(l);
 
         assertThat(dto.photo()).isEqualTo("https://cdn.test.local/uploads/photo1.jpg");
     }
 
     @Test
     void toListDto_returnsNullPhoto_whenNoPhotos() {
-        Property p = property(user());
+        Listing l = listing(user());
 
-        PropertyListItemDto dto = mapper.toListDto(p);
+        PropertyListItemDto dto = mapper.toListDto(l);
 
         assertThat(dto.photo()).isNull();
     }
 
     @Test
     void toListDto_mapsMultilingualTitles() {
-        Property p = property(user());
+        Listing l = listing(user());
 
-        PropertyListItemDto dto = mapper.toListDto(p);
+        PropertyListItemDto dto = mapper.toListDto(l);
 
-        assertThat(dto.titleLv()).isEqualTo("Testa īpašums");
-        assertThat(dto.titleEn()).isEqualTo("Test Property");
-        assertThat(dto.titleRu()).isNull();
+        assertThat(dto.translations().get("lv").title()).isEqualTo("Testa īpašums");
+        assertThat(dto.translations().get("en").title()).isEqualTo("Test Property");
+        assertThat(dto.translations().get("ru")).isNull();
     }
 
     @Test
     void toListDto_returnsNullCompletion_whenAbsent() {
-        Property p = property(user());
+        Listing l = listing(user());
 
-        PropertyListItemDto dto = mapper.toListDto(p);
+        PropertyListItemDto dto = mapper.toListDto(l);
 
         assertThat(dto.completion()).isNull();
     }

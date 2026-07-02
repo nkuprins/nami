@@ -1,6 +1,7 @@
 package com.app.backend.repository;
 
 import com.app.backend.IntegrationTestBase;
+import com.app.backend.entity.Listing;
 import com.app.backend.entity.Property;
 import com.app.backend.entity.User;
 import com.app.backend.enums.PropertyStatus;
@@ -20,6 +21,7 @@ class UserRepositoryTest extends IntegrationTestBase {
 
     @Autowired private UserRepository userRepository;
     @Autowired private PropertyRepository propertyRepository;
+    @Autowired private ListingRepository listingRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
     private User persistUser(String email) {
@@ -31,13 +33,17 @@ class UserRepositoryTest extends IntegrationTestBase {
         return userRepository.save(u);
     }
 
-    private void persistProperty(User owner, PropertyStatus status) {
-        Property p = TestData.property(owner);
-        p.setId(null);
-        p.setPostedAt(null);
-        p.setUpdatedAt(null);
-        p.setStatus(status);
-        propertyRepository.save(p);
+    private void persistListing(User owner, PropertyStatus status) {
+        Listing l = TestData.listing(owner);
+        l.setId(null);
+        l.getProperty().setId(null);
+        l.getProperty().setUpdatedAt(null);
+        Property savedProperty = propertyRepository.save(l.getProperty());
+        l.setProperty(savedProperty);
+        l.setPostedAt(null);
+        l.setUpdatedAt(null);
+        l.setStatus(status);
+        listingRepository.save(l);
     }
 
     @Test
@@ -67,7 +73,7 @@ class UserRepositoryTest extends IntegrationTestBase {
     @Test
     void findInactive_excludesUsers_withActiveListings() {
         User active = persistUser("active@test.com");
-        persistProperty(active, PropertyStatus.ACTIVE);
+        persistListing(active, PropertyStatus.ACTIVE);
 
         List<User> results = userRepository.findInactiveWithoutActiveListings(
                 OffsetDateTime.now().plusDays(1), PropertyStatus.ACTIVE);
@@ -78,7 +84,7 @@ class UserRepositoryTest extends IntegrationTestBase {
     @Test
     void findInactive_includesUsers_withInactiveListingsOnly() {
         User withInactive = persistUser("hasinactive@test.com");
-        persistProperty(withInactive, PropertyStatus.INACTIVE);
+        persistListing(withInactive, PropertyStatus.INACTIVE);
 
         List<User> results = userRepository.findInactiveWithoutActiveListings(
                 OffsetDateTime.now().plusDays(1), PropertyStatus.ACTIVE);

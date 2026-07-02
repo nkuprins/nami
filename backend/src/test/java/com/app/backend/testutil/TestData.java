@@ -1,7 +1,13 @@
 package com.app.backend.testutil;
 
+import com.app.backend.dto.AddListingRequest;
 import com.app.backend.dto.CoordsDto;
 import com.app.backend.dto.CreatePropertyRequest;
+import com.app.backend.dto.LocalizedText;
+import com.app.backend.dto.Location;
+import com.app.backend.dto.Media;
+import com.app.backend.dto.Price;
+import com.app.backend.dto.PropertyDetails;
 import com.app.backend.dto.UpdatePropertyRequest;
 import com.app.backend.dto.auth.LoginRequest;
 import com.app.backend.dto.auth.RegisterRequest;
@@ -47,27 +53,11 @@ public final class TestData {
         return user;
     }
 
-    public static Property property(User owner) {
+    public static Listing listing(User owner) {
         Property p = new Property();
         p.setId(UUID.randomUUID());
         p.setOwner(owner);
-        p.setListingType(ListingType.BUY);
         p.setPropertyCategory(PropertyCategory.APARTMENT);
-        p.setStatus(PropertyStatus.ACTIVE);
-        Map<String, PropertyTranslation> translations = new HashMap<>();
-        for (String[] t : new String[][]{
-                {"lv", "Testa īpašums", "Apraksts latviski"},
-                {"en", "Test Property", "Description in English"}
-        }) {
-            PropertyTranslation pt = new PropertyTranslation();
-            pt.setProperty(p);
-            pt.setLocale(t[0]);
-            pt.setTitle(t[1]);
-            pt.setDescription(t[2]);
-            translations.put(t[0], pt);
-        }
-        p.setTranslations(translations);
-        p.setPrice(new BigDecimal("150000.00"));
         p.setRooms((short) 3);
         p.setM2(new BigDecimal("75.00"));
         p.setFloor((short) 3);
@@ -78,34 +68,46 @@ public final class TestData {
         p.setAddress("Test Street 1");
         p.setLat(56.9496);
         p.setLng(24.1052);
-        p.setPostedAt(OffsetDateTime.now());
         p.setUpdatedAt(OffsetDateTime.now());
-        p.setExpiresAt(OffsetDateTime.now().plusMonths(3));
         p.setFeatures(new HashSet<>(Set.of(PropertyFeature.BALCONY, PropertyFeature.PARKING)));
         p.setPhotos(new ArrayList<>());
         p.setPlans(new ArrayList<>());
-        p.setPhones(new ArrayList<>());
-        return p;
+
+        Listing l = new Listing();
+        l.setId(UUID.randomUUID());
+        l.setProperty(p);
+        l.setOwner(owner);
+        l.setListingType(ListingType.BUY);
+        l.setStatus(PropertyStatus.ACTIVE);
+        l.setPrice(new BigDecimal("150000.00"));
+        l.setVatIncluded(false);
+        l.setPostedAt(OffsetDateTime.now());
+        l.setUpdatedAt(OffsetDateTime.now());
+        l.setExpiresAt(OffsetDateTime.now().plusMonths(3));
+
+        Map<String, ListingTranslation> translations = new HashMap<>();
+        for (String[] t : new String[][]{
+                {"lv", "Testa īpašums", "Apraksts latviski"},
+                {"en", "Test Property", "Description in English"}
+        }) {
+            ListingTranslation lt = new ListingTranslation();
+            lt.setListing(l);
+            lt.setLocale(t[0]);
+            lt.setTitle(t[1]);
+            lt.setDescription(t[2]);
+            translations.put(t[0], lt);
+        }
+        l.setTranslations(translations);
+        l.setPhones(new ArrayList<>());
+        return l;
     }
 
-    public static Property propertyWithPhotos(User owner) {
-        Property p = property(owner);
-
-        PropertyPhoto photo1 = new PropertyPhoto();
-        photo1.setId(UUID.randomUUID());
-        photo1.setProperty(p);
-        photo1.setUrl("https://cdn.test.local/uploads/photo1.jpg");
-        photo1.setPosition((short) 0);
-
-        PropertyPhoto photo2 = new PropertyPhoto();
-        photo2.setId(UUID.randomUUID());
-        photo2.setProperty(p);
-        photo2.setUrl("https://cdn.test.local/uploads/photo2.jpg");
-        photo2.setPosition((short) 1);
-
-        p.getPhotos().add(photo1);
-        p.getPhotos().add(photo2);
-        return p;
+    public static Listing listingWithPhotos(User owner) {
+        Listing l = listing(owner);
+        Property p = l.getProperty();
+        p.getPhotos().add("https://cdn.test.local/uploads/photo1.jpg");
+        p.getPhotos().add("https://cdn.test.local/uploads/photo2.jpg");
+        return l;
     }
 
     public static RefreshToken refreshToken(User user) {
@@ -151,32 +153,70 @@ public final class TestData {
     }
 
     public static CreatePropertyRequest createPropertyRequest() {
-        return new CreatePropertyRequest(
-                "buy", "apartment",
-                "Testa dzīvoklis", "Test Apartment", null,
-                "Apraksts latviski", "Description in English", null,
-                new BigDecimal("200000.00"), (short) 2, new BigDecimal("65.00"),
-                null, (short) 4, (short) 9, (short) 2020,
-                List.of("balcony", "parking"),
-                "centre", "riga", "Main Street 10",
-                new CoordsDto(56.9496, 24.1052),
-                List.of("https://cdn.test.local/uploads/p1.jpg"),
-                null,
-                List.of("+37120000000"),
-                null, null, 3
-        );
+        return CreatePropertyRequest.builder()
+                .type(ListingType.BUY)
+                .propertyKind(PropertyCategory.APARTMENT)
+                .price(new Price(new BigDecimal("200000.00"), null))
+                .details(PropertyDetails.builder()
+                        .rooms((short) 2)
+                        .bedrooms((short) 2)
+                        .bathrooms((short) 1)
+                        .bathroomLayout(BathroomLayout.COMBINED)
+                        .m2(new BigDecimal("65.00"))
+                        .floor((short) 4)
+                        .totalFloors((short) 9)
+                        .yearBuilt((short) 2020)
+                        .heating(HeatingType.GAS)
+                        .energyClass(EnergyClass.B)
+                        .maintenanceCost(new BigDecimal("120.00"))
+                        .build())
+                .translations(Map.of(
+                        "lv", new LocalizedText("Testa dzīvoklis", "Apraksts latviski"),
+                        "en", new LocalizedText("Test Apartment", "Description in English")))
+                .location(new Location("centre", "riga", "Main Street 10",
+                        new CoordsDto(56.9496, 24.1052)))
+                .features(List.of(PropertyFeature.BALCONY, PropertyFeature.PARKING))
+                .media(Media.builder().photos(List.of("https://cdn.test.local/uploads/p1.jpg")).build())
+                .phones(List.of("+37120000000"))
+                .durationMonths(3)
+                .build();
     }
 
     public static UpdatePropertyRequest updatePropertyRequest() {
-        return new UpdatePropertyRequest(
-                "buy", "apartment",
-                "Atjaunots dzīvoklis", "Updated Apartment", null,
-                "Atjaunots apraksts", "Updated description", null,
-                new BigDecimal("210000.00"), (short) 3, new BigDecimal("70.00"),
-                null, (short) 5, (short) 9, (short) 2021,
-                List.of("elevator", "furnished"),
-                List.of("+37120000001"),
-                null, null
-        );
+        return UpdatePropertyRequest.builder()
+                .type(ListingType.BUY)
+                .propertyKind(PropertyCategory.APARTMENT)
+                .price(new Price(new BigDecimal("210000.00"), null))
+                .details(PropertyDetails.builder()
+                        .rooms((short) 3)
+                        .bedrooms((short) 2)
+                        .bathrooms((short) 1)
+                        .bathroomLayout(BathroomLayout.SEPARATE)
+                        .m2(new BigDecimal("70.00"))
+                        .floor((short) 5)
+                        .totalFloors((short) 9)
+                        .yearBuilt((short) 2021)
+                        .heating(HeatingType.CENTRAL)
+                        .energyClass(EnergyClass.C)
+                        .maintenanceCost(new BigDecimal("95.00"))
+                        .build())
+                .translations(Map.of(
+                        "lv", new LocalizedText("Atjaunots dzīvoklis", "Atjaunots apraksts"),
+                        "en", new LocalizedText("Updated Apartment", "Updated description")))
+                .features(List.of(PropertyFeature.ELEVATOR, PropertyFeature.FURNISHED))
+                .phones(List.of("+37120000001"))
+                .build();
+    }
+
+    public static AddListingRequest addListingRequest() {
+        return AddListingRequest.builder()
+                .type(ListingType.RENT)
+                .price(new Price(new BigDecimal("650.00"), null))
+                .translations(Map.of(
+                        "lv", new LocalizedText("Testa dzīvoklis īrei", "Apraksts latviski"),
+                        "en", new LocalizedText("Test Apartment for rent", "Description in English")))
+                .phones(List.of("+37120000002"))
+                .durationMonths(3)
+                .build();
     }
 }

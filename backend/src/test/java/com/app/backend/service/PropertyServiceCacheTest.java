@@ -1,0 +1,129 @@
+package com.app.backend.service;
+
+import com.app.backend.IntegrationTestBase;
+import com.app.backend.config.CacheConfig;
+import com.app.backend.dto.PropertyFilter;
+import com.app.backend.dto.PropertyItemDto;
+import com.app.backend.entity.Listing;
+import com.app.backend.entity.Property;
+import com.app.backend.entity.User;
+import com.app.backend.repository.ListingRepository;
+import com.app.backend.repository.PropertyRepository;
+import com.app.backend.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+
+import com.app.backend.enums.ListingType;
+
+import static com.app.backend.testutil.TestData.listing;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+class PropertyServiceCacheTest extends IntegrationTestBase {
+
+    @Autowired private PropertyService propertyService;
+    @Autowired private CacheManager cacheManager;
+    @Autowired private UserRepository userRepository;
+    @Autowired private PropertyRepository propertyRepository;
+    @Autowired private PasswordEncoder passwordEncoder;
+
+    @MockitoSpyBean private ListingRepository listingRepository;
+
+    private User owner;
+
+    @BeforeEach
+    void setUpOwner() {
+        User user = new User();
+        user.setName("Cache Owner");
+        user.setEmail("cache-owner@test.com");
+        user.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
+        user.setEmailVerified(true);
+        owner = userRepository.save(user);
+    }
+
+    private Listing saveListing() {
+        Listing l = listing(owner);
+        l.setId(null);
+        l.getProperty().setId(null);
+        l.getProperty().setUpdatedAt(null);
+        Property savedProperty = propertyRepository.save(l.getProperty());
+        l.setProperty(savedProperty);
+        l.setPostedAt(null);
+        l.setUpdatedAt(null);
+        return listingRepository.save(l);
+    }
+
+    private PropertyFilter buyFilter() {
+        return PropertyFilter.builder().type(ListingType.BUY).build();
+    }
+
+    @Test
+    void getById_secondIdenticalCall_isServedFromCache() {
+        Listing saved = saveListing();
+        clearInvocations(listingRepository);
+
+        PropertyItemDto first = propertyService.getById(saved.getId());
+        PropertyItemDto second = propertyService.getById(saved.getId());
+
+        assertThat(first.id()).isEqualTo(saved.getId());
+        assertThat(second.id()).isEqualTo(saved.getId());
+        verify(listingRepository, times(1)).findById(saved.getId());
+        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(saved.getId())).isNotNull();
+    }
+
+    @Test
+    void list_secondIdenticalCall_isServedFromCache() {
+        saveListing();
+        clearInvocations(listingRepository);
+
+        propertyService.list(buyFilter(), "newest", 1);
+        propertyService.list(buyFilter(), "newest", 1);
+
+        verify(listingRepository, times(1)).findAllForList(any(), any());
+    }
+
+    @Test
+    void delete_evictsBothCaches() {
+        Listing saved = saveListing();
+        propertyService.getById(saved.getId());
+        propertyService.list(buyFilter(), "newest", 1);
+        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(saved.getId())).isNotNull();
+        assertThat(listCacheSize()).isEqualTo(1);
+
+        propertyService.deleteListing(saved.getId(), owner.getId());
+
+        // @CacheEvict on delete: detail key evicted, list cache cleared entirely.
+        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(saved.getId())).isNull();
+        assertThat(listCacheSize()).isZero();
+    }
+
+    @SuppressWarnings("unchecked")
+    private int listCacheSize() {
+        var nativeCache = (com.github.benmanes.caffeine.cache.Cache<Object, Object>)
+                cacheManager.getCache(CacheConfig.PROPERTY_LIST).getNativeCache();
+        return nativeCache.asMap().size();
+    }
+
+    @Test
+    void list_differentFilters_areCachedSeparately() {
+        saveListing();
+        clearInvocations(listingRepository);
+
+        propertyService.list(buyFilter(), "newest", 1);
+        propertyService.list(buyFilter(), "price-asc", 1);
+
+        // Different sort → different key → both hit the repository.
+        verify(listingRepository, times(2)).findAllForList(any(), any());
+        clearInvocations(listingRepository);
+        propertyService.list(buyFilter(), "newest", 1);
+        verify(listingRepository, never()).findAllForList(any(), any());
+    }
+}

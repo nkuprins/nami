@@ -45,6 +45,8 @@ class AuthServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private PropertyRepository propertyRepository;
+    @Mock private ListingRepository listingRepository;
+    @Mock private SavedListingRepository savedListingRepository;
     @Mock private RefreshTokenRepository refreshTokenRepository;
     @Mock private EmailVerificationTokenRepository emailVerificationTokenRepository;
     @Mock private PasswordResetTokenRepository passwordResetTokenRepository;
@@ -54,7 +56,6 @@ class AuthServiceTest {
     @Mock private EmailService emailService;
     @Mock private UploadService uploadService;
     @Mock private AppProperties props;
-    @Mock private SavedPropertyRepository savedPropertyRepository;
     @Spy @SuppressWarnings("unused") private PropertyMapper propertyMapper = new PropertyMapper();
 
     @InjectMocks
@@ -80,6 +81,8 @@ class AuthServiceTest {
         lenient().when(cookieFactory.refreshTokenCookie(anyString())).thenReturn(ResponseCookie.from("refresh_token", "v").build());
         lenient().when(cookieFactory.clearAccessToken()).thenReturn(ResponseCookie.from("access_token", "").build());
         lenient().when(cookieFactory.clearRefreshToken()).thenReturn(ResponseCookie.from("refresh_token", "").build());
+        lenient().when(cookieFactory.hasSessionCookie()).thenReturn(ResponseCookie.from("has_session", "1").build());
+        lenient().when(cookieFactory.clearHasSessionCookie()).thenReturn(ResponseCookie.from("has_session", "").build());
     }
 
     private void stubTokenGeneration() {
@@ -171,7 +174,7 @@ class AuthServiceTest {
             assertThat(result.email()).isEqualTo("login@test.com");
             assertThat(user.getLastLoginAt()).isNotNull()
                     .isCloseToUtcNow(within(5, ChronoUnit.SECONDS));
-            verify(response, times(2)).addHeader(eq("Set-Cookie"), anyString());
+            verify(response, times(3)).addHeader(eq("Set-Cookie"), anyString());
         }
 
         @Test
@@ -234,7 +237,7 @@ class AuthServiceTest {
 
             assertThat(result.email()).isEqualTo(user.getEmail());
             assertThat(token.isRevoked()).isTrue();
-            verify(response, times(2)).addHeader(eq("Set-Cookie"), anyString());
+            verify(response, times(3)).addHeader(eq("Set-Cookie"), anyString());
         }
 
         @Test
@@ -304,14 +307,14 @@ class AuthServiceTest {
             authService.logout("raw", response);
 
             assertThat(token.isRevoked()).isTrue();
-            verify(response, times(2)).addHeader(eq("Set-Cookie"), anyString());
+            verify(response, times(3)).addHeader(eq("Set-Cookie"), anyString());
         }
 
         @Test
         void clearsCookies_evenWhenTokenNull() {
             authService.logout(null, response);
 
-            verify(response, times(2)).addHeader(eq("Set-Cookie"), anyString());
+            verify(response, times(3)).addHeader(eq("Set-Cookie"), anyString());
             verify(refreshTokenRepository, never()).findByTokenHash(anyString());
         }
 
@@ -319,7 +322,7 @@ class AuthServiceTest {
         void clearsCookies_evenWhenTokenBlank() {
             authService.logout("  ", response);
 
-            verify(response, times(2)).addHeader(eq("Set-Cookie"), anyString());
+            verify(response, times(3)).addHeader(eq("Set-Cookie"), anyString());
             verify(refreshTokenRepository, never()).findByTokenHash(anyString());
         }
     }
@@ -361,9 +364,9 @@ class AuthServiceTest {
         @Test
         void deletesUser_andS3Photos_andClearsCookies() {
             User user = user();
-            Property prop = propertyWithPhotos(user);
+            Listing listing = listingWithPhotos(user);
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-            when(propertyRepository.findByOwner(user)).thenReturn(List.of(prop));
+            when(propertyRepository.findByOwner(user)).thenReturn(List.of(listing.getProperty()));
 
             authService.deleteAccount(user.getId(), response);
             triggerAfterCommit();
@@ -373,15 +376,15 @@ class AuthServiceTest {
                     "https://cdn.test.local/uploads/photo1.jpg",
                     "https://cdn.test.local/uploads/photo2.jpg"
             ));
-            verify(response, times(2)).addHeader(eq("Set-Cookie"), anyString());
+            verify(response, times(3)).addHeader(eq("Set-Cookie"), anyString());
         }
 
         @Test
         void handlesS3Failure_gracefully() {
             User user = user();
-            Property prop = propertyWithPhotos(user);
+            Listing listing = listingWithPhotos(user);
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-            when(propertyRepository.findByOwner(user)).thenReturn(List.of(prop));
+            when(propertyRepository.findByOwner(user)).thenReturn(List.of(listing.getProperty()));
             doThrow(new RuntimeException("S3 down")).when(uploadService).deleteObjects(any());
 
             authService.deleteAccount(user.getId(), response);
@@ -409,6 +412,25 @@ class AuthServiceTest {
 
             verify(userRepository).delete(user);
             verify(uploadService, never()).deleteObjects(any());
+        }
+
+        @Test
+        void cleansUpS3Photos_forPropertyWithNoListings() {
+            // A property can be orphaned (all its listings deleted) yet still owned by the user;
+            // it must still be picked up for S3 cleanup even though listingRepository won't return it.
+            User user = user();
+            Property orphaned = listingWithPhotos(user).getProperty();
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+            when(propertyRepository.findByOwner(user)).thenReturn(List.of(orphaned));
+
+            authService.deleteAccount(user.getId(), response);
+            triggerAfterCommit();
+
+            verify(userRepository).delete(user);
+            verify(uploadService).deleteObjects(List.of(
+                    "https://cdn.test.local/uploads/photo1.jpg",
+                    "https://cdn.test.local/uploads/photo2.jpg"
+            ));
         }
     }
 
@@ -664,15 +686,15 @@ class AuthServiceTest {
         @Test
         void returnsDto_withOwnedAndSavedProperties() {
             User user = user();
-            Property prop = property(user);
-            UUID savedPropId = UUID.randomUUID();
-            SavedProperty saved = new SavedProperty();
-            saved.setId(new SavedPropertyId(user.getId(), savedPropId));
+            Listing owned = listing(user);
+            UUID savedListingId = UUID.randomUUID();
+            SavedListing saved = new SavedListing();
+            saved.setId(new SavedListingId(user.getId(), savedListingId));
             saved.setSavedAt(OffsetDateTime.now());
 
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-            when(propertyRepository.findByOwner(user)).thenReturn(List.of(prop));
-            when(savedPropertyRepository.findByIdUserId(user.getId())).thenReturn(List.of(saved));
+            when(listingRepository.findByOwner(user)).thenReturn(List.of(owned));
+            when(savedListingRepository.findByIdUserId(user.getId())).thenReturn(List.of(saved));
 
             UserExportDto result = authService.export(user.getId());
 
@@ -680,15 +702,15 @@ class AuthServiceTest {
             assertThat(result.email()).isEqualTo(user.getEmail());
             assertThat(result.ownedProperties()).hasSize(1);
             assertThat(result.savedProperties()).hasSize(1);
-            assertThat(result.savedProperties().getFirst().propertyId()).isEqualTo(savedPropId);
+            assertThat(result.savedProperties().getFirst().listingId()).isEqualTo(savedListingId);
         }
 
         @Test
         void returnsDto_withEmptyLists_whenNoPropertiesOrSaved() {
             User user = user();
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-            when(propertyRepository.findByOwner(user)).thenReturn(List.of());
-            when(savedPropertyRepository.findByIdUserId(user.getId())).thenReturn(List.of());
+            when(listingRepository.findByOwner(user)).thenReturn(List.of());
+            when(savedListingRepository.findByIdUserId(user.getId())).thenReturn(List.of());
 
             UserExportDto result = authService.export(user.getId());
 
