@@ -20,3 +20,18 @@ export const LOCALES: Locale[] = ['lv', 'en', 'ru'];
 export function setLocale(locale: Locale): void {
   (i18n.global.locale as unknown as WritableComputedRef<Locale>).value = locale;
 }
+
+/**
+ * Best-effort locale for a first-time visitor who lands without a locale in the
+ * URL. Reads the browser's preferred languages, falling back to Latvian.
+ */
+export function detectBrowserLocale(): Locale {
+  const candidates = navigator.languages?.length
+    ? navigator.languages
+    : [navigator.language];
+  for (const lang of candidates) {
+    const code = lang.slice(0, 2).toLowerCase();
+    if ((LOCALES as string[]).includes(code)) return code as Locale;
+  }
+  return 'lv';
+}

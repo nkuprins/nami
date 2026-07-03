@@ -18,12 +18,13 @@ function pick(id: ListingType) {
       v-for="tab in categoryOptions"
       :key="tab.id"
       role="tab"
+      :aria-selected="modelValue === tab.id"
       @click="pick(tab.id)"
       class="focus-ring relative flex-1 px-4 sm:px-6 py-3 text-left transition-colors duration-200 border-b-2"
       :class="
         modelValue === tab.id
-          ? 'border-ink text-ink'
-          : 'border-transparent text-ink-2 hover:text-ink hover:border-line-2'
+          ? 'bg-surface text-ink border-accent'
+          : 'text-ink-2 border-transparent hover:text-ink hover:bg-surface/50'
       "
     >
       <span class="block text-sm font-medium leading-tight">{{

@@ -1,4 +1,8 @@
 export default {
+  waking: {
+    title: 'Waking things up…',
+    body: 'The site was napping after some quiet time. Give it a few seconds — everything is coming back online.',
+  },
   nav: {
     myListings: 'My listings',
     saved: 'Saved',
@@ -39,6 +43,7 @@ export default {
     priceUpTo: 'Up to {amount}',
     priceRange: '{min} – {max}',
     perMonth: '/mo',
+    reset: 'Reset',
   },
   advFilters: {
     title: 'Refine your search',

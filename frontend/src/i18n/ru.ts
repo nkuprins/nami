@@ -1,4 +1,8 @@
 export default {
+  waking: {
+    title: 'Просыпаемся…',
+    body: 'Сайт задремал после периода затишья. Подождите несколько секунд — всё снова оживает.',
+  },
   nav: {
     myListings: 'Мои объявления',
     saved: 'Сохранённые',
@@ -39,6 +43,7 @@ export default {
     priceUpTo: 'До {amount}',
     priceRange: '{min} – {max}',
     perMonth: '/мес.',
+    reset: 'Сбросить',
   },
   advFilters: {
     title: 'Уточнить поиск',

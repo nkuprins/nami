@@ -9,18 +9,19 @@ import PricePopover from './popovers/PricePopover.vue';
 import RoomsPopover from './popovers/RoomsPopover.vue';
 import IconSearch from '../../../components/icons/IconSearch.vue';
 import IconSliders from '../../../components/icons/IconSliders.vue';
+import IconRefresh from '../../../components/icons/IconRefresh.vue';
 import { useFiltersStore } from '../../../stores/filterStore';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
+import { groupFmt } from '../../../utils/format';
 
 const { t } = useI18n();
 const { locale } = useLocaleRoute();
-const fmtNum = new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 });
 
 const emit = defineEmits<{ search: []; openMore: [] }>();
 
 const store = useFiltersStore();
 const { districts, locations } = storeToRefs(store);
-const { state, setType, setLocations, setPriceRange, setRooms } =
+const { state, setType, setLocations, setPriceRange, setRooms, resetAll } =
   useFiltersStore();
 
 const locSummary = computed(() => {
@@ -33,7 +34,7 @@ const locSummary = computed(() => {
 const priceSummary = computed(() => {
   const { priceMin, priceMax, type } = state;
   const suffix = type === 'rent' ? t('filters.perMonth') : '';
-  const fmt = (n: number) => fmtNum.format(n);
+  const fmt = (n: number) => groupFmt.format(n);
   if (priceMin !== undefined && priceMax !== undefined)
     return (
       t('filters.priceRange', {
@@ -75,6 +76,16 @@ const advancedCount = computed(() => {
   if (state.completion) n++;
   return n;
 });
+
+const anyActive = computed(
+  () =>
+    state.type !== 'buy' ||
+    state.loc.length > 0 ||
+    state.priceMin !== undefined ||
+    state.priceMax !== undefined ||
+    state.rooms.length > 0 ||
+    advancedCount.value > 0
+);
 </script>
 
 <template>
@@ -85,7 +96,7 @@ const advancedCount = computed(() => {
 
     <div class="p-4 sm:p-5">
       <div
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_auto_auto] gap-2"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_auto_auto_auto] gap-2"
       >
         <FilterPill
           :label="t('filters.location')"
@@ -124,6 +135,16 @@ const advancedCount = computed(() => {
             @update:model-value="setRooms"
           />
         </FilterPill>
+
+        <button
+          v-if="anyActive"
+          type="button"
+          @click="resetAll"
+          class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-4 rounded-md border border-line bg-bg text-sm text-ink-2 hover:text-ink hover:border-line-2 transition-colors"
+        >
+          <span class="size-4 inline-block"><IconRefresh /></span>
+          <span>{{ t('filters.reset') }}</span>
+        </button>
 
         <button
           type="button"

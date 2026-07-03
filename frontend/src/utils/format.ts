@@ -1,28 +1,44 @@
 import type { Locale } from '../i18n';
 import { ListingType } from '../types/listingItem';
 
-const fmtLv = new Intl.NumberFormat('lv-LV', {
-  style: 'currency',
-  currency: 'EUR',
+const INTL_LOCALE: Record<Locale, string> = {
+  lv: 'lv-LV',
+  en: 'en-IE',
+  ru: 'ru-RU',
+};
+
+function currencyFmt(maximumFractionDigits: number) {
+  const byLocale = {} as Record<Locale, Intl.NumberFormat>;
+  for (const locale of Object.keys(INTL_LOCALE) as Locale[]) {
+    byLocale[locale] = new Intl.NumberFormat(INTL_LOCALE[locale], {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits,
+    });
+  }
+  return (locale: Locale) => byLocale[locale];
+}
+
+const fmt = currencyFmt(0);
+const fmtPerM2 = currencyFmt(2);
+
+// Grouped, no-decimal number formatting shared by price inputs/filters
+// (e.g. "300,000") — deliberately locale-fixed to 'en-IE' rather than the
+// UI locale, since ',' is used purely as a thousands separator here.
+export const groupFmt = new Intl.NumberFormat('en-IE', {
   maximumFractionDigits: 0,
 });
 
-const fmtEn = new Intl.NumberFormat('en-IE', {
-  style: 'currency',
-  currency: 'EUR',
-  maximumFractionDigits: 0,
-});
+// format/parse pair for whole-euro price inputs (FormField's `format`/`parse`
+// props): display grouped digits, store the raw digit string. Pair with a
+// numericInput beforeinput guard so stray separators never get typed.
+export function formatPriceInput(value: string): string {
+  return value ? groupFmt.format(Number(value)) : '';
+}
 
-const fmtRu = new Intl.NumberFormat('ru-RU', {
-  style: 'currency',
-  currency: 'EUR',
-  maximumFractionDigits: 0,
-});
-
-function fmt(locale: Locale) {
-  if (locale === 'en') return fmtEn;
-  if (locale === 'ru') return fmtRu;
-  return fmtLv;
+export function parsePriceInput(raw: string): string {
+  return raw.replace(/\D/g, '');
 }
 
 export function formatPrice(
@@ -38,7 +54,7 @@ export function formatPrice(
 }
 
 export function formatPricePerM2(value: number, locale: Locale = 'lv'): string {
-  return `${fmt(locale).format(value)} / m²`;
+  return `${fmtPerM2(locale).format(value)} / m²`;
 }
 
 export function formatFloor(

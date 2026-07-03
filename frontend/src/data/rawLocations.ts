@@ -72,7 +72,6 @@ export const LOCATION_MAP: ReadonlyMap<City, District[]> = new Map([
       'Bražciems',
       'Jaunķemeri',
       'Kūdra',
-      'Priedaine',
     ],
   ],
   [
@@ -171,7 +170,6 @@ export const LOCATION_MAP: ReadonlyMap<City, District[]> = new Map([
       'Ķeizarsils',
       'Lorupes rajons',
       'Klapkalns',
-      'Sigulda-2',
       'Turaida',
       'Krimulda',
     ],

@@ -2,7 +2,8 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
-import { decimalInput } from '../../../utils/utils';
+import { numericInput } from '../../../utils/utils';
+import { formatPriceInput, parsePriceInput } from '../../../utils/format';
 import FormField from '../../../components/ui/FormField.vue';
 import ToggleButtons from '../../../components/ui/ToggleButtons.vue';
 import type { ListingFieldsForm } from '../composables/formTypes';
@@ -23,7 +24,7 @@ const priceLabel = computed(() =>
 );
 
 const pricePlaceholder = computed(() =>
-  props.form.type === 'rent' ? 'e.g. 1200' : 'e.g. 185000'
+  props.form.type === 'rent' ? 'e.g. 1,200' : 'e.g. 185,000'
 );
 
 const isDual = computed(
@@ -51,9 +52,11 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
           v-model="form.price"
           :error="fieldError('price')"
           required
-          inputmode="decimal"
-          placeholder="e.g. 185000"
-          @beforeinput="decimalInput"
+          inputmode="numeric"
+          placeholder="e.g. 185,000"
+          :format="formatPriceInput"
+          :parse="parsePriceInput"
+          @beforeinput="numericInput"
         />
         <label class="flex items-center gap-2.5 cursor-pointer select-none">
           <input
@@ -92,9 +95,11 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
           v-model="form.rentPrice"
           :error="fieldError('rentPrice')"
           required
-          inputmode="decimal"
-          placeholder="e.g. 1200"
-          @beforeinput="decimalInput"
+          inputmode="numeric"
+          placeholder="e.g. 1,200"
+          :format="formatPriceInput"
+          :parse="parsePriceInput"
+          @beforeinput="numericInput"
         />
         <label class="flex items-center gap-2.5 cursor-pointer select-none">
           <input
@@ -132,9 +137,11 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
         v-model="form.price"
         :error="fieldError('price')"
         required
-        inputmode="decimal"
+        inputmode="numeric"
         :placeholder="pricePlaceholder"
-        @beforeinput="decimalInput"
+        :format="formatPriceInput"
+        :parse="parsePriceInput"
+        @beforeinput="numericInput"
       />
       <label class="flex items-center gap-2.5 cursor-pointer select-none">
         <input

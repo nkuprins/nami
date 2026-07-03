@@ -1,6 +1,7 @@
 import { defineComponent, h } from 'vue';
 import { createRouter, createWebHistory, RouterView } from 'vue-router';
 import { useAuthStore } from './stores/authStore';
+import { detectBrowserLocale } from './i18n';
 
 const LocaleLayout = defineComponent({ render: () => h(RouterView) });
 
@@ -12,7 +13,7 @@ export const router = createRouter({
     return { top: 0 };
   },
   routes: [
-    { path: '/', redirect: '/lv' },
+    { path: '/', redirect: () => `/${detectBrowserLocale()}` },
     {
       path: '/:locale(lv|en|ru)',
       component: LocaleLayout,
@@ -46,6 +47,13 @@ export const router = createRouter({
           props: true,
         },
         {
+          path: 'property/:id/add-listing',
+          name: 'add-listing-to-property',
+          component: () =>
+            import('./views/AddListing/AddListingToPropertyView.vue'),
+          props: true,
+        },
+        {
           path: 'verify-email',
           name: 'verify-email',
           component: () => import('./views/VerifyEmailView.vue'),
@@ -74,7 +82,8 @@ export const router = createRouter({
     },
     {
       path: '/:pathMatch(.*)*',
-      redirect: (to) => `/lv${to.path === '/' ? '' : to.path}`,
+      redirect: (to) =>
+        `/${detectBrowserLocale()}${to.path === '/' ? '' : to.path}`,
     },
   ],
 });
@@ -89,12 +98,17 @@ router.beforeEach(async (to) => {
   }
 
   const auth = useAuthStore();
-  if (
-    (to.name === 'add-listing' ||
-      to.name === 'edit-listing' ||
-      to.name === 'edit-property') &&
-    !auth.isAuthenticated
-  ) {
-    return { name: 'home', params: { locale: locale ?? 'lv' } };
+  const needsAuth =
+    to.name === 'add-listing' ||
+    to.name === 'edit-listing' ||
+    to.name === 'edit-property' ||
+    to.name === 'add-listing-to-property';
+  if (needsAuth) {
+    // The app now mounts before session restoration finishes, so wait for it
+    // before deciding whether to bounce an authenticated user off a guarded route.
+    await auth.init();
+    if (!auth.isAuthenticated) {
+      return { name: 'home', params: { locale: locale ?? 'lv' } };
+    }
   }
 });

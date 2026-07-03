@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue';
 import { getMyListings } from '../../../api/listingsApi';
-import type { ListingSummary, ListingType } from '../../../types/listingItem';
+import type { ListingSummary } from '../../../types/listingItem';
 import { isExactAddress, isNearAddress } from '../../../utils/addressMatch';
 
 export type DuplicateMatchKind = 'none' | 'exact' | 'fuzzy';
@@ -14,7 +14,6 @@ export function useDuplicatePropertyNudge() {
   const myListings = ref<ListingSummary[] | null>(null);
   const match = ref<ListingSummary | null>(null);
   const matchKind = ref<DuplicateMatchKind>('none');
-  const matchTypes = ref<ListingType[]>([]);
   const acknowledged = ref(false);
 
   const blockSubmit = computed(
@@ -35,7 +34,6 @@ export function useDuplicatePropertyNudge() {
   function reset() {
     match.value = null;
     matchKind.value = 'none';
-    matchTypes.value = [];
   }
 
   async function check(
@@ -69,11 +67,6 @@ export function useDuplicatePropertyNudge() {
 
     match.value = found;
     matchKind.value = exact ? 'exact' : fuzzy ? 'fuzzy' : 'none';
-    matchTypes.value = found
-      ? (myListings.value ?? [])
-          .filter((item) => item.propertyId === found.propertyId)
-          .map((item) => item.type)
-      : [];
   }
 
   // The user actively confirmed a fuzzy near-match is a different property.
@@ -84,7 +77,6 @@ export function useDuplicatePropertyNudge() {
   return {
     match,
     matchKind,
-    matchTypes,
     acknowledged,
     blockSubmit,
     check,

@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import EmptyState from '../ui/EmptyState.vue';
 import ConfirmDialog from '../ui/ConfirmDialog.vue';
 import PropertyGroupCard from './PropertyGroupCard.vue';
-import AddListingModal from './AddListingModal.vue';
 import IconClose from '../icons/IconClose.vue';
 import IconArrowLeft from '../icons/IconArrowLeft.vue';
 import {
@@ -13,7 +12,7 @@ import {
   deleteProperty,
   renewListing,
 } from '../../api/listingsApi';
-import type { ListingSummary, ListingType } from '../../types/listingItem';
+import type { ListingSummary } from '../../types/listingItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 
 const ERROR_DISPLAY_MS = 3000;
@@ -28,7 +27,7 @@ function close() {
 const items = ref<ListingSummary[]>([]);
 
 const { t } = useI18n();
-const { localePath } = useLocaleRoute();
+const { localePath, localePush } = useLocaleRoute();
 
 const loading = ref(false);
 const error = ref(false);
@@ -139,16 +138,9 @@ async function confirmRenew() {
 }
 
 // Add a second/third listing type to an existing property
-const addListingPropertyId = ref<string | null>(null);
-const addListingExistingTypes = computed<ListingType[]>(() => {
-  if (!addListingPropertyId.value) return [];
-  return items.value
-    .filter((item) => item.propertyId === addListingPropertyId.value)
-    .map((item) => item.type);
-});
-
-function requestAddListing(propertyId: string) {
-  addListingPropertyId.value = propertyId;
+function goAddListing(propertyId: string) {
+  close();
+  localePush(`/property/${propertyId}/add-listing`);
 }
 
 watch(() => props.open, load);
@@ -173,15 +165,6 @@ watch(
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', onKey);
   document.body.style.overflow = '';
-});
-
-// AddListingModal is itself Drawer-based and also toggles body.style.overflow;
-// re-lock scroll if it closes while this panel is still open, otherwise its
-// unconditional unlock-on-close would leak through.
-watch(addListingPropertyId, (val, oldVal) => {
-  if (val === null && oldVal !== null && props.open) {
-    document.body.style.overflow = 'hidden';
-  }
 });
 </script>
 
@@ -292,7 +275,7 @@ watch(addListingPropertyId, (val, oldVal) => {
                 @navigate="close"
                 @renew="requestRenew"
                 @delete-listing="requestDeleteListing"
-                @add-listing="requestAddListing"
+                @add-listing="goAddListing"
                 @delete-property="requestDeleteProperty"
               />
             </div>
@@ -301,14 +284,6 @@ watch(addListingPropertyId, (val, oldVal) => {
       </div>
     </Transition>
   </Teleport>
-
-  <AddListingModal
-    :open="addListingPropertyId !== null"
-    :property-id="addListingPropertyId ?? ''"
-    :already-has="addListingExistingTypes"
-    @update:open="(v) => !v && (addListingPropertyId = null)"
-    @added="load"
-  />
 
   <ConfirmDialog
     :open="confirmListingId !== null"

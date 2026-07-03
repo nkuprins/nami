@@ -1,7 +1,7 @@
 <script setup lang="ts">
 defineOptions({ inheritAttrs: false });
 
-defineProps<{
+const props = defineProps<{
   label: string;
   modelValue: string;
   error?: string;
@@ -9,9 +9,18 @@ defineProps<{
   type?: string;
   placeholder?: string;
   id?: string;
+  // Optional display/parse pair for fields whose typed value differs from
+  // what's shown (e.g. grouping digits with thousands separators).
+  format?: (value: string) => string;
+  parse?: (raw: string) => string;
 }>();
 
-defineEmits<{ 'update:modelValue': [value: string] }>();
+const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
+
+function onInput(e: Event) {
+  const raw = (e.target as HTMLInputElement).value;
+  emit('update:modelValue', props.parse ? props.parse(raw) : raw);
+}
 </script>
 
 <template>
@@ -21,10 +30,8 @@ defineEmits<{ 'update:modelValue': [value: string] }>();
     </label>
     <input
       :id="id"
-      :value="modelValue"
-      @input="
-        $emit('update:modelValue', ($event.target as HTMLInputElement).value)
-      "
+      :value="format ? format(modelValue) : modelValue"
+      @input="onInput"
       :type="type ?? 'text'"
       :placeholder="placeholder"
       class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"

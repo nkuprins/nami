@@ -1,13 +1,19 @@
 import { logger } from '../utils/logger';
+import { trackWake } from '../composables/useWakeStatus';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 let refreshPromise: Promise<boolean> | null = null;
 
 /**
- * Enhanced fetch wrapper with automatic token refresh
+ * Enhanced fetch wrapper with automatic token refresh. Wrapped in
+ * {@link trackWake} so slow cold-start requests surface a "waking up" overlay.
  */
-export async function fetchApi(
+export function fetchApi(input: string, init?: RequestInit): Promise<Response> {
+  return trackWake(fetchApiInner(input, init));
+}
+
+async function fetchApiInner(
   input: string,
   init?: RequestInit
 ): Promise<Response> {

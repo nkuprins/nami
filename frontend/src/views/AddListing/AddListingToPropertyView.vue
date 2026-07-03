@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ToggleButtons from '../../components/ui/ToggleButtons.vue';
-import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
-import { useListingEditForm } from './composables/useListingEditForm';
+import { useAddListingToProperty } from './composables/useListingFields';
 import type { ListingType } from '../../types/listingItem';
 
 import BasicInfoSection from './components/BasicInfoSection.vue';
@@ -15,25 +13,18 @@ const props = defineProps<{ id: string }>();
 
 const { t } = useI18n();
 const { localePath } = useLocaleRoute();
-const { typeOptions } = usePropertyLabels();
 
 const {
   form,
+  availableTypeOptions,
+  loading,
   submitting,
   submitError,
   fieldError,
   addPhone,
   removePhone,
   submit,
-  loading,
-  loadedType,
-} = useListingEditForm(props.id);
-
-// Editing keeps the transaction type fixed: show only the listing's own type
-// as the single pill (based on the loaded type, so deselecting can't hide it).
-const typeOption = computed(() =>
-  typeOptions.value.filter((o) => o.id === loadedType.value)
-);
+} = useAddListingToProperty(props.id);
 </script>
 
 <template>
@@ -47,9 +38,8 @@ const typeOption = computed(() =>
     <template v-else>
       <div class="mb-8">
         <h1 class="text-2xl font-bold text-ink">
-          {{ t('editListing.title') }}
+          {{ t('drawers.addListingTypeTitle') }}
         </h1>
-        <p class="text-sm text-ink-3 mt-1">{{ t('editListing.subtitle') }}</p>
       </div>
 
       <form class="flex flex-col gap-10" @submit.prevent="submit">
@@ -60,7 +50,7 @@ const typeOption = computed(() =>
             {{ t('addListing.transactionType') }}
           </h2>
           <ToggleButtons
-            :options="typeOption"
+            :options="availableTypeOptions"
             :model-value="form.type"
             @update:model-value="form.type = $event as ListingType"
           />
@@ -69,7 +59,11 @@ const typeOption = computed(() =>
           </p>
         </section>
 
-        <PricingSection :form="form" :field-error="fieldError" is-edit />
+        <PricingSection
+          :form="form"
+          :field-error="fieldError"
+          :is-edit="false"
+        />
 
         <BasicInfoSection :form="form" :field-error="fieldError" />
 
@@ -89,7 +83,7 @@ const typeOption = computed(() =>
             {{
               submitting
                 ? t('addListing.submitting')
-                : t('editListing.publishListing')
+                : t('drawers.addListingTypeSubmit')
             }}
           </button>
           <RouterLink

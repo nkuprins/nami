@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import TopNav from './components/layout/TopNav.vue';
 import AppFooter from './components/layout/AppFooter.vue';
+import WakingOverlay from './components/ui/WakingOverlay.vue';
 </script>
 
 <template>
@@ -10,5 +11,6 @@ import AppFooter from './components/layout/AppFooter.vue';
       <RouterView />
     </main>
     <AppFooter />
+    <WakingOverlay />
   </div>
 </template>

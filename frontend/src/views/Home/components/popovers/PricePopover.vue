@@ -2,12 +2,12 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { ListingType } from '../../../../types/listingItem';
+import { groupFmt } from '../../../../utils/format';
+import { numericInput } from '../../../../utils/utils';
 
 const DEBOUNCE_MS = 280;
 
 const { t } = useI18n();
-
-const fmt = new Intl.NumberFormat('en-IE', { maximumFractionDigits: 0 });
 
 const props = defineProps<{
   min: number | undefined;
@@ -22,10 +22,10 @@ const rawMin = ref(props.min);
 const rawMax = ref(props.max);
 
 const displayMin = computed(() =>
-  rawMin.value !== undefined ? fmt.format(rawMin.value) : ''
+  rawMin.value !== undefined ? groupFmt.format(rawMin.value) : ''
 );
 const displayMax = computed(() =>
-  rawMax.value !== undefined ? fmt.format(rawMax.value) : ''
+  rawMax.value !== undefined ? groupFmt.format(rawMax.value) : ''
 );
 
 watch(
@@ -96,6 +96,7 @@ function clear() {
         <input
           :value="displayMin"
           @input="onInput('min', $event)"
+          @beforeinput="numericInput"
           inputmode="numeric"
           :placeholder="t('filters.anyAmount')"
           class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
@@ -108,6 +109,7 @@ function clear() {
         <input
           :value="displayMax"
           @input="onInput('max', $event)"
+          @beforeinput="numericInput"
           inputmode="numeric"
           :placeholder="t('filters.anyAmount')"
           class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"

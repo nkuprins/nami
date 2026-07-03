@@ -19,8 +19,11 @@ async function main() {
   const app = createApp(App);
   const { default: i18n } = await import('./i18n');
   app.use(createPinia()).use(i18n).use(router);
-  await useAuthStore().init();
+  // Mount immediately so the shell (and the "waking up" overlay) render right
+  // away. Session restoration runs in the background: on a cold backend the
+  // slow /auth/me now shows the overlay instead of a blank, unmounted page.
   app.mount('#app');
+  void useAuthStore().init();
 }
 
 main().catch((error) => {

@@ -26,7 +26,15 @@ export const useAuthStore = defineStore('auth', () => {
     window.removeEventListener('auth:logout', handleGlobalLogout);
   });
 
-  async function init(): Promise<void> {
+  let initPromise: Promise<void> | null = null;
+
+  // Idempotent: the app boot and the router guard both call this, but the
+  // session should only be fetched once.
+  function init(): Promise<void> {
+    return (initPromise ??= runInit());
+  }
+
+  async function runInit(): Promise<void> {
     logger.info('[AuthStore] Initializing auth session checking...');
     if (!hasSessionHint()) {
       logger.info(

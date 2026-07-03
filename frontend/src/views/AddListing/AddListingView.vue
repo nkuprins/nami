@@ -6,9 +6,7 @@ import { useLocationDropdown } from './composables/useLocationDropdown';
 import { useListingForm } from './composables/useListingForm';
 import { useDuplicatePropertyNudge } from './composables/useDuplicatePropertyNudge';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
-import AddListingModal from '../../components/listing/AddListingModal.vue';
 import TurnstileWidget from '../../components/ui/TurnstileWidget.vue';
-import type { ListingType } from '../../types/listingItem';
 
 import ListingTypeSection from './components/ListingTypeSection.vue';
 import BasicInfoSection from './components/BasicInfoSection.vue';
@@ -58,16 +56,11 @@ const {
   }
 );
 
-const addListingFromNudge = ref(false);
-const addListingFromNudgePropertyId = ref('');
-const addListingFromNudgeTypes = ref<ListingType[]>([]);
 let nudgeTimer: ReturnType<typeof setTimeout> | undefined;
 
-function openAddListingFromNudge() {
+function goAddToExisting() {
   if (!nudge.match.value) return;
-  addListingFromNudgePropertyId.value = nudge.match.value.propertyId;
-  addListingFromNudgeTypes.value = nudge.matchTypes.value;
-  addListingFromNudge.value = true;
+  localePush(`/property/${nudge.match.value.propertyId}/add-listing`);
 }
 
 watch(
@@ -94,9 +87,7 @@ watch(
     <Teleport to="body">
       <Transition name="scrim">
         <div
-          v-if="
-            nudge.blockSubmit.value && !addListingFromNudge && nudge.match.value
-          "
+          v-if="nudge.blockSubmit.value && nudge.match.value"
           class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
         >
           <div class="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
@@ -135,7 +126,7 @@ watch(
               <button
                 type="button"
                 class="focus-ring h-9 px-4 rounded-lg border border-line text-sm text-ink-2 hover:bg-surface transition-colors"
-                @click="openAddListingFromNudge()"
+                @click="goAddToExisting()"
               >
                 {{ t('addListing.duplicateNudgeAddListing') }}
               </button>
@@ -231,14 +222,5 @@ watch(
 
       <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
     </form>
-
-    <AddListingModal
-      v-if="addListingFromNudgePropertyId"
-      :open="addListingFromNudge"
-      :property-id="addListingFromNudgePropertyId"
-      :already-has="addListingFromNudgeTypes"
-      @update:open="addListingFromNudge = $event"
-      @added="localePush('/')"
-    />
   </div>
 </template>

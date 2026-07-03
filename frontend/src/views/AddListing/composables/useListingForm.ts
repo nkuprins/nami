@@ -3,10 +3,14 @@ import type {
   Feature,
   ListingType,
   PropertyDetails,
-  Translations,
 } from '../../../types/listingItem';
 import type { Location } from '../../../data/rawLocations';
 import type { PropertyFieldsForm, ListingFieldsForm } from './formTypes';
+import {
+  buildTranslations,
+  INITIAL_LISTING_FIELDS,
+  listingFieldErrors,
+} from './useListingFields';
 import {
   addListing,
   createListing,
@@ -22,20 +26,8 @@ const DEFAULT_COORDS = { lat: 56.946, lng: 24.105 };
 export type ListingFormState = PropertyFieldsForm & ListingFieldsForm;
 
 const INITIAL_FORM: ListingFormState = {
-  type: '',
-  alsoRent: false,
+  ...INITIAL_LISTING_FIELDS,
   propertyKind: 'apartment',
-  titleLv: '',
-  titleEn: '',
-  titleRu: '',
-  descriptionLv: '',
-  descriptionEn: '',
-  descriptionRu: '',
-  price: '',
-  vatIncluded: false,
-  rentPrice: '',
-  rentVatIncluded: false,
-  rentDurationMonths: 3,
   address: '',
   rooms: '',
   bedrooms: '',
@@ -49,33 +41,10 @@ const INITIAL_FORM: ListingFormState = {
   heating: '',
   energyClass: '',
   maintenanceCost: '',
-  completion: '',
   features: [],
-  phones: [''],
   videoUrl: '',
   coords: null,
-  durationMonths: 3,
 };
-
-export function buildTranslations(form: ListingFieldsForm): Translations {
-  const t: Translations = {};
-  if (form.titleLv.trim())
-    t.lv = {
-      title: form.titleLv.trim(),
-      description: form.descriptionLv.trim() || undefined,
-    };
-  if (form.titleEn.trim())
-    t.en = {
-      title: form.titleEn.trim(),
-      description: form.descriptionEn.trim() || undefined,
-    };
-  if (form.titleRu.trim())
-    t.ru = {
-      title: form.titleRu.trim(),
-      description: form.descriptionRu.trim() || undefined,
-    };
-  return t;
-}
 
 export function buildDetails(form: PropertyFieldsForm): PropertyDetails {
   return {
@@ -119,29 +88,7 @@ export function useListingForm(
   const rentListingWarning = ref(false);
 
   const errors = computed(() => {
-    const e: Record<string, string> = {};
-    if (!form.type) e.type = 'Select a transaction type';
-    if (!form.titleLv.trim() && !form.titleEn.trim() && !form.titleRu.trim())
-      e.title = 'Enter a title in at least one language';
-    if (
-      !form.descriptionLv.trim() &&
-      !form.descriptionEn.trim() &&
-      !form.descriptionRu.trim()
-    )
-      e.description = 'Enter a description in at least one language';
-    if (
-      !form.price ||
-      isNaN(parseDecimal(form.price)) ||
-      parseDecimal(form.price) <= 0
-    )
-      e.price = 'Enter a valid price';
-    if (
-      form.alsoRent &&
-      (!form.rentPrice ||
-        isNaN(parseDecimal(form.rentPrice)) ||
-        parseDecimal(form.rentPrice) <= 0)
-    )
-      e.rentPrice = 'Enter a valid rent price';
+    const e = listingFieldErrors(form, { requireRentPrice: form.alsoRent });
     if (!getLocation()) e.district = 'Required';
     if (!form.address.trim()) e.address = 'Required';
     if (!form.rooms || isNaN(Number(form.rooms)) || Number(form.rooms) < 1)
@@ -150,24 +97,6 @@ export function useListingForm(
       e.m2 = 'Enter area in m²';
     if (photoUpload.photos.value.length === 0)
       e.photos = 'At least one photo required';
-    if (form.type === 'new_project' && !form.completion)
-      e.completion = 'Required for new projects';
-
-    const filledPhones = form.phones.filter((p) => p.trim());
-    if (filledPhones.length === 0) {
-      e.phones = 'At least one phone number required';
-    }
-    const phoneRe = /^\+?[\d\s\-()]{7,}$/;
-    const seen = new Set<string>();
-    form.phones.forEach((p, i) => {
-      const normalized = p.replace(/[\s\-()]/g, '');
-      if (p.trim() && !phoneRe.test(p.trim()))
-        e[`phone_${i}`] = 'Invalid phone format';
-      else if (normalized && seen.has(normalized))
-        e[`phone_${i}`] = 'Duplicate phone number';
-      if (normalized) seen.add(normalized);
-    });
-
     return e;
   });
 
@@ -221,7 +150,7 @@ export function useListingForm(
           type: form.type as ListingType,
           propertyKind: form.propertyKind,
           price: {
-            amount: parseDecimal(form.price),
+            amount: Number(form.price),
             vatIncluded: form.vatIncluded || undefined,
           },
           details: buildDetails(form),
@@ -254,7 +183,7 @@ export function useListingForm(
           await addListing(created.propertyId, {
             type: 'rent',
             price: {
-              amount: parseDecimal(form.rentPrice),
+              amount: Number(form.rentPrice),
               vatIncluded: form.rentVatIncluded || undefined,
             },
             translations,

@@ -1,4 +1,8 @@
 export default {
+  waking: {
+    title: 'Modināmies…',
+    body: 'Vietne bija iesnaudusies pēc klusa brīža. Uzgaidiet dažas sekundes — viss atkal sāk darboties.',
+  },
   nav: {
     myListings: 'Mani sludinājumi',
     saved: 'Saglabātie',
@@ -39,6 +43,7 @@ export default {
     priceUpTo: 'Līdz {amount}',
     priceRange: '{min} – {max}',
     perMonth: '/mēn.',
+    reset: 'Atiestatīt',
   },
   advFilters: {
     title: 'Precizēt meklēšanu',
