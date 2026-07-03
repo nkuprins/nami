@@ -54,7 +54,7 @@ class AuthServiceTest {
     @Mock private JwtService jwtService;
     @Mock private CookieFactory cookieFactory;
     @Mock private EmailService emailService;
-    @Mock private UploadService uploadService;
+    @Mock private MediaCleanupService mediaCleanupService;
     @Mock private AppProperties props;
     @Spy @SuppressWarnings("unused") private PropertyMapper propertyMapper = new PropertyMapper();
 
@@ -372,24 +372,11 @@ class AuthServiceTest {
             triggerAfterCommit();
 
             verify(userRepository).delete(user);
-            verify(uploadService).deleteObjects(List.of(
+            verify(mediaCleanupService).enqueue(List.of(
                     "https://cdn.test.local/uploads/photo1.jpg",
                     "https://cdn.test.local/uploads/photo2.jpg"
             ));
             verify(response, times(3)).addHeader(eq("Set-Cookie"), anyString());
-        }
-
-        @Test
-        void handlesS3Failure_gracefully() {
-            User user = user();
-            Listing listing = listingWithPhotos(user);
-            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-            when(propertyRepository.findByOwner(user)).thenReturn(List.of(listing.getProperty()));
-            doThrow(new RuntimeException("S3 down")).when(uploadService).deleteObjects(any());
-
-            authService.deleteAccount(user.getId(), response);
-            triggerAfterCommit();  // S3 throws inside afterCommit but is caught there
-            verify(userRepository).delete(user);
         }
 
         @Test
@@ -411,7 +398,7 @@ class AuthServiceTest {
             authService.deleteAccount(user.getId(), response);
 
             verify(userRepository).delete(user);
-            verify(uploadService, never()).deleteObjects(any());
+            verify(mediaCleanupService, never()).enqueue(any());
         }
 
         @Test
@@ -427,7 +414,7 @@ class AuthServiceTest {
             triggerAfterCommit();
 
             verify(userRepository).delete(user);
-            verify(uploadService).deleteObjects(List.of(
+            verify(mediaCleanupService).enqueue(List.of(
                     "https://cdn.test.local/uploads/photo1.jpg",
                     "https://cdn.test.local/uploads/photo2.jpg"
             ));

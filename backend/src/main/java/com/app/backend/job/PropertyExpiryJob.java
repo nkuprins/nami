@@ -6,7 +6,7 @@ import com.app.backend.enums.PropertyStatus;
 import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.service.EmailService;
-import com.app.backend.service.UploadService;
+import com.app.backend.service.MediaCleanupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,7 +30,7 @@ public class PropertyExpiryJob {
     private final ListingRepository listingRepository;
     private final PropertyRepository propertyRepository;
     private final EmailService emailService;
-    private final UploadService uploadService;
+    private final MediaCleanupService mediaCleanupService;
 
     @Scheduled(cron = "0 0 2 * * *")
     @Transactional
@@ -137,16 +137,7 @@ public class PropertyExpiryJob {
         log.info("Listing purge: permanently deleted {} inactive listings", toPurge.size());
 
         if (!allMediaUrls.isEmpty()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    try {
-                        uploadService.deleteObjects(allMediaUrls);
-                    } catch (Exception e) {
-                        log.warn("Failed to delete S3 objects during listing purge: {}", e.getMessage());
-                    }
-                }
-            });
+            mediaCleanupService.enqueue(allMediaUrls);
         }
     }
 
