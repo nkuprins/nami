@@ -7,7 +7,7 @@ import { computed, ref } from 'vue';
  * waiting on a cold start — the cue to reassure the user instead of showing a
  * frozen, empty screen.
  */
-const WAKE_THRESHOLD_MS = 2500;
+const WAKE_THRESHOLD_MS = 5000;
 
 const slowRequestCount = ref(0);
 
