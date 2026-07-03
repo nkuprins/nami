@@ -5,7 +5,7 @@ import com.app.backend.enums.PropertyStatus;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.service.EmailService;
-import com.app.backend.service.UploadService;
+import com.app.backend.service.MediaCleanupService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,7 +25,7 @@ public class InactiveAccountPurgeJob {
 
     private final UserRepository userRepository;
     private final PropertyRepository propertyRepository;
-    private final UploadService uploadService;
+    private final MediaCleanupService mediaCleanupService;
     private final EmailService emailService;
 
     @Scheduled(cron = "0 0 4 1 * *")
@@ -76,16 +76,7 @@ public class InactiveAccountPurgeJob {
         }
 
         if (!allPhotoUrls.isEmpty()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    try {
-                        uploadService.deleteObjects(allPhotoUrls);
-                    } catch (Exception e) {
-                        log.warn("Failed to delete S3 objects during inactive account purge: {}", e.getMessage());
-                    }
-                }
-            });
+            mediaCleanupService.enqueue(allPhotoUrls);
         }
 
         log.info("Inactive account purge: deleted {} accounts", inactive.size());

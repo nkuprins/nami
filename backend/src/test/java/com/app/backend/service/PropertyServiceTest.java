@@ -53,7 +53,7 @@ class PropertyServiceTest {
     @Mock private PropertyRepository propertyRepository;
     @Mock private UserRepository userRepository;
     @Mock private PropertyMapper propertyMapper;
-    @Mock private UploadService uploadService;
+    @Mock private MediaCleanupService mediaCleanupService;
 
     @InjectMocks
     private PropertyService propertyService;
@@ -417,7 +417,7 @@ class PropertyServiceTest {
             propertyService.updateProperty(p.getId(), updatePropertyRequest(), owner.getId());
             triggerAfterCommit();
 
-            verify(uploadService).deleteObjects(List.of("https://cdn.test.local/uploads/photo2.jpg"));
+            verify(mediaCleanupService).enqueue(List.of("https://cdn.test.local/uploads/photo2.jpg"));
         }
 
         @Test
@@ -431,7 +431,7 @@ class PropertyServiceTest {
             propertyService.updateProperty(p.getId(), updatePropertyRequest(), owner.getId());
             triggerAfterCommit();
 
-            verify(uploadService, never()).deleteObjects(any());
+            verify(mediaCleanupService, never()).enqueue(any());
         }
 
         @Test
@@ -508,7 +508,7 @@ class PropertyServiceTest {
 
             verify(listingRepository).delete(l);
             verify(propertyRepository, never()).delete(any());
-            verify(uploadService, never()).deleteObjects(any());
+            verify(mediaCleanupService, never()).enqueue(any());
         }
 
         @Test
@@ -545,7 +545,7 @@ class PropertyServiceTest {
             triggerAfterCommit();
 
             verify(propertyRepository).delete(property);
-            verify(uploadService).deleteObjects(List.of(
+            verify(mediaCleanupService).enqueue(List.of(
                     "https://cdn.test.local/uploads/photo1.jpg",
                     "https://cdn.test.local/uploads/photo2.jpg"
             ));
@@ -572,18 +572,6 @@ class PropertyServiceTest {
         }
 
         @Test
-        void handlesS3Failure_gracefully() {
-            User owner = user();
-            Property property = listingWithPhotos(owner).getProperty();
-            when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
-            doThrow(new RuntimeException("S3 down")).when(uploadService).deleteObjects(any());
-
-            propertyService.deleteProperty(property.getId(), owner.getId());
-            triggerAfterCommit();  // S3 throws inside afterCommit but is caught there
-            verify(propertyRepository).delete(property);
-        }
-
-        @Test
         void doesNotCallS3_whenPropertyHasNoPhotos() {
             User owner = user();
             Property property = listing(owner).getProperty(); // no photos
@@ -592,7 +580,7 @@ class PropertyServiceTest {
             propertyService.deleteProperty(property.getId(), owner.getId());
 
             verify(propertyRepository).delete(property);
-            verify(uploadService, never()).deleteObjects(any());
+            verify(mediaCleanupService, never()).enqueue(any());
         }
     }
 

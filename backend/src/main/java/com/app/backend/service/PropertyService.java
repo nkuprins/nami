@@ -35,8 +35,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import com.app.backend.exception.ApiException;
 
 import java.time.OffsetDateTime;
@@ -58,7 +56,7 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final PropertyMapper propertyMapper;
-    private final UploadService uploadService;
+    private final MediaCleanupService mediaCleanupService;
 
     @Cacheable(cacheNames = CacheConfig.PROPERTY_LIST, key = "{#filter, #sort, #page}")
     @Transactional(readOnly = true)
@@ -206,7 +204,7 @@ public class PropertyService {
         List<String> newMedia = property.allMediaUrls();
         List<String> removed = oldMedia.stream().filter(u -> !newMedia.contains(u)).toList();
         if (!removed.isEmpty()) {
-            registerMediaCleanup(propertyId, removed);
+            mediaCleanupService.enqueue(removed);
         }
         return dto;
     }
@@ -306,22 +304,8 @@ public class PropertyService {
         log.info("Property {} (and all its listings) deleted by owner: {}", propertyId, ownerId);
 
         if (!allMediaUrls.isEmpty()) {
-            registerMediaCleanup(propertyId, allMediaUrls);
+            mediaCleanupService.enqueue(allMediaUrls);
         }
-    }
-
-    /** Deletes the given media from S3 only after the surrounding transaction commits. */
-    private void registerMediaCleanup(UUID propertyId, List<String> urls) {
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                try {
-                    uploadService.deleteObjects(urls);
-                } catch (Exception e) {
-                    log.warn("Failed to delete S3 objects for property {}: {}", propertyId, e.getMessage());
-                }
-            }
-        });
     }
 
     /** Parses {@code city:district} filter entries; rejects malformed ones rather than silently dropping. */

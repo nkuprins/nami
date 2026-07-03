@@ -6,7 +6,7 @@ import com.app.backend.enums.PropertyStatus;
 import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.service.EmailService;
-import com.app.backend.service.UploadService;
+import com.app.backend.service.MediaCleanupService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ class PropertyExpiryJobTest {
     @Mock private ListingRepository listingRepository;
     @Mock private PropertyRepository propertyRepository;
     @Mock private EmailService emailService;
-    @Mock private UploadService uploadService;
+    @Mock private MediaCleanupService mediaCleanupService;
 
     @InjectMocks
     private PropertyExpiryJob expiryJob;
@@ -158,7 +158,7 @@ class PropertyExpiryJobTest {
     }
 
     @Test
-    void deletesS3Objects_afterCommit_forPurgedListings() {
+    void enqueuesS3Deletion_forPurgedListings() {
         User owner = user("owner@test.com");
         Listing l = listingWithPhotos(owner);
         l.setStatus(PropertyStatus.INACTIVE);
@@ -169,10 +169,7 @@ class PropertyExpiryJobTest {
 
         expiryJob.runPropertyExpiryJob();
 
-        verify(uploadService, never()).deleteObjects(any());
-        triggerAfterCommit();
-
-        verify(uploadService).deleteObjects(List.of(
+        verify(mediaCleanupService).enqueue(List.of(
                 "https://cdn.test.local/uploads/photo1.jpg",
                 "https://cdn.test.local/uploads/photo2.jpg"
         ));
@@ -197,23 +194,6 @@ class PropertyExpiryJobTest {
     }
 
     @Test
-    void handlesS3Failure_gracefully_onPurge() {
-        User owner = user("owner@test.com");
-        Listing l = listingWithPhotos(owner);
-        l.setStatus(PropertyStatus.INACTIVE);
-        when(listingRepository.findInactiveExpiredBefore(eq(PropertyStatus.INACTIVE), any())).thenReturn(List.of(l));
-        when(listingRepository.findExpired(any(), any())).thenReturn(List.of());
-        when(listingRepository.findExpiringUnwarned(any(), any())).thenReturn(List.of());
-        when(listingRepository.countByPropertyId(l.getProperty().getId())).thenReturn(0L);
-        doThrow(new RuntimeException("S3 down")).when(uploadService).deleteObjects(any());
-
-        expiryJob.runPropertyExpiryJob();
-        triggerAfterCommit();
-
-        verify(listingRepository).deleteAll(List.of(l));
-    }
-
-    @Test
     void skipsS3Call_whenPurgedListingsHaveNoMedia() {
         User owner = user("owner@test.com");
         Listing l = listing(owner);
@@ -226,7 +206,7 @@ class PropertyExpiryJobTest {
         expiryJob.runPropertyExpiryJob();
         triggerAfterCommit();
 
-        verify(uploadService, never()).deleteObjects(any());
+        verify(mediaCleanupService, never()).enqueue(any());
     }
 
     @Test
@@ -239,6 +219,6 @@ class PropertyExpiryJobTest {
 
         verify(listingRepository, never()).deleteAll(any());
         verify(emailService, never()).sendListingExpiredEmail(any(), any(), any());
-        verify(uploadService, never()).deleteObjects(any());
+        verify(mediaCleanupService, never()).enqueue(any());
     }
 }

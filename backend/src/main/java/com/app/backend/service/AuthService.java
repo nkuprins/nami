@@ -48,7 +48,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final CookieFactory cookieFactory;
     private final EmailService emailService;
-    private final UploadService uploadService;
+    private final MediaCleanupService mediaCleanupService;
     private final PropertyMapper propertyMapper;
     private final AppProperties props;
 
@@ -145,16 +145,7 @@ public class AuthService {
         log.info("Account deleted: {}", userId);
 
         if (!allFileUrls.isEmpty()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    try {
-                        uploadService.deleteObjects(allFileUrls);
-                    } catch (Exception e) {
-                        log.warn("Failed to delete S3 objects for user {}: {}", userId, e.getMessage());
-                    }
-                }
-            });
+            mediaCleanupService.enqueue(allFileUrls);
         }
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookieFactory.clearAccessToken().toString());

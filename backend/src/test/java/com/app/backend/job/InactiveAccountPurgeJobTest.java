@@ -5,7 +5,7 @@ import com.app.backend.entity.User;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.service.EmailService;
-import com.app.backend.service.UploadService;
+import com.app.backend.service.MediaCleanupService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class InactiveAccountPurgeJobTest {
 
     @Mock private UserRepository userRepository;
     @Mock private PropertyRepository propertyRepository;
-    @Mock private UploadService uploadService;
+    @Mock private MediaCleanupService mediaCleanupService;
     @Mock private EmailService emailService;
 
     @InjectMocks
@@ -66,7 +66,7 @@ class InactiveAccountPurgeJobTest {
         triggerAfterCommit();
 
         verify(userRepository).delete(inactive);
-        verify(uploadService).deleteObjects(List.of(
+        verify(mediaCleanupService).enqueue(List.of(
                 "https://cdn.test.local/uploads/photo1.jpg",
                 "https://cdn.test.local/uploads/photo2.jpg"
         ));
@@ -80,22 +80,7 @@ class InactiveAccountPurgeJobTest {
         purgeJob.runInactiveAccountJob();
 
         verify(userRepository, never()).delete(any());
-        verify(uploadService, never()).deleteObjects(any());
-    }
-
-    @Test
-    void handlesS3Failure_gracefully() {
-        User inactive = user("inactive@test.com");
-        Listing listing = listingWithPhotos(inactive);
-        when(userRepository.findAboutToBeInactive(any(), any(), any())).thenReturn(List.of());
-        when(userRepository.findInactiveWithoutActiveListings(any(), any())).thenReturn(List.of(inactive));
-        when(propertyRepository.findByOwner(inactive)).thenReturn(List.of(listing.getProperty()));
-        doThrow(new RuntimeException("S3 down")).when(uploadService).deleteObjects(any());
-
-        purgeJob.runInactiveAccountJob();
-        triggerAfterCommit();
-
-        verify(userRepository).delete(inactive);
+        verify(mediaCleanupService, never()).enqueue(any());
     }
 
     @Test
