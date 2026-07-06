@@ -24,6 +24,16 @@ spring:
         format_sql: ${SHOW_SQL:false}
         dialect: org.hibernate.dialect.PostgreSQLDialect
         default_batch_fetch_size: 16
+  rabbitmq:
+    addresses: ${RABBITMQ_ADDRESSES:amqp://guest:guest@localhost:5672}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 2s
+          multiplier: 2
+        default-requeue-rejected: false
 
 app:
   cors:

@@ -211,12 +211,8 @@ CREATE INDEX idx_saved_listings_user    ON saved_listings (user_id);
 CREATE INDEX idx_saved_listings_listing ON saved_listings (listing_id);
 
 -- ─────────────────────────────────────────────
--- Pending media deletions (durable S3 cleanup)
+-- Pending media deletions (S3 cleanup)
 -- ─────────────────────────────────────────────
--- Media outlives the row that owns it, so the intent to delete it from S3 is
--- recorded here in the same transaction as the change that made it obsolete.
--- An immediate post-commit delete clears rows on the happy path; a daily drain
--- retries anything a crash or S3 error left behind, so media is never orphaned.
 CREATE TABLE pending_media_deletions (
     id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     cdn_url     TEXT        NOT NULL,

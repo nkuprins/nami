@@ -12,6 +12,7 @@ import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
 import { renderMarkdown } from '../../utils/renderMarkdown';
+import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import { getListing, deleteListing } from '../../api/listingsApi';
 import { useSavedStore } from '../../stores/savedStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -348,10 +349,11 @@ function openPlanLightbox(i: number) {
               <img
                 v-for="(url, i) in listing.media.plans"
                 :key="i"
-                :src="url"
+                :src="mediaVariant(url, 'card')"
                 class="w-full rounded-lg object-contain bg-surface cursor-pointer"
                 :alt="`${t('listing.plans')} ${i + 1}`"
                 @click="openPlanLightbox(i)"
+                @error="(e) => onVariantError(e, url)"
               />
             </div>
 

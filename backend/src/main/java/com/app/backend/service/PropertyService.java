@@ -17,6 +17,7 @@ import com.app.backend.entity.Property;
 import com.app.backend.entity.User;
 import com.app.backend.enums.*;
 import com.app.backend.mapper.PropertyMapper;
+import com.app.backend.messaging.ImageProcessingPublisher;
 import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
@@ -50,13 +51,14 @@ import java.util.UUID;
 public class PropertyService {
 
     private static final int PAGE_SIZE = 12;
-    private static final long MAX_PROPERTIES_PER_USER = 50;
+    private static final long MAX_PROPERTIES_PER_USER = 20;
 
     private final ListingRepository listingRepository;
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
     private final PropertyMapper propertyMapper;
     private final MediaCleanupService mediaCleanupService;
+    private final ImageProcessingPublisher imageProcessingPublisher;
 
     @Cacheable(cacheNames = CacheConfig.PROPERTY_LIST, key = "{#filter, #sort, #page}")
     @Transactional(readOnly = true)
@@ -117,6 +119,7 @@ public class PropertyService {
         propertyRepository.save(property);
         Listing saved = listingRepository.save(listing);
         log.info("Listing created: {} for property: {} by owner: {}", saved.getId(), property.getId(), ownerId);
+        imageProcessingPublisher.enqueue(property.getId(), property.allMediaUrls());
         return propertyMapper.toDto(saved);
     }
 
@@ -206,7 +209,21 @@ public class PropertyService {
         if (!removed.isEmpty()) {
             mediaCleanupService.enqueue(removed);
         }
+
+        List<String> added = newMedia.stream().filter(u -> !oldMedia.contains(u)).toList();
+        imageProcessingPublisher.enqueue(property.getId(), added);
         return dto;
+    }
+
+    /** Re-queues every photo and plan of a property for variant generation — a recovery hatch for a lost publish. */
+    @Transactional(readOnly = true)
+    public void reprocessImages(UUID propertyId, UUID ownerId) {
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+        if (!property.getOwner().getId().equals(ownerId)) {
+            throw new ApiException(HttpStatus.FORBIDDEN);
+        }
+        imageProcessingPublisher.enqueue(property.getId(), property.allMediaUrls());
     }
 
     /**
@@ -215,7 +232,6 @@ public class PropertyService {
      * typo or disguised copy) is blocked unless the caller has confirmed it is a
      * genuinely different property.
      */
-    /** Caps how many properties a single account can create, to bound storage/compute use. */
     private void checkPropertyLimit(User owner) {
         if (propertyRepository.countByOwner(owner) >= MAX_PROPERTIES_PER_USER) {
             throw new ApiException(HttpStatus.CONFLICT,

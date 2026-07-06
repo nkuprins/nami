@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
 import { formatPrice } from '../../utils/format';
+import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import type { ListingType } from '../../types/listingItem';
 
 defineProps<{
@@ -33,9 +34,10 @@ const emit = defineEmits<{
         >
           <img
             v-if="photo"
-            :src="photo"
+            :src="mediaVariant(photo, 'thumb')"
             :alt="title"
             class="w-full h-full object-cover"
+            @error="(e) => onVariantError(e, photo!)"
           />
         </div>
 

@@ -2,6 +2,7 @@ package com.app.backend.service;
 
 import com.app.backend.config.AppProperties;
 import com.app.backend.dto.PresignResponse;
+import com.app.backend.exception.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,7 @@ import java.net.URL;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -65,6 +67,15 @@ class UploadServiceTest {
         List<PresignResponse> results = uploadService.presign(List.of("path/to/photo.jpg"));
 
         assertThat(results.getFirst().fileUrl()).contains("path_to_photo.jpg");
+    }
+
+    @Test
+    void presign_rejectsNonImageFiles() {
+        assertThatThrownBy(() -> uploadService.presign(List.of("floorplan.pdf")))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> uploadService.presign(List.of("noextension")))
+                .isInstanceOf(ApiException.class);
+        verifyNoInteractions(s3Presigner);
     }
 
     @Test

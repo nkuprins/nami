@@ -3,6 +3,7 @@ package com.app.backend;
 import com.app.backend.security.RateLimitFilter;
 import com.app.backend.testutil.AuthTestHelper;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
@@ -45,6 +46,7 @@ public abstract class IntegrationTestBase {
 
     @MockitoBean protected S3Client s3Client;
     @MockitoBean protected S3Presigner s3Presigner;
+    @MockitoBean protected RabbitTemplate rabbitTemplate;
 
     protected MockMvc mockMvc;
 

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { mediaVariant, onVariantError } from '../../../utils/mediaVariant';
+
 defineProps<{
   photos: string[];
   alt: string;
@@ -20,9 +22,10 @@ const emit = defineEmits<{
       @click="emit('open-lightbox', 0)"
     >
       <img
-        :src="photos[0]"
+        :src="mediaVariant(photos[0], 'card')"
         :alt="`${alt} — photo 1`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+        @error="(e) => onVariantError(e, photos[0])"
       />
     </div>
     <div
@@ -30,9 +33,10 @@ const emit = defineEmits<{
       @click="emit('open-lightbox', 1)"
     >
       <img
-        :src="photos[1]"
+        :src="mediaVariant(photos[1], 'card')"
         :alt="`${alt} — photo 2`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+        @error="(e) => onVariantError(e, photos[1])"
       />
     </div>
     <div
@@ -40,9 +44,10 @@ const emit = defineEmits<{
       @click="emit('open-lightbox', 2)"
     >
       <img
-        :src="photos[2]"
+        :src="mediaVariant(photos[2], 'card')"
         :alt="`${alt} — photo 3`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+        @error="(e) => onVariantError(e, photos[2])"
       />
       <button
         v-if="photos.length > 3"
@@ -65,9 +70,10 @@ const emit = defineEmits<{
       @click="emit('open-lightbox', 0)"
     >
       <img
-        :src="photos[0]"
+        :src="mediaVariant(photos[0], 'card')"
         :alt="`${alt} — photo 1`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+        @error="(e) => onVariantError(e, photos[0])"
       />
     </div>
     <div
@@ -75,9 +81,10 @@ const emit = defineEmits<{
       @click="emit('open-lightbox', 1)"
     >
       <img
-        :src="photos[1]"
+        :src="mediaVariant(photos[1], 'card')"
         :alt="`${alt} — photo 2`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+        @error="(e) => onVariantError(e, photos[1])"
       />
     </div>
   </div>
@@ -89,9 +96,10 @@ const emit = defineEmits<{
     @click="emit('open-lightbox', 0)"
   >
     <img
-      :src="photos[0]"
+      :src="mediaVariant(photos[0], 'card')"
       :alt="`${alt} — photo 1`"
       class="w-full max-h-[520px] object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+      @error="(e) => onVariantError(e, photos[0])"
     />
   </div>
 

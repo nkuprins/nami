@@ -11,6 +11,8 @@ spring:
         format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
         default_batch_fetch_size: 16
+  rabbitmq:
+    dynamic: false
 
 app:
   cors:

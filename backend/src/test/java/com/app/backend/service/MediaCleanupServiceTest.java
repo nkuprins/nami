@@ -53,19 +53,23 @@ class MediaCleanupServiceTest {
         TransactionSynchronizationManager.initSynchronization();
         when(uploadService.deleteObjects(anyList())).thenReturn(List.of());
 
-        mediaCleanupService.enqueue(List.of("url1", "url2"));
+        mediaCleanupService.enqueue(List.of("a.jpg", "b.jpg"));
 
         // Rows are persisted synchronously (in the caller's transaction) so a crash can't lose them.
+        // Each photo is expanded to its variant keys so no derivative is orphaned.
+        List<String> expanded = List.of(
+                "a.jpg", "a_thumb.jpg", "a_card.jpg",
+                "b.jpg", "b_thumb.jpg", "b_card.jpg");
         ArgumentCaptor<List<PendingMediaDeletion>> captor = ArgumentCaptor.forClass(List.class);
         verify(repository).saveAll(captor.capture());
         assertThat(captor.getValue()).extracting(PendingMediaDeletion::getCdnUrl)
-                .containsExactly("url1", "url2");
+                .containsExactlyElementsOf(expanded);
         // Nothing is deleted from S3 until the transaction commits.
         verifyNoInteractions(uploadService);
 
         triggerAfterCommit();
 
-        verify(uploadService).deleteObjects(List.of("url1", "url2"));
+        verify(uploadService).deleteObjects(expanded);
         verify(repository).deleteAll(anyList());
     }
 
