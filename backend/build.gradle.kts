@@ -14,6 +14,13 @@ group = "com.app"
 version = "0.0.1-SNAPSHOT"
 description = "backend"
 
+val thumbnailatorVersion = "0.4.20"
+val jjwtVersion = "0.12.6"
+val bucket4jVersion = "8.10.1"
+val awsSdkBomVersion = "2.30.17"
+val instancioVersion = "5.4.0"
+val archunitVersion = "1.4.2"
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(25)
@@ -40,15 +47,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-amqp")
     implementation("com.github.ben-manes.caffeine:caffeine")
-    implementation("net.coobird:thumbnailator:0.4.20")
-    implementation("io.jsonwebtoken:jjwt-api:0.12.6")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
-    implementation("com.bucket4j:bucket4j-core:8.10.1")
+    implementation("net.coobird:thumbnailator:$thumbnailatorVersion")
+    implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
+    implementation("com.bucket4j:bucket4j-core:$bucket4jVersion")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.postgresql:postgresql")
     annotationProcessor("org.hibernate.orm:hibernate-processor")
-    implementation(platform("software.amazon.awssdk:bom:2.30.17"))
+    implementation(platform("software.amazon.awssdk:bom:$awsSdkBomVersion"))
     implementation("software.amazon.awssdk:s3")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
@@ -56,8 +63,8 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("org.testcontainers:testcontainers-rabbitmq")
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
-    testImplementation("org.instancio:instancio-junit:5.4.0")
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
+    testImplementation("org.instancio:instancio-junit:$instancioVersion")
+    testImplementation("com.tngtech.archunit:archunit-junit5:$archunitVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     add("mockitoAgent", "org.mockito:mockito-core") { isTransitive = false }
 }
