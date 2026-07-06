@@ -44,6 +44,13 @@ class ArchUnitTest {
                     .as("Controllers must be annotated with @RestController or @RestControllerAdvice");
 
     @ArchTest
+    static final ArchRule image_worker_must_stay_db_free =
+            noClasses()
+                    .that().resideInAPackage("..messaging.worker..")
+                    .should().dependOnClassesThat().resideInAnyPackage("..repository..", "..service..")
+                    .as("The image worker must not touch persistence or business services, so it stays cleanly extractable");
+
+    @ArchTest
     static final ArchRule services_must_be_annotated =
             classes()
                     .that().resideInAPackage("..service..")

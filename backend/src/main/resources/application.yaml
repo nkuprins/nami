@@ -1,6 +1,10 @@
 spring:
   application:
     name: backend
+  # Role fail-safe: an instance with no SPRING_PROFILES_ACTIVE runs as web+scheduler (jobs on).
+  # A worker overrides this with SPRING_PROFILES_ACTIVE=worker (scheduler off, listener on).
+  profiles:
+    default: scheduler
   threads:
     virtual:
       enabled: true

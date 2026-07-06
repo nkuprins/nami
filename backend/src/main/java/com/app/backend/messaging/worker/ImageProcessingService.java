@@ -1,4 +1,4 @@
-package com.app.backend.service;
+package com.app.backend.messaging.worker;
 
 import com.app.backend.config.AppProperties;
 import com.app.backend.messaging.MediaVariants;
@@ -23,6 +23,9 @@ import java.util.Iterator;
  * Generates resized variants of an uploaded photo and stores them back in S3 under derived keys.
  * Idempotent: re-processing the same key just overwrites the variants, which is what makes safe
  * at-least-once delivery (and manual reprocessing) possible.
+ *
+ * <p>Part of the worker role: it depends only on the message, S3, and config — never on the DB —
+ * so it stays cleanly extractable (enforced by an ArchUnit boundary rule on {@code messaging.worker}).
  */
 @Slf4j
 @Service
