@@ -1,10 +1,10 @@
 package com.app.backend.repository;
 
-import com.app.backend.dto.LocalizedText;
-import com.app.backend.dto.Location;
-import com.app.backend.dto.Price;
-import com.app.backend.dto.PropertyDetails;
-import com.app.backend.dto.PropertyListItemDto;
+import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.model.Location;
+import com.app.backend.dto.property.model.Price;
+import com.app.backend.dto.property.model.PropertyDetails;
+import com.app.backend.dto.property.response.PropertyListItemDto;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.ListingTranslation;
 import com.app.backend.entity.Property;

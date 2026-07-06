@@ -1,5 +1,6 @@
-package com.app.backend.dto;
+package com.app.backend.dto.export;
 
+import com.app.backend.dto.property.response.PropertyItemDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 

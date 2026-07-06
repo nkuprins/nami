@@ -1,7 +1,7 @@
 package com.app.backend.controller;
 
 import com.app.backend.IntegrationTestBase;
-import com.app.backend.dto.PresignRequest;
+import com.app.backend.dto.upload.PresignRequest;
 import com.app.backend.entity.User;
 import com.app.backend.repository.UserRepository;
 import jakarta.servlet.http.Cookie;

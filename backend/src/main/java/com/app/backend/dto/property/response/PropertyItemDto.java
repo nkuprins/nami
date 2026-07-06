@@ -1,5 +1,10 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.response;
 
+import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.model.Location;
+import com.app.backend.dto.property.model.Media;
+import com.app.backend.dto.property.model.Price;
+import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
@@ -14,7 +19,7 @@ import java.util.UUID;
 
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record PropertyListItemDto(
+public record PropertyItemDto(
         UUID id,
         UUID propertyId,
         UUID ownerId,
@@ -25,7 +30,8 @@ public record PropertyListItemDto(
         Map<String, LocalizedText> translations,
         Location location,
         List<PropertyFeature> features,
-        String photo,
+        Media media,
+        List<String> phones,
         OffsetDateTime postedAt,
         PropertyCompletion completion,
         OffsetDateTime expiresAt

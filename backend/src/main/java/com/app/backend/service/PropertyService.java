@@ -1,16 +1,16 @@
 package com.app.backend.service;
 
-import com.app.backend.dto.AddListingRequest;
-import com.app.backend.dto.CreatePropertyRequest;
-import com.app.backend.dto.Location;
-import com.app.backend.dto.PropertyDto;
-import com.app.backend.dto.PropertyFilter;
-import com.app.backend.dto.PropertyItemDto;
-import com.app.backend.dto.PropertyListItemDto;
-import com.app.backend.dto.PropertyPageResponse;
-import com.app.backend.dto.RenewPropertyRequest;
-import com.app.backend.dto.UpdateListingRequest;
-import com.app.backend.dto.UpdatePropertyRequest;
+import com.app.backend.dto.property.request.AddListingRequest;
+import com.app.backend.dto.property.request.CreatePropertyRequest;
+import com.app.backend.dto.property.model.Location;
+import com.app.backend.dto.property.response.PropertyDto;
+import com.app.backend.dto.property.request.PropertyFilter;
+import com.app.backend.dto.property.response.PropertyItemDto;
+import com.app.backend.dto.property.response.PropertyListItemDto;
+import com.app.backend.dto.property.response.PropertyPageResponse;
+import com.app.backend.dto.property.request.RenewPropertyRequest;
+import com.app.backend.dto.property.request.UpdateListingRequest;
+import com.app.backend.dto.property.request.UpdatePropertyRequest;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.Listing_;
 import com.app.backend.entity.Property;

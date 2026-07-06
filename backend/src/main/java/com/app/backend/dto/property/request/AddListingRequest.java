@@ -1,10 +1,9 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.request;
 
+import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.model.Price;
 import com.app.backend.enums.ListingType;
-import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
-import com.app.backend.enums.PropertyFeature;
-import com.app.backend.validation.ValidPropertyRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -15,19 +14,17 @@ import lombok.Builder;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Adds a new listing (e.g. rent) to a property that already has at least one
+ * other listing (e.g. buy). The property's physical attributes, location and
+ * media are not repeated here — they already exist on the target property.
+ */
 @Builder(toBuilder = true)
-@ValidPropertyRequest
-public record CreatePropertyRequest(
+public record AddListingRequest(
         @NotNull ListingType type,
-        @NotNull PropertyCategory propertyKind,
         @NotNull @Valid Price price,
-        @NotNull @Valid PropertyDetails details,
         Map<String, LocalizedText> translations,
-        @NotNull @Valid Location location,
-        List<PropertyFeature> features,
-        @Valid Media media,
         List<@NotBlank String> phones,
         PropertyCompletion completion,
-        @NotNull @Min(1) @Max(6) Integer durationMonths,
-        Boolean confirmedDuplicate
-) implements PropertyRequest {}
+        @NotNull @Min(1) @Max(6) Integer durationMonths
+) {}

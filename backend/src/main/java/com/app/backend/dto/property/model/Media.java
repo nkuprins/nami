@@ -1,4 +1,4 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;

@@ -1,6 +1,8 @@
 package com.app.backend.service;
 
-import com.app.backend.dto.*;
+import com.app.backend.dto.property.model.*;
+import com.app.backend.dto.property.request.*;
+import com.app.backend.dto.property.response.*;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.Listing_;
 import com.app.backend.entity.Property;

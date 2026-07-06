@@ -1,4 +1,4 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.model;
 
 import com.app.backend.enums.BathroomLayout;
 import com.app.backend.enums.EnergyClass;

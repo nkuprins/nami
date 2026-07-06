@@ -1,9 +1,9 @@
 package com.app.backend.service;
 
 import com.app.backend.config.AppProperties;
-import com.app.backend.dto.PropertyItemDto;
-import com.app.backend.dto.SavedPropertyExportDto;
-import com.app.backend.dto.UserExportDto;
+import com.app.backend.dto.property.response.PropertyItemDto;
+import com.app.backend.dto.export.SavedPropertyExportDto;
+import com.app.backend.dto.export.UserExportDto;
 import com.app.backend.dto.auth.*;
 import com.app.backend.entity.EmailVerificationToken;
 import com.app.backend.entity.PasswordResetToken;

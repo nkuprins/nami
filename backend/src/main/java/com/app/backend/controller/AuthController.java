@@ -1,6 +1,6 @@
 package com.app.backend.controller;
 
-import com.app.backend.dto.UserExportDto;
+import com.app.backend.dto.export.UserExportDto;
 import com.app.backend.dto.auth.*;
 import com.app.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;

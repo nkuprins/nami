@@ -1,5 +1,7 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.request;
 
+import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.model.Price;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCompletion;
 import jakarta.validation.Valid;
