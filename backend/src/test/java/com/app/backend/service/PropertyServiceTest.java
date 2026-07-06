@@ -1,5 +1,6 @@
 package com.app.backend.service;
 
+import com.app.backend.config.AppProperties;
 import com.app.backend.dto.property.model.*;
 import com.app.backend.dto.property.request.*;
 import com.app.backend.dto.property.response.*;
@@ -68,8 +69,11 @@ class PropertyServiceTest {
     @BeforeEach
     void initTransactionSync() {
         propertyAccess = new PropertyAccess(propertyRepository, listingRepository);
+        AppProperties props = new AppProperties(null,
+                new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"),
+                null, null, null, null, null);
         propertyService = new PropertyService(propertyRepository, listingRepository, userRepository,
-                propertyMapper, mediaCleanupService, imageProcessingPublisher, propertyAccess);
+                propertyMapper, mediaCleanupService, imageProcessingPublisher, propertyAccess, props);
         listingService = new ListingService(listingRepository, propertyMapper, propertyAccess);
         propertyQueryService = new PropertyQueryService(propertyMapper, propertyAccess);
         listingQueryService = new ListingQueryService(listingRepository, userRepository, propertyMapper);
@@ -267,6 +271,23 @@ class PropertyServiceTest {
             verify(imageProcessingPublisher).enqueue(any(), eq(List.of(
                     "https://cdn.test.local/uploads/a.jpg",
                     "https://cdn.test.local/uploads/plan.jpg")));
+        }
+
+        @Test
+        void throwsBadRequest_whenPhotoUrlIsNotOnOurCdn() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            doAnswer(inv -> {
+                Property prop = inv.getArgument(1);
+                prop.setPhotos(new ArrayList<>(List.of("https://evil.example.com/../secret.jpg")));
+                return null;
+            }).when(propertyMapper).applyCommon(any(), any(), any());
+
+            assertThatThrownBy(() -> propertyService.create(createPropertyRequest(), owner.getId()))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(400));
+            verify(propertyRepository, never()).save(any());
+            verifyNoInteractions(imageProcessingPublisher);
         }
 
         @Test

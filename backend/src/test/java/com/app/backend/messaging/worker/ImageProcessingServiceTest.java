@@ -10,6 +10,8 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import javax.imageio.ImageIO;
@@ -36,6 +38,11 @@ class ImageProcessingServiceTest {
 
     private final ImageProcessingService service = new ImageProcessingService(s3Client, props);
 
+    private void stubHeadSize(long bytes) {
+        when(s3Client.headObject(any(HeadObjectRequest.class)))
+                .thenReturn(HeadObjectResponse.builder().contentLength(bytes).build());
+    }
+
     private static byte[] jpeg(int width, int height) throws IOException {
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -51,6 +58,7 @@ class ImageProcessingServiceTest {
 
     @Test
     void process_generatesThumbAndCardVariants_atExpectedWidths() throws IOException {
+        stubHeadSize(1_000_000);
         when(s3Client.getObjectAsBytes(any(GetObjectRequest.class)))
                 .thenReturn(ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), jpeg(1600, 1200)));
 
@@ -67,7 +75,26 @@ class ImageProcessingServiceTest {
     }
 
     @Test
+    void process_rejectsUrlNotOnOurCdn() {
+        assertThatThrownBy(() -> service.process("https://evil.example.com/../secret-backup.jpg"))
+                .isInstanceOf(IllegalStateException.class);
+
+        org.mockito.Mockito.verifyNoInteractions(s3Client);
+    }
+
+    @Test
+    void process_rejectsObjectOverSizeLimit_withoutDownloading() {
+        stubHeadSize(20L * 1024 * 1024);
+
+        assertThatThrownBy(() -> service.process("https://cdn.test.local/uploads/x/huge.jpg"))
+                .isInstanceOf(IllegalStateException.class);
+
+        verify(s3Client, org.mockito.Mockito.never()).getObjectAsBytes(any(GetObjectRequest.class));
+    }
+
+    @Test
     void process_rejectsUnreadableBytes() {
+        stubHeadSize(1_000_000);
         when(s3Client.getObjectAsBytes(any(GetObjectRequest.class)))
                 .thenReturn(ResponseBytes.fromByteArray(GetObjectResponse.builder().build(), "not an image".getBytes()));
 

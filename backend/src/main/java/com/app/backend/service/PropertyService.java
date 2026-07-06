@@ -15,6 +15,7 @@ import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.validation.AddressMatcher;
+import com.app.backend.config.AppProperties;
 import com.app.backend.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ public class PropertyService {
     private final MediaCleanupService mediaCleanupService;
     private final ImageProcessingPublisher imageProcessingPublisher;
     private final PropertyAccess propertyAccess;
+    private final AppProperties props;
 
     @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true)
     @Transactional
@@ -62,6 +64,7 @@ public class PropertyService {
         listing.setOwner(owner);
 
         propertyMapper.applyCommon(listing, property, req);
+        validateMediaUrls(property.allMediaUrls());
 
         Location location = req.location();
         property.setDistrictSlug(location.district());
@@ -94,6 +97,7 @@ public class PropertyService {
         List<String> oldMedia = new ArrayList<>(property.allMediaUrls());
 
         propertyMapper.applyPropertyFields(property, req);
+        validateMediaUrls(property.allMediaUrls());
         PropertyDto dto = propertyMapper.toPropertyDto(propertyRepository.save(property));
 
         List<String> newMedia = property.allMediaUrls();
@@ -130,6 +134,21 @@ public class PropertyService {
 
         if (!allMediaUrls.isEmpty()) {
             mediaCleanupService.enqueue(allMediaUrls);
+        }
+    }
+
+    /**
+     * Rejects photo/plan URLs that don't point at our own CDN. These strings are stored verbatim,
+     * rendered as {@code <img src>} to every viewer, and later handed to the image worker as an S3 key,
+     * so an arbitrary URL is both an SSRF-on-viewer and an arbitrary-bucket-key risk. (Excludes
+     * {@code videoUrl}, which is a legitimately external link and not part of {@code allMediaUrls}.)
+     */
+    private void validateMediaUrls(List<String> mediaUrls) {
+        String prefix = props.s3().cdnUrl() + "/";
+        for (String url : mediaUrls) {
+            if (!url.startsWith(prefix)) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Media URL is not an uploaded file: " + url);
+            }
         }
     }
 
