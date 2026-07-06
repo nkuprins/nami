@@ -39,7 +39,7 @@ const query = computed(() =>
 // Strip apartment/unit suffixes so "Jēkaba iela 5, apt 3" → "Jēkaba iela 5"
 function stripApartment(addr: string): string {
   return addr
-    .replace(/,?\s*(?:apt\.?|apartaments?|dz\.?|flat)\s*\d+/i, '')
+    .replace(/,?\s{0,3}(?:apt\.?|apartaments?|dz\.?|flat)\s{0,3}\d+/i, '')
     .trim();
 }
 
