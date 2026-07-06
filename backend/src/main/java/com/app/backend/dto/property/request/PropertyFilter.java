@@ -1,4 +1,4 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.request;
 
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;

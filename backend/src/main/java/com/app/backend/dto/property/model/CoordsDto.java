@@ -1,4 +1,4 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.model;
 
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;

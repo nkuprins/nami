@@ -1,7 +1,7 @@
 package com.app.backend.service;
 
 import com.app.backend.config.AppProperties;
-import com.app.backend.dto.PresignResponse;
+import com.app.backend.dto.upload.PresignResponse;
 import com.app.backend.exception.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

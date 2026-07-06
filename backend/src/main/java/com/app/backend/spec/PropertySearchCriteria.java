@@ -1,6 +1,6 @@
 package com.app.backend.spec;
 
-import com.app.backend.dto.PropertyFilter;
+import com.app.backend.dto.property.request.PropertyFilter;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
 import com.app.backend.enums.ListingType;

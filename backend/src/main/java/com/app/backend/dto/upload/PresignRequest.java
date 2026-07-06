@@ -1,4 +1,4 @@
-package com.app.backend.dto;
+package com.app.backend.dto.upload;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;

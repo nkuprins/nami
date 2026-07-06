@@ -2,8 +2,8 @@ package com.app.backend.service;
 
 import com.app.backend.IntegrationTestBase;
 import com.app.backend.config.CacheConfig;
-import com.app.backend.dto.PropertyFilter;
-import com.app.backend.dto.PropertyItemDto;
+import com.app.backend.dto.property.request.PropertyFilter;
+import com.app.backend.dto.property.response.PropertyItemDto;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.Property;
 import com.app.backend.entity.User;

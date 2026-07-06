@@ -1,7 +1,7 @@
 package com.app.backend.validation;
 
-import com.app.backend.dto.CreatePropertyRequest;
-import com.app.backend.dto.LocalizedText;
+import com.app.backend.dto.property.request.CreatePropertyRequest;
+import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;

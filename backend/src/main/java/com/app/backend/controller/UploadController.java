@@ -1,7 +1,7 @@
 package com.app.backend.controller;
 
-import com.app.backend.dto.PresignRequest;
-import com.app.backend.dto.PresignResponse;
+import com.app.backend.dto.upload.PresignRequest;
+import com.app.backend.dto.upload.PresignResponse;
 import com.app.backend.service.UploadService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,5 +1,9 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.request;
 
+import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.model.Media;
+import com.app.backend.dto.property.model.Price;
+import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;

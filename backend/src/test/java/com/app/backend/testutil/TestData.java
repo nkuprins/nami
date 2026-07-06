@@ -1,15 +1,15 @@
 package com.app.backend.testutil;
 
-import com.app.backend.dto.AddListingRequest;
-import com.app.backend.dto.CoordsDto;
-import com.app.backend.dto.CreatePropertyRequest;
-import com.app.backend.dto.LocalizedText;
-import com.app.backend.dto.Location;
-import com.app.backend.dto.Media;
-import com.app.backend.dto.Price;
-import com.app.backend.dto.PropertyDetails;
-import com.app.backend.dto.UpdateListingRequest;
-import com.app.backend.dto.UpdatePropertyRequest;
+import com.app.backend.dto.property.request.AddListingRequest;
+import com.app.backend.dto.property.model.CoordsDto;
+import com.app.backend.dto.property.request.CreatePropertyRequest;
+import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.model.Location;
+import com.app.backend.dto.property.model.Media;
+import com.app.backend.dto.property.model.Price;
+import com.app.backend.dto.property.model.PropertyDetails;
+import com.app.backend.dto.property.request.UpdateListingRequest;
+import com.app.backend.dto.property.request.UpdatePropertyRequest;
 import com.app.backend.dto.auth.LoginRequest;
 import com.app.backend.dto.auth.RegisterRequest;
 import com.app.backend.entity.*;

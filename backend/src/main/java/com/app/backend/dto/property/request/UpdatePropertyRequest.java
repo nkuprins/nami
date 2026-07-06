@@ -1,5 +1,8 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.request;
 
+import com.app.backend.dto.property.model.Location;
+import com.app.backend.dto.property.model.Media;
+import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyFeature;
 import jakarta.validation.Valid;

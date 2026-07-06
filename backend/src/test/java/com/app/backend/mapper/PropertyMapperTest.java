@@ -1,7 +1,7 @@
 package com.app.backend.mapper;
 
-import com.app.backend.dto.PropertyItemDto;
-import com.app.backend.dto.PropertyListItemDto;
+import com.app.backend.dto.property.response.PropertyItemDto;
+import com.app.backend.dto.property.response.PropertyListItemDto;
 import com.app.backend.entity.*;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;

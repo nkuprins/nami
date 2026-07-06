@@ -1,4 +1,4 @@
-package com.app.backend.dto;
+package com.app.backend.dto.property.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

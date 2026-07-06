@@ -1,6 +1,7 @@
 package com.app.backend.controller;
 
-import com.app.backend.dto.*;
+import com.app.backend.dto.property.request.*;
+import com.app.backend.dto.property.response.*;
 import com.app.backend.service.PropertyService;
 import com.app.backend.service.TurnstileService;
 import jakarta.servlet.http.HttpServletRequest;

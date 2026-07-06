@@ -1,4 +1,4 @@
-package com.app.backend.dto;
+package com.app.backend.dto.export;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
