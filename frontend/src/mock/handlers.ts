@@ -51,13 +51,23 @@ function toListItem(item: CatalogItem) {
   };
 }
 
-// In-memory mock auth state
+// In-memory mock auth state. VITE_MOCK_AUTO_LOGIN seeds an already-signed-in
+// user (owning MOCK_OWNED_PROPERTY_IDS) so E2E/Playwright runs skip the login
+// form entirely — see mock/index.ts for the matching session-cookie bypass.
 let mockUser: {
   id: string;
   name: string;
   email: string;
   emailVerified: boolean;
-} | null = null;
+} | null =
+  import.meta.env.VITE_MOCK_AUTO_LOGIN === 'true'
+    ? {
+        id: MOCK_OWNER_ID,
+        name: 'Jānis Bērziņš',
+        email: 'janis.berzins@gmail.com',
+        emailVerified: true,
+      }
+    : null;
 
 const mockSavedIds = new Set<string>();
 
