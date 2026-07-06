@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import javax.imageio.ImageIO;
@@ -35,11 +36,15 @@ public class ImageProcessingService {
     /** Reject decompression bombs before allocating a full raster. */
     private static final long MAX_PIXELS = 40_000_000L;
 
+    /** Cap the download so a large object can't OOM the worker before the pixel guard runs. */
+    private static final long MAX_BYTES = 15L * 1024 * 1024;
+
     private final S3Client s3Client;
     private final AppProperties props;
 
     public void process(String originalCdnUrl) {
-        String key = originalCdnUrl.replace(props.s3().cdnUrl() + "/", "");
+        String key = keyFromCdnUrl(originalCdnUrl);
+        guardSize(key);
         byte[] original = download(key);
         guardDimensions(original);
 
@@ -50,6 +55,24 @@ public class ImageProcessingService {
             upload(MediaVariants.derive(key, variant.suffix()), resized, contentType);
         }
         log.info("Generated {} variants for {}", MediaVariants.ALL.size(), key);
+    }
+    
+    private String keyFromCdnUrl(String originalCdnUrl) {
+        String prefix = props.s3().cdnUrl() + "/";
+        if (!originalCdnUrl.startsWith(prefix)) {
+            throw new IllegalStateException("Not a CDN URL: " + originalCdnUrl);
+        }
+        return originalCdnUrl.substring(prefix.length());
+    }
+
+    private void guardSize(String key) {
+        long size = s3Client.headObject(HeadObjectRequest.builder()
+                .bucket(props.s3().bucket())
+                .key(key)
+                .build()).contentLength();
+        if (size > MAX_BYTES) {
+            throw new IllegalStateException("Image exceeds size limit: " + size);
+        }
     }
 
     private byte[] download(String key) {
