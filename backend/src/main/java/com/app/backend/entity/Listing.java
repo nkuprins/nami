@@ -13,7 +13,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
-import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -58,7 +57,7 @@ public class Listing {
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "completion")
-    private @Nullable PropertyCompletion completion;
+    private PropertyCompletion completion;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)

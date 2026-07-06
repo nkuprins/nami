@@ -14,7 +14,6 @@ import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
-import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -51,46 +50,46 @@ public class Property {
     private Short rooms;
 
     @Column(name = "bedrooms")
-    private @Nullable Short bedrooms;
+    private Short bedrooms;
 
     @Column(name = "bathrooms")
-    private @Nullable Short bathrooms;
+    private Short bathrooms;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "bathroom_layout")
-    private @Nullable BathroomLayout bathroomLayout;
+    private BathroomLayout bathroomLayout;
 
     @Column(name = "m2", nullable = false, precision = 6, scale = 2)
     private BigDecimal m2;
 
     @Column(name = "land_m2", precision = 8, scale = 2)
-    private @Nullable BigDecimal landM2;
+    private BigDecimal landM2;
 
     @Column(name = "floor")
-    private @Nullable Short floor;
+    private Short floor;
 
     @Column(name = "total_floors")
-    private @Nullable Short totalFloors;
+    private Short totalFloors;
 
     @Column(name = "year_built")
-    private @Nullable Short yearBuilt;
+    private Short yearBuilt;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "heating")
-    private @Nullable HeatingType heating;
+    private HeatingType heating;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "energy_class")
-    private @Nullable EnergyClass energyClass;
+    private EnergyClass energyClass;
 
     @Column(name = "maintenance_cost", precision = 10, scale = 2)
-    private @Nullable BigDecimal maintenanceCost;
+    private BigDecimal maintenanceCost;
 
     @Column(name = "video_url")
-    private @Nullable String videoUrl;
+    private String videoUrl;
 
     @Column(name = "district_slug", nullable = false)
     private String districtSlug;

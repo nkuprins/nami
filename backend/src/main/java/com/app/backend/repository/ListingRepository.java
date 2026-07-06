@@ -4,7 +4,6 @@ import com.app.backend.entity.Listing;
 import com.app.backend.entity.User;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyStatus;
-import org.jspecify.annotations.NullMarked;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -16,7 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@NullMarked
 public interface ListingRepository extends JpaRepository<Listing, UUID>, JpaSpecificationExecutor<Listing>, ListingRepositoryCustom {
 
     @EntityGraph(attributePaths = {"owner", "property", "translations"})

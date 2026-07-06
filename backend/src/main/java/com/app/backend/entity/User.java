@@ -7,7 +7,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -46,6 +45,6 @@ public class User {
     private OffsetDateTime updatedAt;
 
     @Column(name = "last_login_at")
-    private @Nullable OffsetDateTime lastLoginAt;
+    private OffsetDateTime lastLoginAt;
 
 }

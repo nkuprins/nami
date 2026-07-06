@@ -27,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import org.jspecify.annotations.Nullable;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -90,7 +89,7 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthUserResponse refresh(@Nullable String rawToken, HttpServletResponse response) {
+    public AuthUserResponse refresh(String rawToken, HttpServletResponse response) {
         if (rawToken == null || rawToken.isBlank()) {
             throw new AuthException(HttpStatus.UNAUTHORIZED, "INVALID_TOKEN", "Refresh token missing");
         }
@@ -112,7 +111,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(@Nullable String rawToken, HttpServletResponse response) {
+    public void logout(String rawToken, HttpServletResponse response) {
         if (rawToken != null && !rawToken.isBlank()) {
             refreshTokenRepository.findByTokenHash(jwtService.hashToken(rawToken))
                     .ifPresent(t -> {
