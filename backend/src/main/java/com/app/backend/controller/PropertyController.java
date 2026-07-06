@@ -2,6 +2,9 @@ package com.app.backend.controller;
 
 import com.app.backend.dto.property.request.*;
 import com.app.backend.dto.property.response.*;
+import com.app.backend.service.ListingQueryService;
+import com.app.backend.service.ListingService;
+import com.app.backend.service.PropertyQueryService;
 import com.app.backend.service.PropertyService;
 import com.app.backend.service.TurnstileService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +23,9 @@ import java.util.UUID;
 public class PropertyController {
 
     private final PropertyService propertyService;
+    private final ListingService listingService;
+    private final PropertyQueryService propertyQueryService;
+    private final ListingQueryService listingQueryService;
     private final TurnstileService turnstileService;
 
     @GetMapping
@@ -28,17 +34,17 @@ public class PropertyController {
             @RequestParam(defaultValue = "newest") String sort,
             @RequestParam(defaultValue = "1") int page
     ) {
-        return propertyService.list(filter, sort, page);
+        return listingQueryService.list(filter, sort, page);
     }
 
     @GetMapping("/mine")
     public List<PropertyListItemDto> mine(@AuthenticationPrincipal UUID userId) {
-        return propertyService.listByOwner(userId);
+        return listingQueryService.listByOwner(userId);
     }
 
     @GetMapping("/{id}")
     public PropertyItemDto getById(@PathVariable UUID id) {
-        return propertyService.getById(id);
+        return listingQueryService.getById(id);
     }
 
     @PostMapping
@@ -68,7 +74,7 @@ public class PropertyController {
             @PathVariable UUID propertyId,
             @RequestBody @Valid AddListingRequest request
     ) {
-        return propertyService.addListing(propertyId, request, userId);
+        return listingService.addListing(propertyId, request, userId);
     }
 
     @PutMapping("/{id}")
@@ -77,7 +83,7 @@ public class PropertyController {
             @PathVariable UUID id,
             @RequestBody @Valid UpdateListingRequest request
     ) {
-        return propertyService.updateListing(id, request, userId);
+        return listingService.updateListing(id, request, userId);
     }
 
     @GetMapping("/{propertyId}/property")
@@ -85,7 +91,7 @@ public class PropertyController {
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID propertyId
     ) {
-        return propertyService.getProperty(propertyId, userId);
+        return propertyQueryService.getProperty(propertyId, userId);
     }
 
     @PutMapping("/{propertyId}/property")
@@ -103,7 +109,7 @@ public class PropertyController {
             @PathVariable UUID id,
             @RequestBody @Valid RenewPropertyRequest request
     ) {
-        return propertyService.renew(id, request, userId);
+        return listingService.renew(id, request, userId);
     }
 
     @PostMapping("/{propertyId}/reprocess-images")
@@ -121,7 +127,7 @@ public class PropertyController {
             @AuthenticationPrincipal UUID userId,
             @PathVariable UUID id
     ) {
-        propertyService.deleteListing(id, userId);
+        listingService.deleteListing(id, userId);
     }
 
     @DeleteMapping("/{propertyId}/listings")

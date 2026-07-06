@@ -29,7 +29,8 @@ import static org.mockito.Mockito.verify;
 
 class PropertyServiceCacheTest extends IntegrationTestBase {
 
-    @Autowired private PropertyService propertyService;
+    @Autowired private ListingService listingService;
+    @Autowired private ListingQueryService listingQueryService;
     @Autowired private CacheManager cacheManager;
     @Autowired private UserRepository userRepository;
     @Autowired private PropertyRepository propertyRepository;
@@ -70,8 +71,8 @@ class PropertyServiceCacheTest extends IntegrationTestBase {
         Listing saved = saveListing();
         clearInvocations(listingRepository);
 
-        PropertyItemDto first = propertyService.getById(saved.getId());
-        PropertyItemDto second = propertyService.getById(saved.getId());
+        PropertyItemDto first = listingQueryService.getById(saved.getId());
+        PropertyItemDto second = listingQueryService.getById(saved.getId());
 
         assertThat(first.id()).isEqualTo(saved.getId());
         assertThat(second.id()).isEqualTo(saved.getId());
@@ -84,8 +85,8 @@ class PropertyServiceCacheTest extends IntegrationTestBase {
         saveListing();
         clearInvocations(listingRepository);
 
-        propertyService.list(buyFilter(), "newest", 1);
-        propertyService.list(buyFilter(), "newest", 1);
+        listingQueryService.list(buyFilter(), "newest", 1);
+        listingQueryService.list(buyFilter(), "newest", 1);
 
         verify(listingRepository, times(1)).findAllForList(any(), any());
     }
@@ -93,12 +94,12 @@ class PropertyServiceCacheTest extends IntegrationTestBase {
     @Test
     void delete_evictsBothCaches() {
         Listing saved = saveListing();
-        propertyService.getById(saved.getId());
-        propertyService.list(buyFilter(), "newest", 1);
+        listingQueryService.getById(saved.getId());
+        listingQueryService.list(buyFilter(), "newest", 1);
         assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(saved.getId())).isNotNull();
         assertThat(listCacheSize()).isEqualTo(1);
 
-        propertyService.deleteListing(saved.getId(), owner.getId());
+        listingService.deleteListing(saved.getId(), owner.getId());
 
         // @CacheEvict on delete: detail key evicted, list cache cleared entirely.
         assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(saved.getId())).isNull();
@@ -117,13 +118,13 @@ class PropertyServiceCacheTest extends IntegrationTestBase {
         saveListing();
         clearInvocations(listingRepository);
 
-        propertyService.list(buyFilter(), "newest", 1);
-        propertyService.list(buyFilter(), "price-asc", 1);
+        listingQueryService.list(buyFilter(), "newest", 1);
+        listingQueryService.list(buyFilter(), "price-asc", 1);
 
         // Different sort → different key → both hit the repository.
         verify(listingRepository, times(2)).findAllForList(any(), any());
         clearInvocations(listingRepository);
-        propertyService.list(buyFilter(), "newest", 1);
+        listingQueryService.list(buyFilter(), "newest", 1);
         verify(listingRepository, never()).findAllForList(any(), any());
     }
 }

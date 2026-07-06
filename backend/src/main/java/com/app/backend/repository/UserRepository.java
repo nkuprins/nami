@@ -2,7 +2,6 @@ package com.app.backend.repository;
 
 import com.app.backend.entity.User;
 import com.app.backend.enums.PropertyStatus;
-import org.jspecify.annotations.NullMarked;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -20,7 +20,6 @@ import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.SupportedLocale;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -144,7 +143,7 @@ public class PropertyMapper {
     }
 
     private static void applyPropertyFields(Property property, PropertyCategory kind, PropertyDetails details,
-                                             @Nullable Media media, @Nullable List<PropertyFeature> features) {
+                                             Media media, List<PropertyFeature> features) {
         property.setPropertyCategory(kind);
         applyDetails(property, details);
         applyMedia(property, media);
@@ -155,7 +154,7 @@ public class PropertyMapper {
     }
 
     private void applyListingFields(Listing listing, ListingType type, Price price, PropertyCompletion completion,
-                                     @Nullable Map<String, LocalizedText> translations, @Nullable List<String> phones) {
+                                     Map<String, LocalizedText> translations, List<String> phones) {
         listing.setListingType(type);
         listing.setPrice(price.amount());
         listing.setVatIncluded(Boolean.TRUE.equals(price.vatIncluded()));
@@ -164,7 +163,7 @@ public class PropertyMapper {
         listing.setPhones(nullToEmpty(phones));
     }
 
-    public void applyTranslations(Listing listing, @Nullable Map<String, LocalizedText> translations) {
+    public void applyTranslations(Listing listing, Map<String, LocalizedText> translations) {
         Map<String, LocalizedText> src = translations != null ? translations : Map.of();
         record Candidate(String locale, String title, String desc) {}
         List<Candidate> candidates = new ArrayList<>();
@@ -233,7 +232,7 @@ public class PropertyMapper {
         property.setMaintenanceCost(details.maintenanceCost());
     }
 
-    private static void applyMedia(Property property, @Nullable Media media) {
+    private static void applyMedia(Property property, Media media) {
         property.setPhotos(nullToEmpty(media != null ? media.photos() : null));
         property.setPlans(nullToEmpty(media != null ? media.plans() : null));
         property.setVideoUrl(media != null ? media.videoUrl() : null);

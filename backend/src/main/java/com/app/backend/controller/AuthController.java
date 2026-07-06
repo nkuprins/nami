@@ -6,7 +6,6 @@ import com.app.backend.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +32,7 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public AuthUserResponse refresh(
-            @CookieValue(name = "refresh_token", required = false) @Nullable String refreshToken,
+            @CookieValue(name = "refresh_token", required = false) String refreshToken,
             HttpServletResponse response) {
         return authService.refresh(refreshToken, response);
     }
@@ -41,7 +40,7 @@ public class AuthController {
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(
-            @CookieValue(name = "refresh_token", required = false) @Nullable String refreshToken,
+            @CookieValue(name = "refresh_token", required = false) String refreshToken,
             HttpServletResponse response) {
         authService.logout(refreshToken, response);
     }
