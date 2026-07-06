@@ -52,7 +52,9 @@ const specRow = computed(() => {
     >
       <div class="relative aspect-4/3 overflow-hidden shrink-0">
         <img
-          :src="property.photo ? mediaVariant(property.photo, 'card') : undefined"
+          :src="
+            property.photo ? mediaVariant(property.photo, 'card') : undefined
+          "
           :alt="title"
           class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           @error="(e) => property.photo && onVariantError(e, property.photo)"
