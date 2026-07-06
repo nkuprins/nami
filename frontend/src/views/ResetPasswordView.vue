@@ -50,7 +50,7 @@ async function submit() {
     return;
   }
   done.value = true;
-  void router.replace({ query: {} });
+  await router.replace({ query: {} });
 }
 </script>
 

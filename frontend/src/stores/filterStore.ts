@@ -53,7 +53,7 @@ export const useFiltersStore = defineStore('filters', () => {
     if (route.name !== 'home') return;
     const nextQuery = FilterCodec.toQuery(state);
     if (FilterCodec.isEqual(route.query, nextQuery)) return;
-    void router.replace({ query: nextQuery });
+    router.replace({ query: nextQuery });
   }
 
   // Handles when a user is interacting with checkboxes, dropdowns, and inputs on screen

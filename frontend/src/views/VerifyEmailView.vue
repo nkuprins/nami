@@ -24,7 +24,7 @@ onMounted(async () => {
     return;
   }
   const err = await verifyEmail(token);
-  void router.replace({ query: {} });
+  await router.replace({ query: {} });
   if (err) {
     status.value = 'error';
     errorMsg.value = err;

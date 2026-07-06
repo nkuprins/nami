@@ -64,111 +64,154 @@ const mockSavedIds = new Set<string>();
 type SortKey =
   'newest' | 'price-asc' | 'price-desc' | 'price-per-m2-asc' | 'm2-desc';
 
-function applyFilters(params: URLSearchParams) {
-  let items = [...dtoCatalog];
-
+function filterByType(items: CatalogItem[], params: URLSearchParams) {
   const type = params.get('type');
-  if (type) {
-    items = items.filter((i) => i.type === type);
-  }
+  if (!type) return items;
+  return items.filter((i) => i.type === type);
+}
 
+function filterByLocation(items: CatalogItem[], params: URLSearchParams) {
   const locs = params.getAll('loc');
-  if (locs.length) {
-    items = items.filter((i) =>
-      locs.some((loc) => {
-        const colon = loc.indexOf(':');
-        if (colon === -1) return false;
-        return (
-          i.location.city === loc.slice(0, colon) &&
-          i.location.district === loc.slice(colon + 1)
-        );
-      })
-    );
-  }
+  if (!locs.length) return items;
+  return items.filter((i) =>
+    locs.some((loc) => {
+      const colon = loc.indexOf(':');
+      if (colon === -1) return false;
+      return (
+        i.location.city === loc.slice(0, colon) &&
+        i.location.district === loc.slice(colon + 1)
+      );
+    })
+  );
+}
 
+function filterByPriceRange(items: CatalogItem[], params: URLSearchParams) {
   const priceMin = params.get('priceMin');
   const priceMax = params.get('priceMax');
-  if (priceMin) items = items.filter((i) => i.price.amount >= Number(priceMin));
-  if (priceMax) items = items.filter((i) => i.price.amount <= Number(priceMax));
+  let result = items;
+  if (priceMin)
+    result = result.filter((i) => i.price.amount >= Number(priceMin));
+  if (priceMax)
+    result = result.filter((i) => i.price.amount <= Number(priceMax));
+  return result;
+}
 
+function filterByRoomCounts(items: CatalogItem[], params: URLSearchParams) {
   const rooms = params.getAll('rooms').map(Number);
-  if (rooms.length)
-    items = items.filter((i) => rooms.includes(i.details.rooms));
-
   const bedrooms = params.getAll('bedrooms').map(Number);
+  const bathrooms = params.getAll('bathrooms').map(Number);
+  let result = items;
+  if (rooms.length)
+    result = result.filter((i) => rooms.includes(i.details.rooms));
   if (bedrooms.length)
-    items = items.filter(
+    result = result.filter(
       (i) => i.details.bedrooms != null && bedrooms.includes(i.details.bedrooms)
     );
-
-  const bathrooms = params.getAll('bathrooms').map(Number);
   if (bathrooms.length)
-    items = items.filter(
+    result = result.filter(
       (i) =>
         i.details.bathrooms != null && bathrooms.includes(i.details.bathrooms)
     );
+  return result;
+}
 
+function filterBySize(items: CatalogItem[], params: URLSearchParams) {
   const m2Min = params.get('m2Min');
   const m2Max = params.get('m2Max');
-  if (m2Min) items = items.filter((i) => i.details.m2 >= Number(m2Min));
-  if (m2Max) items = items.filter((i) => i.details.m2 <= Number(m2Max));
+  let result = items;
+  if (m2Min) result = result.filter((i) => i.details.m2 >= Number(m2Min));
+  if (m2Max) result = result.filter((i) => i.details.m2 <= Number(m2Max));
+  return result;
+}
 
+function filterByFloor(items: CatalogItem[], params: URLSearchParams) {
   const floorMin = params.get('floorMin');
   const floorMax = params.get('floorMax');
+  let result = items;
   if (floorMin)
-    items = items.filter(
+    result = result.filter(
       (i) => i.details.floor != null && i.details.floor >= Number(floorMin)
     );
   if (floorMax)
-    items = items.filter(
+    result = result.filter(
       (i) => i.details.floor != null && i.details.floor <= Number(floorMax)
     );
-
   if (params.get('notGround') === 'true')
-    items = items.filter((i) => i.details.floor == null || i.details.floor > 1);
+    result = result.filter(
+      (i) => i.details.floor == null || i.details.floor > 1
+    );
   if (params.get('notTop') === 'true')
-    items = items.filter(
+    result = result.filter(
       (i) =>
         i.details.floor == null ||
         i.details.totalFloors == null ||
         i.details.floor < i.details.totalFloors
     );
+  return result;
+}
 
+function filterByYear(items: CatalogItem[], params: URLSearchParams) {
   const yearMin = params.get('yearMin');
   const yearMax = params.get('yearMax');
+  let result = items;
   if (yearMin)
-    items = items.filter(
+    result = result.filter(
       (i) =>
         i.details.yearBuilt != null && i.details.yearBuilt >= Number(yearMin)
     );
   if (yearMax)
-    items = items.filter(
+    result = result.filter(
       (i) =>
         i.details.yearBuilt != null && i.details.yearBuilt <= Number(yearMax)
     );
+  return result;
+}
 
+function filterByHeating(items: CatalogItem[], params: URLSearchParams) {
   const heating = params.getAll('heating');
-  if (heating.length)
-    items = items.filter(
-      (i) => i.details.heating != null && heating.includes(i.details.heating)
-    );
+  if (!heating.length) return items;
+  return items.filter(
+    (i) => i.details.heating != null && heating.includes(i.details.heating)
+  );
+}
 
+function filterByEnergyClass(items: CatalogItem[], params: URLSearchParams) {
   const energyClass = params.getAll('energyClass');
-  if (energyClass.length)
-    items = items.filter(
-      (i) =>
-        i.details.energyClass != null &&
-        energyClass.includes(i.details.energyClass)
-    );
+  if (!energyClass.length) return items;
+  return items.filter(
+    (i) =>
+      i.details.energyClass != null &&
+      energyClass.includes(i.details.energyClass)
+  );
+}
 
+function filterByFeatures(items: CatalogItem[], params: URLSearchParams) {
   const features = params.getAll('features');
-  if (features.length)
-    items = items.filter((i) =>
-      features.every((f) => (i.features as string[] | null)?.includes(f))
-    );
+  if (!features.length) return items;
+  return items.filter((i) =>
+    features.every((f) => (i.features as string[] | null)?.includes(f))
+  );
+}
 
+function filterByCompletion(items: CatalogItem[], params: URLSearchParams) {
   const completion = params.get('completion');
-  if (completion) items = items.filter((i) => i.completion === completion);
+  if (!completion) return items;
+  return items.filter((i) => i.completion === completion);
+}
+
+function applyFilters(params: URLSearchParams) {
+  let items = [...dtoCatalog];
+  items = filterByType(items, params);
+  items = filterByLocation(items, params);
+  items = filterByPriceRange(items, params);
+  items = filterByRoomCounts(items, params);
+  items = filterBySize(items, params);
+  items = filterByFloor(items, params);
+  items = filterByYear(items, params);
+  items = filterByHeating(items, params);
+  items = filterByEnergyClass(items, params);
+  items = filterByFeatures(items, params);
+  items = filterByCompletion(items, params);
 
   const sort = (params.get('sort') ?? 'newest') as SortKey;
   const sorters: Record<SortKey, (a: CatalogItem, b: CatalogItem) => number> = {

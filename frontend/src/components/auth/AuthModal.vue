@@ -61,55 +61,64 @@ function switchTab(t: 'signin' | 'signup') {
   termsError.value = false;
 }
 
+async function submitForgot() {
+  if (!email.value) {
+    error.value = t('auth.enterEmail');
+    return;
+  }
+  await forgotPassword(email.value);
+  forgotSent.value = true;
+}
+
+async function submitSignin() {
+  if (!email.value || !password.value) {
+    error.value = t('auth.fillAllFields');
+    return;
+  }
+  const result = await login(email.value, password.value);
+  if (result === null) {
+    close();
+    return;
+  }
+  if (result === ERROR_EMAIL_NOT_VERIFIED) {
+    unverifiedEmail.value = email.value;
+    error.value = ERROR_EMAIL_NOT_VERIFIED;
+    return;
+  }
+  error.value = result;
+}
+
+async function submitSignup() {
+  if (!name.value || !email.value || !password.value) {
+    error.value = t('auth.fillAllFields');
+    return;
+  }
+  if (password.value.length < MIN_PASSWORD_LENGTH) {
+    error.value = t('auth.passwordLength');
+    return;
+  }
+  if (!agreedToTerms.value) {
+    termsError.value = true;
+    return;
+  }
+  const result = await signup(name.value, email.value, password.value);
+  if (typeof result === 'object') {
+    pendingVerification.value = true;
+    return;
+  }
+  error.value = result;
+}
+
 async function submit() {
   error.value = '';
   submitting.value = true;
   try {
     if (mode.value === 'forgot') {
-      if (!email.value) {
-        error.value = t('auth.enterEmail');
-        return;
-      }
-      await forgotPassword(email.value);
-      forgotSent.value = true;
-      return;
-    }
-
-    if (tab.value === 'signin') {
-      if (!email.value || !password.value) {
-        error.value = t('auth.fillAllFields');
-        return;
-      }
-      const result = await login(email.value, password.value);
-      if (result === null) {
-        close();
-        return;
-      }
-      if (result === ERROR_EMAIL_NOT_VERIFIED) {
-        unverifiedEmail.value = email.value;
-        error.value = ERROR_EMAIL_NOT_VERIFIED;
-        return;
-      }
-      error.value = result;
+      await submitForgot();
+    } else if (tab.value === 'signin') {
+      await submitSignin();
     } else {
-      if (!name.value || !email.value || !password.value) {
-        error.value = t('auth.fillAllFields');
-        return;
-      }
-      if (password.value.length < MIN_PASSWORD_LENGTH) {
-        error.value = t('auth.passwordLength');
-        return;
-      }
-      if (!agreedToTerms.value) {
-        termsError.value = true;
-        return;
-      }
-      const result = await signup(name.value, email.value, password.value);
-      if (typeof result === 'object') {
-        pendingVerification.value = true;
-        return;
-      }
-      error.value = result;
+      await submitSignup();
     }
   } finally {
     submitting.value = false;
