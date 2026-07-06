@@ -3,6 +3,7 @@ import type { ListingSummary } from '../../types/listingItem';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { resolveTitle } from '../../types/listingItem';
+import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import StatusPill from './StatusPill.vue';
@@ -51,9 +52,10 @@ const specRow = computed(() => {
     >
       <div class="relative aspect-4/3 overflow-hidden shrink-0">
         <img
-          :src="property.photo ?? undefined"
+          :src="property.photo ? mediaVariant(property.photo, 'card') : undefined"
           :alt="title"
           class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          @error="(e) => property.photo && onVariantError(e, property.photo)"
         />
 
         <div class="absolute top-3 left-3 z-10 flex items-center gap-1.5">

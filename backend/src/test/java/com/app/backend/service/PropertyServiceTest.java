@@ -10,6 +10,7 @@ import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.mapper.PropertyMapper;
+import com.app.backend.messaging.ImageProcessingPublisher;
 import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
@@ -44,6 +45,7 @@ import java.util.UUID;
 import static com.app.backend.testutil.TestData.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,6 +56,7 @@ class PropertyServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private PropertyMapper propertyMapper;
     @Mock private MediaCleanupService mediaCleanupService;
+    @Mock private ImageProcessingPublisher imageProcessingPublisher;
 
     @InjectMocks
     private PropertyService propertyService;
@@ -229,6 +232,31 @@ class PropertyServiceTest {
             assertThat(result).isNotNull();
             verify(propertyRepository).save(any(Property.class));
             verify(listingRepository).save(any(Listing.class));
+        }
+
+        @Test
+        void publishesPhotosAndPlansForProcessing() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            when(propertyRepository.save(any())).thenAnswer(inv -> {
+                Property p = inv.getArgument(0);
+                p.setId(UUID.randomUUID());
+                return p;
+            });
+            when(listingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+            doAnswer(inv -> {
+                Property prop = inv.getArgument(1);
+                prop.setPhotos(new ArrayList<>(List.of("https://cdn.test.local/uploads/a.jpg")));
+                prop.setPlans(new ArrayList<>(List.of("https://cdn.test.local/uploads/plan.jpg")));
+                return null;
+            }).when(propertyMapper).applyCommon(any(), any(), any());
+
+            propertyService.create(createPropertyRequest(), owner.getId());
+
+            verify(imageProcessingPublisher).enqueue(any(), eq(List.of(
+                    "https://cdn.test.local/uploads/a.jpg",
+                    "https://cdn.test.local/uploads/plan.jpg")));
         }
 
         @Test
@@ -421,6 +449,29 @@ class PropertyServiceTest {
         }
 
         @Test
+        void publishesOnlyNewlyAddedPhotos() {
+            User owner = user();
+            Property p = listingWithPhotos(owner).getProperty(); // photo1, photo2
+            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
+            when(propertyRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
+            doAnswer(inv -> {
+                Property prop = inv.getArgument(0);
+                prop.setPhotos(new ArrayList<>(List.of(
+                        "https://cdn.test.local/uploads/photo1.jpg",
+                        "https://cdn.test.local/uploads/photo2.jpg",
+                        "https://cdn.test.local/uploads/photo3.jpg")));
+                prop.setPlans(new ArrayList<>());
+                return null;
+            }).when(propertyMapper).applyPropertyFields(any(), any());
+
+            propertyService.updateProperty(p.getId(), updatePropertyRequest(), owner.getId());
+
+            verify(imageProcessingPublisher).enqueue(eq(p.getId()),
+                    eq(List.of("https://cdn.test.local/uploads/photo3.jpg")));
+        }
+
+        @Test
         void doesNotDeleteS3_whenNoPhotosRemoved() {
             User owner = user();
             Property p = listingWithPhotos(owner).getProperty();
@@ -581,6 +632,32 @@ class PropertyServiceTest {
 
             verify(propertyRepository).delete(property);
             verify(mediaCleanupService, never()).enqueue(any());
+        }
+    }
+
+    @Nested
+    class ReprocessImages {
+        @Test
+        void publishesAllPhotosAndPlans() {
+            User owner = user();
+            Property property = listingWithPhotos(owner).getProperty(); // photo1, photo2
+            property.setPlans(new ArrayList<>(List.of("https://cdn.test.local/uploads/plan.jpg")));
+            when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
+
+            propertyService.reprocessImages(property.getId(), owner.getId());
+
+            verify(imageProcessingPublisher).enqueue(property.getId(), property.allMediaUrls());
+        }
+
+        @Test
+        void throwsForbidden_whenNotOwner() {
+            User owner = user();
+            Property property = listingWithPhotos(owner).getProperty();
+            when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
+
+            assertThatThrownBy(() -> propertyService.reprocessImages(property.getId(), UUID.randomUUID()))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(403));
         }
     }
 

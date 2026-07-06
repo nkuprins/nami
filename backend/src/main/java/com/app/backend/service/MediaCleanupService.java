@@ -1,6 +1,7 @@
 package com.app.backend.service;
 
 import com.app.backend.entity.PendingMediaDeletion;
+import com.app.backend.messaging.MediaVariants;
 import com.app.backend.repository.PendingMediaDeletionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,9 @@ public class MediaCleanupService {
     public void enqueue(List<String> cdnUrls) {
         if (cdnUrls.isEmpty()) return;
 
-        List<PendingMediaDeletion> pending = cdnUrls.stream()
+        // Photos have resized derivatives in S3; schedule those for deletion too so none are orphaned.
+        // Media without variants (e.g. plans) just yields keys that don't exist, which S3 delete no-ops.
+        List<PendingMediaDeletion> pending = MediaVariants.withVariants(cdnUrls).stream()
                 .map(PendingMediaDeletion::new)
                 .toList();
         repository.saveAll(pending);

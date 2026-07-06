@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 import IconChevron from '../icons/IconChevron.vue';
 import PhotoLightBox from './PhotoLightBox.vue';
+import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 
 const props = defineProps<{
   photos: string[];
@@ -88,10 +89,11 @@ function handleClick() {
     >
       <img
         :key="index"
-        :src="photos[index]"
+        :src="mediaVariant(photos[index], 'card')"
         :alt="`${alt} — photo ${index + 1} of ${photos.length}`"
         class="absolute inset-0 size-full object-cover select-none pointer-events-none"
         loading="lazy"
+        @error="(e) => onVariantError(e, photos[index])"
       />
     </transition>
 

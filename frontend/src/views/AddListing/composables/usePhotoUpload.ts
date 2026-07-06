@@ -5,7 +5,7 @@ export type PhotoEntry =
   | { kind: 'new'; file: File; preview: string };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 
 export function usePhotoUpload(max = 30) {
   const photos = ref<PhotoEntry[]>([]);

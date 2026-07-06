@@ -2,8 +2,10 @@ package com.app.backend.service;
 
 import com.app.backend.config.AppProperties;
 import com.app.backend.dto.PresignResponse;
+import com.app.backend.exception.ApiException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
@@ -16,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -23,12 +26,24 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UploadService {
 
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png");
+
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
     private final AppProperties props;
 
     public List<PresignResponse> presign(List<String> filenames) {
+        filenames.forEach(UploadService::validateExtension);
         return filenames.stream().map(this::presignOne).toList();
+    }
+
+    private static void validateExtension(String filename) {
+        int dot = filename.lastIndexOf('.');
+        String ext = dot >= 0 ? filename.substring(dot + 1).toLowerCase() : "";
+        if (!ALLOWED_EXTENSIONS.contains(ext)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Unsupported file type (allowed: " + ALLOWED_EXTENSIONS + "): " + filename);
+        }
     }
 
     private PresignResponse presignOne(String filename) {

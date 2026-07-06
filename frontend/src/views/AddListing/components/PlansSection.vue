@@ -41,7 +41,7 @@ function onDrop(i: number) {
       <input
         ref="fileInputRef"
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png"
         multiple
         class="hidden"
         @change="$emit('addFiles', $event)"

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import PhotoLightBox from '../../../components/listing/PhotoLightBox.vue';
 import IconPlayer from '../../../components/icons/IconPlayer.vue';
 import { getVideoThumbnailUrl } from '../../../utils/video';
+import { mediaVariant, onVariantError } from '../../../utils/mediaVariant';
 
 const props = defineProps<{
   photos: string[];
@@ -37,10 +38,11 @@ function open(i: number) {
         @click="open(i)"
       >
         <img
-          :src="src"
+          :src="mediaVariant(src, 'thumb')"
           :alt="`${alt} — photo ${i + 1}`"
           class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
           loading="lazy"
+          @error="(e) => onVariantError(e, src)"
         />
         <div
           v-if="i === GRID_MAX_VISIBLE - 1 && photos.length > GRID_MAX_VISIBLE"

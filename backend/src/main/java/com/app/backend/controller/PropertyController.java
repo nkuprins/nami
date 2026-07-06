@@ -105,6 +105,15 @@ public class PropertyController {
         return propertyService.renew(id, request, userId);
     }
 
+    @PostMapping("/{propertyId}/reprocess-images")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void reprocessImages(
+            @AuthenticationPrincipal UUID userId,
+            @PathVariable UUID propertyId
+    ) {
+        propertyService.reprocessImages(propertyId, userId);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
