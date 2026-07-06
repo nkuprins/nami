@@ -12,6 +12,13 @@ import {
   listingFieldErrors,
 } from './useListingFields';
 import {
+  addPhone as addPhoneHelper,
+  makeFieldError,
+  propertyFieldErrors,
+  removePhone as removePhoneHelper,
+  toggleFeature as toggleFeatureHelper,
+} from './formHelpers';
+import {
   addListing,
   createListing,
   DuplicatePropertyError,
@@ -87,45 +94,27 @@ export function useListingForm(
   const submitError = ref('');
   const rentListingWarning = ref(false);
 
-  const errors = computed(() => {
-    const e = listingFieldErrors(form, { requireRentPrice: form.alsoRent });
-    if (!getLocation()) e.district = 'Required';
-    if (!form.address.trim()) e.address = 'Required';
-    if (
-      !form.rooms ||
-      Number.isNaN(Number(form.rooms)) ||
-      Number(form.rooms) < 1
-    )
-      e.rooms = 'Enter number of rooms';
-    if (
-      !form.m2 ||
-      Number.isNaN(parseDecimal(form.m2)) ||
-      parseDecimal(form.m2) <= 0
-    )
-      e.m2 = 'Enter area in m²';
-    if (photoUpload.photos.value.length === 0)
-      e.photos = 'At least one photo required';
-    return e;
-  });
+  const errors = computed(() => ({
+    ...listingFieldErrors(form, { requireRentPrice: form.alsoRent }),
+    ...propertyFieldErrors(form, {
+      hasLocation: !!getLocation(),
+      hasPhotos: photoUpload.photos.value.length > 0,
+    }),
+  }));
 
   const isValid = computed(() => Object.keys(errors.value).length === 0);
-
-  function fieldError(field: string): string {
-    return touched.value ? (errors.value[field] ?? '') : '';
-  }
+  const fieldError = makeFieldError(touched, errors);
 
   function toggleFeature(f: Feature) {
-    const i = form.features.indexOf(f);
-    if (i === -1) form.features.push(f);
-    else form.features.splice(i, 1);
+    toggleFeatureHelper(form, f);
   }
 
   function addPhone() {
-    form.phones.push('');
+    addPhoneHelper(form);
   }
 
   function removePhone(index: number) {
-    form.phones.splice(index, 1);
+    removePhoneHelper(form, index);
   }
 
   async function submit() {

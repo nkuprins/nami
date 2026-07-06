@@ -7,6 +7,11 @@ import {
   INITIAL_LISTING_FIELDS,
   listingFieldErrors,
 } from './useListingFields';
+import {
+  addPhone as addPhoneHelper,
+  makeFieldError,
+  removePhone as removePhoneHelper,
+} from './formHelpers';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
 
 export type ListingEditFormState = ListingFieldsForm;
@@ -52,17 +57,14 @@ export function useListingEditForm(listingId: string) {
   );
 
   const isValid = computed(() => Object.keys(errors.value).length === 0);
-
-  function fieldError(field: string): string {
-    return touched.value ? (errors.value[field] ?? '') : '';
-  }
+  const fieldError = makeFieldError(touched, errors);
 
   function addPhone() {
-    form.phones.push('');
+    addPhoneHelper(form);
   }
 
   function removePhone(index: number) {
-    form.phones.splice(index, 1);
+    removePhoneHelper(form, index);
   }
 
   async function submit() {

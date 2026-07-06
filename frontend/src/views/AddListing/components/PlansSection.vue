@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import IconChevron from '../../../components/icons/IconChevron.vue';
+import ReorderableMediaGrid from './ReorderableMediaGrid.vue';
 
 const { t } = useI18n();
 
@@ -9,23 +9,13 @@ defineProps<{
   plans: Array<{ preview: string } | { url: string }>;
 }>();
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'addFiles', event: Event): void;
   (e: 'removePlan', index: number): void;
   (e: 'move', from: number, to: number): void;
 }>();
 
-function thumbSrc(entry: { preview: string } | { url: string }): string {
-  return 'preview' in entry ? entry.preview : entry.url;
-}
-
 const fileInputRef = ref<HTMLInputElement | null>(null);
-const dragIndex = ref<number | null>(null);
-
-function onDrop(i: number) {
-  if (dragIndex.value !== null) emit('move', dragIndex.value, i);
-  dragIndex.value = null;
-}
 </script>
 
 <template>
@@ -59,50 +49,13 @@ function onDrop(i: number) {
         {{ t('addListing.reorderHint') }}
       </p>
 
-      <div v-if="plans.length" class="grid grid-cols-3 gap-2 mt-1">
-        <div
-          v-for="(entry, i) in plans"
-          :key="i"
-          draggable="true"
-          class="relative"
-          @dragstart="dragIndex = i"
-          @dragover.prevent
-          @drop="onDrop(i)"
-        >
-          <img
-            :src="thumbSrc(entry)"
-            class="w-full aspect-square object-cover rounded-lg"
-            :alt="`Plan ${i + 1}`"
-          />
-          <button
-            type="button"
-            class="absolute top-1 right-1 size-5 rounded-full bg-ink/70 text-bg text-xs flex items-center justify-center hover:bg-ink transition-colors"
-            @click="$emit('removePlan', i)"
-          >
-            ✕
-          </button>
-          <div class="absolute bottom-1 left-1 right-1 flex justify-between">
-            <button
-              type="button"
-              class="size-5 rounded-full bg-ink/70 text-bg flex items-center justify-center hover:bg-ink transition-colors disabled:opacity-30"
-              :disabled="i === 0"
-              :aria-label="t('addListing.moveLeft')"
-              @click="$emit('move', i, i - 1)"
-            >
-              <IconChevron dir="left" class="size-3" />
-            </button>
-            <button
-              type="button"
-              class="size-5 rounded-full bg-ink/70 text-bg flex items-center justify-center hover:bg-ink transition-colors disabled:opacity-30"
-              :disabled="i === plans.length - 1"
-              :aria-label="t('addListing.moveRight')"
-              @click="$emit('move', i, i + 1)"
-            >
-              <IconChevron dir="right" class="size-3" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <ReorderableMediaGrid
+        v-if="plans.length"
+        :items="plans"
+        :alt-text="(i) => `Plan ${i + 1}`"
+        @remove="$emit('removePlan', $event)"
+        @move="(from, to) => $emit('move', from, to)"
+      />
 
       <p class="text-xs text-ink-3 mt-0.5">
         {{ t('addListing.plansHint') }}

@@ -4,8 +4,12 @@ import type { Location } from '../../../data/rawLocations';
 import type { Feature } from '../../../types/listingItem';
 import type { PropertyFieldsForm } from './formTypes';
 import { buildDetails, uploadNewFiles } from './useListingForm';
+import {
+  makeFieldError,
+  propertyFieldErrors,
+  toggleFeature as toggleFeatureHelper,
+} from './formHelpers';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
-import { parseDecimal } from '../../../utils/utils';
 import type { usePhotoUpload } from './usePhotoUpload';
 
 export type PropertyEditFormState = PropertyFieldsForm;
@@ -85,37 +89,18 @@ export function usePropertyEditForm(
       localePush('/');
     });
 
-  const errors = computed(() => {
-    const e: Record<string, string> = {};
-    if (!selectedLocation.value) e.district = 'Required';
-    if (!form.address.trim()) e.address = 'Required';
-    if (
-      !form.rooms ||
-      Number.isNaN(Number(form.rooms)) ||
-      Number(form.rooms) < 1
-    )
-      e.rooms = 'Enter number of rooms';
-    if (
-      !form.m2 ||
-      Number.isNaN(parseDecimal(form.m2)) ||
-      parseDecimal(form.m2) <= 0
-    )
-      e.m2 = 'Enter area in m²';
-    if (photoUpload.photos.value.length === 0)
-      e.photos = 'At least one photo required';
-    return e;
-  });
+  const errors = computed(() =>
+    propertyFieldErrors(form, {
+      hasLocation: !!selectedLocation.value,
+      hasPhotos: photoUpload.photos.value.length > 0,
+    })
+  );
 
   const isValid = computed(() => Object.keys(errors.value).length === 0);
-
-  function fieldError(field: string): string {
-    return touched.value ? (errors.value[field] ?? '') : '';
-  }
+  const fieldError = makeFieldError(touched, errors);
 
   function toggleFeature(f: Feature) {
-    const i = form.features.indexOf(f);
-    if (i === -1) form.features.push(f);
-    else form.features.splice(i, 1);
+    toggleFeatureHelper(form, f);
   }
 
   async function submit() {

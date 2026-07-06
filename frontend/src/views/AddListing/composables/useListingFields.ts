@@ -13,6 +13,11 @@ import {
 } from '../../../api/listingsApi';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
+import {
+  addPhone as addPhoneHelper,
+  makeFieldError,
+  removePhone as removePhoneHelper,
+} from './formHelpers';
 
 // Default values for the listing-only slice of the form. Spread into the full
 // create form (useListingForm) and used standalone by the add-to-property
@@ -138,16 +143,13 @@ export function useAddListingToProperty(propertyId: string) {
     listingFieldErrors(form, { requireRentPrice: false })
   );
   const isValid = computed(() => Object.keys(errors.value).length === 0);
-
-  function fieldError(field: string): string {
-    return touched.value ? (errors.value[field] ?? '') : '';
-  }
+  const fieldError = makeFieldError(touched, errors);
 
   function addPhone() {
-    form.phones.push('');
+    addPhoneHelper(form);
   }
   function removePhone(index: number) {
-    form.phones.splice(index, 1);
+    removePhoneHelper(form, index);
   }
 
   async function submit() {

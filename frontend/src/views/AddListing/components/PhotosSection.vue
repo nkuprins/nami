@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import FormField from '../../../components/ui/FormField.vue';
-import IconChevron from '../../../components/icons/IconChevron.vue';
+import ReorderableMediaGrid from './ReorderableMediaGrid.vue';
 import type { PropertyFieldsForm } from '../composables/formTypes';
 
 const { t } = useI18n();
@@ -19,17 +19,7 @@ const emit = defineEmits<{
   (e: 'move', from: number, to: number): void;
 }>();
 
-function thumbSrc(entry: { preview: string } | { url: string }): string {
-  return 'preview' in entry ? entry.preview : entry.url;
-}
-
 const fileInputRef = ref<HTMLInputElement | null>(null);
-const dragIndex = ref<number | null>(null);
-
-function onDrop(i: number) {
-  if (dragIndex.value !== null) emit('move', dragIndex.value, i);
-  dragIndex.value = null;
-}
 </script>
 
 <template>
@@ -68,56 +58,22 @@ function onDrop(i: number) {
         {{ t('addListing.reorderHint') }}
       </p>
 
-      <div v-if="photos.length" class="grid grid-cols-3 gap-2 mt-1">
-        <div
-          v-for="(entry, i) in photos"
-          :key="i"
-          draggable="true"
-          class="relative"
-          @dragstart="dragIndex = i"
-          @dragover.prevent
-          @drop="onDrop(i)"
-        >
-          <img
-            :src="thumbSrc(entry)"
-            class="w-full aspect-square object-cover rounded-lg"
-            :alt="`Uploaded listing preview ${i + 1}`"
-          />
+      <ReorderableMediaGrid
+        v-if="photos.length"
+        :items="photos"
+        :alt-text="(i) => `Uploaded listing preview ${i + 1}`"
+        @remove="$emit('removePhoto', $event)"
+        @move="(from, to) => $emit('move', from, to)"
+      >
+        <template #badge="{ index }">
           <span
-            v-if="i === 0"
+            v-if="index === 0"
             class="absolute top-1 left-1 px-1.5 py-0.5 rounded-full bg-ink/70 text-bg text-[10px] font-medium"
           >
             {{ t('addListing.coverPhoto') }}
           </span>
-          <button
-            type="button"
-            class="absolute top-1 right-1 size-5 rounded-full bg-ink/70 text-bg text-xs flex items-center justify-center hover:bg-ink transition-colors"
-            @click="$emit('removePhoto', i)"
-          >
-            ✕
-          </button>
-          <div class="absolute bottom-1 left-1 right-1 flex justify-between">
-            <button
-              type="button"
-              class="size-5 rounded-full bg-ink/70 text-bg flex items-center justify-center hover:bg-ink transition-colors disabled:opacity-30"
-              :disabled="i === 0"
-              :aria-label="t('addListing.moveLeft')"
-              @click="$emit('move', i, i - 1)"
-            >
-              <IconChevron dir="left" class="size-3" />
-            </button>
-            <button
-              type="button"
-              class="size-5 rounded-full bg-ink/70 text-bg flex items-center justify-center hover:bg-ink transition-colors disabled:opacity-30"
-              :disabled="i === photos.length - 1"
-              :aria-label="t('addListing.moveRight')"
-              @click="$emit('move', i, i + 1)"
-            >
-              <IconChevron dir="right" class="size-3" />
-            </button>
-          </div>
-        </div>
-      </div>
+        </template>
+      </ReorderableMediaGrid>
 
       <p v-if="fieldError('photos')" class="text-xs text-red-500">
         {{ fieldError('photos') }}
