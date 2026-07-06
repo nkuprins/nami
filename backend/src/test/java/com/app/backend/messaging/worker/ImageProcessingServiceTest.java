@@ -1,4 +1,4 @@
-package com.app.backend.service;
+package com.app.backend.messaging.worker;
 
 import com.app.backend.config.AppProperties;
 import org.junit.jupiter.api.Test;

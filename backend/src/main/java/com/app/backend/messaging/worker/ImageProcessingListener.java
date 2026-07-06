@@ -1,7 +1,7 @@
-package com.app.backend.messaging;
+package com.app.backend.messaging.worker;
 
 import com.app.backend.config.RabbitConfig;
-import com.app.backend.service.ImageProcessingService;
+import com.app.backend.messaging.ImageProcessingMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.annotation.Profile;

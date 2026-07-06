@@ -5,7 +5,6 @@ import com.app.backend.messaging.MediaVariants;
 import com.app.backend.repository.PendingMediaDeletionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,8 +53,11 @@ public class MediaCleanupService {
         });
     }
 
-    /** Retries media that the immediate post-commit delete never confirmed (crash or S3 error). */
-    @Scheduled(cron = "0 0 2 * * *")
+    /**
+     * Retries media that the immediate post-commit delete never confirmed (crash or S3 error).
+     * Triggered on a schedule by {@code MediaCleanupDrainJob} (scheduler role); kept here so the
+     * transactional delete logic lives with the rest of the cleanup service.
+     */
     @Transactional
     public void drainPendingDeletions() {
         List<PendingMediaDeletion> pending = repository.findAll();
