@@ -89,9 +89,17 @@ export function usePropertyEditForm(
     const e: Record<string, string> = {};
     if (!selectedLocation.value) e.district = 'Required';
     if (!form.address.trim()) e.address = 'Required';
-    if (!form.rooms || isNaN(Number(form.rooms)) || Number(form.rooms) < 1)
+    if (
+      !form.rooms ||
+      Number.isNaN(Number(form.rooms)) ||
+      Number(form.rooms) < 1
+    )
       e.rooms = 'Enter number of rooms';
-    if (!form.m2 || isNaN(parseDecimal(form.m2)) || parseDecimal(form.m2) <= 0)
+    if (
+      !form.m2 ||
+      Number.isNaN(parseDecimal(form.m2)) ||
+      parseDecimal(form.m2) <= 0
+    )
       e.m2 = 'Enter area in m²';
     if (photoUpload.photos.value.length === 0)
       e.photos = 'At least one photo required';

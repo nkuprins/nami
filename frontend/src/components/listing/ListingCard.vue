@@ -5,7 +5,6 @@ import { useI18n } from 'vue-i18n';
 import { resolveTitle } from '../../types/listingItem';
 import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
-import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import StatusPill from './StatusPill.vue';
 import SaveHeart from './SaveHeart.vue';
 import SpecDots from './SpecDots.vue';
@@ -30,9 +29,7 @@ const pricePerM2 = computed(() =>
 const specRow = computed(() => {
   const { rooms, m2, floor, totalFloors, landM2 } = props.property.details;
   const { propertyKind } = props.property;
-  const parts: string[] = [];
-  parts.push(`${rooms} ${t('listing.rm')}`);
-  parts.push(`${m2} m²`);
+  const parts: string[] = [`${rooms} ${t('listing.rm')}`, `${m2} m²`];
   if (propertyKind === 'house' && landM2) {
     parts.push(`${landM2.toLocaleString()} ${t('listing.land')}`);
   } else if (floor) {

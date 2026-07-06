@@ -8,43 +8,45 @@ import {
   detectLvFieldWarning,
 } from '../../../utils/languageDetect';
 
+type Lang = 'lv' | 'en' | 'ru';
+
+const form = defineModel<ListingFieldsForm>('form', { required: true });
 const props = defineProps<{
-  form: ListingFieldsForm;
   fieldError: (field: string) => string | undefined;
 }>();
 
 const { t } = useI18n();
-const activeLang = ref<'lv' | 'en' | 'ru'>('lv');
+const activeLang = ref<Lang>('lv');
 
 const hasLv = computed(
-  () => props.form.titleLv.trim() || props.form.descriptionLv.trim()
+  () => form.value.titleLv.trim() || form.value.descriptionLv.trim()
 );
 const hasEn = computed(
-  () => props.form.titleEn.trim() || props.form.descriptionEn.trim()
+  () => form.value.titleEn.trim() || form.value.descriptionEn.trim()
 );
 const hasRu = computed(
-  () => props.form.titleRu.trim() || props.form.descriptionRu.trim()
+  () => form.value.titleRu.trim() || form.value.descriptionRu.trim()
 );
 
 const titleError = computed(() => props.fieldError('title'));
 const descriptionError = computed(() => props.fieldError('description'));
 
-const lvTitleWarning = computed(() => detectLvFieldWarning(props.form.titleLv));
-const enTitleWarning = computed(() => detectEnFieldWarning(props.form.titleEn));
+const lvTitleWarning = computed(() => detectLvFieldWarning(form.value.titleLv));
+const enTitleWarning = computed(() => detectEnFieldWarning(form.value.titleEn));
 const lvDescWarning = computed(() =>
-  detectLvFieldWarning(props.form.descriptionLv)
+  detectLvFieldWarning(form.value.descriptionLv)
 );
 const enDescWarning = computed(() =>
-  detectEnFieldWarning(props.form.descriptionEn)
+  detectEnFieldWarning(form.value.descriptionEn)
 );
 
-function tabLabel(lang: 'lv' | 'en' | 'ru'): string {
+function tabLabel(lang: Lang): string {
   if (lang === 'lv') return t('addListing.langTabLv');
   if (lang === 'en') return t('addListing.langTabEn');
   return t('addListing.langTabRu');
 }
 
-function hasContent(lang: 'lv' | 'en' | 'ru'): boolean {
+function hasContent(lang: Lang): boolean {
   if (lang === 'lv') return Boolean(hasLv.value);
   if (lang === 'en') return Boolean(hasEn.value);
   return Boolean(hasRu.value);

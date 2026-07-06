@@ -26,6 +26,8 @@ async function main() {
   useAuthStore().init();
 }
 
-main().catch((error) => {
+try {
+  await main();
+} catch (error) {
   logger.error('Failed to initialize the application:', error);
-});
+}

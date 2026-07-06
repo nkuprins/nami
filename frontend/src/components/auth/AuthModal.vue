@@ -239,6 +239,7 @@ async function handleResend() {
           id="auth-name"
           :label="t('auth.fullNameLabel')"
           v-model="name"
+          type="text"
           autocomplete="name"
           :placeholder="t('auth.namePlaceholder')"
         />

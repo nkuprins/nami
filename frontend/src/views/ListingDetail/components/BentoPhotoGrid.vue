@@ -23,7 +23,7 @@ const emit = defineEmits<{
     >
       <img
         :src="mediaVariant(photos[0], 'card')"
-        :alt="`${alt} — photo 1`"
+        :alt="`${alt} — 1`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         @error="(e) => onVariantError(e, photos[0])"
       />
@@ -34,7 +34,7 @@ const emit = defineEmits<{
     >
       <img
         :src="mediaVariant(photos[1], 'card')"
-        :alt="`${alt} — photo 2`"
+        :alt="`${alt} — 2`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         @error="(e) => onVariantError(e, photos[1])"
       />
@@ -45,7 +45,7 @@ const emit = defineEmits<{
     >
       <img
         :src="mediaVariant(photos[2], 'card')"
-        :alt="`${alt} — photo 3`"
+        :alt="`${alt} — 3`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         @error="(e) => onVariantError(e, photos[2])"
       />
@@ -71,7 +71,7 @@ const emit = defineEmits<{
     >
       <img
         :src="mediaVariant(photos[0], 'card')"
-        :alt="`${alt} — photo 1`"
+        :alt="`${alt} — 1`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         @error="(e) => onVariantError(e, photos[0])"
       />
@@ -82,7 +82,7 @@ const emit = defineEmits<{
     >
       <img
         :src="mediaVariant(photos[1], 'card')"
-        :alt="`${alt} — photo 2`"
+        :alt="`${alt} — 2`"
         class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
         @error="(e) => onVariantError(e, photos[1])"
       />
@@ -97,7 +97,7 @@ const emit = defineEmits<{
   >
     <img
       :src="mediaVariant(photos[0], 'card')"
-      :alt="`${alt} — photo 1`"
+      :alt="`${alt} — 1`"
       class="w-full max-h-[520px] object-cover transition-transform duration-300 group-hover:scale-[1.02]"
       @error="(e) => onVariantError(e, photos[0])"
     />

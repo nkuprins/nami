@@ -59,7 +59,7 @@ let timer: number | null = null;
 
 function onInput(field: 'min' | 'max', e: Event) {
   const raw = (e.target as HTMLInputElement).value.replace(/\D/g, '');
-  const num = raw === '' ? undefined : Math.max(0, parseInt(raw, 10));
+  const num = raw === '' ? undefined : Math.max(0, Number.parseInt(raw, 10));
   const val = num !== undefined && Number.isFinite(num) ? num : undefined;
   if (field === 'min') rawMin.value = val;
   else rawMax.value = val;

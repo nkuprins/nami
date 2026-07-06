@@ -91,9 +91,17 @@ export function useListingForm(
     const e = listingFieldErrors(form, { requireRentPrice: form.alsoRent });
     if (!getLocation()) e.district = 'Required';
     if (!form.address.trim()) e.address = 'Required';
-    if (!form.rooms || isNaN(Number(form.rooms)) || Number(form.rooms) < 1)
+    if (
+      !form.rooms ||
+      Number.isNaN(Number(form.rooms)) ||
+      Number(form.rooms) < 1
+    )
       e.rooms = 'Enter number of rooms';
-    if (!form.m2 || isNaN(parseDecimal(form.m2)) || parseDecimal(form.m2) <= 0)
+    if (
+      !form.m2 ||
+      Number.isNaN(parseDecimal(form.m2)) ||
+      parseDecimal(form.m2) <= 0
+    )
       e.m2 = 'Enter area in m²';
     if (photoUpload.photos.value.length === 0)
       e.photos = 'At least one photo required';
@@ -201,12 +209,13 @@ export function useListingForm(
       // The Turnstile token is spent once the backend verifies it; reset the
       // widget so a retry gets a fresh one.
       turnstile?.reset();
-      submitError.value =
-        e instanceof DuplicatePropertyError
-          ? e.nearDuplicate
-            ? 'This looks very similar to a property you already have.'
-            : 'You already have a property at this address.'
-          : 'Something went wrong. Please try again.';
+      if (e instanceof DuplicatePropertyError) {
+        submitError.value = e.nearDuplicate
+          ? 'This looks very similar to a property you already have.'
+          : 'You already have a property at this address.';
+      } else {
+        submitError.value = 'Something went wrong. Please try again.';
+      }
       submitting.value = false;
     }
   }

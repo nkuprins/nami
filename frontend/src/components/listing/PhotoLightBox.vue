@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
             <img
               :key="index"
               :src="photos[index]"
-              :alt="`${alt} — photo ${index + 1} of ${photos.length}`"
+              :alt="`${alt} — ${index + 1} of ${photos.length}`"
               class="absolute inset-0 w-full h-full object-contain select-none"
               :class="scale > 1 ? 'cursor-zoom-out' : 'cursor-zoom-in'"
               :style="{

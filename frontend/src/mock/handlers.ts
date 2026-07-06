@@ -255,7 +255,7 @@ export const handlers = [
         return HttpResponse.json(mockUser);
       }
     } catch (e) {
-      /* fallback empty body */
+      logger.warn('[mock] Failed to parse login request body:', e);
     }
     return HttpResponse.json(
       { message: 'Invalid credentials' },

@@ -4,7 +4,6 @@ import type {
   PropertyKind,
   ListingType,
 } from './listingItem';
-import { KNOWN_TYPES } from './listingItem';
 
 export const TYPES_LABELS: Record<ListingType, string> = {
   buy: 'For sale',

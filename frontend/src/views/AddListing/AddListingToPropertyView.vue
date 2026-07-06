@@ -60,15 +60,15 @@ const {
         </section>
 
         <PricingSection
-          :form="form"
+          v-model:form="form"
           :field-error="fieldError"
           :is-edit="false"
         />
 
-        <BasicInfoSection :form="form" :field-error="fieldError" />
+        <BasicInfoSection v-model:form="form" :field-error="fieldError" />
 
         <PhonesSection
-          :form="form"
+          v-model:form="form"
           :field-error="fieldError"
           @add-phone="addPhone"
           @remove-phone="removePhone"

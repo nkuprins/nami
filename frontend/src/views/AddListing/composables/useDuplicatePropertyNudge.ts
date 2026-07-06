@@ -66,7 +66,9 @@ export function useDuplicatePropertyNudge() {
       acknowledged.value = false;
 
     match.value = found;
-    matchKind.value = exact ? 'exact' : fuzzy ? 'fuzzy' : 'none';
+    if (exact) matchKind.value = 'exact';
+    else if (fuzzy) matchKind.value = 'fuzzy';
+    else matchKind.value = 'none';
   }
 
   // The user actively confirmed a fuzzy near-match is a different property.

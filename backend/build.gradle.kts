@@ -31,6 +31,10 @@ repositories {
     mavenCentral()
 }
 
+dependencyLocking {
+    lockAllConfigurations()
+}
+
 configurations {
     create("mockitoAgent")
 }
@@ -49,14 +53,18 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("net.coobird:thumbnailator:$thumbnailatorVersion")
     implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
     implementation("com.bucket4j:bucket4j-core:$bucket4jVersion")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    runtimeOnly("org.postgresql:postgresql")
-    annotationProcessor("org.hibernate.orm:hibernate-processor")
     implementation(platform("software.amazon.awssdk:bom:$awsSdkBomVersion"))
     implementation("software.amazon.awssdk:s3")
+
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
+    runtimeOnly("org.postgresql:postgresql")
+
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+
+    annotationProcessor("org.hibernate.orm:hibernate-processor")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -66,6 +74,7 @@ dependencies {
     testImplementation("org.instancio:instancio-junit:$instancioVersion")
     testImplementation("com.tngtech.archunit:archunit-junit5:$archunitVersion")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     add("mockitoAgent", "org.mockito:mockito-core") { isTransitive = false }
 }
 

@@ -5,10 +5,9 @@ import catSvg from '../../assets/sleeping-cat.svg?raw';
 
 <template>
   <Transition name="wake-fade">
-    <div
+    <output
       v-if="isWaking"
       class="fixed inset-0 z-[100] flex items-center justify-center bg-cream/95 backdrop-blur-sm"
-      role="status"
       aria-live="polite"
     >
       <div class="flex max-w-sm flex-col items-center px-6 text-center">
@@ -22,7 +21,7 @@ import catSvg from '../../assets/sleeping-cat.svg?raw';
           {{ $t('waking.body') }}
         </p>
       </div>
-    </div>
+    </output>
   </Transition>
 </template>
 

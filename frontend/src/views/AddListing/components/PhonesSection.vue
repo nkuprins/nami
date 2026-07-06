@@ -6,8 +6,8 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
+const form = defineModel<ListingFieldsForm>('form', { required: true });
 defineProps<{
-  form: ListingFieldsForm;
   fieldError: (field: string) => string | undefined;
 }>();
 
@@ -29,7 +29,11 @@ defineEmits<{
       class="sm:grid sm:grid-cols-2 gap-4"
     >
       <div class="flex flex-col gap-1.5 w-full">
-        <label v-if="index === 0" class="text-sm font-medium text-ink">
+        <label
+          v-if="index === 0"
+          class="text-sm font-medium text-ink"
+          :for="`ap-phone-${index}`"
+        >
           {{ t('addListing.phoneNumber') }}
         </label>
 

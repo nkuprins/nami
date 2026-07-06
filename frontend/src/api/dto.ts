@@ -17,9 +17,9 @@ import {
 export type ListingSummaryDto = ListingSummary;
 export type ListingDetailDto = ListingDetail;
 
-export function toListingSummaryDisplayNames(
-  dto: ListingSummaryDto
-): ListingSummary {
+function withDisplayNames<
+  T extends { location: { district: string; city: string } },
+>(dto: T): T {
   return {
     ...dto,
     location: {
@@ -29,34 +29,24 @@ export function toListingSummaryDisplayNames(
       city: cityBySlug.get(dto.location.city) ?? dto.location.city,
     },
   };
+}
+
+export function toListingSummaryDisplayNames(
+  dto: ListingSummaryDto
+): ListingSummary {
+  return withDisplayNames(dto);
 }
 
 export function toListingDetailDisplayNames(
   dto: ListingDetailDto
 ): ListingDetail {
-  return {
-    ...dto,
-    location: {
-      ...dto.location,
-      district:
-        districtNameBySlug.get(dto.location.district) ?? dto.location.district,
-      city: cityBySlug.get(dto.location.city) ?? dto.location.city,
-    },
-  };
+  return withDisplayNames(dto);
 }
 
 export type PropertyDetailDto = PropertyDetail;
 
 export function toPropertyDisplayNames(dto: PropertyDetailDto): PropertyDetail {
-  return {
-    ...dto,
-    location: {
-      ...dto.location,
-      district:
-        districtNameBySlug.get(dto.location.district) ?? dto.location.district,
-      city: cityBySlug.get(dto.location.city) ?? dto.location.city,
-    },
-  };
+  return withDisplayNames(dto);
 }
 
 export function toSlugs(loc: PropertyLocation): PropertyLocation {

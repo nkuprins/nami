@@ -49,7 +49,7 @@ const { form, submitting, submitError, fieldError, submit, loading } =
         />
 
         <LocationSection
-          :form="form"
+          v-model:form="form"
           :field-error="fieldError"
           :district-name="districtName"
           :selected-location="selectedLocation"
@@ -57,12 +57,12 @@ const { form, submitting, submitError, fieldError, submit, loading } =
           @select="onSelect"
         />
 
-        <DetailsSection :form="form" :field-error="fieldError" />
+        <DetailsSection v-model:form="form" :field-error="fieldError" />
 
-        <FeaturesSection :form="form" />
+        <FeaturesSection v-model:form="form" />
 
         <PhotosSection
-          :form="form"
+          v-model:form="form"
           :photos="photoUpload.photos.value"
           :field-error="fieldError"
           @add-files="photoUpload.addFiles"

@@ -31,7 +31,8 @@ export const useAuthStore = defineStore('auth', () => {
   // Idempotent: the app boot and the router guard both call this, but the
   // session should only be fetched once.
   function init(): Promise<void> {
-    return (initPromise ??= runInit());
+    initPromise ??= runInit();
+    return initPromise;
   }
 
   async function runInit(): Promise<void> {

@@ -10,8 +10,8 @@ const { bathroomLayoutOptions, heatingOptions, energyClassOptions } =
   usePropertyLabels();
 import type { PropertyFieldsForm } from '../composables/formTypes';
 
+const form = defineModel<PropertyFieldsForm>('form', { required: true });
 defineProps<{
-  form: PropertyFieldsForm;
   fieldError: (field: string) => string | undefined;
 }>();
 </script>

@@ -11,24 +11,24 @@ import type { ListingFieldsForm } from '../composables/formTypes';
 const { t } = useI18n();
 const { completionOptions } = usePropertyLabels();
 
+const form = defineModel<ListingFieldsForm>('form', { required: true });
 const props = defineProps<{
-  form: ListingFieldsForm;
   fieldError: (field: string) => string | undefined;
   isEdit: boolean;
 }>();
 
 const priceLabel = computed(() =>
-  props.form.type === 'rent'
+  form.value.type === 'rent'
     ? t('addListing.rentPriceField')
     : t('addListing.priceField')
 );
 
 const pricePlaceholder = computed(() =>
-  props.form.type === 'rent' ? 'e.g. 1,200' : 'e.g. 185,000'
+  form.value.type === 'rent' ? 'e.g. 1,200' : 'e.g. 185,000'
 );
 
 const isDual = computed(
-  () => !props.isEdit && props.form.type === 'buy' && props.form.alsoRent
+  () => !props.isEdit && form.value.type === 'buy' && form.value.alsoRent
 );
 
 const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';

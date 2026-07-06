@@ -48,8 +48,9 @@ export function formatPrice(
 ): string {
   const formatted = fmt(locale).format(value);
   if (type !== 'rent') return formatted;
-  const suffix =
-    locale === 'en' ? '/ mo' : locale === 'ru' ? '/ мес.' : '/ mēn.';
+  let suffix = '/ mēn.';
+  if (locale === 'en') suffix = '/ mo';
+  else if (locale === 'ru') suffix = '/ мес.';
   return `${formatted} ${suffix}`;
 }
 
@@ -62,7 +63,9 @@ export function formatFloor(
   total: number | undefined,
   locale: Locale = 'lv'
 ): string {
-  const unit = locale === 'en' ? 'fl' : locale === 'ru' ? 'эт.' : 'st.';
+  let unit = 'st.';
+  if (locale === 'en') unit = 'fl';
+  else if (locale === 'ru') unit = 'эт.';
   if (!total) return `${floor} ${unit}`;
   return `${floor}/${total} ${unit}`;
 }

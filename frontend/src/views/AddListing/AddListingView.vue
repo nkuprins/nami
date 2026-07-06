@@ -91,8 +91,8 @@ watch(
           class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
         >
           <div class="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
-          <div
-            role="dialog"
+          <dialog
+            open
             aria-modal="true"
             class="relative z-10 w-full max-w-sm bg-bg rounded-2xl shadow-lift border border-line p-6 flex flex-col gap-5"
           >
@@ -139,20 +139,24 @@ watch(
                 {{ t('addListing.duplicateNudgeFuzzyContinue') }}
               </button>
             </div>
-          </div>
+          </dialog>
         </div>
       </Transition>
     </Teleport>
 
     <form class="flex flex-col gap-10" @submit.prevent="submit">
-      <ListingTypeSection :form="form" :field-error="fieldError" />
+      <ListingTypeSection v-model:form="form" :field-error="fieldError" />
 
-      <PricingSection :form="form" :field-error="fieldError" :is-edit="false" />
+      <PricingSection
+        v-model:form="form"
+        :field-error="fieldError"
+        :is-edit="false"
+      />
 
-      <BasicInfoSection :form="form" :field-error="fieldError" />
+      <BasicInfoSection v-model:form="form" :field-error="fieldError" />
 
       <LocationSection
-        :form="form"
+        v-model:form="form"
         :field-error="fieldError"
         :district-name="districtName"
         :selected-location="selectedLocation"
@@ -160,19 +164,19 @@ watch(
         @select="onSelect"
       />
 
-      <DetailsSection :form="form" :field-error="fieldError" />
+      <DetailsSection v-model:form="form" :field-error="fieldError" />
 
-      <FeaturesSection :form="form" />
+      <FeaturesSection v-model:form="form" />
 
       <PhonesSection
-        :form="form"
+        v-model:form="form"
         :field-error="fieldError"
         @add-phone="addPhone"
         @remove-phone="removePhone"
       />
 
       <PhotosSection
-        :form="form"
+        v-model:form="form"
         :photos="photoUpload.photos.value"
         :field-error="fieldError"
         @add-files="photoUpload.addFiles"

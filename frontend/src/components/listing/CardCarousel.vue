@@ -73,12 +73,11 @@ function handleClick() {
 </script>
 
 <template>
-  <div
+  <section
     :class="[
       'relative size-full overflow-hidden bg-surface group/carousel touch-pan-y',
       zoomable && 'cursor-zoom-in',
     ]"
-    role="region"
     @click="handleClick"
     @touchstart="handleTouchStart"
     @touchmove="handleTouchMove"
@@ -90,7 +89,7 @@ function handleClick() {
       <img
         :key="index"
         :src="mediaVariant(photos[index], 'card')"
-        :alt="`${alt} — photo ${index + 1} of ${photos.length}`"
+        :alt="`${alt} — ${index + 1} of ${photos.length}`"
         class="absolute inset-0 size-full object-cover select-none pointer-events-none"
         loading="lazy"
         @error="(e) => onVariantError(e, photos[index])"
@@ -145,7 +144,7 @@ function handleClick() {
         <path d="M3 7V3h4M17 3h4v4M21 17v4h-4M7 21H3v-4" />
       </svg>
     </div>
-  </div>
+  </section>
 
   <PhotoLightBox
     v-if="zoomable"

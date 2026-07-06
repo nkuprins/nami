@@ -32,12 +32,13 @@ const editProfileOpen = ref(false);
 const userMenuOpen = ref(false);
 const userMenuRef = ref<HTMLElement | null>(null);
 
-watch(userMenuOpen, (open) => {
-  function onOutsideClick(e: MouseEvent) {
-    if (!userMenuRef.value?.contains(e.target as Node)) {
-      userMenuOpen.value = false;
-    }
+function onOutsideClick(e: MouseEvent) {
+  if (!userMenuRef.value?.contains(e.target as Node)) {
+    userMenuOpen.value = false;
   }
+}
+
+watch(userMenuOpen, (open) => {
   if (open) {
     document.addEventListener('click', onOutsideClick);
   } else {

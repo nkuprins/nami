@@ -9,8 +9,8 @@ import FormField from '../../../components/ui/FormField.vue';
 import type { PropertyFieldsForm } from '../composables/formTypes';
 import type { Location } from '../../../data/rawLocations';
 
+const form = defineModel<PropertyFieldsForm>('form', { required: true });
 defineProps<{
-  form: PropertyFieldsForm;
   fieldError: (field: string) => string | undefined;
   districtName: string;
   selectedLocation: Location | null;

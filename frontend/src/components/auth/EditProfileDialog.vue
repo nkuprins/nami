@@ -85,6 +85,7 @@ async function submit() {
         id="edit-name"
         :label="t('auth.fullNameLabel')"
         v-model="name"
+        type="text"
         autocomplete="name"
       />
       <FormField

@@ -109,9 +109,7 @@ const specRow = computed(() => {
   const { rooms, m2, floor, totalFloors, landM2, yearBuilt } =
     listing.value.details;
   const { propertyKind } = listing.value;
-  const parts: string[] = [];
-  parts.push(`${rooms} ${t('listing.rm')}`);
-  parts.push(`${m2} m²`);
+  const parts: string[] = [`${rooms} ${t('listing.rm')}`, `${m2} m²`];
   if (propertyKind === 'house' && landM2) {
     parts.push(`${landM2.toLocaleString()} ${t('listing.land')}`);
   } else if (floor) {

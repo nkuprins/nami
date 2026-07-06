@@ -1,5 +1,16 @@
 import { ref } from 'vue';
 
+function dist(t0: Touch, t1: Touch) {
+  return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+}
+
+function mid(t0: Touch, t1: Touch) {
+  return {
+    x: (t0.clientX + t1.clientX) / 2,
+    y: (t0.clientY + t1.clientY) / 2,
+  };
+}
+
 export function usePinchZoom(
   opts: {
     maxScale?: number;
@@ -29,17 +40,6 @@ export function usePinchZoom(
     scale.value = 1;
     panX.value = 0;
     panY.value = 0;
-  }
-
-  function dist(t0: Touch, t1: Touch) {
-    return Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
-  }
-
-  function mid(t0: Touch, t1: Touch) {
-    return {
-      x: (t0.clientX + t1.clientX) / 2,
-      y: (t0.clientY + t1.clientY) / 2,
-    };
   }
 
   function onTouchStart(e: TouchEvent) {

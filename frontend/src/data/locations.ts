@@ -1,12 +1,9 @@
 import { LOCATION_MAP } from './rawLocations';
 
-type Slug = string;
-type Name = string;
-
-export const cityBySlug = new Map<Slug, Name>();
-export const cityByName = new Map<Name, Slug>();
-export const districtNameBySlug = new Map<Slug, Name>();
-export const districtSlugByName = new Map<Name, Slug>();
+export const cityBySlug = new Map<string, string>();
+export const cityByName = new Map<string, string>();
+export const districtNameBySlug = new Map<string, string>();
+export const districtSlugByName = new Map<string, string>();
 
 const LATVIAN_MAP: Record<string, string> = {
   ā: 'a',

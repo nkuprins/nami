@@ -2,12 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { districtSlugByName, slugify } from '../../data/locations';
-import {
-  City,
-  District,
-  Location,
-  LOCATION_MAP,
-} from '../../data/rawLocations';
+import { Location, LOCATION_MAP } from '../../data/rawLocations';
 
 const { t } = useI18n();
 
@@ -28,7 +23,7 @@ const grouped = computed(() => {
   const normalizedQuery = slugify(query.value);
   if (!normalizedQuery) return LOCATION_MAP;
 
-  const filteredMap = new Map<City, readonly District[]>();
+  const filteredMap = new Map<string, readonly string[]>();
   for (const [cityName, districts] of LOCATION_MAP) {
     const matchingDistricts = districts.filter((districtName) =>
       districtSlugByName.get(districtName)?.includes(normalizedQuery)
@@ -77,9 +72,11 @@ function clear() {
 <template>
   <div class="space-y-4 min-w-70">
     <input
+      id="location-popover-search"
       v-model="query"
       type="search"
       :placeholder="t('filters.findDistrict')"
+      :aria-label="t('filters.findDistrict')"
       class="focus-ring w-full h-10 px-3 rounded-md border border-line bg-bg text-sm placeholder:text-ink-3"
     />
     <div class="space-y-4 max-h-72 overflow-y-auto pr-1">

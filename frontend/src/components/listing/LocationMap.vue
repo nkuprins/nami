@@ -39,7 +39,7 @@ const query = computed(() =>
 // Strip apartment/unit suffixes so "Jēkaba iela 5, apt 3" → "Jēkaba iela 5"
 function stripApartment(addr: string): string {
   return addr
-    .replace(/,?\s*(apt\.?|apartament[s]?|dz\.?|flat)\s*\d+/i, '')
+    .replace(/,?\s*(?:apt\.?|apartaments?|dz\.?|flat)\s*\d+/i, '')
     .trim();
 }
 
@@ -126,7 +126,10 @@ async function tryGeocode(
   const res = await fetch(url, { headers: { 'Accept-Language': 'lv,en' } });
   const data = await res.json();
   if (!data.length) return null;
-  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  return {
+    lat: Number.parseFloat(data[0].lat),
+    lng: Number.parseFloat(data[0].lon),
+  };
 }
 
 async function geocode() {

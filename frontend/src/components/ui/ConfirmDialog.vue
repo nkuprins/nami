@@ -28,8 +28,8 @@ const emit = defineEmits<{
         />
 
         <!-- Dialog -->
-        <div
-          role="dialog"
+        <dialog
+          open
           aria-modal="true"
           class="relative z-10 w-full max-w-sm bg-bg rounded-2xl shadow-lift border border-line p-6 flex flex-col gap-5"
         >
@@ -60,7 +60,7 @@ const emit = defineEmits<{
               {{ confirmLabel ?? 'Confirm' }}
             </button>
           </div>
-        </div>
+        </dialog>
       </div>
     </Transition>
   </Teleport>

@@ -1,12 +1,9 @@
-export type City = string;
-export type District = string;
-
 export interface Location {
-  city: City;
-  district: District;
+  city: string;
+  district: string;
 }
 
-export const LOCATION_MAP: ReadonlyMap<City, District[]> = new Map([
+export const LOCATION_MAP: ReadonlyMap<string, string[]> = new Map([
   // --- METROPOLITAN & PIERĪGA REGIONS (Including coastal villages) ---
   [
     'Rīga',

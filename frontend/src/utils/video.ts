@@ -1,7 +1,7 @@
 export function extractYouTubeId(url: URL): string | null {
   const host = url.hostname.replace(/^www\./, '');
   if (host === 'youtu.be') {
-    return url.pathname.split('/').filter(Boolean)[0] ?? null;
+    return url.pathname.split('/').find(Boolean) ?? null;
   }
   if (host.includes('youtube.com')) {
     if (url.pathname === '/watch') {
@@ -26,7 +26,7 @@ export function normalizeVideoEmbedUrl(rawUrl: string): string {
       return `https://www.youtube.com/embed/${youtubeId}?rel=0`;
     }
     if (host.includes('vimeo.com')) {
-      const id = url.pathname.split('/').filter(Boolean).pop();
+      const id = url.pathname.split('/').findLast(Boolean);
       if (id) return `https://player.vimeo.com/video/${id}?rel=0`;
     }
     return rawUrl;

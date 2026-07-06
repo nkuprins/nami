@@ -7,9 +7,7 @@ import type { PropertyFieldsForm } from '../composables/formTypes';
 const { t } = useI18n();
 const { featureOptions } = usePropertyLabels();
 
-defineProps<{
-  form: PropertyFieldsForm;
-}>();
+const form = defineModel<PropertyFieldsForm>('form', { required: true });
 </script>
 
 <template>

@@ -44,6 +44,7 @@ function onDrop(i: number) {
         accept="image/jpeg,image/png"
         multiple
         class="hidden"
+        :aria-label="t('addListing.addPlans')"
         @change="$emit('addFiles', $event)"
       />
       <button

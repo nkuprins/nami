@@ -69,12 +69,12 @@ const typeOption = computed(() =>
           </p>
         </section>
 
-        <PricingSection :form="form" :field-error="fieldError" is-edit />
+        <PricingSection v-model:form="form" :field-error="fieldError" is-edit />
 
-        <BasicInfoSection :form="form" :field-error="fieldError" />
+        <BasicInfoSection v-model:form="form" :field-error="fieldError" />
 
         <PhonesSection
-          :form="form"
+          v-model:form="form"
           :field-error="fieldError"
           @add-phone="addPhone"
           @remove-phone="removePhone"

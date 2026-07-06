@@ -6,61 +6,57 @@ import type { ListingFormState } from '../composables/useListingForm';
 
 const { t } = useI18n();
 
-const props = defineProps<{
-  form: ListingFormState;
+const form = defineModel<ListingFormState>('form', { required: true });
+defineProps<{
   fieldError: (field: string) => string | undefined;
 }>();
 
-const isBuyActive = computed(() => props.form.type === 'buy');
+const isBuyActive = computed(() => form.value.type === 'buy');
 const isRentActive = computed(
-  () => props.form.type === 'rent' || props.form.alsoRent
+  () => form.value.type === 'rent' || form.value.alsoRent
 );
 
 function toggleBuy() {
-  if (props.form.type === 'new_project') {
-    props.form.type = 'buy';
+  if (form.value.type === 'new_project') {
+    form.value.type = 'buy';
     return;
   }
   if (isBuyActive.value) {
-    if (props.form.alsoRent) {
-      props.form.type = 'rent';
-      props.form.alsoRent = false;
+    if (form.value.alsoRent) {
+      form.value.type = 'rent';
+      form.value.alsoRent = false;
     } else {
-      props.form.type = '';
+      form.value.type = '';
     }
+  } else if (form.value.type === 'rent') {
+    form.value.type = 'buy';
+    form.value.alsoRent = true;
   } else {
-    if (props.form.type === 'rent') {
-      props.form.type = 'buy';
-      props.form.alsoRent = true;
-    } else {
-      props.form.type = 'buy';
-    }
+    form.value.type = 'buy';
   }
 }
 
 function toggleRent() {
-  if (props.form.type === 'new_project') {
-    props.form.type = 'rent';
+  if (form.value.type === 'new_project') {
+    form.value.type = 'rent';
     return;
   }
   if (isRentActive.value) {
-    if (props.form.alsoRent) {
-      props.form.alsoRent = false;
+    if (form.value.alsoRent) {
+      form.value.alsoRent = false;
     } else {
-      props.form.type = '';
+      form.value.type = '';
     }
+  } else if (form.value.type === 'buy') {
+    form.value.alsoRent = true;
   } else {
-    if (props.form.type === 'buy') {
-      props.form.alsoRent = true;
-    } else {
-      props.form.type = 'rent';
-    }
+    form.value.type = 'rent';
   }
 }
 
 function selectNewProject() {
-  props.form.type = props.form.type === 'new_project' ? '' : 'new_project';
-  props.form.alsoRent = false;
+  form.value.type = form.value.type === 'new_project' ? '' : 'new_project';
+  form.value.alsoRent = false;
 }
 </script>
 
@@ -77,7 +73,7 @@ function selectNewProject() {
 
       <div class="flex flex-col gap-2">
         <!-- Pārdošanā -->
-        <label
+        <div
           class="flex items-center gap-3 cursor-pointer select-none group w-fit"
         >
           <span
@@ -107,10 +103,10 @@ function selectNewProject() {
           <span class="text-sm text-ink" @click="toggleBuy">{{
             t('types.buy')
           }}</span>
-        </label>
+        </div>
 
         <!-- Īrei -->
-        <label
+        <div
           class="flex items-center gap-3 cursor-pointer select-none group w-fit"
         >
           <span
@@ -140,7 +136,7 @@ function selectNewProject() {
           <span class="text-sm text-ink" @click="toggleRent">{{
             t('types.rent')
           }}</span>
-        </label>
+        </div>
 
         <!-- Divider -->
         <div class="flex items-center gap-2 my-0.5">
@@ -150,7 +146,7 @@ function selectNewProject() {
         </div>
 
         <!-- Jaunais projekts -->
-        <label
+        <div
           class="flex items-center gap-3 cursor-pointer select-none group w-fit"
         >
           <span
@@ -180,7 +176,7 @@ function selectNewProject() {
           <span class="text-sm text-ink" @click="selectNewProject">{{
             t('types.new_project')
           }}</span>
-        </label>
+        </div>
       </div>
 
       <p v-if="fieldError('type')" class="text-xs text-red-500">

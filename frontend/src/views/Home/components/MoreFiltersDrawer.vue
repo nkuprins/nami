@@ -104,7 +104,7 @@ function bindNumber(
       return v === undefined ? '' : String(v);
     },
     set value(v: string) {
-      const n = v === '' ? undefined : parseInt(v, 10);
+      const n = v === '' ? undefined : Number.parseInt(v, 10);
       draft[key] = Number.isFinite(n as number) ? n : undefined;
     },
   };
@@ -143,6 +143,7 @@ function reset() {
             type="number"
             min="0"
             :placeholder="t('advFilters.min')"
+            :aria-label="`${t('advFilters.area')} ${t('advFilters.min')}`"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
           <input
@@ -150,6 +151,7 @@ function reset() {
             type="number"
             min="0"
             :placeholder="t('advFilters.max')"
+            :aria-label="`${t('advFilters.area')} ${t('advFilters.max')}`"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
         </div>
@@ -163,6 +165,7 @@ function reset() {
             type="number"
             min="0"
             :placeholder="t('advFilters.min')"
+            :aria-label="`${t('advFilters.floor')} ${t('advFilters.min')}`"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
           <input
@@ -170,6 +173,7 @@ function reset() {
             type="number"
             min="0"
             :placeholder="t('advFilters.max')"
+            :aria-label="`${t('advFilters.floor')} ${t('advFilters.max')}`"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
         </div>
@@ -248,6 +252,7 @@ function reset() {
             min="1800"
             max="2030"
             :placeholder="t('advFilters.from')"
+            :aria-label="`${t('advFilters.yearBuilt')} ${t('advFilters.from')}`"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
           <input
@@ -256,6 +261,7 @@ function reset() {
             min="1800"
             max="2030"
             :placeholder="t('advFilters.to')"
+            :aria-label="`${t('advFilters.yearBuilt')} ${t('advFilters.to')}`"
             class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
           />
         </div>

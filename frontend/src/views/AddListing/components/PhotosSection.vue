@@ -7,8 +7,8 @@ import type { PropertyFieldsForm } from '../composables/formTypes';
 
 const { t } = useI18n();
 
+const form = defineModel<PropertyFieldsForm>('form', { required: true });
 defineProps<{
-  form: PropertyFieldsForm;
   photos: Array<{ preview: string } | { url: string }>;
   fieldError: (field: string) => string | undefined;
 }>();
@@ -48,6 +48,7 @@ function onDrop(i: number) {
         accept="image/jpeg,image/png"
         multiple
         class="hidden"
+        :aria-label="t('addListing.addPhotos')"
         @change="$emit('addFiles', $event)"
       />
       <button
@@ -80,7 +81,7 @@ function onDrop(i: number) {
           <img
             :src="thumbSrc(entry)"
             class="w-full aspect-square object-cover rounded-lg"
-            :alt="`Photo ${i + 1}`"
+            :alt="`Uploaded listing preview ${i + 1}`"
           />
           <span
             v-if="i === 0"

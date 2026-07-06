@@ -5,7 +5,7 @@ export type PhotoEntry =
   | { kind: 'new'; file: File; preview: string };
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
+const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png']);
 
 export function usePhotoUpload(max = 30) {
   const photos = ref<PhotoEntry[]>([]);
@@ -21,7 +21,7 @@ export function usePhotoUpload(max = 30) {
     const input = e.target as HTMLInputElement;
     for (const file of Array.from(input.files ?? [])) {
       if (photos.value.length >= max) break;
-      if (!ALLOWED_TYPES.includes(file.type)) continue;
+      if (!ALLOWED_TYPES.has(file.type)) continue;
       if (file.size > MAX_FILE_SIZE) continue;
       if (
         photos.value.some((p) => p.kind === 'new' && p.file.name === file.name)
