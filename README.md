@@ -35,9 +35,18 @@ Open-source real estate marketplace for Latvia
 
 ## Local Setup
 
+A `Makefile` at the repo root wraps the commands below — run `make help` to list all targets.
+
 ### 1. Database
 
 Create a local PostgreSQL 17 database and run the schema:
+
+```bash
+make db-setup       # createdb + pgcrypto + schema
+make db-seed        # optional: load sample data
+```
+
+Equivalent raw commands:
 
 ```bash
 psql -U postgres -c "CREATE DATABASE baltnami;"
@@ -53,7 +62,8 @@ psql -U postgres -d baltnami -f backend/db/seed.sql
 cd backend
 cp .env.example .env
 # Edit .env with your values
-./gradlew bootRun
+cd ..
+make backend-run
 ```
 
 Backend runs on `http://localhost:8080`.
@@ -61,9 +71,8 @@ Backend runs on `http://localhost:8080`.
 ### 3. Frontend
 
 ```bash
-cd frontend
-npm install
-npm run dev
+make frontend-install
+make frontend-dev
 ```
 
 Frontend runs on `http://localhost:5173`. The Vite dev server proxies `/api/*` to the backend automatically.
@@ -101,7 +110,7 @@ Set `VITE_TURNSTILE_SITE_KEY` to your Cloudflare Turnstile site key to render th
 ```bash
 # Backend (requires Docker for Testcontainers)
 # Runs tests + JaCoCo coverage check (minimum 70% line coverage)
-cd backend && ./gradlew check
+make backend-check
 ```
 
 ## Deployment
