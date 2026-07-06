@@ -132,7 +132,7 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
     <!-- Single mode -->
     <template v-else>
       <FormField
-        id="ap-price"
+        id="ap-single-price"
         :label="priceLabel"
         v-model="form.price"
         :error="fieldError('price')"
@@ -153,12 +153,12 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
       </label>
 
       <div v-if="!isEdit" class="flex flex-col gap-1.5">
-        <label for="ap-duration" class="text-sm font-medium text-ink">
+        <label for="ap-single-duration" class="text-sm font-medium text-ink">
           {{ t('addListing.listingDuration') }}
           <span class="text-red-500">*</span>
         </label>
         <select
-          id="ap-duration"
+          id="ap-single-duration"
           v-model.number="form.durationMonths"
           class="h-10 rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
         >

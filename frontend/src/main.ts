@@ -23,7 +23,7 @@ async function main() {
   // away. Session restoration runs in the background: on a cold backend the
   // slow /auth/me now shows the overlay instead of a blank, unmounted page.
   app.mount('#app');
-  void useAuthStore().init();
+  useAuthStore().init();
 }
 
 main().catch((error) => {

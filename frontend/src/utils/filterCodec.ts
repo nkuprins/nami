@@ -134,21 +134,34 @@ export const FilterCodec = {
     if (state.loc.length) {
       q.loc = state.loc.map((l) => `${l.city}:${l.district}`).join(',');
     }
-    if (state.rooms.length) q.rooms = state.rooms.join(',');
-    if (state.bedrooms.length) q.bedrooms = state.bedrooms.join(',');
-    if (state.bathrooms.length) q.bathrooms = state.bathrooms.join(',');
-    if (state.heating.length) q.heating = state.heating.join(',');
-    if (state.energyClass.length) q.energyClass = state.energyClass.join(',');
-    if (state.features.length) q.features = state.features.join(',');
 
-    if (state.priceMin !== undefined) q.priceMin = String(state.priceMin);
-    if (state.priceMax !== undefined) q.priceMax = String(state.priceMax);
-    if (state.m2Min !== undefined) q.m2Min = String(state.m2Min);
-    if (state.m2Max !== undefined) q.m2Max = String(state.m2Max);
-    if (state.floorMin !== undefined) q.floorMin = String(state.floorMin);
-    if (state.floorMax !== undefined) q.floorMax = String(state.floorMax);
-    if (state.yearMin !== undefined) q.yearMin = String(state.yearMin);
-    if (state.yearMax !== undefined) q.yearMax = String(state.yearMax);
+    const listKeys = [
+      'rooms',
+      'bedrooms',
+      'bathrooms',
+      'heating',
+      'energyClass',
+      'features',
+    ] as const;
+    for (const key of listKeys) {
+      const value = state[key];
+      if (value.length) q[key] = value.join(',');
+    }
+
+    const numericKeys = [
+      'priceMin',
+      'priceMax',
+      'm2Min',
+      'm2Max',
+      'floorMin',
+      'floorMax',
+      'yearMin',
+      'yearMax',
+    ] as const;
+    for (const key of numericKeys) {
+      const value = state[key];
+      if (value !== undefined) q[key] = String(value);
+    }
 
     if (state.notGround) q.notGround = '1';
     if (state.notTop) q.notTop = '1';

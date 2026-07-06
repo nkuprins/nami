@@ -109,12 +109,11 @@ export const useAuthStore = defineStore('auth', () => {
       logger.info(
         `[AuthStore] Account created successfully for: ${email}. Awaiting verification.`
       );
-      return result;
+    } else {
+      logger.warn(
+        `[AuthStore] Registration validation or conflict failed for ${email}`
+      );
     }
-
-    logger.warn(
-      `[AuthStore] Registration validation or conflict failed for ${email}`
-    );
     return result;
   }
 
