@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import FormField from '../../../components/ui/FormField.vue';
+import DescriptionField from './DescriptionField.vue';
 import type { ListingFieldsForm } from '../composables/formTypes';
 import {
   detectEnFieldWarning,
@@ -112,22 +113,11 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           {{ warningMessage(lvTitleWarning) }}
         </p>
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="ap-desc-lv">
-            {{ t('addListing.descriptionLabel') }}
-            <span class="text-red-500">*</span>
-          </label>
-          <textarea
-            id="ap-desc-lv"
-            v-model="form.descriptionLv"
-            rows="14"
-            :placeholder="t('addListing.descriptionPlaceholder')"
-            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-          />
-          <p v-if="lvDescWarning" class="text-xs text-amber-600">
-            {{ warningMessage(lvDescWarning) }}
-          </p>
-        </div>
+        <DescriptionField
+          id="ap-desc-lv"
+          v-model="form.descriptionLv"
+          :warning="lvDescWarning ? warningMessage(lvDescWarning) : undefined"
+        />
       </div>
 
       <!-- English fields -->
@@ -143,22 +133,11 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           {{ warningMessage(enTitleWarning) }}
         </p>
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="ap-desc-en">
-            {{ t('addListing.descriptionLabel') }}
-            <span class="text-red-500">*</span>
-          </label>
-          <textarea
-            id="ap-desc-en"
-            v-model="form.descriptionEn"
-            rows="14"
-            :placeholder="t('addListing.descriptionPlaceholder')"
-            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-          />
-          <p v-if="enDescWarning" class="text-xs text-amber-600">
-            {{ warningMessage(enDescWarning) }}
-          </p>
-        </div>
+        <DescriptionField
+          id="ap-desc-en"
+          v-model="form.descriptionEn"
+          :warning="enDescWarning ? warningMessage(enDescWarning) : undefined"
+        />
       </div>
 
       <!-- Russian fields -->
@@ -171,19 +150,7 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           required
         />
 
-        <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-ink" for="ap-desc-ru">
-            {{ t('addListing.descriptionLabel') }}
-            <span class="text-red-500">*</span>
-          </label>
-          <textarea
-            id="ap-desc-ru"
-            v-model="form.descriptionRu"
-            rows="14"
-            :placeholder="t('addListing.descriptionPlaceholder')"
-            class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
-          />
-        </div>
+        <DescriptionField id="ap-desc-ru" v-model="form.descriptionRu" />
       </div>
     </div>
   </section>
