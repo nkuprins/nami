@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ToggleButtons from '../../components/ui/ToggleButtons.vue';
 import WizardStepper from '../../components/ui/WizardStepper.vue';
@@ -7,11 +7,8 @@ import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useAddListingToProperty } from './composables/useListingFields';
 import { setTransactionType } from './composables/formHelpers';
-import { useWizardSteps } from './composables/useWizardSteps';
-import {
-  stepHasErrors,
-  type ListingWizardStep,
-} from './composables/useWizardStepValidity';
+import { useWizardNavigation } from './composables/useWizardNavigation';
+import type { ListingWizardStep } from './composables/useWizardStepValidity';
 import type { ListingType } from '../../types/listingItem';
 
 import PropertyKindSection from './components/PropertyKindSection.vue';
@@ -41,8 +38,6 @@ const stepperSteps = computed(() => [
   { id: 'confirm', label: t('addListing.stepperConfirm') },
 ]);
 
-const wizard = useWizardSteps(STEPS);
-
 const photoUpload = usePhotoUpload();
 const planUpload = usePhotoUpload(3);
 
@@ -61,60 +56,19 @@ const {
   submit,
 } = useAddListingToProperty(props.id, photoUpload, planUpload);
 
+const { wizard, handleContinue, handleBack, jumpToStep, handleJump } =
+  useWizardNavigation(STEPS, errors, touched);
+
 const addressLine = computed(() => {
   const loc = propertyLocation.value;
   return loc ? `${loc.address}, ${loc.district}, ${loc.city}` : '';
 });
-
-async function handleContinue() {
-  if (stepHasErrors(wizard.currentStep.value, errors.value)) {
-    touched.value = true;
-    await nextTick();
-    document
-      .querySelector(`[data-step="${wizard.currentStep.value}"] .text-red-500`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-  touched.value = false;
-  wizard.next();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function handleBack() {
-  wizard.back();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function jumpToStep(step: ListingWizardStep) {
-  wizard.goTo(STEPS.indexOf(step));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
 function handleTypeChange(type: ListingType | '') {
   setTransactionType(form, () => {
     form.type = type;
   });
   wizard.uncomplete(STEPS.indexOf('publish'));
-}
-
-// A step marked "completed" can go stale: editing an earlier step (e.g.
-// changing the transaction type) can invalidate a later one that was already
-// visited. Re-validate every step up to the jump target so the stepper rail
-// can't be used to skip past a now-broken step straight to Confirm.
-function handleJump(index: number) {
-  if (index > wizard.currentIndex.value) {
-    const invalidStep = STEPS.slice(0, index).find((step) =>
-      stepHasErrors(step, errors.value)
-    );
-    if (invalidStep) {
-      touched.value = true;
-      wizard.goTo(STEPS.indexOf(invalidStep));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-  }
-  wizard.goTo(index);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
 

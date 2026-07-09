@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useLocationDropdown } from './composables/useLocationDropdown';
 import { useListingForm } from './composables/useListingForm';
 import { useDuplicatePropertyNudge } from './composables/useDuplicatePropertyNudge';
-import { useWizardSteps } from './composables/useWizardSteps';
-import {
-  stepHasErrors,
-  type ListingWizardStep,
-} from './composables/useWizardStepValidity';
+import { useWizardNavigation } from './composables/useWizardNavigation';
+import type { ListingWizardStep } from './composables/useWizardStepValidity';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import WizardStepper from '../../components/ui/WizardStepper.vue';
 
@@ -40,8 +37,6 @@ const stepperSteps = computed(() => [
   { id: 'publish', label: t('addListing.stepperPublish') },
   { id: 'confirm', label: t('addListing.stepperConfirm') },
 ]);
-
-const wizard = useWizardSteps(STEPS);
 
 const photoUpload = usePhotoUpload();
 const planUpload = usePhotoUpload(3);
@@ -78,56 +73,15 @@ const {
   }
 );
 
+const { wizard, handleContinue, handleBack, jumpToStep, handleJump } =
+  useWizardNavigation(STEPS, errors, touched);
+
 // The only hard block on Continue itself (nothing more to reveal by clicking —
 // the duplicate card already explains it). Ordinary field validation is instead
 // checked on click, revealing that step's red errors rather than pre-disabling.
 const continueBlocked = computed(
   () => wizard.currentStep.value === 'location' && nudge.blockSubmit.value
 );
-
-async function handleContinue() {
-  if (stepHasErrors(wizard.currentStep.value, errors.value)) {
-    touched.value = true;
-    await nextTick();
-    document
-      .querySelector(`[data-step="${wizard.currentStep.value}"] .text-red-500`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-  touched.value = false;
-  wizard.next();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function handleBack() {
-  wizard.back();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function jumpToStep(step: ListingWizardStep) {
-  wizard.goTo(STEPS.indexOf(step));
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// A step marked "completed" can go stale: editing an earlier step (e.g.
-// checking "also rent") can invalidate a later one that was already visited.
-// Re-validate every step up to the jump target so the stepper rail can't be
-// used to skip past a now-broken step straight to Confirm.
-function handleJump(index: number) {
-  if (index > wizard.currentIndex.value) {
-    const invalidStep = STEPS.slice(0, index).find((step) =>
-      stepHasErrors(step, errors.value)
-    );
-    if (invalidStep) {
-      touched.value = true;
-      wizard.goTo(STEPS.indexOf(invalidStep));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-  }
-  wizard.goTo(index);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 
 let nudgeTimer: ReturnType<typeof setTimeout> | undefined;
 
