@@ -111,6 +111,7 @@ function handleTypeChange(type: ListingType | '') {
             <div
               v-show="wizard.currentStep.value === 'category'"
               data-step="category"
+              class="flex flex-col gap-10"
             >
               <section class="flex flex-col gap-4">
                 <h2
