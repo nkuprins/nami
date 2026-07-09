@@ -17,6 +17,13 @@ export default i18n;
 export type Locale = 'lv' | 'en' | 'ru';
 export const LOCALES: Locale[] = ['lv', 'en', 'ru'];
 
+// Autonyms — each language's own name for itself, shown the same in every locale.
+export const LOCALE_NAMES: Record<Locale, string> = {
+  lv: 'Latviešu',
+  en: 'English',
+  ru: 'Русский',
+};
+
 const LOCALE_STORAGE_KEY = 'nami:locale';
 
 export function setLocale(locale: Locale): void {

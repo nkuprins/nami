@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
         @click="close"
       >
         <div
-          class="flex flex-col w-full h-full md:h-auto md:max-w-3xl md:max-h-[85vh] md:rounded-2xl md:shadow-lift md:border md:border-line bg-bg"
+          class="flex flex-col w-full h-full md:h-auto md:max-w-3xl md:max-h-[85vh] md:rounded-2xl md:shadow-lift md:border md:border-line bg-bg overflow-hidden"
           @click.stop
         >
           <header

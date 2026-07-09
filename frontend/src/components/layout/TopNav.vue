@@ -16,7 +16,8 @@ import IconMenu from '../icons/IconMenu.vue';
 import IconClose from '../icons/IconClose.vue';
 import IconUser from '../icons/IconUser.vue';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
-import { LOCALES } from '../../i18n';
+import { LOCALES, LOCALE_NAMES } from '../../i18n';
+import IconFlag from '../icons/IconFlag.vue';
 import { authApi } from '../../api/authApi';
 
 const { t } = useI18n();
@@ -167,9 +168,10 @@ async function handleExportData() {
           @mouseleave="langMenuOpen = false"
         >
           <button
-            class="focus-ring inline-flex items-center gap-1 h-9 px-2.5 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
+            class="focus-ring inline-flex items-center gap-1 h-9 pl-2 pr-2.5 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
             @click="langMenuOpen = !langMenuOpen"
           >
+            <span class="w-4.5 h-3.5 shrink-0 mr-1"><IconFlag :locale="locale" /></span>
             {{ locale }}
             <span class="size-3 text-ink-3"
               ><IconChevron :dir="langMenuOpen ? 'up' : 'down'"
@@ -179,21 +181,22 @@ async function handleExportData() {
           <Transition name="pop">
             <div
               v-if="langMenuOpen"
-              class="absolute right-0 top-full mt-3 w-24 bg-bg border border-line rounded-xl shadow-lift overflow-hidden z-50"
+              class="absolute right-0 top-full mt-3 w-36 bg-bg border border-line rounded-xl shadow-lift overflow-hidden z-50"
             >
               <RouterLink
                 v-for="l in LOCALES"
                 :key="l"
                 :to="switchLocalePath(l)"
-                class="block px-4 py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors"
+                class="flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors"
                 :class="
                   locale === l
-                    ? 'text-ink bg-surface'
+                    ? 'text-ink bg-surface font-medium'
                     : 'text-ink-2 hover:text-ink hover:bg-surface'
                 "
                 @click="langMenuOpen = false"
               >
-                {{ l }}
+                <span class="w-4.5 h-3.5 shrink-0"><IconFlag :locale="l" /></span>
+                {{ LOCALE_NAMES[l] }}
               </RouterLink>
             </div>
           </Transition>
@@ -273,9 +276,10 @@ async function handleExportData() {
       <div class="flex sm:hidden items-center gap-2">
         <div class="relative">
           <button
-            class="focus-ring inline-flex items-center gap-0.5 h-10 px-2 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
+            class="focus-ring inline-flex items-center gap-1 h-10 pl-1.5 pr-2 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
             @click="mobileLangOpen = !mobileLangOpen"
           >
+            <span class="w-4 h-3 shrink-0 mr-0.5"><IconFlag :locale="locale" /></span>
             {{ locale }}
             <span class="size-3 text-ink-3"
               ><IconChevron :dir="mobileLangOpen ? 'up' : 'down'"
@@ -284,21 +288,22 @@ async function handleExportData() {
           <Transition name="pop">
             <div
               v-if="mobileLangOpen"
-              class="absolute right-0 top-full mt-1 w-20 bg-bg border border-line rounded-xl shadow-lift overflow-hidden z-50"
+              class="absolute right-0 top-full mt-1 w-32 bg-bg border border-line rounded-xl shadow-lift overflow-hidden z-50"
             >
               <RouterLink
                 v-for="l in LOCALES"
                 :key="l"
                 :to="switchLocalePath(l)"
-                class="block px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors"
+                class="flex items-center gap-2 px-3 py-2 text-xs transition-colors"
                 :class="
                   locale === l
-                    ? 'text-ink bg-surface'
+                    ? 'text-ink bg-surface font-medium'
                     : 'text-ink-2 hover:text-ink hover:bg-surface'
                 "
                 @click="mobileLangOpen = false"
               >
-                {{ l }}
+                <span class="w-4 h-3 shrink-0"><IconFlag :locale="l" /></span>
+                {{ LOCALE_NAMES[l] }}
               </RouterLink>
             </div>
           </Transition>

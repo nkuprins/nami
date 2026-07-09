@@ -340,7 +340,8 @@ export default {
     deletePropertyAction: 'Удалить объект',
     editPropertyAction: 'Редактировать объект',
     addListingType: '+ Добавить тип объявления',
-    addAnotherListing: '+ Добавить ещё одно объявление',
+    addAnotherListing: 'Добавить ещё одно объявление',
+    untitledListing: 'Объявление без названия',
     addListingTypeTitle: 'Добавить ещё одно объявление',
     addListingTypeSubtitle:
       'Новое объявление по этому адресу — со своим охватом, фотографиями и ценой. Заполнено из существующего; измените то, что отличается.',
@@ -361,7 +362,6 @@ export default {
     moreActions: 'Ещё действия',
     deleteThisListing: 'Удалить это объявление',
     alsoListFor: 'Также добавить: {type}',
-    listedAs: 'Объявления',
     close: 'Закрыть',
   },
   common: {

@@ -342,7 +342,8 @@ export default {
     deletePropertyAction: 'Dzēst īpašumu',
     editPropertyAction: 'Rediģēt īpašumu',
     addListingType: '+ Pievienot sludinājuma veidu',
-    addAnotherListing: '+ Pievienot vēl vienu sludinājumu',
+    addAnotherListing: 'Pievienot vēl vienu sludinājumu',
+    untitledListing: 'Sludinājums bez nosaukuma',
     addListingTypeTitle: 'Pievienot vēl vienu sludinājumu',
     addListingTypeSubtitle:
       'Jauns sludinājums šajā adresē — ar savu apjomu, fotoattēliem un cenu. Aizpildīts no esošā; pielāgojiet to, kas atšķiras.',
@@ -362,7 +363,6 @@ export default {
     moreActions: 'Vairāk darbību',
     deleteThisListing: 'Dzēst šo sludinājumu',
     alsoListFor: 'Pievienot arī: {type}',
-    listedAs: 'Sludinājumi',
     close: 'Aizvērt',
   },
   common: {

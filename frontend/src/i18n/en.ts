@@ -340,7 +340,8 @@ export default {
     deletePropertyAction: 'Delete property',
     editPropertyAction: 'Edit property',
     addListingType: '+ Add listing type',
-    addAnotherListing: '+ Add another listing',
+    addAnotherListing: 'Add another listing',
+    untitledListing: 'Untitled listing',
     addListingTypeTitle: 'Add another listing',
     addListingTypeSubtitle:
       'A new listing at this address — with its own scope, photos and price. Prefilled from an existing one; adjust what differs.',
@@ -361,7 +362,6 @@ export default {
     moreActions: 'More actions',
     deleteThisListing: 'Delete this listing',
     alsoListFor: 'Also list: {type}',
-    listedAs: 'Listed as',
     close: 'Close',
   },
   common: {
