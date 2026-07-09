@@ -44,7 +44,22 @@ async function fetchApiInner(
   input: string,
   init?: RequestInit
 ): Promise<Response> {
-  const res = await fetch(API_BASE + input, withCsrf(init));
+  const method = (init?.method ?? 'GET').toUpperCase();
+  const mutatingWithoutToken =
+    MUTATING_METHODS.has(method) && !readCookie('XSRF-TOKEN');
+
+  let res = await fetch(API_BASE + input, withCsrf(init));
+
+  // CSRF bootstrap: the first mutation of a session runs before any response
+  // has planted the XSRF-TOKEN cookie (edge caches strip Set-Cookie off cached
+  // GETs), so withCsrf sends no header and the server 403s — but that 403
+  // response plants the cookie. Retry once now that we can echo it. Guarded to
+  // the tokenless case so a genuine authorization 403 is never retried.
+  if (res.status === 403 && mutatingWithoutToken && readCookie('XSRF-TOKEN')) {
+    logger.info(`[fetchApi] 403 without CSRF token; retrying for: ${input}`);
+    res = await fetch(API_BASE + input, withCsrf(init));
+  }
+
   if (res.status !== 401) return res;
 
   logger.info(`[fetchApi] 401 Unauthorized encountered for: ${input}`);
