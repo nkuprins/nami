@@ -1,9 +1,13 @@
+function isAllowedHost(host: string, domain: string): boolean {
+  return host === domain || host.endsWith(`.${domain}`);
+}
+
 export function extractYouTubeId(url: URL): string | null {
   const host = url.hostname.replace(/^www\./, '');
   if (host === 'youtu.be') {
     return url.pathname.split('/').find(Boolean) ?? null;
   }
-  if (host.includes('youtube.com')) {
+  if (isAllowedHost(host, 'youtube.com')) {
     if (url.pathname === '/watch') {
       return url.searchParams.get('v');
     }
@@ -25,7 +29,7 @@ export function normalizeVideoEmbedUrl(rawUrl: string): string {
     if (youtubeId) {
       return `https://www.youtube.com/embed/${youtubeId}?rel=0`;
     }
-    if (host.includes('vimeo.com')) {
+    if (isAllowedHost(host, 'vimeo.com')) {
       const id = url.pathname.split('/').findLast(Boolean);
       if (id) return `https://player.vimeo.com/video/${id}?rel=0`;
     }
@@ -51,9 +55,9 @@ export function getVideoThumbnailUrl(rawUrl: string): string {
 export function getVideoSourceLabel(rawUrl: string): string {
   try {
     const host = new URL(rawUrl).hostname.replace(/^www\./, '');
-    if (host.includes('youtube.com') || host === 'youtu.be')
+    if (isAllowedHost(host, 'youtube.com') || host === 'youtu.be')
       return 'YouTube tour';
-    if (host.includes('vimeo.com')) return 'Vimeo tour';
+    if (isAllowedHost(host, 'vimeo.com')) return 'Vimeo tour';
     return 'Video tour';
   } catch {
     return 'Video tour';
