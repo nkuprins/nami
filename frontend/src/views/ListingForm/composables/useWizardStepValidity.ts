@@ -26,3 +26,33 @@ export function stepHasErrors(
 ): boolean {
   return Object.keys(errors).some(STEP_MATCHERS[step]);
 }
+
+// Canonical wizard step order. The create form uses all of them; the
+// add-another-listing form omits 'location' (it inherits the property's
+// location), so each view derives its own STEPS from this single source.
+export const LISTING_WIZARD_STEPS: readonly ListingWizardStep[] = [
+  'location',
+  'category',
+  'description',
+  'photos',
+  'publish',
+  'confirm',
+];
+
+const STEP_LABEL_KEYS: Record<ListingWizardStep, string> = {
+  location: 'addListing.stepperLocation',
+  category: 'addListing.stepperCategory',
+  description: 'addListing.stepperDescription',
+  photos: 'addListing.stepperPhotos',
+  publish: 'addListing.stepperPublish',
+  confirm: 'addListing.stepperConfirm',
+};
+
+// Builds the stepper's {id, label} list for the given ordered steps, resolving
+// each label through i18n — shared by both listing wizards.
+export function buildStepperSteps(
+  steps: readonly ListingWizardStep[],
+  t: (key: string) => string
+): { id: ListingWizardStep; label: string }[] {
+  return steps.map((id) => ({ id, label: t(STEP_LABEL_KEYS[id]) }));
+}

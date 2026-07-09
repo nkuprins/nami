@@ -1,8 +1,7 @@
-import { computed, nextTick, reactive, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   offerableListingTypes,
-  type Feature,
   type ListingType,
   type PropertyLocation,
   type Translations,
@@ -22,16 +21,13 @@ import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
 import type { usePhotoUpload } from './usePhotoUpload';
 import {
-  addPhone as addPhoneHelper,
   buildDetails,
   buildMedia,
   INITIAL_PROPERTY_FIELDS,
-  makeFieldError,
   propertyFieldErrors,
-  removePhone as removePhoneHelper,
   seedPropertyFields,
-  toggleFeature as toggleFeatureHelper,
   uploadNewFiles,
+  useListingFormControls,
 } from './formHelpers';
 
 // Default values for the listing-only slice of the form. Spread into the full
@@ -140,6 +136,23 @@ export function listingFieldErrors(
   return e;
 }
 
+// Merged listing + property validation shared verbatim by the two listing-scoped
+// forms (edit, add-another): both inherit the property's location, so neither
+// requires location and neither has a rent leg.
+export function listingScopedErrors(
+  form: ListingFormState,
+  photoUpload: ReturnType<typeof usePhotoUpload>
+) {
+  return computed(() => ({
+    ...listingFieldErrors(form, { requireRentPrice: false }),
+    ...propertyFieldErrors(form, {
+      hasLocation: true,
+      hasPhotos: photoUpload.photos.value.length > 0,
+      requireLocation: false,
+    }),
+  }));
+}
+
 // Backs the "add another listing at this address" view. A listing is
 // self-contained, so this collects the whole listing (its own physical
 // attributes, media and terms) — prefilled from a sibling listing so the user
@@ -191,36 +204,17 @@ export function useAddListingToProperty(
     })
     .catch(() => localePush('/'));
 
-  const errors = computed(() => ({
-    ...listingFieldErrors(form, { requireRentPrice: false }),
-    ...propertyFieldErrors(form, {
-      hasLocation: true,
-      hasPhotos: photoUpload.photos.value.length > 0,
-      requireLocation: false,
-    }),
-  }));
-  const isValid = computed(() => Object.keys(errors.value).length === 0);
-  const fieldError = makeFieldError(touched, errors);
-
-  function toggleFeature(f: Feature) {
-    toggleFeatureHelper(form, f);
-  }
-  function addPhone() {
-    addPhoneHelper(form);
-  }
-  function removePhone(index: number) {
-    removePhoneHelper(form, index);
-  }
+  const errors = listingScopedErrors(form, photoUpload);
+  const {
+    fieldError,
+    toggleFeature,
+    addPhone,
+    removePhone,
+    validateForSubmit,
+  } = useListingFormControls(form, touched, errors);
 
   async function submit() {
-    touched.value = true;
-    if (!isValid.value) {
-      await nextTick();
-      document
-        .querySelector('.text-red-500')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
+    if (!(await validateForSubmit())) return;
 
     submitting.value = true;
     submitError.value = '';

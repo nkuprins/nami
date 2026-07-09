@@ -8,7 +8,10 @@ import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useAddListingToProperty } from './composables/useListingFields';
 import { setTransactionType } from './composables/formHelpers';
 import { useWizardNavigation } from './composables/useWizardNavigation';
-import type { ListingWizardStep } from './composables/useWizardStepValidity';
+import {
+  buildStepperSteps,
+  LISTING_WIZARD_STEPS,
+} from './composables/useWizardStepValidity';
 import type { ListingType } from '../../types/listingItem';
 
 import PropertyKindSection from './components/PropertyKindSection.vue';
@@ -22,21 +25,10 @@ const props = defineProps<{ id: string }>();
 const { t } = useI18n();
 const { localePath } = useLocaleRoute();
 
-const STEPS: ListingWizardStep[] = [
-  'category',
-  'description',
-  'photos',
-  'publish',
-  'confirm',
-];
+// The property's location is inherited, so this wizard skips the location step.
+const STEPS = LISTING_WIZARD_STEPS.filter((s) => s !== 'location');
 
-const stepperSteps = computed(() => [
-  { id: 'category', label: t('addListing.stepperCategory') },
-  { id: 'description', label: t('addListing.stepperDescription') },
-  { id: 'photos', label: t('addListing.stepperPhotos') },
-  { id: 'publish', label: t('addListing.stepperPublish') },
-  { id: 'confirm', label: t('addListing.stepperConfirm') },
-]);
+const stepperSteps = computed(() => buildStepperSteps(STEPS, t));
 
 const photoUpload = usePhotoUpload();
 const planUpload = usePhotoUpload(3);

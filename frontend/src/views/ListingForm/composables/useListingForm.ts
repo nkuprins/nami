@@ -1,5 +1,5 @@
-import { computed, nextTick, reactive, ref } from 'vue';
-import type { Feature, ListingType } from '../../../types/listingItem';
+import { computed, reactive, ref } from 'vue';
+import type { ListingType } from '../../../types/listingItem';
 import type { Location } from '../../../data/rawLocations';
 import type { ListingFormState } from './formTypes';
 import {
@@ -9,15 +9,12 @@ import {
   listingFieldErrors,
 } from './useListingFields';
 import {
-  addPhone as addPhoneHelper,
   buildDetails,
   buildMedia,
   INITIAL_PROPERTY_FIELDS,
-  makeFieldError,
   propertyFieldErrors,
-  removePhone as removePhoneHelper,
-  toggleFeature as toggleFeatureHelper,
   uploadNewFiles,
+  useListingFormControls,
 } from './formHelpers';
 import {
   addListing,
@@ -56,30 +53,17 @@ export function useListingForm(
     }),
   }));
 
-  const isValid = computed(() => Object.keys(errors.value).length === 0);
-  const fieldError = makeFieldError(touched, errors);
-
-  function toggleFeature(f: Feature) {
-    toggleFeatureHelper(form, f);
-  }
-
-  function addPhone() {
-    addPhoneHelper(form);
-  }
-
-  function removePhone(index: number) {
-    removePhoneHelper(form, index);
-  }
+  const {
+    isValid,
+    fieldError,
+    toggleFeature,
+    addPhone,
+    removePhone,
+    validateForSubmit,
+  } = useListingFormControls(form, touched, errors);
 
   async function submit() {
-    touched.value = true;
-    if (!isValid.value) {
-      await nextTick();
-      document
-        .querySelector('.text-red-500')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
+    if (!(await validateForSubmit())) return;
 
     // A duplicate property is blocking submission — the nudge dialog is showing.
     if (duplicate?.blocked()) return;

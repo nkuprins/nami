@@ -1,26 +1,22 @@
-import { computed, nextTick, reactive, ref } from 'vue';
+import { reactive, ref } from 'vue';
 import {
   getListing,
   getMyListings,
   updateListing,
   updateProperty,
 } from '../../../api/listingsApi';
-import type { Feature, ListingType } from '../../../types/listingItem';
+import type { ListingType } from '../../../types/listingItem';
 import type { ListingFormState } from './formTypes';
 import {
   buildListingBody,
   INITIAL_LISTING_FIELDS,
-  listingFieldErrors,
+  listingScopedErrors,
 } from './useListingFields';
 import {
-  addPhone as addPhoneHelper,
   INITIAL_PROPERTY_FIELDS,
-  makeFieldError,
-  propertyFieldErrors,
-  removePhone as removePhoneHelper,
   seedPropertyFields,
-  toggleFeature as toggleFeatureHelper,
   uploadNewFiles,
+  useListingFormControls,
 } from './formHelpers';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
 import type { usePhotoUpload } from './usePhotoUpload';
@@ -117,39 +113,18 @@ export function useListingEditForm(
     }
   }
 
-  const errors = computed(() => ({
-    ...listingFieldErrors(form, { requireRentPrice: false }),
-    ...propertyFieldErrors(form, {
-      hasLocation: true,
-      hasPhotos: photoUpload.photos.value.length > 0,
-      requireLocation: false,
-    }),
-  }));
-
-  const isValid = computed(() => Object.keys(errors.value).length === 0);
-  const fieldError = makeFieldError(touched, errors);
-
-  function toggleFeature(f: Feature) {
-    toggleFeatureHelper(form, f);
-  }
-
-  function addPhone() {
-    addPhoneHelper(form);
-  }
-
-  function removePhone(index: number) {
-    removePhoneHelper(form, index);
-  }
+  const errors = listingScopedErrors(form, photoUpload);
+  const {
+    isValid,
+    fieldError,
+    toggleFeature,
+    addPhone,
+    removePhone,
+    validateForSubmit,
+  } = useListingFormControls(form, touched, errors);
 
   async function submit() {
-    touched.value = true;
-    if (!isValid.value) {
-      await nextTick();
-      document
-        .querySelector('.text-red-500')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
+    if (!(await validateForSubmit())) return;
 
     submitting.value = true;
     submitError.value = '';

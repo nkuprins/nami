@@ -1,11 +1,15 @@
-import type { ComputedRef, Ref } from 'vue';
+import { computed, nextTick, type ComputedRef, type Ref } from 'vue';
 import type {
   Feature,
   ListingDetail,
   PropertyDetails,
   PropertyMedia,
 } from '../../../types/listingItem';
-import type { ListingFieldsForm, PropertyFieldsForm } from './formTypes';
+import type {
+  ListingFieldsForm,
+  ListingFormState,
+  PropertyFieldsForm,
+} from './formTypes';
 import { parseDecimal } from '../../../utils/utils';
 import { requestPresignedUrls, uploadFilesToS3 } from '../../../api/uploadApi';
 
@@ -17,6 +21,40 @@ export function makeFieldError(
 ) {
   return (field: string): string =>
     touched.value ? (errors.value[field] ?? '') : '';
+}
+
+// Derived state and mutators shared verbatim by all three listing form
+// composables (create, edit, add-another). Given the reactive form, its
+// `touched` flag and the merged `errors`, it wires validity, the touched-gated
+// field-error accessor, the feature/phone mutators, and the submit-time
+// validation gate — which marks the form touched, scrolls to the first error
+// if invalid, and reports whether the caller should proceed with submission.
+export function useListingFormControls(
+  form: ListingFormState,
+  touched: Ref<boolean>,
+  errors: ComputedRef<Record<string, string>>
+) {
+  const isValid = computed(() => Object.keys(errors.value).length === 0);
+  const fieldError = makeFieldError(touched, errors);
+
+  return {
+    isValid,
+    fieldError,
+    toggleFeature: (f: Feature) => toggleFeature(form, f),
+    addPhone: () => addPhone(form),
+    removePhone: (index: number) => removePhone(form, index),
+    async validateForSubmit(): Promise<boolean> {
+      touched.value = true;
+      if (!isValid.value) {
+        await nextTick();
+        document
+          .querySelector('.text-red-500')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return false;
+      }
+      return true;
+    },
+  };
 }
 
 export function addPhone(form: { phones: string[] }): void {

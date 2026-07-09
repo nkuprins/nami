@@ -6,7 +6,10 @@ import { useLocationDropdown } from './composables/useLocationDropdown';
 import { useListingForm } from './composables/useListingForm';
 import { useDuplicatePropertyNudge } from './composables/useDuplicatePropertyNudge';
 import { useWizardNavigation } from './composables/useWizardNavigation';
-import type { ListingWizardStep } from './composables/useWizardStepValidity';
+import {
+  buildStepperSteps,
+  LISTING_WIZARD_STEPS,
+} from './composables/useWizardStepValidity';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import WizardStepper from '../../components/ui/WizardStepper.vue';
 
@@ -20,23 +23,9 @@ import StepConfirm from './components/steps/StepConfirm.vue';
 const { t } = useI18n();
 const { localePath, localePush } = useLocaleRoute();
 
-const STEPS: ListingWizardStep[] = [
-  'location',
-  'category',
-  'description',
-  'photos',
-  'publish',
-  'confirm',
-];
+const STEPS = [...LISTING_WIZARD_STEPS];
 
-const stepperSteps = computed(() => [
-  { id: 'location', label: t('addListing.stepperLocation') },
-  { id: 'category', label: t('addListing.stepperCategory') },
-  { id: 'description', label: t('addListing.stepperDescription') },
-  { id: 'photos', label: t('addListing.stepperPhotos') },
-  { id: 'publish', label: t('addListing.stepperPublish') },
-  { id: 'confirm', label: t('addListing.stepperConfirm') },
-]);
+const stepperSteps = computed(() => buildStepperSteps(STEPS, t));
 
 const photoUpload = usePhotoUpload();
 const planUpload = usePhotoUpload(3);
