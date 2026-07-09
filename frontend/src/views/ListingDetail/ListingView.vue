@@ -39,7 +39,7 @@ const props = defineProps<{ id: string }>();
 const router = useRouter();
 const { t } = useI18n();
 const { locale, localePath } = useLocaleRoute();
-const { featureLabel } = usePropertyLabels();
+const { featureLabel, featureIcon, featureCategory } = usePropertyLabels();
 const savedStore = useSavedStore();
 const authStore = useAuthStore();
 
@@ -271,8 +271,16 @@ function openPlanLightbox(i: number) {
             <span
               v-for="f in listing.features"
               :key="f"
-              class="micro-label bg-surface border border-line rounded-md px-2 py-1"
+              class="inline-flex items-center gap-2 h-9 pl-3 pr-4 rounded-full text-sm font-medium"
+              :class="
+                featureCategory(f) === 'comfort'
+                  ? 'bg-accent/10 text-accent-2'
+                  : 'bg-feature-building/10 text-feature-building-2'
+              "
             >
+              <span class="size-4.5 shrink-0"
+                ><component :is="featureIcon(f)"
+              /></span>
               {{ featureLabel(f) }}
             </span>
           </div>

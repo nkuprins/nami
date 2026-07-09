@@ -54,7 +54,7 @@ function stepState(i: number): 'current' | 'done' | 'upcoming' {
         class="relative z-10 size-[22px] shrink-0 rounded-full grid place-items-center font-mono text-[0.65rem] transition-colors"
         :class="{
           'bg-ink text-bg': stepState(i) === 'current',
-          'bg-accent/15 text-accent-2': stepState(i) === 'done',
+          'bg-bg border border-accent text-accent-2': stepState(i) === 'done',
           'bg-bg border border-line text-ink-3': stepState(i) === 'upcoming',
         }"
       >
