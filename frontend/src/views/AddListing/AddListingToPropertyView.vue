@@ -1,24 +1,47 @@
 <script setup lang="ts">
+import { computed, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ToggleButtons from '../../components/ui/ToggleButtons.vue';
+import WizardStepper from '../../components/ui/WizardStepper.vue';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useAddListingToProperty } from './composables/useListingFields';
+import { setTransactionType } from './composables/formHelpers';
+import { useWizardSteps } from './composables/useWizardSteps';
+import {
+  stepHasErrors,
+  type ListingWizardStep,
+} from './composables/useWizardStepValidity';
 import type { ListingType } from '../../types/listingItem';
 
-import BasicInfoSection from './components/BasicInfoSection.vue';
-import PricingSection from './components/PricingSection.vue';
 import PropertyKindSection from './components/PropertyKindSection.vue';
-import DetailsSection from './components/DetailsSection.vue';
-import FeaturesSection from './components/FeaturesSection.vue';
-import PhonesSection from './components/PhonesSection.vue';
-import PhotosSection from './components/PhotosSection.vue';
-import PlansSection from './components/PlansSection.vue';
+import StepDescription from './components/steps/StepDescription.vue';
+import StepPhotos from './components/steps/StepPhotos.vue';
+import StepPublish from './components/steps/StepPublish.vue';
+import StepConfirm from './components/steps/StepConfirm.vue';
 
 const props = defineProps<{ id: string }>();
 
 const { t } = useI18n();
 const { localePath } = useLocaleRoute();
+
+const STEPS: ListingWizardStep[] = [
+  'category',
+  'description',
+  'photos',
+  'publish',
+  'confirm',
+];
+
+const stepperSteps = computed(() => [
+  { id: 'category', label: t('addListing.stepperCategory') },
+  { id: 'description', label: t('addListing.stepperDescription') },
+  { id: 'photos', label: t('addListing.stepperPhotos') },
+  { id: 'publish', label: t('addListing.stepperPublish') },
+  { id: 'confirm', label: t('addListing.stepperConfirm') },
+]);
+
+const wizard = useWizardSteps(STEPS);
 
 const photoUpload = usePhotoUpload();
 const planUpload = usePhotoUpload(3);
@@ -29,15 +52,74 @@ const {
   loading,
   submitting,
   submitError,
+  errors,
+  touched,
   fieldError,
+  propertyLocation,
   addPhone,
   removePhone,
   submit,
 } = useAddListingToProperty(props.id, photoUpload, planUpload);
+
+const addressLine = computed(() => {
+  const loc = propertyLocation.value;
+  return loc ? `${loc.address}, ${loc.district}, ${loc.city}` : '';
+});
+
+async function handleContinue() {
+  if (stepHasErrors(wizard.currentStep.value, errors.value)) {
+    touched.value = true;
+    await nextTick();
+    document
+      .querySelector(`[data-step="${wizard.currentStep.value}"] .text-red-500`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  touched.value = false;
+  wizard.next();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function handleBack() {
+  wizard.back();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function jumpToStep(step: ListingWizardStep) {
+  wizard.goTo(STEPS.indexOf(step));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function handleTypeChange(type: ListingType | '') {
+  setTransactionType(form, () => {
+    form.type = type;
+  });
+  wizard.uncomplete(STEPS.indexOf('publish'));
+}
+
+// A step marked "completed" can go stale: editing an earlier step (e.g.
+// changing the transaction type) can invalidate a later one that was already
+// visited. Re-validate every step up to the jump target so the stepper rail
+// can't be used to skip past a now-broken step straight to Confirm.
+function handleJump(index: number) {
+  if (index > wizard.currentIndex.value) {
+    const invalidStep = STEPS.slice(0, index).find((step) =>
+      stepHasErrors(step, errors.value)
+    );
+    if (invalidStep) {
+      touched.value = true;
+      wizard.goTo(STEPS.indexOf(invalidStep));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+  }
+  wizard.goTo(index);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 </script>
 
 <template>
-  <div class="mx-auto max-w-2xl px-4 sm:px-6 py-10 sm:py-14">
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 py-10 sm:py-14">
     <div v-if="loading" class="flex flex-col gap-4">
       <div class="h-8 w-48 rounded bg-surface animate-pulse" />
       <div class="h-4 w-64 rounded bg-surface animate-pulse" />
@@ -45,93 +127,148 @@ const {
     </div>
 
     <template v-else>
-      <div class="mb-8">
-        <h1 class="text-2xl font-bold text-ink">
-          {{ t('drawers.addListingTypeTitle') }}
-        </h1>
-        <p class="text-sm text-ink-3 mt-1">
-          {{ t('drawers.addListingTypeSubtitle') }}
-        </p>
+      <div class="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-ink">
+            {{ t('drawers.addListingTypeTitle') }}
+          </h1>
+          <p class="text-sm text-ink-3 mt-1">
+            {{ t('drawers.addListingTypeSubtitle') }}
+          </p>
+        </div>
+        <RouterLink
+          :to="localePath('/')"
+          class="text-sm text-ink-2 hover:text-ink underline underline-offset-2 transition-colors shrink-0 mt-1"
+        >
+          {{ t('addListing.cancel') }}
+        </RouterLink>
       </div>
 
-      <form class="flex flex-col gap-10" @submit.prevent="submit">
-        <section class="flex flex-col gap-4">
-          <h2
-            class="text-base font-semibold text-ink border-b border-line pb-2"
+      <div
+        v-if="addressLine"
+        class="mb-8 rounded-xl border border-line bg-surface/40 px-4 py-3"
+      >
+        <p class="micro-label">{{ t('addListing.confirmAddress') }}</p>
+        <p class="text-sm text-ink mt-1">{{ addressLine }}</p>
+      </div>
+
+      <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
+        <WizardStepper
+          :steps="stepperSteps"
+          :current-index="wizard.currentIndex.value"
+          :completed="wizard.completed.value"
+          @jump="handleJump"
+        />
+
+        <div class="w-full min-w-0 max-w-2xl">
+          <div class="flex flex-col gap-10">
+            <div
+              v-show="wizard.currentStep.value === 'category'"
+              data-step="category"
+            >
+              <section class="flex flex-col gap-4">
+                <h2
+                  class="text-base font-semibold text-ink border-b border-line pb-2"
+                >
+                  {{ t('addListing.listingType') }}
+                </h2>
+                <ToggleButtons
+                  :options="availableTypeOptions"
+                  :model-value="form.type"
+                  @update:model-value="
+                    handleTypeChange($event as ListingType | '')
+                  "
+                />
+                <p v-if="fieldError('type')" class="text-xs text-red-500">
+                  {{ fieldError('type') }}
+                </p>
+              </section>
+
+              <PropertyKindSection
+                :property-kind="form.propertyKind"
+                @update:property-kind="form.propertyKind = $event"
+              />
+            </div>
+
+            <div
+              v-show="wizard.currentStep.value === 'description'"
+              data-step="description"
+            >
+              <StepDescription v-model:form="form" :field-error="fieldError" />
+            </div>
+
+            <div
+              v-show="wizard.currentStep.value === 'photos'"
+              data-step="photos"
+            >
+              <StepPhotos
+                v-model:form="form"
+                :photos="photoUpload.photos.value"
+                :plans="planUpload.photos.value"
+                :field-error="fieldError"
+                @add-photo-files="photoUpload.addFiles"
+                @remove-photo="photoUpload.remove"
+                @move-photo="photoUpload.move"
+                @add-plan-files="planUpload.addFiles"
+                @remove-plan="planUpload.remove"
+                @move-plan="planUpload.move"
+              />
+            </div>
+
+            <div
+              v-show="wizard.currentStep.value === 'publish'"
+              data-step="publish"
+            >
+              <StepPublish
+                v-model:form="form"
+                :field-error="fieldError"
+                :turnstile-enabled="false"
+                @add-phone="addPhone"
+                @remove-phone="removePhone"
+              />
+            </div>
+
+            <div
+              v-show="wizard.currentStep.value === 'confirm'"
+              data-step="confirm"
+            >
+              <StepConfirm
+                :form="form"
+                :photos="photoUpload.photos.value"
+                :address-line="addressLine"
+                :show-address-edit="false"
+                :submitting="submitting"
+                :submit-error="submitError"
+                :rent-listing-warning="false"
+                @edit-step="jumpToStep"
+                @submit="submit"
+              />
+            </div>
+          </div>
+
+          <div
+            v-if="wizard.currentStep.value !== 'confirm'"
+            class="mt-10 pt-6 border-t border-line flex items-center justify-between"
           >
-            {{ t('addListing.transactionType') }}
-          </h2>
-          <ToggleButtons
-            :options="availableTypeOptions"
-            :model-value="form.type"
-            @update:model-value="form.type = $event as ListingType"
-          />
-          <p v-if="fieldError('type')" class="text-xs text-red-500">
-            {{ fieldError('type') }}
-          </p>
-        </section>
-
-        <PricingSection
-          v-model:form="form"
-          :field-error="fieldError"
-          :is-edit="false"
-        />
-
-        <BasicInfoSection v-model:form="form" :field-error="fieldError" />
-
-        <PropertyKindSection
-          :property-kind="form.propertyKind"
-          @update:property-kind="form.propertyKind = $event"
-        />
-
-        <DetailsSection v-model:form="form" :field-error="fieldError" />
-
-        <FeaturesSection v-model:form="form" />
-
-        <PhonesSection
-          v-model:form="form"
-          :field-error="fieldError"
-          @add-phone="addPhone"
-          @remove-phone="removePhone"
-        />
-
-        <PhotosSection
-          v-model:form="form"
-          :photos="photoUpload.photos.value"
-          :field-error="fieldError"
-          @add-files="photoUpload.addFiles"
-          @remove-photo="photoUpload.remove"
-          @move="photoUpload.move"
-        />
-        <PlansSection
-          :plans="planUpload.photos.value"
-          @add-files="planUpload.addFiles"
-          @remove-plan="planUpload.remove"
-          @move="planUpload.move"
-        />
-
-        <div class="flex items-center gap-4 pt-2">
-          <button
-            type="submit"
-            :disabled="submitting"
-            class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {{
-              submitting
-                ? t('addListing.submitting')
-                : t('drawers.addListingTypeSubmit')
-            }}
-          </button>
-          <RouterLink
-            :to="localePath('/')"
-            class="text-sm text-ink-2 hover:text-ink underline underline-offset-2 transition-colors"
-          >
-            {{ t('addListing.cancel') }}
-          </RouterLink>
+            <button
+              v-if="!wizard.isFirst.value"
+              type="button"
+              class="text-sm text-ink-2 hover:text-ink transition-colors"
+              @click="handleBack"
+            >
+              {{ t('addListing.back') }}
+            </button>
+            <span v-else />
+            <button
+              type="button"
+              class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              @click="handleContinue"
+            >
+              {{ t('addListing.continue') }}
+            </button>
+          </div>
         </div>
-
-        <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
-      </form>
+      </div>
     </template>
   </div>
 </template>

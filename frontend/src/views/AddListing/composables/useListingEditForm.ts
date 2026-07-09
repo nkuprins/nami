@@ -1,5 +1,10 @@
 import { computed, nextTick, reactive, ref } from 'vue';
-import { getListing, updateListing } from '../../../api/listingsApi';
+import {
+  getListing,
+  getMyListings,
+  updateListing,
+  updateProperty,
+} from '../../../api/listingsApi';
 import type { Feature, ListingType } from '../../../types/listingItem';
 import type { ListingFormState } from './formTypes';
 import {
@@ -39,6 +44,15 @@ export function useListingEditForm(
   const loading = ref(true);
   const loadedType = ref<ListingType | ''>('');
 
+  // Populated from the loaded listing's shared property location — used to
+  // render the locked Location card and to save a corrected map pin.
+  const propertyId = ref('');
+  const districtDisplay = ref('');
+  const cityDisplay = ref('');
+  const savingPin = ref(false);
+  const pinSaveError = ref('');
+  const siblingListingsCount = ref(1);
+
   getListing(listingId)
     .then((p) => {
       if (!p) {
@@ -58,13 +72,50 @@ export function useListingEditForm(
       form.completion = p.completion ?? '';
       form.phones = p.phones?.length ? [...p.phones] : [''];
       seedPropertyFields(form, p);
+      form.address = p.location.address;
+      form.coords = p.location.coords;
+      propertyId.value = p.propertyId;
+      districtDisplay.value = p.location.district;
+      cityDisplay.value = p.location.city;
       photoUpload.seed(p.media.photos ?? []);
       planUpload.seed(p.media.plans ?? []);
       loading.value = false;
+
+      getMyListings()
+        .then((all) => {
+          siblingListingsCount.value = all.filter(
+            (l) => l.propertyId === p.propertyId
+          ).length;
+        })
+        .catch(() => {
+          siblingListingsCount.value = 1;
+        });
     })
     .catch(() => {
       localePush('/');
     });
+
+  // Saves only a corrected map pin — the address/district/city stay whatever
+  // they were, since the pin fix must never let a typo become a new address.
+  async function savePin(newCoords: { lat: number; lng: number }) {
+    savingPin.value = true;
+    pinSaveError.value = '';
+    try {
+      await updateProperty(propertyId.value, {
+        location: {
+          district: districtDisplay.value,
+          city: cityDisplay.value,
+          address: form.address,
+          coords: newCoords,
+        },
+      });
+      form.coords = newCoords;
+    } catch {
+      pinSaveError.value = 'Something went wrong. Please try again.';
+    } finally {
+      savingPin.value = false;
+    }
+  }
 
   const errors = computed(() => ({
     ...listingFieldErrors(form, { requireRentPrice: false }),
@@ -131,5 +182,12 @@ export function useListingEditForm(
     submit,
     loading,
     loadedType,
+    propertyId,
+    districtDisplay,
+    cityDisplay,
+    savingPin,
+    pinSaveError,
+    siblingListingsCount,
+    savePin,
   };
 }

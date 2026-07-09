@@ -5,7 +5,7 @@ import type {
   PropertyDetails,
   PropertyMedia,
 } from '../../../types/listingItem';
-import type { PropertyFieldsForm } from './formTypes';
+import type { ListingFieldsForm, PropertyFieldsForm } from './formTypes';
 import { parseDecimal } from '../../../utils/utils';
 import { requestPresignedUrls, uploadFilesToS3 } from '../../../api/uploadApi';
 
@@ -31,6 +31,30 @@ export function toggleFeature(form: { features: Feature[] }, f: Feature): void {
   const i = form.features.indexOf(f);
   if (i === -1) form.features.push(f);
   else form.features.splice(i, 1);
+}
+
+// The shared `price` field means "rent price" only in single-listing rent
+// mode; everywhere else (buy, new_project, or the buy leg of dual buy+rent
+// mode) it means "sale price". Crossing that boundary must clear the field —
+// otherwise a price typed for one meaning is silently reused for the other.
+function priceMeaning(
+  type: ListingFieldsForm['type'],
+  alsoRent: boolean
+): 'rent' | 'sale' {
+  return type === 'rent' && !alsoRent ? 'rent' : 'sale';
+}
+
+export function setTransactionType(
+  form: Pick<ListingFieldsForm, 'type' | 'alsoRent' | 'price' | 'vatIncluded'>,
+  mutate: () => void
+): void {
+  const before = priceMeaning(form.type, form.alsoRent);
+  mutate();
+  const after = priceMeaning(form.type, form.alsoRent);
+  if (before !== after) {
+    form.price = '';
+    form.vatIncluded = false;
+  }
 }
 
 // Empty baseline for the physical/media slice of a form. Spread into the create

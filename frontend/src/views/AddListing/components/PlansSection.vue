@@ -20,9 +20,6 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 
 <template>
   <section class="flex flex-col gap-4">
-    <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
-      {{ t('addListing.plansSection') }}
-    </h2>
     <div class="flex flex-col gap-1.5">
       <p class="text-sm font-medium text-ink">
         {{ t('addListing.plansSection') }}

@@ -4,6 +4,7 @@ import {
   offerableListingTypes,
   type Feature,
   type ListingType,
+  type PropertyLocation,
   type Translations,
 } from '../../../types/listingItem';
 import type { ListingFieldsForm, ListingFormState } from './formTypes';
@@ -161,6 +162,7 @@ export function useAddListingToProperty(
   const submitting = ref(false);
   const submitError = ref('');
   const loading = ref(true);
+  const propertyLocation = ref<PropertyLocation | null>(null);
 
   const offerable = new Set(offerableListingTypes());
   const availableTypeOptions = computed(() =>
@@ -180,6 +182,7 @@ export function useAddListingToProperty(
       const sibling = await getListing(mine[0].id);
       if (sibling) {
         seedPropertyFields(form, sibling);
+        propertyLocation.value = sibling.location;
         photoUpload.seed(sibling.media.photos ?? []);
         planUpload.seed(sibling.media.plans ?? []);
       }
@@ -245,7 +248,10 @@ export function useAddListingToProperty(
     loading,
     submitting,
     submitError,
+    errors,
+    touched,
     fieldError,
+    propertyLocation,
     toggleFeature,
     addPhone,
     removePhone,

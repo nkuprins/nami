@@ -229,6 +229,7 @@ export default {
     phoneSection: 'Kontakttelefons',
     phoneNumber: 'Tālruņa numurs',
     anotherPhone: '+ Pievienot vēl vienu tālruni',
+    mediaSection: 'Multivide',
     photosSection: 'Fotogrāfijas',
     addPhotos: '+ Pievienot fotogrāfijas',
     coverPhoto: 'Vāka attēls',
@@ -262,18 +263,37 @@ export default {
     duplicateNudgeFuzzy:
       'Šī adrese ļoti līdzinās jūsu īpašumam adresē {address}. Ja tas ir cits īpašums, apstipriniet, lai turpinātu.',
     duplicateNudgeFuzzyContinue: 'Tas ir cits īpašums — turpināt',
+    stepperLocation: 'Atrašanās vieta',
+    stepperCategory: 'Kategorija',
+    stepperDescription: 'Apraksts',
+    stepperPhotos: 'Attēli',
+    stepperPublish: 'Publicēšana',
+    stepperConfirm: 'Apstiprināt',
+    stepperProgress: 'Progress',
+    stepOfTotal: 'Solis {current} no {total} — {label}',
+    back: 'Atpakaļ',
+    continue: 'Turpināt',
+    confirmTitle: 'Pārskatiet savu sludinājumu',
+    confirmSubtitle: 'Pārbaudiet visu zemāk un tad publicējiet.',
+    confirmEdit: 'Labot',
+    confirmAddress: 'Adrese',
+    confirmCategory: 'Kategorija',
+    confirmPrice: 'Cena',
+    confirmPhotos: 'Fotogrāfijas',
+    confirmPhones: 'Tālruņa numuri',
+    locationLockedNote:
+      'Reģistrētā adrese — sazinieties ar atbalstu, lai to mainītu.',
+    pinSaveAction: 'Saglabāt atzīmes pozīciju',
+    pinSaving: 'Saglabā…',
+    pinAffectsListings:
+      'Tas atjaunos kartes atzīmi {count} sludinājumiem šajā adresē.',
+    pinAffectsListingsOne: 'Tas atjaunos kartes atzīmi šim sludinājumam.',
   },
   editListing: {
     title: 'Rediģēt sludinājumu',
     subtitle:
       'Aizpildiet zemāk esošo informāciju, lai rediģētu savu sludinājumu.',
     publishListing: 'Saglabāt izmaiņas',
-  },
-  editProperty: {
-    title: 'Rediģēt īpašumu',
-    subtitle:
-      'Šeit veiktās izmaiņas attieksies uz īpašumu un visiem tā sludinājumiem.',
-    submitLabel: 'Saglabāt izmaiņas',
   },
   auth: {
     signIn: 'Ieiet',

@@ -41,12 +41,6 @@ export const router = createRouter({
           props: true,
         },
         {
-          path: 'property/:id/edit',
-          name: 'edit-property',
-          component: () => import('./views/AddListing/EditPropertyView.vue'),
-          props: true,
-        },
-        {
           path: 'property/:id/add-listing',
           name: 'add-listing-to-property',
           component: () =>
@@ -101,7 +95,6 @@ router.beforeEach(async (to) => {
   const needsAuth =
     to.name === 'add-listing' ||
     to.name === 'edit-listing' ||
-    to.name === 'edit-property' ||
     to.name === 'add-listing-to-property';
   if (needsAuth) {
     // The app now mounts before session restoration finishes, so wait for it

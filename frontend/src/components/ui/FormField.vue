@@ -34,7 +34,7 @@ function onInput(e: Event) {
       @input="onInput"
       :type="type ?? 'text'"
       :placeholder="placeholder"
-      class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+      class="h-10 px-3 rounded-lg border text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors disabled:bg-surface disabled:text-ink-3 disabled:cursor-not-allowed disabled:border-line"
       :class="error ? 'border-red-400 bg-red-50' : 'border-line bg-bg'"
       v-bind="$attrs"
     />

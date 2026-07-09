@@ -1,25 +1,47 @@
 <script setup lang="ts">
+import { computed, nextTick, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ref, watch } from 'vue';
 import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useLocationDropdown } from './composables/useLocationDropdown';
 import { useListingForm } from './composables/useListingForm';
 import { useDuplicatePropertyNudge } from './composables/useDuplicatePropertyNudge';
+import { useWizardSteps } from './composables/useWizardSteps';
+import {
+  stepHasErrors,
+  type ListingWizardStep,
+} from './composables/useWizardStepValidity';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
-import TurnstileWidget from '../../components/ui/TurnstileWidget.vue';
+import WizardStepper from '../../components/ui/WizardStepper.vue';
 
-import ListingTypeSection from './components/ListingTypeSection.vue';
-import BasicInfoSection from './components/BasicInfoSection.vue';
-import PricingSection from './components/PricingSection.vue';
-import LocationSection from './components/LocationSection.vue';
-import DetailsSection from './components/DetailsSection.vue';
-import FeaturesSection from './components/FeaturesSection.vue';
-import PhonesSection from './components/PhonesSection.vue';
-import PhotosSection from './components/PhotosSection.vue';
-import PlansSection from './components/PlansSection.vue';
+import StepLocation from './components/steps/StepLocation.vue';
+import StepCategory from './components/steps/StepCategory.vue';
+import StepDescription from './components/steps/StepDescription.vue';
+import StepPhotos from './components/steps/StepPhotos.vue';
+import StepPublish from './components/steps/StepPublish.vue';
+import StepConfirm from './components/steps/StepConfirm.vue';
 
 const { t } = useI18n();
 const { localePath, localePush } = useLocaleRoute();
+
+const STEPS: ListingWizardStep[] = [
+  'location',
+  'category',
+  'description',
+  'photos',
+  'publish',
+  'confirm',
+];
+
+const stepperSteps = computed(() => [
+  { id: 'location', label: t('addListing.stepperLocation') },
+  { id: 'category', label: t('addListing.stepperCategory') },
+  { id: 'description', label: t('addListing.stepperDescription') },
+  { id: 'photos', label: t('addListing.stepperPhotos') },
+  { id: 'publish', label: t('addListing.stepperPublish') },
+  { id: 'confirm', label: t('addListing.stepperConfirm') },
+]);
+
+const wizard = useWizardSteps(STEPS);
 
 const photoUpload = usePhotoUpload();
 const planUpload = usePhotoUpload(3);
@@ -27,17 +49,17 @@ const { selectedLocation, isOpen, districtName, onSelect } =
   useLocationDropdown();
 const nudge = useDuplicatePropertyNudge();
 
-// Cloudflare Turnstile human-check on submission. Inactive locally when no site
-// key is configured, so dev/mock flows aren't blocked.
 const turnstileEnabled = !!import.meta.env.VITE_TURNSTILE_SITE_KEY;
 const turnstileToken = ref('');
-const turnstileWidget = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+const stepPublishRef = ref<InstanceType<typeof StepPublish> | null>(null);
 
 const {
   form,
+  touched,
   submitting,
   submitError,
   rentListingWarning,
+  errors,
   fieldError,
   addPhone,
   removePhone,
@@ -52,9 +74,60 @@ const {
   },
   {
     token: () => turnstileToken.value,
-    reset: () => turnstileWidget.value?.reset(),
+    reset: () => stepPublishRef.value?.resetTurnstile(),
   }
 );
+
+// The only hard block on Continue itself (nothing more to reveal by clicking —
+// the duplicate card already explains it). Ordinary field validation is instead
+// checked on click, revealing that step's red errors rather than pre-disabling.
+const continueBlocked = computed(
+  () => wizard.currentStep.value === 'location' && nudge.blockSubmit.value
+);
+
+async function handleContinue() {
+  if (stepHasErrors(wizard.currentStep.value, errors.value)) {
+    touched.value = true;
+    await nextTick();
+    document
+      .querySelector(`[data-step="${wizard.currentStep.value}"] .text-red-500`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  touched.value = false;
+  wizard.next();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function handleBack() {
+  wizard.back();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function jumpToStep(step: ListingWizardStep) {
+  wizard.goTo(STEPS.indexOf(step));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// A step marked "completed" can go stale: editing an earlier step (e.g.
+// checking "also rent") can invalidate a later one that was already visited.
+// Re-validate every step up to the jump target so the stepper rail can't be
+// used to skip past a now-broken step straight to Confirm.
+function handleJump(index: number) {
+  if (index > wizard.currentIndex.value) {
+    const invalidStep = STEPS.slice(0, index).find((step) =>
+      stepHasErrors(step, errors.value)
+    );
+    if (invalidStep) {
+      touched.value = true;
+      wizard.goTo(STEPS.indexOf(invalidStep));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+  }
+  wizard.goTo(index);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 let nudgeTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -75,156 +148,149 @@ watch(
     nudgeTimer = setTimeout(() => nudge.check(address, district, city), 400);
   }
 );
+
+// Changing the transaction type after Publish was already filled in can
+// invalidate it (e.g. adding a second type with no price of its own yet), so
+// drop its completed mark rather than leave a stale checkmark in the rail.
+watch(
+  () => [form.type, form.alsoRent] as const,
+  () => wizard.uncomplete(STEPS.indexOf('publish'))
+);
 </script>
 
 <template>
-  <div class="mx-auto max-w-2xl px-4 sm:px-6 py-10 sm:py-14">
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-ink">{{ t('addListing.title') }}</h1>
-      <p class="text-sm text-ink-3 mt-1">{{ t('addListing.subtitle') }}</p>
+  <div class="mx-auto max-w-4xl px-4 sm:px-6 py-10 sm:py-14">
+    <div class="mb-8 flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-ink">{{ t('addListing.title') }}</h1>
+        <p class="text-sm text-ink-3 mt-1">{{ t('addListing.subtitle') }}</p>
+      </div>
+      <RouterLink
+        :to="localePath('/')"
+        class="text-sm text-ink-2 hover:text-ink underline underline-offset-2 transition-colors shrink-0 mt-1"
+      >
+        {{ t('addListing.cancel') }}
+      </RouterLink>
     </div>
 
-    <Teleport to="body">
-      <Transition name="scrim">
-        <div
-          v-if="nudge.blockSubmit.value && nudge.match.value"
-          class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-        >
-          <div class="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
-          <dialog
-            open
-            aria-modal="true"
-            class="relative z-10 w-full max-w-sm bg-bg rounded-2xl shadow-lift border border-line p-6 flex flex-col gap-5"
+    <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
+      <WizardStepper
+        :steps="stepperSteps"
+        :current-index="wizard.currentIndex.value"
+        :completed="wizard.completed.value"
+        @jump="handleJump"
+      />
+
+      <div class="w-full min-w-0 max-w-2xl">
+        <div class="flex flex-col gap-10">
+          <div
+            v-show="wizard.currentStep.value === 'location'"
+            data-step="location"
           >
-            <div class="flex flex-col gap-1.5">
-              <h2 class="text-base font-semibold text-ink">
-                {{
-                  nudge.matchKind.value === 'fuzzy'
-                    ? t('addListing.duplicateNudgeFuzzyTitle')
-                    : t('addListing.duplicateNudgeTitle')
-                }}
-              </h2>
-              <p class="text-sm text-ink-2 leading-relaxed">
-                {{
-                  nudge.matchKind.value === 'fuzzy'
-                    ? t('addListing.duplicateNudgeFuzzy', {
-                        address: nudge.match.value.location.address,
-                      })
-                    : t('addListing.duplicateNudge', {
-                        address: nudge.match.value.location.address,
-                      })
-                }}
-              </p>
-            </div>
-            <div class="flex flex-col gap-2">
-              <RouterLink
-                :to="localePath(`/listing/${nudge.match.value.id}`)"
-                class="focus-ring h-9 px-4 rounded-lg bg-ink text-bg text-sm font-medium flex items-center justify-center hover:bg-accent-2 transition-colors"
-              >
-                {{ t('addListing.duplicateNudgeView') }}
-              </RouterLink>
-              <button
-                type="button"
-                class="focus-ring h-9 px-4 rounded-lg border border-line text-sm text-ink-2 hover:bg-surface transition-colors"
-                @click="goAddToExisting()"
-              >
-                {{ t('addListing.duplicateNudgeAddListing') }}
-              </button>
-              <button
-                v-if="nudge.matchKind.value === 'fuzzy'"
-                type="button"
-                class="text-sm text-ink-3 hover:text-ink transition-colors self-center"
-                @click="nudge.acknowledgeFuzzy()"
-              >
-                {{ t('addListing.duplicateNudgeFuzzyContinue') }}
-              </button>
-            </div>
-          </dialog>
+            <StepLocation
+              v-model:form="form"
+              :field-error="fieldError"
+              :district-name="districtName"
+              :selected-location="selectedLocation"
+              :is-open="isOpen"
+              :match-kind="nudge.matchKind.value"
+              :match="nudge.match.value"
+              @update:is-open="isOpen = $event"
+              @select="onSelect"
+              @add-listing="goAddToExisting"
+              @acknowledge-fuzzy="nudge.acknowledgeFuzzy"
+            />
+          </div>
+
+          <div
+            v-show="wizard.currentStep.value === 'category'"
+            data-step="category"
+          >
+            <StepCategory v-model:form="form" :field-error="fieldError" />
+          </div>
+
+          <div
+            v-show="wizard.currentStep.value === 'description'"
+            data-step="description"
+          >
+            <StepDescription v-model:form="form" :field-error="fieldError" />
+          </div>
+
+          <div
+            v-show="wizard.currentStep.value === 'photos'"
+            data-step="photos"
+          >
+            <StepPhotos
+              v-model:form="form"
+              :photos="photoUpload.photos.value"
+              :plans="planUpload.photos.value"
+              :field-error="fieldError"
+              @add-photo-files="photoUpload.addFiles"
+              @remove-photo="photoUpload.remove"
+              @move-photo="photoUpload.move"
+              @add-plan-files="planUpload.addFiles"
+              @remove-plan="planUpload.remove"
+              @move-plan="planUpload.move"
+            />
+          </div>
+
+          <div
+            v-show="wizard.currentStep.value === 'publish'"
+            data-step="publish"
+          >
+            <StepPublish
+              ref="stepPublishRef"
+              v-model:form="form"
+              v-model:turnstile-token="turnstileToken"
+              :field-error="fieldError"
+              :turnstile-enabled="turnstileEnabled"
+              @add-phone="addPhone"
+              @remove-phone="removePhone"
+            />
+          </div>
+
+          <div
+            v-show="wizard.currentStep.value === 'confirm'"
+            data-step="confirm"
+          >
+            <StepConfirm
+              :form="form"
+              :photos="photoUpload.photos.value"
+              :address-line="
+                districtName ? `${form.address}, ${districtName}` : form.address
+              "
+              :submitting="submitting"
+              :submit-error="submitError"
+              :rent-listing-warning="rentListingWarning"
+              @edit-step="jumpToStep"
+              @submit="submit"
+            />
+          </div>
         </div>
-      </Transition>
-    </Teleport>
 
-    <form class="flex flex-col gap-10" @submit.prevent="submit">
-      <ListingTypeSection v-model:form="form" :field-error="fieldError" />
-
-      <PricingSection
-        v-model:form="form"
-        :field-error="fieldError"
-        :is-edit="false"
-      />
-
-      <BasicInfoSection v-model:form="form" :field-error="fieldError" />
-
-      <LocationSection
-        v-model:form="form"
-        :field-error="fieldError"
-        :district-name="districtName"
-        :selected-location="selectedLocation"
-        v-model:is-open="isOpen"
-        @select="onSelect"
-      />
-
-      <DetailsSection v-model:form="form" :field-error="fieldError" />
-
-      <FeaturesSection v-model:form="form" />
-
-      <PhonesSection
-        v-model:form="form"
-        :field-error="fieldError"
-        @add-phone="addPhone"
-        @remove-phone="removePhone"
-      />
-
-      <PhotosSection
-        v-model:form="form"
-        :photos="photoUpload.photos.value"
-        :field-error="fieldError"
-        @add-files="photoUpload.addFiles"
-        @remove-photo="photoUpload.remove"
-        @move="photoUpload.move"
-      />
-      <PlansSection
-        :plans="planUpload.photos.value"
-        @add-files="planUpload.addFiles"
-        @remove-plan="planUpload.remove"
-        @move="planUpload.move"
-      />
-
-      <p v-if="rentListingWarning" class="text-sm text-amber-600">
-        {{ t('addListing.rentListingFailed') }}
-      </p>
-
-      <TurnstileWidget
-        v-if="turnstileEnabled"
-        ref="turnstileWidget"
-        v-model="turnstileToken"
-      />
-
-      <div class="flex items-center gap-4 pt-2">
-        <button
-          type="submit"
-          :disabled="
-            submitting ||
-            nudge.blockSubmit.value ||
-            (turnstileEnabled && !turnstileToken)
-          "
-          class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        <div
+          v-if="wizard.currentStep.value !== 'confirm'"
+          class="mt-10 pt-6 border-t border-line flex items-center justify-between"
         >
-          {{
-            submitting
-              ? t('addListing.submitting')
-              : t('addListing.publishListing')
-          }}
-        </button>
-        <RouterLink
-          :to="localePath('/')"
-          class="text-sm text-ink-2 hover:text-ink underline underline-offset-2 transition-colors"
-        >
-          {{ t('addListing.cancel') }}
-        </RouterLink>
+          <button
+            v-if="!wizard.isFirst.value"
+            type="button"
+            class="text-sm text-ink-2 hover:text-ink transition-colors"
+            @click="handleBack"
+          >
+            {{ t('addListing.back') }}
+          </button>
+          <span v-else />
+          <button
+            type="button"
+            :disabled="continueBlocked"
+            class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="handleContinue"
+          >
+            {{ t('addListing.continue') }}
+          </button>
+        </div>
       </div>
-
-      <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
-    </form>
+    </div>
   </div>
 </template>

@@ -129,7 +129,9 @@ function requestDeleteListing(id: string) {
         @update:open="(v) => (propertyMenuOpen = v)"
       >
         <RouterLink
-          :to="localePath(`/property/${propertyId}/edit`)"
+          :to="
+            localePath(`/listing/${representative.id}/edit?section=location`)
+          "
           class="focus-ring w-full text-left px-3 py-2 rounded-md hover:bg-surface transition-colors flex items-center gap-2"
           @click="
             () => {
@@ -240,7 +242,10 @@ function requestDeleteListing(id: string) {
                 :disabled="renewingId === item.id"
                 @click="requestRenew(item.id)"
               >
-                <IconSpinner v-if="renewingId === item.id" class="size-4 shrink-0" />
+                <IconSpinner
+                  v-if="renewingId === item.id"
+                  class="size-4 shrink-0"
+                />
                 <IconRefresh v-else class="size-4 shrink-0" />
                 {{ t('drawers.renew') }}
               </button>
@@ -250,7 +255,10 @@ function requestDeleteListing(id: string) {
                 :disabled="deletingId === item.id"
                 @click="requestDeleteListing(item.id)"
               >
-                <IconSpinner v-if="deletingId === item.id" class="size-4 shrink-0" />
+                <IconSpinner
+                  v-if="deletingId === item.id"
+                  class="size-4 shrink-0"
+                />
                 <IconTrash v-else class="size-4 shrink-0" />
                 {{ t('drawers.deleteThisListing') }}
               </button>
