@@ -2,6 +2,7 @@ package com.app.backend.controller;
 
 import com.app.backend.dto.property.request.*;
 import com.app.backend.dto.property.response.*;
+import com.app.backend.enums.ListingType;
 import com.app.backend.service.ListingQueryService;
 import com.app.backend.service.ListingService;
 import com.app.backend.service.PropertyQueryService;
@@ -35,6 +36,11 @@ public class PropertyController {
             @RequestParam(defaultValue = "1") int page
     ) {
         return listingQueryService.list(filter, sort, page);
+    }
+
+    @GetMapping("/counts")
+    public PropertyCategoryCountsDto counts(@RequestParam ListingType type) {
+        return listingQueryService.countsByType(type);
     }
 
     @GetMapping("/mine")

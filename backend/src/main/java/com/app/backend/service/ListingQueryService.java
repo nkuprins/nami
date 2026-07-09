@@ -2,12 +2,15 @@ package com.app.backend.service;
 
 import com.app.backend.config.CacheConfig;
 import com.app.backend.dto.property.request.PropertyFilter;
+import com.app.backend.dto.property.response.PropertyCategoryCountsDto;
 import com.app.backend.dto.property.response.PropertyItemDto;
 import com.app.backend.dto.property.response.PropertyListItemDto;
 import com.app.backend.dto.property.response.PropertyPageResponse;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.Listing_;
 import com.app.backend.entity.User;
+import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.exception.ApiException;
 import com.app.backend.mapper.PropertyMapper;
@@ -60,6 +63,16 @@ public class ListingQueryService {
         return listingRepository.findByOwner(owner).stream()
                 .map(propertyMapper::toListDto)
                 .toList();
+    }
+
+    @Cacheable(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, key = "#type")
+    @Transactional(readOnly = true)
+    public PropertyCategoryCountsDto countsByType(ListingType type) {
+        long apartment = listingRepository.countByListingTypeAndPropertyCategoryAndStatus(
+                type, PropertyCategory.APARTMENT, PropertyStatus.ACTIVE);
+        long house = listingRepository.countByListingTypeAndPropertyCategoryAndStatus(
+                type, PropertyCategory.HOUSE, PropertyStatus.ACTIVE);
+        return new PropertyCategoryCountsDto(apartment, house);
     }
 
     @Cacheable(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#id")

@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import CategoryTabs from './CategoryTabs.vue';
+import PropertyKindTabs from './PropertyKindTabs.vue';
 import FilterPill from './FilterPill.vue';
 import LocationPopover from '../../../components/listing/LocationPopover.vue';
 import PricePopover from './popovers/PricePopover.vue';
@@ -12,7 +13,9 @@ import IconSliders from '../../../components/icons/IconSliders.vue';
 import IconRefresh from '../../../components/icons/IconRefresh.vue';
 import { useFiltersStore } from '../../../stores/filterStore';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
+import { useKindCounts } from '../../../composables/useKindCounts';
 import { groupFmt } from '../../../utils/format';
+import { DEFAULT_FILTER_STATE } from '../../../types/filter';
 
 const { t } = useI18n();
 const { locale } = useLocaleRoute();
@@ -21,8 +24,17 @@ const emit = defineEmits<{ search: []; openMore: [] }>();
 
 const store = useFiltersStore();
 const { districts, locations } = storeToRefs(store);
-const { state, setType, setLocations, setPriceRange, setRooms, resetAll } =
-  useFiltersStore();
+const {
+  state,
+  setType,
+  setKind,
+  setLocations,
+  setPriceRange,
+  setRooms,
+  resetAll,
+} = useFiltersStore();
+
+const { counts: kindCounts } = useKindCounts(() => state.type);
 
 const locSummary = computed(() => {
   if (!state.loc.length) return '';
@@ -80,6 +92,7 @@ const advancedCount = computed(() => {
 const anyActive = computed(
   () =>
     state.type !== 'buy' ||
+    state.kind !== DEFAULT_FILTER_STATE.kind ||
     state.loc.length > 0 ||
     state.priceMin !== undefined ||
     state.priceMax !== undefined ||
@@ -93,6 +106,12 @@ const anyActive = computed(
     class="bg-bg/97 backdrop-blur-md rounded-2xl shadow-lift border border-line/60 overflow-hidden"
   >
     <CategoryTabs :model-value="state.type" @update:model-value="setType" />
+
+    <PropertyKindTabs
+      :model-value="state.kind"
+      :counts="kindCounts"
+      @update:model-value="setKind"
+    />
 
     <div class="p-4 sm:p-5">
       <div

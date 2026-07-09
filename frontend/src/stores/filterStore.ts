@@ -7,7 +7,7 @@ import {
   FilterKey,
   type FilterState,
 } from '../types/filter';
-import { ListingType } from '../types/listingItem';
+import { ListingType, PropertyKind } from '../types/listingItem';
 import { logger } from '../utils/logger';
 import { FilterCodec } from '../utils/filterCodec';
 import { SortKey } from '../types/sort';
@@ -70,6 +70,13 @@ export const useFiltersStore = defineStore('filters', () => {
     state.type = type;
     state.page = 1;
     if (type !== 'new_project') state.completion = undefined;
+  }
+
+  function setKind(kind: PropertyKind | undefined) {
+    if (state.kind === kind) return;
+    logger.info(`[FiltersStore] Kind mutation: ${state.kind} ➔ ${kind}`);
+    state.kind = kind;
+    state.page = 1;
   }
 
   function setLocations(humanLocs: Location[]) {
@@ -170,6 +177,7 @@ export const useFiltersStore = defineStore('filters', () => {
     state,
     searchNonce,
     setType,
+    setKind,
     setLocations,
     setPriceRange,
     setRooms,

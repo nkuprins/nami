@@ -37,7 +37,9 @@ function toggle() {
       }"
     >
       <span class="flex flex-col leading-tight min-w-0">
-        <span class="micro-label">{{ label }}</span>
+        <span class="text-xs font-semibold uppercase tracking-wide text-ink">{{
+          label
+        }}</span>
         <span
           class="text-sm truncate"
           :class="summary ? 'text-ink' : 'text-ink-3'"

@@ -13,16 +13,6 @@ export default {
     deleteAccount: 'Удалить аккаунт',
     exportData: 'Экспортировать мои данные',
   },
-  hero: {
-    country: 'Латвия',
-    curated: 'Отборные объявления · Обновляются 24/7',
-    headline: 'Рынок',
-    accent: 'недвижимости',
-    subtitle: 'Жилая, коммерческая и инвестиционная недвижимость.',
-    properties: 'объявлений',
-    districts: 'районов',
-    clients: 'клиентов',
-  },
   filters: {
     location: 'Местоположение',
     price: 'Цена',
@@ -122,6 +112,7 @@ export default {
       'Объявление будет удалено навсегда и не может быть восстановлено.',
     deleteConfirmLabel: 'Удалить',
     vatIncluded: 'НДС включён',
+    vatBadge: 'НДС',
   },
   types: {
     buy: 'Продажа',

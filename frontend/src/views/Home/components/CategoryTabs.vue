@@ -17,22 +17,27 @@ function pick(id: ListingType) {
     <button
       v-for="tab in categoryOptions"
       :key="tab.id"
+      type="button"
       role="tab"
       :aria-selected="modelValue === tab.id"
       @click="pick(tab.id)"
-      class="focus-ring relative flex-1 px-4 sm:px-6 py-3 text-left transition-colors duration-200 border-b-2"
+      class="focus-ring relative flex-1 px-4 sm:px-6 py-3 text-left transition-colors duration-200"
       :class="
         modelValue === tab.id
-          ? 'bg-surface text-ink border-accent'
-          : 'text-ink-2 border-transparent hover:text-ink hover:bg-surface/50'
+          ? 'bg-surface text-ink'
+          : 'text-ink-2 hover:text-ink hover:bg-surface/50'
       "
     >
-      <span class="block text-sm font-medium leading-tight">{{
-        tab.label
-      }}</span>
-      <span class="block micro-label text-[0.625rem]! mt-0.5">{{
-        tab.hint
-      }}</span>
+      <span
+        class="inline-block border-b-2 pb-0.5"
+        :class="
+          modelValue === tab.id ? 'border-accent-2' : 'border-transparent'
+        "
+      >
+        <span class="text-base font-semibold leading-tight">{{
+          tab.label
+        }}</span>
+      </span>
     </button>
   </div>
 </template>

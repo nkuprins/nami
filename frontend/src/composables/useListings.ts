@@ -21,6 +21,7 @@ export function useListings(
       const s = toValue(source);
       return JSON.stringify({
         type: s.type,
+        kind: s.kind,
         sort: s.sort,
         page: s.page,
         nonce: toValue(trigger),

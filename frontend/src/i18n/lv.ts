@@ -13,16 +13,6 @@ export default {
     deleteAccount: 'Dzēst kontu',
     exportData: 'Eksportēt manus datus',
   },
-  hero: {
-    country: 'Latvija',
-    curated: 'Atlasīti sludinājumi · Atjaunoti 24/7',
-    headline: 'Nekustamais īpašums',
-    accent: 'risinājumi',
-    subtitle: 'Dzīvojamais, komerciālais un investīciju nekustamais īpašums.',
-    properties: 'īpašumi',
-    districts: 'rajoni',
-    clients: 'klienti',
-  },
   filters: {
     location: 'Atrašanās vieta',
     price: 'Cena',
@@ -121,6 +111,7 @@ export default {
       'Šis sludinājums tiks neatgriezeniski dzēsts un nevarēs tikt atjaunots.',
     deleteConfirmLabel: 'Dzēst',
     vatIncluded: 'PVN iekļauts',
+    vatBadge: 'PVN',
   },
   types: {
     buy: 'Pārdošanā',

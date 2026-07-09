@@ -3,6 +3,7 @@ package com.app.backend.service;
 import com.app.backend.IntegrationTestBase;
 import com.app.backend.config.CacheConfig;
 import com.app.backend.dto.property.request.PropertyFilter;
+import com.app.backend.dto.property.response.PropertyCategoryCountsDto;
 import com.app.backend.dto.property.response.PropertyItemDto;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.Property;
@@ -18,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
 
 import static com.app.backend.testutil.TestData.listing;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,6 +68,20 @@ class PropertyServiceCacheTest extends IntegrationTestBase {
         return PropertyFilter.builder().type(ListingType.BUY).build();
     }
 
+    private Listing saveListing(ListingType type, PropertyCategory category) {
+        Listing l = listing(owner);
+        l.setId(null);
+        l.getProperty().setId(null);
+        l.getProperty().setUpdatedAt(null);
+        l.setListingType(type);
+        l.setPropertyCategory(category);
+        Property savedProperty = propertyRepository.save(l.getProperty());
+        l.setProperty(savedProperty);
+        l.setPostedAt(null);
+        l.setUpdatedAt(null);
+        return listingRepository.save(l);
+    }
+
     @Test
     void getById_secondIdenticalCall_isServedFromCache() {
         Listing saved = saveListing();
@@ -111,6 +127,43 @@ class PropertyServiceCacheTest extends IntegrationTestBase {
         var nativeCache = (com.github.benmanes.caffeine.cache.Cache<Object, Object>)
                 cacheManager.getCache(CacheConfig.PROPERTY_LIST).getNativeCache();
         return nativeCache.asMap().size();
+    }
+
+    @Test
+    void countsByType_reflectsPropertyCategoryCounts() {
+        saveListing(ListingType.BUY, PropertyCategory.APARTMENT);
+        saveListing(ListingType.BUY, PropertyCategory.APARTMENT);
+        saveListing(ListingType.BUY, PropertyCategory.HOUSE);
+        saveListing(ListingType.RENT, PropertyCategory.HOUSE);
+
+        PropertyCategoryCountsDto counts = listingQueryService.countsByType(ListingType.BUY);
+
+        assertThat(counts.apartment()).isEqualTo(2);
+        assertThat(counts.house()).isEqualTo(1);
+    }
+
+    @Test
+    void countsByType_secondIdenticalCall_isServedFromCache() {
+        saveListing(ListingType.BUY, PropertyCategory.APARTMENT);
+        clearInvocations(listingRepository);
+
+        listingQueryService.countsByType(ListingType.BUY);
+        listingQueryService.countsByType(ListingType.BUY);
+
+        verify(listingRepository, times(2))
+                .countByListingTypeAndPropertyCategoryAndStatus(any(), any(), any());
+        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_KIND_COUNTS).get(ListingType.BUY)).isNotNull();
+    }
+
+    @Test
+    void deleteListing_evictsKindCountsCache() {
+        Listing saved = saveListing(ListingType.BUY, PropertyCategory.APARTMENT);
+        listingQueryService.countsByType(ListingType.BUY);
+        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_KIND_COUNTS).get(ListingType.BUY)).isNotNull();
+
+        listingService.deleteListing(saved.getId(), owner.getId());
+
+        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_KIND_COUNTS).get(ListingType.BUY)).isNull();
     }
 
     @Test

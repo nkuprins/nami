@@ -9,8 +9,10 @@ import {
   KNOWN_ENERGY_CLASS,
   KNOWN_FEATURES,
   KNOWN_HEATING,
+  KNOWN_KINDS,
   KNOWN_TYPES,
   PropertyCompletion,
+  PropertyKind,
 } from '../types/listingItem';
 import { KNOWN_SORTS } from '../types/sort';
 import { Location } from '../data/rawLocations';
@@ -95,6 +97,8 @@ export const FilterCodec = {
       sort: parse.enum(q.sort, KNOWN_SORTS, defaults.sort),
       completion: parse.optionalEnum(q.completion, KNOWN_COMPLETION) as
         PropertyCompletion | undefined,
+      kind: (parse.optionalEnum(q.kind, KNOWN_KINDS) ?? defaults.kind) as
+        PropertyKind | undefined,
 
       // Arrays & CSV Collections
       loc: parse.locationList(q.loc),
@@ -130,6 +134,7 @@ export const FilterCodec = {
     const defaults = DEFAULT_FILTER_STATE;
 
     if (state.type !== defaults.type) q.type = state.type;
+    if (state.kind && state.kind !== defaults.kind) q.kind = state.kind;
 
     if (state.loc.length) {
       q.loc = state.loc.map((l) => `${l.city}:${l.district}`).join(',');

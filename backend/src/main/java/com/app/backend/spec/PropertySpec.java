@@ -27,6 +27,10 @@ public class PropertySpec {
             predicates.add(cb.equal(root.get(Listing_.status), PropertyStatus.ACTIVE));
             predicates.add(cb.equal(root.get(Listing_.listingType), criteria.listingType()));
 
+            if (criteria.kind() != null) {
+                predicates.add(cb.equal(root.get(Listing_.propertyCategory), criteria.kind()));
+            }
+
             if (criteria.locByCity() != null && !criteria.locByCity().isEmpty()) {
                 List<Predicate> locPredicates = new ArrayList<>();
                 for (var e : criteria.locByCity().entrySet()) {

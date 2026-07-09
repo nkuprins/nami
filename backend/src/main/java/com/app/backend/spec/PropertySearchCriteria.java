@@ -4,6 +4,7 @@ import com.app.backend.dto.property.request.PropertyFilter;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
 import lombok.Builder;
@@ -15,6 +16,7 @@ import java.util.Map;
 @Builder
 public record PropertySearchCriteria(
         ListingType listingType,
+        PropertyCategory kind,
         Map<String, List<String>> locByCity,
         BigDecimal priceMin,
         BigDecimal priceMax,
@@ -39,6 +41,7 @@ public record PropertySearchCriteria(
     public static PropertySearchCriteria from(PropertyFilter filter, Map<String, List<String>> locByCity) {
         return PropertySearchCriteria.builder()
                 .listingType(filter.type())
+                .kind(filter.kind())
                 .locByCity(locByCity)
                 .priceMin(filter.priceMin()).priceMax(filter.priceMax())
                 .rooms(filter.rooms())

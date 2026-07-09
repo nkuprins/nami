@@ -14,6 +14,7 @@ public class CacheConfig {
 
     public static final String PROPERTY_DETAIL = "propertyDetail";
     public static final String PROPERTY_LIST = "propertyList";
+    public static final String PROPERTY_KIND_COUNTS = "propertyKindCounts";
 
     @Bean
     public CaffeineCacheManager cacheManager() {
@@ -24,6 +25,10 @@ public class CacheConfig {
                 .build());
         manager.registerCustomCache(PROPERTY_LIST, Caffeine.newBuilder()
                 .maximumSize(1000)
+                .expireAfterWrite(Duration.ofDays(1))
+                .build());
+        manager.registerCustomCache(PROPERTY_KIND_COUNTS, Caffeine.newBuilder()
+                .maximumSize(10)
                 .expireAfterWrite(Duration.ofDays(1))
                 .build());
         return manager;

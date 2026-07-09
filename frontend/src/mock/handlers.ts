@@ -80,6 +80,12 @@ function filterByType(items: CatalogItem[], params: URLSearchParams) {
   return items.filter((i) => i.type === type);
 }
 
+function filterByKind(items: CatalogItem[], params: URLSearchParams) {
+  const kind = params.get('kind');
+  if (!kind) return items;
+  return items.filter((i) => i.propertyKind === kind);
+}
+
 function filterByLocation(items: CatalogItem[], params: URLSearchParams) {
   const locs = params.getAll('loc');
   if (!locs.length) return items;
@@ -212,6 +218,7 @@ function filterByCompletion(items: CatalogItem[], params: URLSearchParams) {
 function applyFilters(params: URLSearchParams) {
   let items = [...dtoCatalog];
   items = filterByType(items, params);
+  items = filterByKind(items, params);
   items = filterByLocation(items, params);
   items = filterByPriceRange(items, params);
   items = filterByRoomCounts(items, params);
@@ -314,6 +321,15 @@ export const handlers = [
     if (index === -1) return new HttpResponse(null, { status: 404 });
     dtoCatalog.splice(index, 1);
     return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.get('/api/properties/counts', ({ request }) => {
+    const type = new URL(request.url).searchParams.get('type');
+    const items = type ? dtoCatalog.filter((i) => i.type === type) : dtoCatalog;
+    return HttpResponse.json({
+      apartment: items.filter((i) => i.propertyKind === 'apartment').length,
+      house: items.filter((i) => i.propertyKind === 'house').length,
+    });
   }),
 
   http.get('/api/properties/mine', () => {

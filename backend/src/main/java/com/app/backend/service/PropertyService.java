@@ -46,7 +46,10 @@ public class PropertyService {
     private final ImageProcessingPublisher imageProcessingPublisher;
     private final PropertyAccess propertyAccess;
 
-    @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
+    })
     @Transactional
     public PropertyItemDto create(CreatePropertyRequest req, UUID ownerId) {
         User owner = userRepository.findById(ownerId)
@@ -77,7 +80,8 @@ public class PropertyService {
     /** Updates a property's shared address (location). Its listings' physical/media attributes are untouched. */
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional
     public PropertyDto updateProperty(UUID propertyId, UpdatePropertyRequest req, UUID ownerId) {
@@ -99,7 +103,8 @@ public class PropertyService {
     /** Deletes a property and, via cascade, every listing on it. */
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true)
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional
     public void deleteProperty(UUID propertyId, UUID ownerId) {

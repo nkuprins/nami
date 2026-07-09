@@ -7,7 +7,6 @@ import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import StatusPill from './StatusPill.vue';
 import SaveHeart from './SaveHeart.vue';
-import SpecDots from './SpecDots.vue';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
 
 const props = defineProps<{ property: ListingSummary }>();
@@ -29,11 +28,27 @@ const pricePerM2 = computed(() =>
 const specRow = computed(() => {
   const { rooms, m2, floor, totalFloors, landM2 } = props.property.details;
   const { propertyKind } = props.property;
-  const parts: string[] = [`${rooms} ${t('listing.rm')}`, `${m2} m²`];
+  const parts: { value: string; unit: string }[] = [
+    { value: `${rooms}`, unit: t('listing.rm') },
+    { value: `${m2}`, unit: 'm²' },
+  ];
   if (propertyKind === 'house' && landM2) {
-    parts.push(`${landM2.toLocaleString()} ${t('listing.land')}`);
+    // t('listing.land') is "m² land" / "m² zeme" / "м² участок" — the m²
+    // symbol is always the first token, so fold it into the value to avoid
+    // showing "m²" twice in a row right under the m² spec above it.
+    const landUnit = t('listing.land');
+    const firstSpace = landUnit.indexOf(' ');
+    parts.push({
+      value: `${landM2.toLocaleString()} ${landUnit.slice(0, firstSpace)}`,
+      unit: landUnit.slice(firstSpace + 1),
+    });
   } else if (floor) {
-    parts.push(formatFloor(floor, totalFloors, locale.value));
+    const full = formatFloor(floor, totalFloors, locale.value);
+    const lastSpace = full.lastIndexOf(' ');
+    parts.push({
+      value: full.slice(0, lastSpace),
+      unit: full.slice(lastSpace + 1),
+    });
   }
   return parts;
 });
@@ -74,32 +89,48 @@ const specRow = computed(() => {
           <p class="truncate">{{ property.location.address }}</p>
         </div>
 
-        <div class="flex items-baseline justify-between gap-4 mt-2">
+        <div class="mt-2 flex items-center justify-between gap-3">
           <div>
-            <p class="display-price text-2xl text-ink whitespace-nowrap">
-              {{ price }}
-            </p>
-          </div>
-          <div class="text-right shrink-0">
-            <p class="text-sm text-ink-2 tabular whitespace-nowrap">
+            <div class="flex items-center gap-2.5">
+              <p class="display-price text-2xl text-ink whitespace-nowrap">
+                {{ price }}
+              </p>
+              <span
+                v-if="property.price.vatIncluded"
+                :title="t('listing.vatIncluded')"
+                class="text-base font-bold text-ink whitespace-nowrap shrink-0"
+              >
+                {{ t('listing.vatBadge') }}
+              </span>
+            </div>
+            <p
+              class="text-sm font-semibold text-ink-2 tabular whitespace-nowrap mt-0.5"
+            >
               {{ pricePerM2 }}
             </p>
-            <p
-              v-if="property.price.vatIncluded"
-              class="text-xs text-ink-3 whitespace-nowrap mt-0.5"
-            >
-              {{ t('listing.vatIncluded') }}
-            </p>
+          </div>
+
+          <div class="grid grid-cols-[auto_auto] gap-x-1.5 gap-y-0.5 shrink-0">
+            <template v-for="(part, i) in specRow" :key="i">
+              <span
+                class="text-sm font-semibold text-ink-2 tabular text-right whitespace-nowrap"
+              >
+                {{ part.value }}
+              </span>
+              <span
+                class="text-sm font-semibold text-ink-2 text-left whitespace-nowrap"
+              >
+                {{ part.unit }}
+              </span>
+            </template>
           </div>
         </div>
 
         <h3
-          class="text-[1.0625rem] leading-snug text-ink font-medium mt-1 line-clamp-2"
+          class="text-[1.0625rem] leading-snug text-ink font-medium mt-2 line-clamp-2"
         >
           {{ title }}
         </h3>
-
-        <SpecDots :parts="specRow" class="text-sm text-ink-2 mt-auto pt-2" />
       </div>
     </article>
   </RouterLink>

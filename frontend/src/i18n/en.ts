@@ -13,16 +13,6 @@ export default {
     deleteAccount: 'Delete account',
     exportData: 'Export my data',
   },
-  hero: {
-    country: 'Latvia',
-    curated: 'Curated listings · Updated 24/7',
-    headline: 'Real estate',
-    accent: 'solutions',
-    subtitle: 'Residential, commercial and investment real estate.',
-    properties: 'properties',
-    districts: 'districts',
-    clients: 'clients',
-  },
   filters: {
     location: 'Location',
     price: 'Price',
@@ -121,6 +111,7 @@ export default {
       'This listing will be permanently removed and cannot be recovered.',
     deleteConfirmLabel: 'Delete',
     vatIncluded: 'VAT included',
+    vatBadge: 'VAT',
   },
   types: {
     buy: 'For sale',

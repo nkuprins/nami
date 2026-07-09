@@ -61,6 +61,7 @@ export function toSlugs(loc: PropertyLocation): PropertyLocation {
 export function buildParams(f: FilterState): URLSearchParams {
   const p = new URLSearchParams();
   p.set('type', f.type);
+  if (f.kind) p.set('kind', f.kind);
   f.loc.forEach((l) => p.append('loc', `${l.city}:${l.district}`));
   if (f.priceMin != null) p.set('priceMin', String(f.priceMin));
   if (f.priceMax != null) p.set('priceMax', String(f.priceMax));

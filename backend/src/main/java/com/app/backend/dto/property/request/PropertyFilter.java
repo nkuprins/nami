@@ -3,6 +3,7 @@ package com.app.backend.dto.property.request;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
 import jakarta.validation.constraints.DecimalMax;
@@ -18,6 +19,7 @@ import java.util.List;
 @Builder
 public record PropertyFilter(
         @NotNull ListingType type,
+        PropertyCategory kind,
         List<String> loc,
         @DecimalMin("0.01") @DecimalMax("999999999999.99") BigDecimal priceMin,
         @DecimalMin("0.01") @DecimalMax("999999999999.99") BigDecimal priceMax,

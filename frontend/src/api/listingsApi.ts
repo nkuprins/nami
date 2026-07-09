@@ -98,6 +98,17 @@ export async function listListings(
   };
 }
 
+export async function getKindCounts(
+  type: ListingType,
+  options?: { signal?: AbortSignal }
+): Promise<{ apartment: number; house: number }> {
+  const res = await fetchApi(`/api/properties/counts?type=${type}`, {
+    signal: options?.signal,
+  });
+  if (!res.ok) throw new Error(`getKindCounts: ${res.status}`);
+  return res.json();
+}
+
 export async function getMyListings(): Promise<ListingSummary[]> {
   const res = await fetchApi(`/api/properties/mine`);
   if (!res.ok) throw new Error(`getMyListings: ${res.status}`);

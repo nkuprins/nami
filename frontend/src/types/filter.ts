@@ -3,6 +3,7 @@ import {
   Feature,
   HeatingType,
   PropertyCompletion,
+  PropertyKind,
   ListingType,
 } from './listingItem';
 import { SortKey } from './sort';
@@ -10,6 +11,7 @@ import { Location } from '../data/rawLocations';
 
 export interface FilterState {
   type: ListingType;
+  kind?: PropertyKind;
   loc: Location[];
   priceMin?: number;
   priceMax?: number;
@@ -35,6 +37,7 @@ export interface FilterState {
 export type FilterKey = keyof FilterState;
 export const ALL_FILTER_KEYS = Object.keys({
   type: 0,
+  kind: 0,
   loc: 0,
   priceMin: 0,
   priceMax: 0,
@@ -59,6 +62,7 @@ export const ALL_FILTER_KEYS = Object.keys({
 
 export const DEFAULT_FILTER_STATE: FilterState = {
   type: 'buy',
+  kind: 'house',
   loc: [],
   rooms: [],
   bedrooms: [],

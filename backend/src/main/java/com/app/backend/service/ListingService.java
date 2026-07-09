@@ -39,7 +39,10 @@ public class ListingService {
     private final ImageProcessingPublisher imageProcessingPublisher;
 
     /** Adds another self-contained listing at an address that already has at least one (e.g. rent one floor of a listed house). */
-    @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
+    })
     @Transactional
     public PropertyItemDto addListing(UUID propertyId, AddListingRequest req, UUID ownerId) {
         Property property = propertyAccess.loadOwnedProperty(propertyId, ownerId);
@@ -61,7 +64,8 @@ public class ListingService {
     /** Updates a self-contained listing (physical, media, features, terms). Its property's address is untouched. */
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId")
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId"),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional
     public PropertyItemDto updateListing(UUID listingId, UpdateListingRequest req, UUID ownerId) {
@@ -85,7 +89,8 @@ public class ListingService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId")
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId"),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional
     public PropertyItemDto renew(UUID listingId, RenewPropertyRequest req, UUID ownerId) {
@@ -103,7 +108,8 @@ public class ListingService {
      */
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId")
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId"),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional
     public void deleteListing(UUID listingId, UUID ownerId) {
