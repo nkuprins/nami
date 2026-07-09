@@ -32,19 +32,19 @@ export const router = createRouter({
         {
           path: 'add-listing',
           name: 'add-listing',
-          component: () => import('./views/AddListing/AddListingView.vue'),
+          component: () => import('./views/ListingForm/AddListingView.vue'),
         },
         {
           path: 'listing/:id/edit',
           name: 'edit-listing',
-          component: () => import('./views/AddListing/EditListingView.vue'),
+          component: () => import('./views/ListingForm/EditListingView.vue'),
           props: true,
         },
         {
           path: 'property/:id/add-listing',
           name: 'add-listing-to-property',
           component: () =>
-            import('./views/AddListing/AddListingToPropertyView.vue'),
+            import('./views/ListingForm/AddListingToPropertyView.vue'),
           props: true,
         },
         {

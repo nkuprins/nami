@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import type { ListingSummary } from '../../types/listingItem';
-import type { DuplicateMatchKind } from '../../views/AddListing/composables/useDuplicatePropertyNudge';
+import type { DuplicateMatchKind } from '../../views/ListingForm/composables/useDuplicatePropertyNudge';
 import IconBuilding from '../icons/IconBuilding.vue';
 
 const props = defineProps<{
