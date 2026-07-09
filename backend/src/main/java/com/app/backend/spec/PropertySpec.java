@@ -17,8 +17,12 @@ public class PropertySpec {
 
     public static Specification<Listing> build(PropertySearchCriteria criteria) {
         return (root, query, cb) -> {
+            // A listing is self-contained; only the shared location lives on the property.
             Join<Listing, Property> p = root.join(Listing_.property, JoinType.INNER);
             List<Predicate> predicates = new ArrayList<>();
+
+            Path<Short> floor = root.get(Listing_.floor);
+            Path<Short> totalFloors = root.get(Listing_.totalFloors);
 
             predicates.add(cb.equal(root.get(Listing_.status), PropertyStatus.ACTIVE));
             predicates.add(cb.equal(root.get(Listing_.listingType), criteria.listingType()));
@@ -37,51 +41,51 @@ public class PropertySpec {
             if (criteria.priceMin() != null) predicates.add(cb.ge(root.get(Listing_.price), criteria.priceMin()));
             if (criteria.priceMax() != null) predicates.add(cb.le(root.get(Listing_.price), criteria.priceMax()));
 
-            if (criteria.m2Min() != null) predicates.add(cb.ge(p.get(Property_.m2), criteria.m2Min()));
-            if (criteria.m2Max() != null) predicates.add(cb.le(p.get(Property_.m2), criteria.m2Max()));
+            if (criteria.m2Min() != null) predicates.add(cb.ge(root.get(Listing_.m2), criteria.m2Min()));
+            if (criteria.m2Max() != null) predicates.add(cb.le(root.get(Listing_.m2), criteria.m2Max()));
 
-            if (criteria.floorMin() != null) predicates.add(cb.ge(p.get(Property_.floor), criteria.floorMin()));
-            if (criteria.floorMax() != null) predicates.add(cb.le(p.get(Property_.floor), criteria.floorMax()));
+            if (criteria.floorMin() != null) predicates.add(cb.ge(floor, criteria.floorMin()));
+            if (criteria.floorMax() != null) predicates.add(cb.le(floor, criteria.floorMax()));
 
             if (Boolean.TRUE.equals(criteria.notGround())) {
                 predicates.add(cb.or(
-                        p.get(Property_.floor).isNull(),
-                        cb.notEqual(p.get(Property_.floor), (short) 1)
+                        cb.isNull(floor),
+                        cb.notEqual(floor, (short) 1)
                 ));
             }
 
             if (Boolean.TRUE.equals(criteria.notTop())) {
                 predicates.add(cb.or(
-                        p.get(Property_.floor).isNull(),
-                        cb.notEqual(p.get(Property_.floor), p.get(Property_.totalFloors))
+                        cb.isNull(floor),
+                        cb.notEqual(floor, totalFloors)
                 ));
             }
 
-            addCountFilter(predicates, cb, p.get(Property_.rooms), criteria.rooms());
-            addCountFilter(predicates, cb, p.get(Property_.bedrooms), criteria.bedrooms());
-            addCountFilter(predicates, cb, p.get(Property_.bathrooms), criteria.bathrooms());
+            addCountFilter(predicates, cb, root.get(Listing_.rooms), criteria.rooms());
+            addCountFilter(predicates, cb, root.get(Listing_.bedrooms), criteria.bedrooms());
+            addCountFilter(predicates, cb, root.get(Listing_.bathrooms), criteria.bathrooms());
 
             if (criteria.heating() != null && !criteria.heating().isEmpty()) {
-                predicates.add(p.get(Property_.heating).in(criteria.heating()));
+                predicates.add(root.get(Listing_.heating).in(criteria.heating()));
             }
 
             if (criteria.energyClass() != null && !criteria.energyClass().isEmpty()) {
-                predicates.add(p.get(Property_.energyClass).in(criteria.energyClass()));
+                predicates.add(root.get(Listing_.energyClass).in(criteria.energyClass()));
             }
 
-            if (criteria.yearMin() != null) predicates.add(cb.ge(p.get(Property_.yearBuilt), criteria.yearMin()));
-            if (criteria.yearMax() != null) predicates.add(cb.le(p.get(Property_.yearBuilt), criteria.yearMax()));
+            if (criteria.yearMin() != null) predicates.add(cb.ge(root.get(Listing_.yearBuilt), criteria.yearMin()));
+            if (criteria.yearMax() != null) predicates.add(cb.le(root.get(Listing_.yearBuilt), criteria.yearMax()));
 
             if (criteria.features() != null && !criteria.features().isEmpty()) {
                 Subquery<UUID> sub = query.subquery(UUID.class);
-                Root<Property> subProp = sub.from(Property.class);
-                Join<Property, PropertyFeature> featureJoin = subProp.join(Property_.features);
-                sub.select(subProp.get(Property_.id));
+                Root<Listing> subListing = sub.from(Listing.class);
+                Join<Listing, PropertyFeature> featureJoin = subListing.join(Listing_.features);
+                sub.select(subListing.get(Listing_.id));
                 sub.where(
-                        cb.equal(subProp.get(Property_.id), p.get(Property_.id)),
+                        cb.equal(subListing.get(Listing_.id), root.get(Listing_.id)),
                         featureJoin.in(criteria.features())
                 );
-                sub.groupBy(subProp.get(Property_.id));
+                sub.groupBy(subListing.get(Listing_.id));
                 sub.having(cb.equal(cb.countDistinct(featureJoin), (long) criteria.features().size()));
                 predicates.add(cb.exists(sub));
             }

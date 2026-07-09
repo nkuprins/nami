@@ -1,24 +1,35 @@
 import { computed, nextTick, reactive, ref } from 'vue';
 import { getListing, updateListing } from '../../../api/listingsApi';
-import type { ListingType } from '../../../types/listingItem';
-import type { ListingFieldsForm } from './formTypes';
+import type { Feature, ListingType } from '../../../types/listingItem';
+import type { ListingFormState } from './formTypes';
 import {
-  buildTranslations,
+  buildListingBody,
   INITIAL_LISTING_FIELDS,
   listingFieldErrors,
 } from './useListingFields';
 import {
   addPhone as addPhoneHelper,
+  INITIAL_PROPERTY_FIELDS,
   makeFieldError,
+  propertyFieldErrors,
   removePhone as removePhoneHelper,
+  seedPropertyFields,
+  toggleFeature as toggleFeatureHelper,
+  uploadNewFiles,
 } from './formHelpers';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
+import type { usePhotoUpload } from './usePhotoUpload';
 
-export type ListingEditFormState = ListingFieldsForm;
+export type ListingEditFormState = ListingFormState;
 
-export function useListingEditForm(listingId: string) {
+export function useListingEditForm(
+  listingId: string,
+  photoUpload: ReturnType<typeof usePhotoUpload>,
+  planUpload: ReturnType<typeof usePhotoUpload>
+) {
   const { localePush } = useLocaleRoute();
   const form = reactive<ListingEditFormState>({
+    ...INITIAL_PROPERTY_FIELDS,
     ...INITIAL_LISTING_FIELDS,
     phones: [''],
   });
@@ -46,18 +57,30 @@ export function useListingEditForm(listingId: string) {
       form.vatIncluded = p.price.vatIncluded ?? false;
       form.completion = p.completion ?? '';
       form.phones = p.phones?.length ? [...p.phones] : [''];
+      seedPropertyFields(form, p);
+      photoUpload.seed(p.media.photos ?? []);
+      planUpload.seed(p.media.plans ?? []);
       loading.value = false;
     })
     .catch(() => {
       localePush('/');
     });
 
-  const errors = computed(() =>
-    listingFieldErrors(form, { requireRentPrice: false })
-  );
+  const errors = computed(() => ({
+    ...listingFieldErrors(form, { requireRentPrice: false }),
+    ...propertyFieldErrors(form, {
+      hasLocation: true,
+      hasPhotos: photoUpload.photos.value.length > 0,
+      requireLocation: false,
+    }),
+  }));
 
   const isValid = computed(() => Object.keys(errors.value).length === 0);
   const fieldError = makeFieldError(touched, errors);
+
+  function toggleFeature(f: Feature) {
+    toggleFeatureHelper(form, f);
+  }
 
   function addPhone() {
     addPhoneHelper(form);
@@ -80,22 +103,13 @@ export function useListingEditForm(listingId: string) {
     submitting.value = true;
     submitError.value = '';
 
-    const filledPhones = form.phones.filter((p) => p.trim());
-
     try {
-      const item = await updateListing(listingId, {
-        type: form.type as ListingType,
-        price: {
-          amount: Number(form.price),
-          vatIncluded: form.vatIncluded || undefined,
-        },
-        translations: buildTranslations(form),
-        phones: filledPhones,
-        completion:
-          form.type === 'new_project' && form.completion
-            ? form.completion
-            : undefined,
-      });
+      const photos = await photoUpload.buildFinalUrls(uploadNewFiles);
+      const plans = await planUpload.buildFinalUrls(uploadNewFiles);
+      const item = await updateListing(
+        listingId,
+        buildListingBody(form, photos, plans)
+      );
       await localePush(`/listing/${item.id}`);
     } catch {
       submitError.value = 'Something went wrong. Please try again.';
@@ -111,6 +125,7 @@ export function useListingEditForm(listingId: string) {
     errors,
     isValid,
     fieldError,
+    toggleFeature,
     addPhone,
     removePhone,
     submit,

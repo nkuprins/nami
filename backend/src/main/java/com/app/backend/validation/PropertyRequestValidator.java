@@ -48,6 +48,27 @@ public class PropertyRequestValidator implements ConstraintValidator<ValidProper
             valid = false;
         }
 
+        Short floor = req.details() != null ? req.details().floor() : null;
+        Short totalFloors = req.details() != null ? req.details().totalFloors() : null;
+        if (floor != null && totalFloors == null) {
+            ctx.buildConstraintViolationWithTemplate("floor requires total_floors")
+                    .addPropertyNode("details").addPropertyNode("totalFloors").addConstraintViolation();
+            valid = false;
+        }
+        if (floor != null && totalFloors != null && floor > totalFloors) {
+            ctx.buildConstraintViolationWithTemplate("floor cannot exceed total_floors")
+                    .addPropertyNode("details").addPropertyNode("floor").addConstraintViolation();
+            valid = false;
+        }
+
+        Short rooms = req.details() != null ? req.details().rooms() : null;
+        Short bedrooms = req.details() != null ? req.details().bedrooms() : null;
+        if (rooms != null && bedrooms != null && bedrooms > rooms) {
+            ctx.buildConstraintViolationWithTemplate("bedrooms cannot exceed rooms")
+                    .addPropertyNode("details").addPropertyNode("bedrooms").addConstraintViolation();
+            valid = false;
+        }
+
         return valid;
     }
 

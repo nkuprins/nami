@@ -97,13 +97,11 @@ export interface ListingDetail extends ListingBase {
 
 export type ListingItem = ListingDetail;
 
+// The owner's editable address record. Every physical/media attribute lives on
+// the listing now, so the property carries only its shared location.
 export interface PropertyDetail {
   id: string; // property id
   ownerId: string;
-  propertyKind: PropertyKind;
-  details: PropertyDetails;
-  media: PropertyMedia;
-  features: Feature[] | null;
   location: PropertyLocation;
 }
 
@@ -145,12 +143,9 @@ export function hasLanguage(
   return Boolean(entry?.title && entry?.description);
 }
 
-const SALE_RENT_TYPES: ListingType[] = ['buy', 'rent'];
-
-// A new_project listing is a distinct offering from a resale buy/rent listing:
-// a property can be listed for sale and for rent at once, but never alongside
-// (or swapped for) a new_project listing.
-export function compatibleListingTypes(existing: ListingType[]): ListingType[] {
-  if (existing.includes('new_project')) return [];
-  return SALE_RENT_TYPES.filter((t) => !existing.includes(t));
+// A listing is self-contained, so an address can host any number of listings of
+// any type (sell the house + rent floor 2 + rent floor 3). No type is ever
+// excluded — every type is always offerable.
+export function offerableListingTypes(): ListingType[] {
+  return [...KNOWN_TYPES];
 }

@@ -34,8 +34,8 @@ class PropertyMapperTest {
         assertThat(dto.translations().get("lv").description()).isEqualTo(l.getTranslations().get("lv").getDescription());
         assertThat(dto.translations().get("en").description()).isEqualTo(l.getTranslations().get("en").getDescription());
         assertThat(dto.price().amount()).isEqualByComparingTo(l.getPrice());
-        assertThat(dto.details().rooms()).isEqualTo(l.getProperty().getRooms());
-        assertThat(dto.details().m2()).isEqualByComparingTo(l.getProperty().getM2());
+        assertThat(dto.details().rooms()).isEqualTo(l.getRooms());
+        assertThat(dto.details().m2()).isEqualByComparingTo(l.getM2());
         assertThat(dto.location().district()).isEqualTo(l.getProperty().getDistrictSlug());
         assertThat(dto.location().city()).isEqualTo(l.getProperty().getCitySlug());
     }
@@ -43,7 +43,7 @@ class PropertyMapperTest {
     @Test
     void toDto_mapsPhotos_andFeatures() {
         Listing l = listingWithPhotos(user());
-        l.getProperty().setFeatures(Set.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR));
+        l.setFeatures(Set.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR));
 
         PropertyItemDto dto = mapper.toDto(l);
 
@@ -67,7 +67,7 @@ class PropertyMapperTest {
     @Test
     void toDto_mapsCompletion_whenPresent() {
         Listing l = listing(user());
-        l.setCompletion(com.app.backend.enums.PropertyCompletion.READY);
+        l.setCompletion(PropertyCompletion.READY);
 
         PropertyItemDto dto = mapper.toDto(l);
 
@@ -110,5 +110,16 @@ class PropertyMapperTest {
         PropertyListItemDto dto = mapper.toListDto(l);
 
         assertThat(dto.completion()).isNull();
+    }
+
+    @Test
+    void toDto_mapsPhysicalFromListing() {
+        Listing l = listing(user());
+        l.setFloor((short) 2);
+
+        PropertyItemDto dto = mapper.toDto(l);
+
+        assertThat(dto.details().floor()).isEqualTo((short) 2);
+        assertThat(dto.details().rooms()).isEqualTo(l.getRooms());
     }
 }

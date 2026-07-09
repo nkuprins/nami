@@ -44,7 +44,6 @@ import static org.mockito.Mockito.*;
 class AuthServiceTest {
 
     @Mock private UserRepository userRepository;
-    @Mock private PropertyRepository propertyRepository;
     @Mock private ListingRepository listingRepository;
     @Mock private SavedListingRepository savedListingRepository;
     @Mock private RefreshTokenRepository refreshTokenRepository;
@@ -366,7 +365,7 @@ class AuthServiceTest {
             User user = user();
             Listing listing = listingWithPhotos(user);
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-            when(propertyRepository.findByOwner(user)).thenReturn(List.of(listing.getProperty()));
+            when(listingRepository.findByOwner(user)).thenReturn(List.of(listing));
 
             authService.deleteAccount(user.getId(), response);
             triggerAfterCommit();
@@ -393,31 +392,12 @@ class AuthServiceTest {
         void doesNotCallS3_whenUserHasNoProperties() {
             User user = user();
             when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-            when(propertyRepository.findByOwner(user)).thenReturn(List.of());
+            when(listingRepository.findByOwner(user)).thenReturn(List.of());
 
             authService.deleteAccount(user.getId(), response);
 
             verify(userRepository).delete(user);
             verify(mediaCleanupService, never()).enqueue(any());
-        }
-
-        @Test
-        void cleansUpS3Photos_forPropertyWithNoListings() {
-            // A property can be orphaned (all its listings deleted) yet still owned by the user;
-            // it must still be picked up for S3 cleanup even though listingRepository won't return it.
-            User user = user();
-            Property orphaned = listingWithPhotos(user).getProperty();
-            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
-            when(propertyRepository.findByOwner(user)).thenReturn(List.of(orphaned));
-
-            authService.deleteAccount(user.getId(), response);
-            triggerAfterCommit();
-
-            verify(userRepository).delete(user);
-            verify(mediaCleanupService).enqueue(List.of(
-                    "https://cdn.test.local/uploads/photo1.jpg",
-                    "https://cdn.test.local/uploads/photo2.jpg"
-            ));
         }
     }
 

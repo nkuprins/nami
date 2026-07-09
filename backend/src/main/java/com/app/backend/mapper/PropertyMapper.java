@@ -10,14 +10,9 @@ import com.app.backend.dto.property.response.PropertyDto;
 import com.app.backend.dto.property.response.PropertyItemDto;
 import com.app.backend.dto.property.response.PropertyListItemDto;
 import com.app.backend.dto.property.request.PropertyRequest;
-import com.app.backend.dto.property.request.UpdateListingRequest;
-import com.app.backend.dto.property.request.UpdatePropertyRequest;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.ListingTranslation;
 import com.app.backend.entity.Property;
-import com.app.backend.enums.ListingType;
-import com.app.backend.enums.PropertyCategory;
-import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.SupportedLocale;
 import org.springframework.stereotype.Component;
@@ -33,21 +28,19 @@ public class PropertyMapper {
 
     public PropertyItemDto toDto(Listing l) {
         Property p = l.getProperty();
-        List<PropertyFeature> features = p.getFeatures().isEmpty() ? null
-                : p.getFeatures().stream().sorted().toList();
         List<String> phones = l.getPhones();
         return PropertyItemDto.builder()
                 .id(l.getId())
                 .propertyId(p.getId())
                 .ownerId(l.getOwner().getId())
                 .type(l.getListingType())
-                .propertyKind(p.getPropertyCategory())
+                .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), l.isVatIncluded() ? true : null))
-                .details(toFullDetailsDto(p))
+                .details(toFullDetailsDto(l))
                 .translations(translations(l.getTranslations(), true))
                 .location(toLocation(p))
-                .features(features)
-                .media(toMediaDto(p))
+                .features(sortedFeatures(l))
+                .media(toMediaDto(l))
                 .phones(phones.isEmpty() ? null : phones)
                 .postedAt(l.getPostedAt())
                 .completion(l.getCompletion())
@@ -55,46 +48,40 @@ public class PropertyMapper {
                 .build();
     }
 
+    /** The owner's editable address record; every physical/media attribute lives on the listing now. */
     public PropertyDto toPropertyDto(Property p) {
-        List<PropertyFeature> features = p.getFeatures().isEmpty() ? null
-                : p.getFeatures().stream().sorted().toList();
         return PropertyDto.builder()
                 .id(p.getId())
                 .ownerId(p.getOwner().getId())
-                .propertyKind(p.getPropertyCategory())
-                .details(toFullDetailsDto(p))
-                .media(toMediaDto(p))
-                .features(features)
                 .location(toLocation(p))
                 .build();
     }
 
     public PropertyListItemDto toListDto(Listing l) {
         Property p = l.getProperty();
-        List<PropertyFeature> features = p.getFeatures().isEmpty() ? null
-                : p.getFeatures().stream().sorted().toList();
-        String photo = p.getPhotos().isEmpty() ? null : p.getPhotos().getFirst();
+        List<String> photos = l.getPhotos();
+        String photo = photos.isEmpty() ? null : photos.getFirst();
         PropertyDetails details = PropertyDetails.builder()
-                .rooms(p.getRooms())
-                .bedrooms(p.getBedrooms())
-                .bathrooms(p.getBathrooms())
-                .m2(p.getM2())
-                .landM2(p.getLandM2())
-                .floor(p.getFloor())
-                .totalFloors(p.getTotalFloors())
-                .yearBuilt(p.getYearBuilt())
+                .rooms(l.getRooms())
+                .bedrooms(l.getBedrooms())
+                .bathrooms(l.getBathrooms())
+                .m2(l.getM2())
+                .landM2(l.getLandM2())
+                .floor(l.getFloor())
+                .totalFloors(l.getTotalFloors())
+                .yearBuilt(l.getYearBuilt())
                 .build();
         return PropertyListItemDto.builder()
                 .id(l.getId())
                 .propertyId(p.getId())
                 .ownerId(l.getOwner().getId())
                 .type(l.getListingType())
-                .propertyKind(p.getPropertyCategory())
+                .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), l.isVatIncluded() ? true : null))
                 .details(details)
                 .translations(translations(l.getTranslations(), false))
                 .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null))
-                .features(features)
+                .features(sortedFeatures(l))
                 .photo(photo)
                 .postedAt(l.getPostedAt())
                 .completion(l.getCompletion())
@@ -120,47 +107,30 @@ public class PropertyMapper {
         return result;
     }
 
-    /** Populates the fields shared by create and update; create-only fields (owner, location, status, expiry) are set by the caller. */
-    public void applyCommon(Listing listing, Property property, PropertyRequest req) {
-        applyPropertyFields(property, req.propertyKind(), req.details(), req.media(), req.features());
-        applyListingFields(listing, req.type(), req.price(), req.completion(), req.translations(), req.phones());
+    /** Writes a listing's full content (category, physical, media, features, terms). Owner, status and expiry are set by the caller. */
+    public void applyListingContent(Listing listing, PropertyRequest req) {
+        listing.setListingType(req.type());
+        listing.setPropertyCategory(req.propertyKind());
+        listing.setPrice(req.price().amount());
+        listing.setVatIncluded(Boolean.TRUE.equals(req.price().vatIncluded()));
+        listing.setCompletion(req.completion());
+        applyDetails(listing, req.details());
+        applyMedia(listing, req.media());
+        listing.getFeatures().clear();
+        if (req.features() != null) {
+            listing.getFeatures().addAll(req.features());
+        }
+        applyTranslations(listing, req.translations());
+        listing.setPhones(nullToEmpty(req.phones()));
     }
 
-    /** Updates only a listing's own fields (price, translations, phones, completion) — the property is untouched. */
-    public void applyListingFields(Listing listing, UpdateListingRequest req) {
-        applyListingFields(listing, req.type(), req.price(), req.completion(), req.translations(), req.phones());
-    }
-
-    /** Updates only a property's own fields (details, media, features, location) — its listings are untouched. */
-    public void applyPropertyFields(Property property, UpdatePropertyRequest req) {
-        applyPropertyFields(property, req.propertyKind(), req.details(), req.media(), req.features());
-        Location loc = req.location();
+    /** Writes a property's location (shared by all listings at the address). */
+    public void applyPropertyLocation(Property property, Location loc) {
         property.setDistrictSlug(loc.district());
         property.setCitySlug(loc.city());
         property.setAddress(loc.address());
         property.setLat(loc.coords().lat());
         property.setLng(loc.coords().lng());
-    }
-
-    private static void applyPropertyFields(Property property, PropertyCategory kind, PropertyDetails details,
-                                             Media media, List<PropertyFeature> features) {
-        property.setPropertyCategory(kind);
-        applyDetails(property, details);
-        applyMedia(property, media);
-        property.getFeatures().clear();
-        if (features != null) {
-            property.getFeatures().addAll(features);
-        }
-    }
-
-    private void applyListingFields(Listing listing, ListingType type, Price price, PropertyCompletion completion,
-                                     Map<String, LocalizedText> translations, List<String> phones) {
-        listing.setListingType(type);
-        listing.setPrice(price.amount());
-        listing.setVatIncluded(Boolean.TRUE.equals(price.vatIncluded()));
-        listing.setCompletion(completion);
-        applyTranslations(listing, translations);
-        listing.setPhones(nullToEmpty(phones));
     }
 
     public void applyTranslations(Listing listing, Map<String, LocalizedText> translations) {
@@ -186,29 +156,34 @@ public class PropertyMapper {
         }
     }
 
-    private static PropertyDetails toFullDetailsDto(Property p) {
+    private static List<PropertyFeature> sortedFeatures(Listing l) {
+        return l.getFeatures().isEmpty() ? null : l.getFeatures().stream().sorted().toList();
+    }
+
+    private static PropertyDetails toFullDetailsDto(Listing l) {
         return PropertyDetails.builder()
-                .rooms(p.getRooms())
-                .bedrooms(p.getBedrooms())
-                .bathrooms(p.getBathrooms())
-                .bathroomLayout(p.getBathroomLayout())
-                .m2(p.getM2())
-                .landM2(p.getLandM2())
-                .floor(p.getFloor())
-                .totalFloors(p.getTotalFloors())
-                .yearBuilt(p.getYearBuilt())
-                .heating(p.getHeating())
-                .energyClass(p.getEnergyClass())
-                .maintenanceCost(p.getMaintenanceCost())
+                .rooms(l.getRooms())
+                .bedrooms(l.getBedrooms())
+                .bathrooms(l.getBathrooms())
+                .bathroomLayout(l.getBathroomLayout())
+                .m2(l.getM2())
+                .landM2(l.getLandM2())
+                .floor(l.getFloor())
+                .totalFloors(l.getTotalFloors())
+                .yearBuilt(l.getYearBuilt())
+                .heating(l.getHeating())
+                .energyClass(l.getEnergyClass())
+                .maintenanceCost(l.getMaintenanceCost())
                 .build();
     }
 
-    private static Media toMediaDto(Property p) {
-        List<String> plans = p.getPlans();
+    private static Media toMediaDto(Listing l) {
+        List<String> photos = l.getPhotos();
+        List<String> plans = l.getPlans();
         return Media.builder()
-                .photos(p.getPhotos().isEmpty() ? null : p.getPhotos())
+                .photos(photos.isEmpty() ? null : photos)
                 .plans(plans.isEmpty() ? null : plans)
-                .videoUrl(p.getVideoUrl())
+                .videoUrl(l.getVideoUrl())
                 .build();
     }
 
@@ -217,25 +192,25 @@ public class PropertyMapper {
                 new CoordsDto(p.getLat(), p.getLng()));
     }
 
-    private static void applyDetails(Property property, PropertyDetails details) {
-        property.setRooms(details.rooms());
-        property.setBedrooms(details.bedrooms());
-        property.setBathrooms(details.bathrooms());
-        property.setBathroomLayout(details.bathroomLayout());
-        property.setM2(details.m2());
-        property.setLandM2(details.landM2());
-        property.setFloor(details.floor());
-        property.setTotalFloors(details.totalFloors());
-        property.setYearBuilt(details.yearBuilt());
-        property.setHeating(details.heating());
-        property.setEnergyClass(details.energyClass());
-        property.setMaintenanceCost(details.maintenanceCost());
+    private static void applyDetails(Listing listing, PropertyDetails details) {
+        listing.setRooms(details.rooms());
+        listing.setBedrooms(details.bedrooms());
+        listing.setBathrooms(details.bathrooms());
+        listing.setBathroomLayout(details.bathroomLayout());
+        listing.setM2(details.m2());
+        listing.setLandM2(details.landM2());
+        listing.setFloor(details.floor());
+        listing.setTotalFloors(details.totalFloors());
+        listing.setYearBuilt(details.yearBuilt());
+        listing.setHeating(details.heating());
+        listing.setEnergyClass(details.energyClass());
+        listing.setMaintenanceCost(details.maintenanceCost());
     }
 
-    private static void applyMedia(Property property, Media media) {
-        property.setPhotos(nullToEmpty(media != null ? media.photos() : null));
-        property.setPlans(nullToEmpty(media != null ? media.plans() : null));
-        property.setVideoUrl(media != null ? media.videoUrl() : null);
+    private static void applyMedia(Listing listing, Media media) {
+        listing.setPhotos(nullToEmpty(media != null ? media.photos() : null));
+        listing.setPlans(nullToEmpty(media != null ? media.plans() : null));
+        listing.setVideoUrl(media != null ? media.videoUrl() : null);
     }
 
     private static List<String> nullToEmpty(List<String> values) {

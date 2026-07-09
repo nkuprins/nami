@@ -49,7 +49,7 @@ class ListingRepositoryIntegrationTest extends IntegrationTestBase {
                 PropertyStatus.INACTIVE, OffsetDateTime.now().minusDays(90));
 
         assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getProperty().allMediaUrls())
+        assertThat(result.getFirst().allMediaUrls())
                 .containsExactly(
                         "https://cdn.test.local/uploads/photo1.jpg",
                         "https://cdn.test.local/uploads/photo2.jpg");

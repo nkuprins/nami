@@ -1,9 +1,12 @@
 package com.app.backend.controller;
 
 import com.app.backend.IntegrationTestBase;
+import com.app.backend.dto.property.model.Media;
+import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.Property;
 import com.app.backend.entity.User;
+import com.app.backend.enums.BathroomLayout;
 import com.app.backend.enums.ListingType;
 import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
@@ -17,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static com.app.backend.testutil.TestData.*;
@@ -48,7 +53,14 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
     }
 
     private Listing saveListing() {
-        Listing l = listing(owner);
+        return persist(listing(owner));
+    }
+
+    private Listing saveListingWithPhotos() {
+        return persist(listingWithPhotos(owner));
+    }
+
+    private Listing persist(Listing l) {
         l.setId(null);
         l.getProperty().setId(null);
         l.getProperty().setUpdatedAt(null);
@@ -138,21 +150,15 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateListingRequest())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.translations.en.title").value("Updated Apartment"));
+                .andExpect(jsonPath("$.translations.en.title").value("Updated Apartment"))
+                .andExpect(jsonPath("$.details.m2").value(70.00));
     }
 
     @Test
     void update_returns403_whenNotOwner() throws Exception {
         Listing saved = saveListing();
 
-        User other = new User();
-        other.setName("Other");
-        other.setEmail("other@test.com");
-        other.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
-        other.setEmailVerified(true);
-        other = userRepository.save(other);
-
-        Cookie otherCookie = authTestHelper.accessTokenCookie(other.getId());
+        Cookie otherCookie = authTestHelper.accessTokenCookie(saveOther("other@test.com").getId());
 
         mockMvc.perform(put("/api/properties/{id}", saved.getId())
                         .cookie(otherCookie)
@@ -168,7 +174,8 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
         mockMvc.perform(get("/api/properties/{propertyId}/property", saved.getProperty().getId())
                         .cookie(ownerCookie))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(saved.getProperty().getId().toString()));
+                .andExpect(jsonPath("$.id").value(saved.getProperty().getId().toString()))
+                .andExpect(jsonPath("$.location.address").value("Test Street 1"));
     }
 
     @Test
@@ -183,14 +190,7 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
     void getProperty_returns403_whenNotOwner() throws Exception {
         Listing saved = saveListing();
 
-        User other = new User();
-        other.setName("Other");
-        other.setEmail("other-get@test.com");
-        other.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
-        other.setEmailVerified(true);
-        other = userRepository.save(other);
-
-        Cookie otherCookie = authTestHelper.accessTokenCookie(other.getId());
+        Cookie otherCookie = authTestHelper.accessTokenCookie(saveOther("other-get@test.com").getId());
 
         mockMvc.perform(get("/api/properties/{propertyId}/property", saved.getProperty().getId())
                         .cookie(otherCookie))
@@ -206,7 +206,6 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatePropertyRequest())))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.details.rooms").value(3))
                 .andExpect(jsonPath("$.location.address").value("Main Street 10"));
     }
 
@@ -214,14 +213,7 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
     void updateProperty_returns403_whenNotOwner() throws Exception {
         Listing saved = saveListing();
 
-        User other = new User();
-        other.setName("Other");
-        other.setEmail("other-update@test.com");
-        other.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
-        other.setEmailVerified(true);
-        other = userRepository.save(other);
-
-        Cookie otherCookie = authTestHelper.accessTokenCookie(other.getId());
+        Cookie otherCookie = authTestHelper.accessTokenCookie(saveOther("other-update@test.com").getId());
 
         mockMvc.perform(put("/api/properties/{propertyId}/property", saved.getProperty().getId())
                         .cookie(otherCookie)
@@ -240,7 +232,7 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void delete_keepsProperty_forLaterRelisting() throws Exception {
+    void delete_removesEmptyProperty_whenLastListingDeleted() throws Exception {
         Listing saved = saveListing();
         UUID propertyId = saved.getProperty().getId();
 
@@ -248,23 +240,42 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
                         .cookie(ownerCookie))
                 .andExpect(status().isNoContent());
 
-        assertThat(propertyRepository.findById(propertyId)).isPresent();
+        // The delete joins this test's transaction, so flush it to the DB (triggering the
+        // ON DELETE CASCADE) before clearing the 1st-level cache and re-reading.
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(propertyRepository.findById(propertyId)).isEmpty();
         assertThat(listingRepository.findById(saved.getId())).isEmpty();
+    }
+
+    @Test
+    void delete_keepsProperty_whenOtherListingsRemain() throws Exception {
+        Listing saved = saveListing(); // BUY
+        UUID propertyId = saved.getProperty().getId();
+
+        // A second (rent) listing at the same address.
+        mockMvc.perform(post("/api/properties/{propertyId}/listings", propertyId)
+                        .cookie(ownerCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(addListingRequest())))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(delete("/api/properties/{id}", saved.getId())
+                        .cookie(ownerCookie))
+                .andExpect(status().isNoContent());
+
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(propertyRepository.findById(propertyId)).isPresent();
+        assertThat(listingRepository.findByPropertyId(propertyId)).hasSize(1);
     }
 
     @Test
     void delete_returns403_whenNotOwner() throws Exception {
         Listing saved = saveListing();
 
-        User other = new User();
-        other.setName("Other2");
-        other.setEmail("other2@test.com");
-        other.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
-        other.setEmailVerified(true);
-        other = userRepository.save(other);
-
         mockMvc.perform(delete("/api/properties/{id}", saved.getId())
-                        .cookie(authTestHelper.accessTokenCookie(other.getId())))
+                        .cookie(authTestHelper.accessTokenCookie(saveOther("other2@test.com").getId())))
                 .andExpect(status().isForbidden());
     }
 
@@ -285,7 +296,7 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void addListing_returns409_whenSameListingTypeAlreadyExists() throws Exception {
+    void addListing_allowsSameListingTypeAtOneAddress() throws Exception {
         Listing saved = saveListing(); // BUY listing
 
         mockMvc.perform(post("/api/properties/{propertyId}/listings", saved.getProperty().getId())
@@ -294,22 +305,17 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
                         .content(objectMapper.writeValueAsString(addListingRequest().toBuilder()
                                 .type(ListingType.BUY)
                                 .build())))
-                .andExpect(status().isConflict());
+                .andExpect(status().isCreated());
+
+        assertThat(listingRepository.findByOwner(owner)).hasSize(2);
     }
 
     @Test
     void addListing_returns403_whenNotOwner() throws Exception {
         Listing saved = saveListing();
 
-        User other = new User();
-        other.setName("Other3");
-        other.setEmail("other3@test.com");
-        other.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
-        other.setEmailVerified(true);
-        other = userRepository.save(other);
-
         mockMvc.perform(post("/api/properties/{propertyId}/listings", saved.getProperty().getId())
-                        .cookie(authTestHelper.accessTokenCookie(other.getId()))
+                        .cookie(authTestHelper.accessTokenCookie(saveOther("other3@test.com").getId()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(addListingRequest())))
                 .andExpect(status().isForbidden());
@@ -325,6 +331,73 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
+    void addListing_createsListingWithItsOwnScopeAndPhotos() throws Exception {
+        Listing saved = saveListingWithPhotos(); // BUY: floor 3/5, m2 75
+        UUID propertyId = saved.getProperty().getId();
+
+        var req = addListingRequest().toBuilder()
+                .details(PropertyDetails.builder()
+                        .rooms((short) 3)
+                        .bedrooms((short) 1)
+                        .bathrooms((short) 1)
+                        .bathroomLayout(BathroomLayout.COMBINED)
+                        .m2(new BigDecimal("40.00"))
+                        .floor((short) 2)
+                        .totalFloors((short) 5)
+                        .build())
+                .media(Media.builder().photos(List.of("https://cdn.test.local/uploads/photo2.jpg")).build())
+                .build();
+
+        mockMvc.perform(post("/api/properties/{propertyId}/listings", propertyId)
+                        .cookie(ownerCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.details.floor").value(2))
+                .andExpect(jsonPath("$.details.m2").value(40.00))
+                .andExpect(jsonPath("$.details.rooms").value(3))
+                .andExpect(jsonPath("$.media.photos.length()").value(1))
+                .andExpect(jsonPath("$.media.photos[0]").value("https://cdn.test.local/uploads/photo2.jpg"));
+    }
+
+    @Test
+    void addListing_returns400_whenFloorExceedsTotalFloors() throws Exception {
+        Listing saved = saveListing();
+        UUID propertyId = saved.getProperty().getId();
+
+        var req = addListingRequest().toBuilder()
+                .details(PropertyDetails.builder()
+                        .rooms((short) 3)
+                        .m2(new BigDecimal("50.00"))
+                        .floor((short) 10)
+                        .totalFloors((short) 5)
+                        .build())
+                .build();
+
+        mockMvc.perform(post("/api/properties/{propertyId}/listings", propertyId)
+                        .cookie(ownerCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void addListing_returns400_whenMediaUrlNotOnCdn() throws Exception {
+        Listing saved = saveListing();
+        UUID propertyId = saved.getProperty().getId();
+
+        var req = addListingRequest().toBuilder()
+                .media(Media.builder().photos(List.of("https://evil.example.com/x.jpg")).build())
+                .build();
+
+        mockMvc.perform(post("/api/properties/{propertyId}/listings", propertyId)
+                        .cookie(ownerCookie)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void deleteProperty_returns204_andCascadesAllListings() throws Exception {
         Listing saved = saveListing();
         UUID propertyId = saved.getProperty().getId();
@@ -333,8 +406,10 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
                         .cookie(ownerCookie))
                 .andExpect(status().isNoContent());
 
-        // The listing is removed via the DB's ON DELETE CASCADE, not a JPA-level cascade,
-        // so the persistence context doesn't know about it — clear the 1st-level cache first.
+        // The listing is removed via the DB's ON DELETE CASCADE, not a JPA-level cascade, so the
+        // persistence context doesn't know about it. The delete joins this test's transaction, so
+        // flush it to the DB (triggering the cascade) before clearing the 1st-level cache.
+        entityManager.flush();
         entityManager.clear();
         assertThat(propertyRepository.findById(propertyId)).isEmpty();
         assertThat(listingRepository.findById(saved.getId())).isEmpty();
@@ -344,15 +419,8 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
     void deleteProperty_returns403_whenNotOwner() throws Exception {
         Listing saved = saveListing();
 
-        User other = new User();
-        other.setName("Other4");
-        other.setEmail("other4@test.com");
-        other.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
-        other.setEmailVerified(true);
-        other = userRepository.save(other);
-
         mockMvc.perform(delete("/api/properties/{propertyId}/listings", saved.getProperty().getId())
-                        .cookie(authTestHelper.accessTokenCookie(other.getId())))
+                        .cookie(authTestHelper.accessTokenCookie(saveOther("other4@test.com").getId())))
                 .andExpect(status().isForbidden());
     }
 
@@ -371,5 +439,14 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
     void mine_returns401_whenNotAuthenticated() throws Exception {
         mockMvc.perform(get("/api/properties/mine"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    private User saveOther(String email) {
+        User other = new User();
+        other.setName("Other");
+        other.setEmail(email);
+        other.setPasswordHash(passwordEncoder.encode("TestPassword12345"));
+        other.setEmailVerified(true);
+        return userRepository.save(other);
     }
 }

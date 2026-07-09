@@ -81,36 +81,15 @@ CREATE TABLE email_verification_tokens (
 CREATE INDEX idx_email_verification_tokens_user ON email_verification_tokens(user_id);
 
 -- ─────────────────────────────────────────────
--- Properties (physical asset)
+-- Properties (address registry)
+--
+-- A thin, shared record of a physical address. Every physical/media attribute
+-- lives on the listing (see below); a property only groups the listings that
+-- sit at the same address (shared map pin, per-owner cap, duplicate guard).
 -- ─────────────────────────────────────────────
 CREATE TABLE properties (
     id                UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
     owner_id          UUID              NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-
-    property_category property_category NOT NULL,
-
-    -- Physical dimensions
-    rooms             SMALLINT          NOT NULL CHECK (rooms > 0),
-    bedrooms          SMALLINT          CHECK (bedrooms >= 0 AND bedrooms <= rooms),
-    bathrooms         SMALLINT          CHECK (bathrooms >= 0),
-    bathroom_layout   bathroom_layout,
-    m2                NUMERIC(6, 2)     NOT NULL CHECK (m2 > 0),
-    land_m2           NUMERIC(8, 2)     CHECK (land_m2 > 0),
-    floor             SMALLINT          CHECK (floor >= 0),
-    total_floors      SMALLINT          CHECK (total_floors > 0),
-    year_built        SMALLINT          CHECK (year_built BETWEEN 1800 AND 2200),
-
-    -- Building characteristics
-    heating           heating_type,
-    energy_class      energy_class,
-    maintenance_cost  NUMERIC(10, 2)    CHECK (maintenance_cost >= 0),   -- monthly, EUR
-
-    -- Media: ordered arrays of URL strings; array order is display order
-    photos            JSONB             NOT NULL DEFAULT '[]',
-    plans             JSONB             NOT NULL DEFAULT '[]',
-
-    -- Video
-    video_url         TEXT,
 
     -- Location: slugs validated at API layer; mapping owned by frontend locations.ts
     district_slug     TEXT              NOT NULL CHECK (district_slug ~ '^[a-z0-9-]+$'),
@@ -119,14 +98,7 @@ CREATE TABLE properties (
     lat               DOUBLE PRECISION  NOT NULL,
     lng               DOUBLE PRECISION  NOT NULL,
 
-    updated_at        TIMESTAMPTZ       NOT NULL DEFAULT now(),
-
-    CONSTRAINT chk_land_m2_apartment
-        CHECK (property_category != 'apartment' OR land_m2 IS NULL),
-    CONSTRAINT chk_floor_requires_total
-        CHECK (floor IS NULL OR total_floors IS NOT NULL),
-    CONSTRAINT chk_floor_lte_total
-        CHECK (floor IS NULL OR floor <= total_floors)
+    updated_at        TIMESTAMPTZ       NOT NULL DEFAULT now()
 );
 
 CREATE INDEX idx_properties_owner         ON properties (owner_id);
@@ -135,18 +107,7 @@ CREATE INDEX idx_properties_district      ON properties (district_slug);
 CREATE INDEX idx_properties_city_district ON properties (city_slug, district_slug);
 
 -- ─────────────────────────────────────────────
--- Property features
--- ─────────────────────────────────────────────
-CREATE TABLE property_features (
-    property_id UUID             NOT NULL REFERENCES properties (id) ON DELETE CASCADE,
-    feature     property_feature NOT NULL,
-    PRIMARY KEY (property_id, feature)
-);
-
-CREATE INDEX idx_property_features_feature ON property_features (feature);
-
--- ─────────────────────────────────────────────
--- Listings (market offer)
+-- Listings (market offer — self-contained)
 -- ─────────────────────────────────────────────
 CREATE TABLE listings (
     id                  UUID              PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -157,8 +118,30 @@ CREATE TABLE listings (
     price               NUMERIC(14, 2)    NOT NULL CHECK (price >= 0),
     vat_included        BOOLEAN           NOT NULL DEFAULT false,
 
-    -- new_project specific; year_built on properties — cross-table 'not_ready → no year_built'
-    -- rule enforced at service layer
+    property_category   property_category NOT NULL,
+
+    -- Physical dimensions
+    rooms               SMALLINT          NOT NULL CHECK (rooms > 0),
+    bedrooms            SMALLINT          CHECK (bedrooms >= 0 AND bedrooms <= rooms),
+    bathrooms           SMALLINT          CHECK (bathrooms >= 0),
+    bathroom_layout     bathroom_layout,
+    m2                  NUMERIC(6, 2)     NOT NULL CHECK (m2 > 0),
+    land_m2             NUMERIC(8, 2)     CHECK (land_m2 > 0),
+    floor               SMALLINT          CHECK (floor >= 0),
+    total_floors        SMALLINT          CHECK (total_floors > 0),
+    year_built          SMALLINT          CHECK (year_built BETWEEN 1800 AND 2200),
+
+    -- Building characteristics
+    heating             heating_type,
+    energy_class        energy_class,
+    maintenance_cost    NUMERIC(10, 2)    CHECK (maintenance_cost >= 0),   -- monthly, EUR
+
+    -- Media: ordered arrays of URL strings; array order is display order
+    photos              JSONB             NOT NULL DEFAULT '[]',
+    plans               JSONB             NOT NULL DEFAULT '[]',
+    video_url           TEXT,
+
+    -- new_project specific; 'not_ready → no year_built' rule enforced at service layer
     completion          property_completion,
 
     status              property_status   NOT NULL DEFAULT 'active',
@@ -170,11 +153,14 @@ CREATE TABLE listings (
     -- Contact phones: ordered array of strings; array order is display order
     phones              JSONB             NOT NULL DEFAULT '[]',
 
+    CONSTRAINT chk_land_m2_apartment
+        CHECK (property_category != 'apartment' OR land_m2 IS NULL),
+    CONSTRAINT chk_floor_requires_total
+        CHECK (floor IS NULL OR total_floors IS NOT NULL),
+    CONSTRAINT chk_floor_lte_total
+        CHECK (floor IS NULL OR floor <= total_floors),
     CONSTRAINT chk_completion_new_project_only
-        CHECK (listing_type = 'new_project' OR completion IS NULL),
-    -- A property can have at most one listing per type (buy/rent/new_project)
-    CONSTRAINT uq_listings_property_type
-        UNIQUE (property_id, listing_type)
+        CHECK (listing_type = 'new_project' OR completion IS NULL)
 );
 
 CREATE INDEX idx_listings_type_status_price ON listings (listing_type, status, price);
@@ -183,6 +169,17 @@ CREATE INDEX idx_listings_property          ON listings (property_id);
 CREATE INDEX idx_listings_posted_at         ON listings (posted_at DESC);
 -- Expiry job: find active listings that are expiring
 CREATE INDEX idx_listings_expires_at ON listings (expires_at) WHERE status = 'active';
+
+-- ─────────────────────────────────────────────
+-- Listing features
+-- ─────────────────────────────────────────────
+CREATE TABLE listing_features (
+    listing_id UUID             NOT NULL REFERENCES listings (id) ON DELETE CASCADE,
+    feature    property_feature NOT NULL,
+    PRIMARY KEY (listing_id, feature)
+);
+
+CREATE INDEX idx_listing_features_feature ON listing_features (feature);
 
 -- ─────────────────────────────────────────────
 -- Listing translations

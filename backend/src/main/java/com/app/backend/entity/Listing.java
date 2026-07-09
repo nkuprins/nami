@@ -1,7 +1,12 @@
 package com.app.backend.entity;
 
+import com.app.backend.enums.BathroomLayout;
+import com.app.backend.enums.EnergyClass;
+import com.app.backend.enums.HeatingType;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
+import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.PropertyStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -18,16 +23,19 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Entity
 @Table(name = "listings")
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = {"property", "owner", "translations", "phones"})
+@ToString(exclude = {"property", "owner", "translations", "phones", "features", "photos", "plans"})
 public class Listing {
 
     @Id
@@ -53,6 +61,56 @@ public class Listing {
 
     @Column(name = "vat_included", nullable = false)
     private boolean vatIncluded;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "property_category", nullable = false)
+    private PropertyCategory propertyCategory;
+
+    @Column(name = "rooms", nullable = false)
+    private Short rooms;
+
+    @Column(name = "bedrooms")
+    private Short bedrooms;
+
+    @Column(name = "bathrooms")
+    private Short bathrooms;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "bathroom_layout")
+    private BathroomLayout bathroomLayout;
+
+    @Column(name = "m2", nullable = false, precision = 6, scale = 2)
+    private BigDecimal m2;
+
+    @Column(name = "land_m2", precision = 8, scale = 2)
+    private BigDecimal landM2;
+
+    @Column(name = "floor")
+    private Short floor;
+
+    @Column(name = "total_floors")
+    private Short totalFloors;
+
+    @Column(name = "year_built")
+    private Short yearBuilt;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "heating")
+    private HeatingType heating;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "energy_class")
+    private EnergyClass energyClass;
+
+    @Column(name = "maintenance_cost", precision = 10, scale = 2)
+    private BigDecimal maintenanceCost;
+
+    @Column(name = "video_url")
+    private String videoUrl;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
@@ -87,4 +145,25 @@ public class Listing {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "phones", nullable = false)
     private List<String> phones = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(name = "listing_features", joinColumns = @JoinColumn(name = "listing_id"))
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "feature")
+    @BatchSize(size = 20)
+    private Set<PropertyFeature> features = new HashSet<>();
+
+    // Ordered arrays of URL strings; list order is display order
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "photos", nullable = false)
+    private List<String> photos = new ArrayList<>();
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "plans", nullable = false)
+    private List<String> plans = new ArrayList<>();
+
+    public List<String> allMediaUrls() {
+        return Stream.concat(photos.stream(), plans.stream()).toList();
+    }
 }

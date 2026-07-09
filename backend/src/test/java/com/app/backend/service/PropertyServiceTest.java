@@ -35,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import com.app.backend.exception.ApiException;
 
-import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
@@ -72,9 +71,11 @@ class PropertyServiceTest {
         AppProperties props = new AppProperties(null,
                 new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"),
                 null, null, null, null, null);
+        MediaUrlValidator mediaUrlValidator = new MediaUrlValidator(props);
         propertyService = new PropertyService(propertyRepository, listingRepository, userRepository,
-                propertyMapper, mediaCleanupService, imageProcessingPublisher, propertyAccess, props);
-        listingService = new ListingService(listingRepository, propertyMapper, propertyAccess);
+                propertyMapper, mediaCleanupService, mediaUrlValidator, imageProcessingPublisher, propertyAccess);
+        listingService = new ListingService(listingRepository, propertyRepository, propertyMapper, propertyAccess,
+                mediaCleanupService, mediaUrlValidator, imageProcessingPublisher);
         propertyQueryService = new PropertyQueryService(propertyMapper, propertyAccess);
         listingQueryService = new ListingQueryService(listingRepository, userRepository, propertyMapper);
         TransactionSynchronizationManager.initSynchronization();
@@ -83,11 +84,6 @@ class PropertyServiceTest {
     @AfterEach
     void clearTransactionSync() {
         TransactionSynchronizationManager.clearSynchronization();
-    }
-
-    private void triggerAfterCommit() {
-        new ArrayList<>(TransactionSynchronizationManager.getSynchronizations())
-                .forEach(TransactionSynchronization::afterCommit);
     }
 
     private PropertyFilter defaultFilter() {
@@ -260,11 +256,11 @@ class PropertyServiceTest {
             when(listingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
             doAnswer(inv -> {
-                Property prop = inv.getArgument(1);
-                prop.setPhotos(new ArrayList<>(List.of("https://cdn.test.local/uploads/a.jpg")));
-                prop.setPlans(new ArrayList<>(List.of("https://cdn.test.local/uploads/plan.jpg")));
+                Listing l = inv.getArgument(0);
+                l.setPhotos(new ArrayList<>(List.of("https://cdn.test.local/uploads/a.jpg")));
+                l.setPlans(new ArrayList<>(List.of("https://cdn.test.local/uploads/plan.jpg")));
                 return null;
-            }).when(propertyMapper).applyCommon(any(), any(), any());
+            }).when(propertyMapper).applyListingContent(any(), any());
 
             propertyService.create(createPropertyRequest(), owner.getId());
 
@@ -278,15 +274,15 @@ class PropertyServiceTest {
             User owner = user();
             when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
             doAnswer(inv -> {
-                Property prop = inv.getArgument(1);
-                prop.setPhotos(new ArrayList<>(List.of("https://evil.example.com/../secret.jpg")));
+                Listing l = inv.getArgument(0);
+                l.setPhotos(new ArrayList<>(List.of("https://evil.example.com/../secret.jpg")));
                 return null;
-            }).when(propertyMapper).applyCommon(any(), any(), any());
+            }).when(propertyMapper).applyListingContent(any(), any());
 
             assertThatThrownBy(() -> propertyService.create(createPropertyRequest(), owner.getId()))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(400));
-            verify(propertyRepository, never()).save(any());
+            verify(listingRepository, never()).save(any());
             verifyNoInteractions(imageProcessingPublisher);
         }
 
@@ -369,9 +365,9 @@ class PropertyServiceTest {
             });
             when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
             doAnswer(inv -> {
-                inv.<Listing>getArgument(0).setCompletion(inv.<PropertyRequest>getArgument(2).completion());
+                inv.<Listing>getArgument(0).setCompletion(inv.<PropertyRequest>getArgument(1).completion());
                 return null;
-            }).when(propertyMapper).applyCommon(any(), any(), any());
+            }).when(propertyMapper).applyListingContent(any(), any());
 
             CreatePropertyRequest req = createPropertyRequest().toBuilder()
                     .type(ListingType.NEW_PROJECT)
@@ -430,25 +426,62 @@ class PropertyServiceTest {
             when(listingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
             doAnswer(inv -> {
-                inv.<Listing>getArgument(0).setCompletion(inv.<UpdateListingRequest>getArgument(1).completion());
+                inv.<Listing>getArgument(0).setCompletion(inv.<PropertyRequest>getArgument(1).completion());
                 return null;
-            }).when(propertyMapper).applyListingFields(any(), any());
+            }).when(propertyMapper).applyListingContent(any(), any());
 
-            UpdateListingRequest req = updateListingRequest();
-
-            listingService.updateListing(l.getId(), req, owner.getId());
+            listingService.updateListing(l.getId(), updateListingRequest(), owner.getId());
 
             assertThat(l.getCompletion()).isNull();
+        }
+
+        @Test
+        void deletesRemovedPhotosFromS3() {
+            User owner = user();
+            Listing l = listingWithPhotos(owner); // photo1, photo2
+            when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
+            when(listingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+            doAnswer(inv -> {
+                Listing listing = inv.getArgument(0);
+                listing.setPhotos(new ArrayList<>(List.of("https://cdn.test.local/uploads/photo1.jpg")));
+                return null;
+            }).when(propertyMapper).applyListingContent(any(), any());
+
+            listingService.updateListing(l.getId(), updateListingRequest(), owner.getId());
+
+            verify(mediaCleanupService).enqueue(List.of("https://cdn.test.local/uploads/photo2.jpg"));
+        }
+
+        @Test
+        void publishesOnlyNewlyAddedPhotos() {
+            User owner = user();
+            Listing l = listingWithPhotos(owner); // photo1, photo2
+            when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
+            when(listingRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+            doAnswer(inv -> {
+                Listing listing = inv.getArgument(0);
+                listing.setPhotos(new ArrayList<>(List.of(
+                        "https://cdn.test.local/uploads/photo1.jpg",
+                        "https://cdn.test.local/uploads/photo2.jpg",
+                        "https://cdn.test.local/uploads/photo3.jpg")));
+                return null;
+            }).when(propertyMapper).applyListingContent(any(), any());
+
+            listingService.updateListing(l.getId(), updateListingRequest(), owner.getId());
+
+            verify(imageProcessingPublisher).enqueue(eq(l.getProperty().getId()),
+                    eq(List.of("https://cdn.test.local/uploads/photo3.jpg")));
         }
     }
 
     @Nested
     class UpdateProperty {
         @Test
-        void updatesPropertyFields() {
+        void updatesPropertyLocation() {
             User owner = user();
-            Listing l = listing(owner);
-            Property p = l.getProperty();
+            Property p = listing(owner).getProperty();
             when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
             when(propertyRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
@@ -460,67 +493,9 @@ class PropertyServiceTest {
         }
 
         @Test
-        void deletesRemovedPhotosFromS3_afterCommit() {
-            User owner = user();
-            Property p = listingWithPhotos(owner).getProperty(); // photo1, photo2
-            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
-            when(propertyRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
-            doAnswer(inv -> {
-                Property prop = inv.getArgument(0);
-                prop.setPhotos(new ArrayList<>(List.of("https://cdn.test.local/uploads/photo1.jpg")));
-                prop.setPlans(new ArrayList<>());
-                return null;
-            }).when(propertyMapper).applyPropertyFields(any(), any());
-
-            propertyService.updateProperty(p.getId(), updatePropertyRequest(), owner.getId());
-            triggerAfterCommit();
-
-            verify(mediaCleanupService).enqueue(List.of("https://cdn.test.local/uploads/photo2.jpg"));
-        }
-
-        @Test
-        void publishesOnlyNewlyAddedPhotos() {
-            User owner = user();
-            Property p = listingWithPhotos(owner).getProperty(); // photo1, photo2
-            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
-            when(propertyRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
-            doAnswer(inv -> {
-                Property prop = inv.getArgument(0);
-                prop.setPhotos(new ArrayList<>(List.of(
-                        "https://cdn.test.local/uploads/photo1.jpg",
-                        "https://cdn.test.local/uploads/photo2.jpg",
-                        "https://cdn.test.local/uploads/photo3.jpg")));
-                prop.setPlans(new ArrayList<>());
-                return null;
-            }).when(propertyMapper).applyPropertyFields(any(), any());
-
-            propertyService.updateProperty(p.getId(), updatePropertyRequest(), owner.getId());
-
-            verify(imageProcessingPublisher).enqueue(eq(p.getId()),
-                    eq(List.of("https://cdn.test.local/uploads/photo3.jpg")));
-        }
-
-        @Test
-        void doesNotDeleteS3_whenNoPhotosRemoved() {
-            User owner = user();
-            Property p = listingWithPhotos(owner).getProperty();
-            when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
-            when(propertyRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
-
-            propertyService.updateProperty(p.getId(), updatePropertyRequest(), owner.getId());
-            triggerAfterCommit();
-
-            verify(mediaCleanupService, never()).enqueue(any());
-        }
-
-        @Test
         void throwsForbidden_whenNotOwner() {
             User owner = user();
-            Listing l = listing(owner);
-            Property p = l.getProperty();
+            Property p = listing(owner).getProperty();
             UUID otherId = UUID.randomUUID();
             when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
 
@@ -544,8 +519,7 @@ class PropertyServiceTest {
         @Test
         void returnsProperty_forOwner() {
             User owner = user();
-            Listing l = listing(owner);
-            Property p = l.getProperty();
+            Property p = listing(owner).getProperty();
             when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
             when(propertyMapper.toPropertyDto(any(Property.class))).thenAnswer(inv -> propertyDto(inv.getArgument(0)));
 
@@ -557,8 +531,7 @@ class PropertyServiceTest {
         @Test
         void throwsForbidden_whenNotOwner() {
             User owner = user();
-            Listing l = listing(owner);
-            Property p = l.getProperty();
+            Property p = listing(owner).getProperty();
             UUID otherId = UUID.randomUUID();
             when(propertyRepository.findById(p.getId())).thenReturn(Optional.of(p));
 
@@ -580,17 +553,34 @@ class PropertyServiceTest {
     @Nested
     class DeleteListing {
         @Test
-        void removesOnlyTheListing_propertyAndMediaUntouched() {
+        void deletesListingAndEmptyProperty_whenLastListing() {
             User owner = user();
             Listing l = listingWithPhotos(owner);
             when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
+            when(listingRepository.countByPropertyId(l.getProperty().getId())).thenReturn(1L);
 
             listingService.deleteListing(l.getId(), owner.getId());
-            triggerAfterCommit();
+
+            verify(propertyRepository).delete(l.getProperty());
+            verify(mediaCleanupService).enqueue(List.of(
+                    "https://cdn.test.local/uploads/photo1.jpg",
+                    "https://cdn.test.local/uploads/photo2.jpg"));
+        }
+
+        @Test
+        void deletesOnlyListing_whenSiblingsRemain() {
+            User owner = user();
+            Listing l = listingWithPhotos(owner);
+            when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
+            when(listingRepository.countByPropertyId(l.getProperty().getId())).thenReturn(2L);
+
+            listingService.deleteListing(l.getId(), owner.getId());
 
             verify(listingRepository).delete(l);
             verify(propertyRepository, never()).delete(any());
-            verify(mediaCleanupService, never()).enqueue(any());
+            verify(mediaCleanupService).enqueue(List.of(
+                    "https://cdn.test.local/uploads/photo1.jpg",
+                    "https://cdn.test.local/uploads/photo2.jpg"));
         }
 
         @Test
@@ -622,9 +612,9 @@ class PropertyServiceTest {
             Listing l = listingWithPhotos(owner);
             Property property = l.getProperty();
             when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
+            when(listingRepository.findByPropertyId(property.getId())).thenReturn(List.of(l));
 
             propertyService.deleteProperty(property.getId(), owner.getId());
-            triggerAfterCommit();
 
             verify(propertyRepository).delete(property);
             verify(mediaCleanupService).enqueue(List.of(
@@ -654,10 +644,12 @@ class PropertyServiceTest {
         }
 
         @Test
-        void doesNotCallS3_whenPropertyHasNoPhotos() {
+        void doesNotCallS3_whenListingsHaveNoPhotos() {
             User owner = user();
-            Property property = listing(owner).getProperty(); // no photos
+            Listing l = listing(owner); // no photos
+            Property property = l.getProperty();
             when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
+            when(listingRepository.findByPropertyId(property.getId())).thenReturn(List.of(l));
 
             propertyService.deleteProperty(property.getId(), owner.getId());
 
@@ -671,22 +663,22 @@ class PropertyServiceTest {
         @Test
         void publishesAllPhotosAndPlans() {
             User owner = user();
-            Property property = listingWithPhotos(owner).getProperty(); // photo1, photo2
-            property.setPlans(new ArrayList<>(List.of("https://cdn.test.local/uploads/plan.jpg")));
-            when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
+            Listing l = listingWithPhotos(owner); // photo1, photo2
+            l.setPlans(new ArrayList<>(List.of("https://cdn.test.local/uploads/plan.jpg")));
+            when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
 
-            propertyService.reprocessImages(property.getId(), owner.getId());
+            propertyService.reprocessImages(l.getId(), owner.getId());
 
-            verify(imageProcessingPublisher).enqueue(property.getId(), property.allMediaUrls());
+            verify(imageProcessingPublisher).enqueue(l.getProperty().getId(), l.allMediaUrls());
         }
 
         @Test
         void throwsForbidden_whenNotOwner() {
             User owner = user();
-            Property property = listingWithPhotos(owner).getProperty();
-            when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
+            Listing l = listingWithPhotos(owner);
+            when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
 
-            assertThatThrownBy(() -> propertyService.reprocessImages(property.getId(), UUID.randomUUID()))
+            assertThatThrownBy(() -> propertyService.reprocessImages(l.getId(), UUID.randomUUID()))
                     .isInstanceOf(ApiException.class)
                     .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(403));
         }
@@ -699,14 +691,16 @@ class PropertyServiceTest {
             User owner = user();
             Property property = listing(owner).getProperty();
             when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
-            when(listingRepository.existsByPropertyIdAndListingType(property.getId(), ListingType.RENT))
-                    .thenReturn(false);
             when(listingRepository.save(any())).thenAnswer(inv -> {
                 Listing l = inv.getArgument(0);
                 l.setId(UUID.randomUUID());
                 return l;
             });
             when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+            doAnswer(inv -> {
+                inv.<Listing>getArgument(0).setListingType(inv.<PropertyRequest>getArgument(1).type());
+                return null;
+            }).when(propertyMapper).applyListingContent(any(), any());
 
             PropertyItemDto result = listingService.addListing(property.getId(), addListingRequest(), owner.getId());
 
@@ -736,19 +730,6 @@ class PropertyServiceTest {
             assertThatThrownBy(() -> listingService.addListing(id, addListingRequest(), UUID.randomUUID()))
                     .isInstanceOf(ApiException.class);
         }
-
-        @Test
-        void throwsConflict_whenListingTypeAlreadyExistsOnProperty() {
-            User owner = user();
-            Property property = listing(owner).getProperty();
-            when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
-            when(listingRepository.existsByPropertyIdAndListingType(property.getId(), ListingType.RENT))
-                    .thenReturn(true);
-
-            assertThatThrownBy(() -> listingService.addListing(property.getId(), addListingRequest(), owner.getId()))
-                    .isInstanceOf(ApiException.class)
-                    .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(409));
-        }
     }
 
     static Stream<Arguments> sortOptions() {
@@ -767,9 +748,9 @@ class PropertyServiceTest {
                 .id(l.getId())
                 .ownerId(l.getOwner().getId())
                 .type(l.getListingType())
-                .propertyKind(p.getPropertyCategory())
+                .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), null))
-                .details(PropertyDetails.builder().rooms(p.getRooms()).m2(p.getM2()).build())
+                .details(PropertyDetails.builder().rooms(l.getRooms()).m2(l.getM2()).build())
                 .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null))
                 .features(List.of())
                 .postedAt(l.getPostedAt())
@@ -781,12 +762,8 @@ class PropertyServiceTest {
         return PropertyDto.builder()
                 .id(p.getId())
                 .ownerId(p.getOwner().getId())
-                .propertyKind(p.getPropertyCategory())
-                .details(PropertyDetails.builder().rooms(p.getRooms()).m2(p.getM2()).build())
                 .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
-                        new CoordsDto(p.getLat(), p.getLng())))
-                .features(List.of())
-                .media(Media.builder().photos(List.of()).build())
+                        coordsOf(p)))
                 .build();
     }
 
@@ -796,15 +773,20 @@ class PropertyServiceTest {
                 .id(l.getId())
                 .ownerId(l.getOwner().getId())
                 .type(l.getListingType())
-                .propertyKind(p.getPropertyCategory())
+                .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), null))
-                .details(PropertyDetails.builder().rooms(p.getRooms()).m2(p.getM2()).build())
+                .details(PropertyDetails.builder().rooms(l.getRooms()).m2(l.getM2()).build())
                 .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
-                        new CoordsDto(p.getLat(), p.getLng())))
+                        coordsOf(p)))
                 .features(List.of())
                 .media(Media.builder().photos(List.of()).build())
                 .postedAt(l.getPostedAt())
                 .expiresAt(l.getExpiresAt())
                 .build();
+    }
+
+    // The mapper is mocked, so a property built inside the service under test has no coords set.
+    private CoordsDto coordsOf(Property p) {
+        return p.getLat() == null ? null : new CoordsDto(p.getLat(), p.getLng());
     }
 }

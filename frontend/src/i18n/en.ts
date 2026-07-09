@@ -340,7 +340,10 @@ export default {
     deletePropertyAction: 'Delete property',
     editPropertyAction: 'Edit property',
     addListingType: '+ Add listing type',
-    addListingTypeTitle: 'Add a listing type',
+    addAnotherListing: '+ Add another listing',
+    addListingTypeTitle: 'Add another listing',
+    addListingTypeSubtitle:
+      'A new listing at this address — with its own scope, photos and price. Prefilled from an existing one; adjust what differs.',
     addListingTypeSubmit: 'Add listing',
     addListingTypeExists:
       'A listing of this type already exists for this property.',

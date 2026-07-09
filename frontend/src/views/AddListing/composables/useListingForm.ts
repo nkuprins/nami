@@ -1,84 +1,38 @@
 import { computed, nextTick, reactive, ref } from 'vue';
-import type {
-  Feature,
-  ListingType,
-  PropertyDetails,
-} from '../../../types/listingItem';
+import type { Feature, ListingType } from '../../../types/listingItem';
 import type { Location } from '../../../data/rawLocations';
-import type { PropertyFieldsForm, ListingFieldsForm } from './formTypes';
+import type { ListingFormState } from './formTypes';
 import {
+  buildListingBody,
   buildTranslations,
   INITIAL_LISTING_FIELDS,
   listingFieldErrors,
 } from './useListingFields';
 import {
   addPhone as addPhoneHelper,
+  buildDetails,
+  buildMedia,
+  INITIAL_PROPERTY_FIELDS,
   makeFieldError,
   propertyFieldErrors,
   removePhone as removePhoneHelper,
   toggleFeature as toggleFeatureHelper,
+  uploadNewFiles,
 } from './formHelpers';
 import {
   addListing,
   createListing,
   DuplicatePropertyError,
 } from '../../../api/listingsApi';
-import { requestPresignedUrls, uploadFilesToS3 } from '../../../api/uploadApi';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
-import { parseDecimal } from '../../../utils/utils';
 import type { usePhotoUpload } from './usePhotoUpload';
 
 const DEFAULT_COORDS = { lat: 56.946, lng: 24.105 };
 
-export type ListingFormState = PropertyFieldsForm & ListingFieldsForm;
-
 const INITIAL_FORM: ListingFormState = {
+  ...INITIAL_PROPERTY_FIELDS,
   ...INITIAL_LISTING_FIELDS,
-  propertyKind: 'apartment',
-  address: '',
-  rooms: '',
-  bedrooms: '',
-  bathrooms: '',
-  bathroomLayout: '',
-  m2: '',
-  landM2: '',
-  floor: '',
-  totalFloors: '',
-  yearBuilt: '',
-  heating: '',
-  energyClass: '',
-  maintenanceCost: '',
-  features: [],
-  videoUrl: '',
-  coords: null,
 };
-
-export function buildDetails(form: PropertyFieldsForm): PropertyDetails {
-  return {
-    rooms: Number(form.rooms),
-    bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
-    bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
-    bathroomLayout: form.bathroomLayout || undefined,
-    m2: parseDecimal(form.m2),
-    landM2:
-      form.propertyKind === 'house' && form.landM2
-        ? parseDecimal(form.landM2)
-        : undefined,
-    floor: form.floor ? Number(form.floor) : undefined,
-    totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,
-    yearBuilt: form.yearBuilt ? Number(form.yearBuilt) : undefined,
-    heating: form.heating || undefined,
-    energyClass: form.energyClass || undefined,
-    maintenanceCost: form.maintenanceCost
-      ? parseDecimal(form.maintenanceCost)
-      : undefined,
-  };
-}
-
-export async function uploadNewFiles(files: File[]): Promise<string[]> {
-  const slots = await requestPresignedUrls(files.map((f) => f.name));
-  return uploadFilesToS3(files, slots);
-}
 
 export function useListingForm(
   getLocation: () => Location | null,
@@ -159,11 +113,7 @@ export function useListingForm(
             coords: form.coords ?? DEFAULT_COORDS,
           },
           features: form.features,
-          media: {
-            photos,
-            plans: plans.length ? plans : null,
-            videoUrl: form.videoUrl.trim() || null,
-          },
+          media: buildMedia(form, photos, plans),
           phones: filledPhones,
           completion:
             form.type === 'new_project' && form.completion
@@ -175,16 +125,17 @@ export function useListingForm(
         turnstile?.token()
       );
 
+      // "Also list for rent" at the same address = a second self-contained listing
+      // sharing this one's physical scope and photos, differing only in price/type.
       if (form.alsoRent) {
         try {
           await addListing(created.propertyId, {
+            ...buildListingBody(form, photos, plans),
             type: 'rent',
             price: {
               amount: Number(form.rentPrice),
               vatIncluded: form.rentVatIncluded || undefined,
             },
-            translations,
-            phones: filledPhones,
             completion: undefined,
             durationMonths: form.rentDurationMonths,
           });

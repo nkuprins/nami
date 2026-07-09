@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ListingSummary, ListingType } from '../../types/listingItem';
-import { resolveTitle, compatibleListingTypes } from '../../types/listingItem';
+import type { ListingSummary } from '../../types/listingItem';
+import { resolveTitle } from '../../types/listingItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import { formatPrice } from '../../utils/format';
@@ -36,10 +36,6 @@ const representative = computed(
 );
 const title = computed(() => resolveTitle(representative.value, locale.value));
 const propertyId = computed(() => representative.value.propertyId);
-
-const missingTypes = computed<ListingType[]>(() =>
-  compatibleListingTypes(props.listings.map((l) => l.type))
-);
 
 function isExpired(item: ListingSummary): boolean {
   return !!item.expiresAt && new Date(item.expiresAt) < new Date();
@@ -239,14 +235,14 @@ function requestDeleteListing(id: string) {
       </div>
     </div>
 
-    <div v-if="missingTypes.length" class="px-3 py-2.5 border-t border-line">
+    <div class="px-3 py-2.5 border-t border-line">
       <button
         type="button"
         class="focus-ring h-9 px-4 inline-flex items-center gap-1.5 rounded-full border border-line-2 text-xs font-semibold text-ink hover:bg-surface hover:border-ink-3 transition-colors"
         @click="emit('add-listing', propertyId)"
       >
         <span class="text-base leading-none">+</span>
-        {{ t('drawers.alsoListFor', { type: typeLabel(missingTypes[0]) }) }}
+        {{ t('drawers.addAnotherListing') }}
       </button>
     </div>
   </div>

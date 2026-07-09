@@ -123,7 +123,7 @@ public class PropertyExpiryJob {
         List<String> allMediaUrls = new ArrayList<>();
         List<UUID> propertyIds = new ArrayList<>();
         for (Listing l : toPurge) {
-            allMediaUrls.addAll(l.getProperty().allMediaUrls());
+            allMediaUrls.addAll(l.allMediaUrls());
             propertyIds.add(l.getProperty().getId());
         }
 

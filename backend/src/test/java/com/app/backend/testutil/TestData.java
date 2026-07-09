@@ -58,21 +58,12 @@ public final class TestData {
         Property p = new Property();
         p.setId(UUID.randomUUID());
         p.setOwner(owner);
-        p.setPropertyCategory(PropertyCategory.APARTMENT);
-        p.setRooms((short) 3);
-        p.setM2(new BigDecimal("75.00"));
-        p.setFloor((short) 3);
-        p.setTotalFloors((short) 5);
-        p.setYearBuilt((short) 2010);
         p.setDistrictSlug("centre");
         p.setCitySlug("riga");
         p.setAddress("Test Street 1");
         p.setLat(56.9496);
         p.setLng(24.1052);
         p.setUpdatedAt(OffsetDateTime.now());
-        p.setFeatures(new HashSet<>(Set.of(PropertyFeature.BALCONY, PropertyFeature.PARKING)));
-        p.setPhotos(new ArrayList<>());
-        p.setPlans(new ArrayList<>());
 
         Listing l = new Listing();
         l.setId(UUID.randomUUID());
@@ -82,6 +73,15 @@ public final class TestData {
         l.setStatus(PropertyStatus.ACTIVE);
         l.setPrice(new BigDecimal("150000.00"));
         l.setVatIncluded(false);
+        l.setPropertyCategory(PropertyCategory.APARTMENT);
+        l.setRooms((short) 3);
+        l.setM2(new BigDecimal("75.00"));
+        l.setFloor((short) 3);
+        l.setTotalFloors((short) 5);
+        l.setYearBuilt((short) 2010);
+        l.setFeatures(new HashSet<>(Set.of(PropertyFeature.BALCONY, PropertyFeature.PARKING)));
+        l.setPhotos(new ArrayList<>());
+        l.setPlans(new ArrayList<>());
         l.setPostedAt(OffsetDateTime.now());
         l.setUpdatedAt(OffsetDateTime.now());
         l.setExpiresAt(OffsetDateTime.now().plusMonths(3));
@@ -105,9 +105,8 @@ public final class TestData {
 
     public static Listing listingWithPhotos(User owner) {
         Listing l = listing(owner);
-        Property p = l.getProperty();
-        p.getPhotos().add("https://cdn.test.local/uploads/photo1.jpg");
-        p.getPhotos().add("https://cdn.test.local/uploads/photo2.jpg");
+        l.getPhotos().add("https://cdn.test.local/uploads/photo1.jpg");
+        l.getPhotos().add("https://cdn.test.local/uploads/photo2.jpg");
         return l;
     }
 
@@ -186,17 +185,8 @@ public final class TestData {
     public static UpdateListingRequest updateListingRequest() {
         return UpdateListingRequest.builder()
                 .type(ListingType.BUY)
-                .price(new Price(new BigDecimal("210000.00"), null))
-                .translations(Map.of(
-                        "lv", new LocalizedText("Atjaunots dzīvoklis", "Atjaunots apraksts"),
-                        "en", new LocalizedText("Updated Apartment", "Updated description")))
-                .phones(List.of("+37120000001"))
-                .build();
-    }
-
-    public static UpdatePropertyRequest updatePropertyRequest() {
-        return UpdatePropertyRequest.builder()
                 .propertyKind(PropertyCategory.APARTMENT)
+                .price(new Price(new BigDecimal("210000.00"), null))
                 .details(PropertyDetails.builder()
                         .rooms((short) 3)
                         .bedrooms((short) 2)
@@ -210,7 +200,17 @@ public final class TestData {
                         .energyClass(EnergyClass.C)
                         .maintenanceCost(new BigDecimal("95.00"))
                         .build())
+                .translations(Map.of(
+                        "lv", new LocalizedText("Atjaunots dzīvoklis", "Atjaunots apraksts"),
+                        "en", new LocalizedText("Updated Apartment", "Updated description")))
                 .features(List.of(PropertyFeature.ELEVATOR, PropertyFeature.FURNISHED))
+                .media(Media.builder().photos(List.of("https://cdn.test.local/uploads/p1.jpg")).build())
+                .phones(List.of("+37120000001"))
+                .build();
+    }
+
+    public static UpdatePropertyRequest updatePropertyRequest() {
+        return UpdatePropertyRequest.builder()
                 .location(new Location("centre", "riga", "Main Street 10",
                         new CoordsDto(56.9496, 24.1052)))
                 .build();
@@ -219,10 +219,26 @@ public final class TestData {
     public static AddListingRequest addListingRequest() {
         return AddListingRequest.builder()
                 .type(ListingType.RENT)
+                .propertyKind(PropertyCategory.APARTMENT)
                 .price(new Price(new BigDecimal("650.00"), null))
+                .details(PropertyDetails.builder()
+                        .rooms((short) 3)
+                        .bedrooms((short) 2)
+                        .bathrooms((short) 1)
+                        .bathroomLayout(BathroomLayout.COMBINED)
+                        .m2(new BigDecimal("65.00"))
+                        .floor((short) 4)
+                        .totalFloors((short) 9)
+                        .yearBuilt((short) 2020)
+                        .heating(HeatingType.GAS)
+                        .energyClass(EnergyClass.B)
+                        .maintenanceCost(new BigDecimal("120.00"))
+                        .build())
                 .translations(Map.of(
                         "lv", new LocalizedText("Testa dzīvoklis īrei", "Apraksts latviski"),
                         "en", new LocalizedText("Test Apartment for rent", "Description in English")))
+                .features(List.of(PropertyFeature.BALCONY))
+                .media(Media.builder().photos(List.of("https://cdn.test.local/uploads/p1.jpg")).build())
                 .phones(List.of("+37120000002"))
                 .durationMonths(3)
                 .build();

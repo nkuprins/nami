@@ -342,7 +342,10 @@ export default {
     deletePropertyAction: 'Dzēst īpašumu',
     editPropertyAction: 'Rediģēt īpašumu',
     addListingType: '+ Pievienot sludinājuma veidu',
-    addListingTypeTitle: 'Pievienot sludinājuma veidu',
+    addAnotherListing: '+ Pievienot vēl vienu sludinājumu',
+    addListingTypeTitle: 'Pievienot vēl vienu sludinājumu',
+    addListingTypeSubtitle:
+      'Jauns sludinājums šajā adresē — ar savu apjomu, fotoattēliem un cenu. Aizpildīts no esošā; pielāgojiet to, kas atšķiras.',
     addListingTypeSubmit: 'Pievienot sludinājumu',
     addListingTypeExists: 'Šāda veida sludinājums šim īpašumam jau pastāv.',
     addListingFailed: 'Kaut kas nogāja greizi. Lūdzu, mēģiniet vēlreiz.',

@@ -168,36 +168,36 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
     @Test
     void filtersByRooms_includingSevenPlus() {
         Listing twoRoom = TestData.listing(owner);
-        twoRoom.getProperty().setRooms((short) 2);
+        twoRoom.setRooms((short) 2);
         save(twoRoom);
 
         Listing fiveRoom = TestData.listing(owner);
-        fiveRoom.getProperty().setRooms((short) 5);
+        fiveRoom.setRooms((short) 5);
         save(fiveRoom);
 
         Listing sevenRoom = TestData.listing(owner);
-        sevenRoom.getProperty().setRooms((short) 7);
+        sevenRoom.setRooms((short) 7);
         save(sevenRoom);
 
         Listing nineRoom = TestData.listing(owner);
-        nineRoom.getProperty().setRooms((short) 9);
+        nineRoom.setRooms((short) 9);
         save(nineRoom);
 
-        // rooms=[2, 7] → exact 2-room + all 7+ room properties (5-room excluded)
+        // rooms=[2, 7] → exact 2-room + all 7+ room listings (5-room excluded)
         List<Listing> results = listingRepository.findAll(
                 spec(ListingType.BUY, null, null, null, List.of(2, 7), null, null, null, null, null, null, null, null, null, null));
 
-        assertThat(results).hasSize(3).allMatch(l -> l.getProperty().getRooms() != 5);
+        assertThat(results).hasSize(3).allMatch(l -> l.getRooms() != 5);
     }
 
     @Test
     void filtersByFeatures_requiresAll() {
         Listing withBoth = TestData.listing(owner);
-        withBoth.getProperty().setFeatures(Set.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR));
+        withBoth.setFeatures(Set.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR));
         save(withBoth);
 
         Listing withOnly = TestData.listing(owner);
-        withOnly.getProperty().setFeatures(Set.of(PropertyFeature.BALCONY));
+        withOnly.setFeatures(Set.of(PropertyFeature.BALCONY));
         save(withOnly);
 
         List<Listing> results = listingRepository.findAll(
@@ -205,7 +205,7 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
                         List.of(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR), null));
 
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getProperty().getFeatures()).contains(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR);
+        assertThat(results.get(0).getFeatures()).contains(PropertyFeature.BALCONY, PropertyFeature.ELEVATOR);
     }
 
     @Test
@@ -213,13 +213,13 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
         Listing ready = TestData.listing(owner);
         ready.setListingType(ListingType.NEW_PROJECT);
         ready.setCompletion(PropertyCompletion.READY);
-        ready.getProperty().setYearBuilt(null);
+        ready.setYearBuilt(null);
         save(ready);
 
         Listing notReady = TestData.listing(owner);
         notReady.setListingType(ListingType.NEW_PROJECT);
         notReady.setCompletion(PropertyCompletion.NOT_READY);
-        notReady.getProperty().setYearBuilt(null);
+        notReady.setYearBuilt(null);
         save(notReady);
 
         List<Listing> results = listingRepository.findAll(
@@ -232,17 +232,17 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
     @Test
     void filtersByYearRange() {
         Listing old = TestData.listing(owner);
-        old.getProperty().setYearBuilt((short) 1990);
+        old.setYearBuilt((short) 1990);
         save(old);
 
         Listing modern = TestData.listing(owner);
-        modern.getProperty().setYearBuilt((short) 2020);
+        modern.setYearBuilt((short) 2020);
         save(modern);
 
         List<Listing> results = listingRepository.findAll(
                 spec(ListingType.BUY, null, null, null, null, null, null, null, null, null, null, 2010, 2025, null, null));
 
-        assertThat(results).hasSize(1).allMatch(l -> l.getProperty().getYearBuilt() == 2020);
+        assertThat(results).hasSize(1).allMatch(l -> l.getYearBuilt() == 2020);
     }
 
     @Test
@@ -251,21 +251,21 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
         match.getProperty().setCitySlug("riga");
         match.getProperty().setDistrictSlug("centre");
         match.setPrice(new BigDecimal("200000.00"));
-        match.getProperty().setRooms((short) 3);
+        match.setRooms((short) 3);
         save(match);
 
         Listing noMatch = TestData.listing(owner);
         noMatch.getProperty().setCitySlug("riga");
         noMatch.getProperty().setDistrictSlug("centre");
         noMatch.setPrice(new BigDecimal("50000.00"));
-        noMatch.getProperty().setRooms((short) 1);
+        noMatch.setRooms((short) 1);
         save(noMatch);
 
         List<Listing> results = listingRepository.findAll(
                 spec(ListingType.BUY, List.of("riga:centre"), new BigDecimal("100000"), null,
                         List.of(3), null, null, null, null, null, null, null, null, null, null));
 
-        assertThat(results).hasSize(1).allMatch(l -> l.getProperty().getRooms() == 3);
+        assertThat(results).hasSize(1).allMatch(l -> l.getRooms() == 3);
     }
 
     private static Specification<Listing> buildSpec(PropertySearchCriteria.PropertySearchCriteriaBuilder builder) {
@@ -275,18 +275,18 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
     @Test
     void filtersByBedrooms_includingSevenPlus() {
         Listing two = TestData.listing(owner);
-        two.getProperty().setRooms((short) 5);
-        two.getProperty().setBedrooms((short) 2);
+        two.setRooms((short) 5);
+        two.setBedrooms((short) 2);
         save(two);
 
         Listing four = TestData.listing(owner);
-        four.getProperty().setRooms((short) 5);
-        four.getProperty().setBedrooms((short) 4);
+        four.setRooms((short) 5);
+        four.setBedrooms((short) 4);
         save(four);
 
         Listing eight = TestData.listing(owner);
-        eight.getProperty().setRooms((short) 9);
-        eight.getProperty().setBedrooms((short) 8);
+        eight.setRooms((short) 9);
+        eight.setBedrooms((short) 8);
         save(eight);
 
         // bedrooms=[2, 7] → exact 2 + all 7+ (4-bedroom excluded)
@@ -294,60 +294,75 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
                 buildSpec(PropertySearchCriteria.builder().bedrooms(List.of(2, 7))));
 
         assertThat(results).hasSize(2)
-                .allMatch(l -> l.getProperty().getBedrooms() == 2 || l.getProperty().getBedrooms() >= 7);
+                .allMatch(l -> l.getBedrooms() == 2 || l.getBedrooms() >= 7);
     }
 
     @Test
     void filtersByBathrooms() {
         Listing one = TestData.listing(owner);
-        one.getProperty().setBathrooms((short) 1);
+        one.setBathrooms((short) 1);
         save(one);
 
         Listing three = TestData.listing(owner);
-        three.getProperty().setBathrooms((short) 3);
+        three.setBathrooms((short) 3);
         save(three);
 
         List<Listing> results = listingRepository.findAll(
                 buildSpec(PropertySearchCriteria.builder().bathrooms(List.of(1))));
 
-        assertThat(results).hasSize(1).allMatch(l -> l.getProperty().getBathrooms() == 1);
+        assertThat(results).hasSize(1).allMatch(l -> l.getBathrooms() == 1);
     }
 
     @Test
     void filtersByHeating() {
         Listing gas = TestData.listing(owner);
-        gas.getProperty().setHeating(HeatingType.GAS);
+        gas.setHeating(HeatingType.GAS);
         save(gas);
 
         Listing central = TestData.listing(owner);
-        central.getProperty().setHeating(HeatingType.CENTRAL);
+        central.setHeating(HeatingType.CENTRAL);
         save(central);
 
         List<Listing> results = listingRepository.findAll(
                 buildSpec(PropertySearchCriteria.builder().heating(List.of(HeatingType.GAS))));
 
-        assertThat(results).hasSize(1).allMatch(l -> l.getProperty().getHeating() == HeatingType.GAS);
+        assertThat(results).hasSize(1).allMatch(l -> l.getHeating() == HeatingType.GAS);
     }
 
     @Test
     void filtersByEnergyClass() {
         Listing a = TestData.listing(owner);
-        a.getProperty().setEnergyClass(EnergyClass.A);
+        a.setEnergyClass(EnergyClass.A);
         save(a);
 
         Listing c = TestData.listing(owner);
-        c.getProperty().setEnergyClass(EnergyClass.C);
+        c.setEnergyClass(EnergyClass.C);
         save(c);
 
         Listing e = TestData.listing(owner);
-        e.getProperty().setEnergyClass(EnergyClass.E);
+        e.setEnergyClass(EnergyClass.E);
         save(e);
 
         List<Listing> results = listingRepository.findAll(
                 buildSpec(PropertySearchCriteria.builder().energyClass(List.of(EnergyClass.A, EnergyClass.C))));
 
         assertThat(results).hasSize(2)
-                .allMatch(l -> l.getProperty().getEnergyClass() == EnergyClass.A
-                        || l.getProperty().getEnergyClass() == EnergyClass.C);
+                .allMatch(l -> l.getEnergyClass() == EnergyClass.A || l.getEnergyClass() == EnergyClass.C);
+    }
+
+    @Test
+    void filtersByFloor_acrossDistinctListingsAtOneScope() {
+        Listing high = TestData.listing(owner); // floor 3
+        save(high);
+
+        Listing low = TestData.listing(owner);
+        low.setFloor((short) 1);
+        save(low);
+
+        // floorMax=2 matches only the floor-1 listing.
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().floorMax((short) 2)));
+
+        assertThat(results).hasSize(1).allMatch(l -> l.getFloor() == 1);
     }
 }

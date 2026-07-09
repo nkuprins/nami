@@ -112,13 +112,13 @@ public class PropertyController {
         return listingService.renew(id, request, userId);
     }
 
-    @PostMapping("/{propertyId}/reprocess-images")
+    @PostMapping("/{id}/reprocess-images")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void reprocessImages(
             @AuthenticationPrincipal UUID userId,
-            @PathVariable UUID propertyId
+            @PathVariable UUID id
     ) {
-        propertyService.reprocessImages(propertyId, userId);
+        propertyService.reprocessImages(id, userId);
     }
 
     @DeleteMapping("/{id}")

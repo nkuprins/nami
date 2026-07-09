@@ -52,10 +52,16 @@ export interface CreateListingPayload {
   confirmedDuplicate?: boolean; // set once the user confirms past a fuzzy near-match
 }
 
+// A listing is self-contained: adding one at an existing address repeats the
+// whole shape (only the location is inherited from the property).
 export interface AddListingPayload {
   type: ListingType;
+  propertyKind: PropertyKind;
   price: PriceInfo;
+  details: PropertyDetails;
   translations: Translations;
+  features: Feature[];
+  media: PropertyMedia;
   phones: string[];
   completion?: PropertyCompletion;
   durationMonths: number;
@@ -63,17 +69,17 @@ export interface AddListingPayload {
 
 export interface UpdateListingPayload {
   type: ListingType;
+  propertyKind: PropertyKind;
   price: PriceInfo;
+  details: PropertyDetails;
   translations: Translations;
+  features: Feature[];
+  media: PropertyMedia;
   phones: string[];
   completion?: PropertyCompletion;
 }
 
 export interface UpdatePropertyPayload {
-  propertyKind: PropertyKind;
-  details: PropertyDetails;
-  features: Feature[];
-  media: PropertyMedia;
   location: PropertyLocation; // display names in, translated to slugs internally
 }
 

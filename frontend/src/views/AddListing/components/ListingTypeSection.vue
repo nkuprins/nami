@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import PropertyKindSection from './PropertyKindSection.vue';
-import type { ListingFormState } from '../composables/useListingForm';
+import type { ListingFormState } from '../composables/formTypes';
 
 const { t } = useI18n();
 

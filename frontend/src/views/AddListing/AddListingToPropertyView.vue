@@ -2,17 +2,26 @@
 import { useI18n } from 'vue-i18n';
 import ToggleButtons from '../../components/ui/ToggleButtons.vue';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
+import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useAddListingToProperty } from './composables/useListingFields';
 import type { ListingType } from '../../types/listingItem';
 
 import BasicInfoSection from './components/BasicInfoSection.vue';
 import PricingSection from './components/PricingSection.vue';
+import PropertyKindSection from './components/PropertyKindSection.vue';
+import DetailsSection from './components/DetailsSection.vue';
+import FeaturesSection from './components/FeaturesSection.vue';
 import PhonesSection from './components/PhonesSection.vue';
+import PhotosSection from './components/PhotosSection.vue';
+import PlansSection from './components/PlansSection.vue';
 
 const props = defineProps<{ id: string }>();
 
 const { t } = useI18n();
 const { localePath } = useLocaleRoute();
+
+const photoUpload = usePhotoUpload();
+const planUpload = usePhotoUpload(3);
 
 const {
   form,
@@ -24,7 +33,7 @@ const {
   addPhone,
   removePhone,
   submit,
-} = useAddListingToProperty(props.id);
+} = useAddListingToProperty(props.id, photoUpload, planUpload);
 </script>
 
 <template>
@@ -40,6 +49,9 @@ const {
         <h1 class="text-2xl font-bold text-ink">
           {{ t('drawers.addListingTypeTitle') }}
         </h1>
+        <p class="text-sm text-ink-3 mt-1">
+          {{ t('drawers.addListingTypeSubtitle') }}
+        </p>
       </div>
 
       <form class="flex flex-col gap-10" @submit.prevent="submit">
@@ -67,11 +79,35 @@ const {
 
         <BasicInfoSection v-model:form="form" :field-error="fieldError" />
 
+        <PropertyKindSection
+          :property-kind="form.propertyKind"
+          @update:property-kind="form.propertyKind = $event"
+        />
+
+        <DetailsSection v-model:form="form" :field-error="fieldError" />
+
+        <FeaturesSection v-model:form="form" />
+
         <PhonesSection
           v-model:form="form"
           :field-error="fieldError"
           @add-phone="addPhone"
           @remove-phone="removePhone"
+        />
+
+        <PhotosSection
+          v-model:form="form"
+          :photos="photoUpload.photos.value"
+          :field-error="fieldError"
+          @add-files="photoUpload.addFiles"
+          @remove-photo="photoUpload.remove"
+          @move="photoUpload.move"
+        />
+        <PlansSection
+          :plans="planUpload.photos.value"
+          @add-files="planUpload.addFiles"
+          @remove-plan="planUpload.remove"
+          @move="planUpload.move"
         />
 
         <div class="flex items-center gap-4 pt-2">

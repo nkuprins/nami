@@ -1,9 +1,14 @@
 package com.app.backend.dto.property.request;
 
 import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.model.Media;
 import com.app.backend.dto.property.model.Price;
+import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
+import com.app.backend.enums.PropertyFeature;
+import com.app.backend.validation.ValidPropertyRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -15,16 +20,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Adds a new listing (e.g. rent) to a property that already has at least one
- * other listing (e.g. buy). The property's physical attributes, location and
- * media are not repeated here — they already exist on the target property.
+ * Adds another listing at an address that already has at least one. A listing is
+ * self-contained — its own physical attributes, media and features — so the whole
+ * shape is repeated here; only the shared location is inherited from the property.
  */
 @Builder(toBuilder = true)
+@ValidPropertyRequest
 public record AddListingRequest(
         @NotNull ListingType type,
+        @NotNull PropertyCategory propertyKind,
         @NotNull @Valid Price price,
+        @NotNull @Valid PropertyDetails details,
         Map<String, LocalizedText> translations,
+        List<PropertyFeature> features,
+        @Valid Media media,
         List<@NotBlank String> phones,
         PropertyCompletion completion,
         @NotNull @Min(1) @Max(6) Integer durationMonths
-) {}
+) implements PropertyRequest {}

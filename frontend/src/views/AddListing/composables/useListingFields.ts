@@ -1,27 +1,41 @@
 import { computed, nextTick, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
-  compatibleListingTypes,
+  offerableListingTypes,
+  type Feature,
   type ListingType,
   type Translations,
 } from '../../../types/listingItem';
-import type { ListingFieldsForm } from './formTypes';
+import type { ListingFieldsForm, ListingFormState } from './formTypes';
+import type {
+  AddListingPayload,
+  UpdateListingPayload,
+} from '../../../api/listingsApi';
 import {
   addListing,
+  getListing,
   getMyListings,
   ListingTypeExistsError,
 } from '../../../api/listingsApi';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
+import type { usePhotoUpload } from './usePhotoUpload';
 import {
   addPhone as addPhoneHelper,
+  buildDetails,
+  buildMedia,
+  INITIAL_PROPERTY_FIELDS,
   makeFieldError,
+  propertyFieldErrors,
   removePhone as removePhoneHelper,
+  seedPropertyFields,
+  toggleFeature as toggleFeatureHelper,
+  uploadNewFiles,
 } from './formHelpers';
 
 // Default values for the listing-only slice of the form. Spread into the full
-// create form (useListingForm) and used standalone by the add-to-property
-// drawer, so both start from an identical baseline.
+// create form (useListingForm) and reused by the listing edit / add-another
+// forms, so all four start from an identical baseline.
 export const INITIAL_LISTING_FIELDS: ListingFieldsForm = {
   type: '',
   alsoRent: false,
@@ -61,8 +75,33 @@ export function buildTranslations(form: ListingFieldsForm): Translations {
   return t;
 }
 
+// The self-contained listing body shared by add + update (update omits duration).
+export function buildListingBody(
+  form: ListingFormState,
+  photos: string[],
+  plans: string[]
+): UpdateListingPayload {
+  return {
+    type: form.type as ListingType,
+    propertyKind: form.propertyKind,
+    price: {
+      amount: Number(form.price),
+      vatIncluded: form.vatIncluded || undefined,
+    },
+    details: buildDetails(form),
+    translations: buildTranslations(form),
+    features: form.features,
+    media: buildMedia(form, photos, plans),
+    phones: form.phones.filter((p) => p.trim()),
+    completion:
+      form.type === 'new_project' && form.completion
+        ? form.completion
+        : undefined,
+  };
+}
+
 // Validation shared by every listing form. `requireRentPrice` is only true in
-// the create form's dual buy+rent mode; the drawer always passes false.
+// the create form's dual buy+rent mode; the other forms always pass false.
 export function listingFieldErrors(
   form: ListingFieldsForm,
   opts: { requireRentPrice: boolean }
@@ -100,16 +139,21 @@ export function listingFieldErrors(
   return e;
 }
 
-// Backs the "add another listing type to an existing property" view. The
-// property (location/media/details) already exists, so this only collects the
-// listing-specific fields — filtering the type picker to what the property
-// doesn't already have — and posts them via addListing.
-export function useAddListingToProperty(propertyId: string) {
+// Backs the "add another listing at this address" view. A listing is
+// self-contained, so this collects the whole listing (its own physical
+// attributes, media and terms) — prefilled from a sibling listing so the user
+// can tweak the scope and trim the photo set — and posts it via addListing.
+export function useAddListingToProperty(
+  propertyId: string,
+  photoUpload: ReturnType<typeof usePhotoUpload>,
+  planUpload: ReturnType<typeof usePhotoUpload>
+) {
   const { t } = useI18n();
   const { localePush } = useLocaleRoute();
   const { typeOptions } = usePropertyLabels();
 
-  const form = reactive<ListingFieldsForm>({
+  const form = reactive<ListingFormState>({
+    ...INITIAL_PROPERTY_FIELDS,
     ...INITIAL_LISTING_FIELDS,
     phones: [''],
   });
@@ -118,33 +162,46 @@ export function useAddListingToProperty(propertyId: string) {
   const submitError = ref('');
   const loading = ref(true);
 
-  const alreadyHas = ref<ListingType[]>([]);
-  const availableTypeOptions = computed(() => {
-    const compatible = new Set(compatibleListingTypes(alreadyHas.value));
-    return typeOptions.value.filter((o) => compatible.has(o.id));
-  });
+  const offerable = new Set(offerableListingTypes());
+  const availableTypeOptions = computed(() =>
+    typeOptions.value.filter((o) => offerable.has(o.id))
+  );
 
   // A property always has at least one listing, so no match means it isn't the
-  // current user's property (or doesn't exist) — bail to home.
+  // current user's property (or doesn't exist) — bail to home. The first sibling
+  // seeds the physical/media fields so the new listing starts from its scope.
   getMyListings()
-    .then((all) => {
+    .then(async (all) => {
       const mine = all.filter((l) => l.propertyId === propertyId);
       if (mine.length === 0) {
         localePush('/');
         return;
       }
-      alreadyHas.value = mine.map((l) => l.type);
+      const sibling = await getListing(mine[0].id);
+      if (sibling) {
+        seedPropertyFields(form, sibling);
+        photoUpload.seed(sibling.media.photos ?? []);
+        planUpload.seed(sibling.media.plans ?? []);
+      }
       form.type = availableTypeOptions.value[0]?.id ?? '';
       loading.value = false;
     })
     .catch(() => localePush('/'));
 
-  const errors = computed(() =>
-    listingFieldErrors(form, { requireRentPrice: false })
-  );
+  const errors = computed(() => ({
+    ...listingFieldErrors(form, { requireRentPrice: false }),
+    ...propertyFieldErrors(form, {
+      hasLocation: true,
+      hasPhotos: photoUpload.photos.value.length > 0,
+      requireLocation: false,
+    }),
+  }));
   const isValid = computed(() => Object.keys(errors.value).length === 0);
   const fieldError = makeFieldError(touched, errors);
 
+  function toggleFeature(f: Feature) {
+    toggleFeatureHelper(form, f);
+  }
   function addPhone() {
     addPhoneHelper(form);
   }
@@ -165,20 +222,13 @@ export function useAddListingToProperty(propertyId: string) {
     submitting.value = true;
     submitError.value = '';
     try {
-      const created = await addListing(propertyId, {
-        type: form.type as ListingType,
-        price: {
-          amount: Number(form.price),
-          vatIncluded: form.vatIncluded || undefined,
-        },
-        translations: buildTranslations(form),
-        phones: form.phones.filter((p) => p.trim()),
-        completion:
-          form.type === 'new_project' && form.completion
-            ? form.completion
-            : undefined,
+      const photos = await photoUpload.buildFinalUrls(uploadNewFiles);
+      const plans = await planUpload.buildFinalUrls(uploadNewFiles);
+      const payload: AddListingPayload = {
+        ...buildListingBody(form, photos, plans),
         durationMonths: form.durationMonths,
-      });
+      };
+      const created = await addListing(propertyId, payload);
       await localePush(`/listing/${created.id}`);
     } catch (e) {
       submitError.value =
@@ -196,6 +246,7 @@ export function useAddListingToProperty(propertyId: string) {
     submitting,
     submitError,
     fieldError,
+    toggleFeature,
     addPhone,
     removePhone,
     submit,

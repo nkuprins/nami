@@ -2,7 +2,7 @@ package com.app.backend.job;
 
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.User;
-import com.app.backend.repository.PropertyRepository;
+import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.service.EmailService;
 import com.app.backend.service.MediaCleanupService;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 class InactiveAccountPurgeJobTest {
 
     @Mock private UserRepository userRepository;
-    @Mock private PropertyRepository propertyRepository;
+    @Mock private ListingRepository listingRepository;
     @Mock private MediaCleanupService mediaCleanupService;
     @Mock private EmailService emailService;
 
@@ -60,7 +60,7 @@ class InactiveAccountPurgeJobTest {
         Listing listing = listingWithPhotos(inactive);
         when(userRepository.findAboutToBeInactive(any(), any(), any())).thenReturn(List.of());
         when(userRepository.findInactiveWithoutActiveListings(any(OffsetDateTime.class), any(PropertyStatus.class))).thenReturn(List.of(inactive));
-        when(propertyRepository.findByOwner(inactive)).thenReturn(List.of(listing.getProperty()));
+        when(listingRepository.findByOwner(inactive)).thenReturn(List.of(listing));
 
         purgeJob.runInactiveAccountJob();
         triggerAfterCommit();

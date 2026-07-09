@@ -2,7 +2,7 @@ package com.app.backend.job;
 
 import com.app.backend.entity.User;
 import com.app.backend.enums.PropertyStatus;
-import com.app.backend.repository.PropertyRepository;
+import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.service.EmailService;
 import com.app.backend.service.MediaCleanupService;
@@ -26,7 +26,7 @@ import java.util.List;
 public class InactiveAccountPurgeJob {
 
     private final UserRepository userRepository;
-    private final PropertyRepository propertyRepository;
+    private final ListingRepository listingRepository;
     private final MediaCleanupService mediaCleanupService;
     private final EmailService emailService;
 
@@ -71,8 +71,8 @@ public class InactiveAccountPurgeJob {
 
         List<String> allPhotoUrls = new ArrayList<>();
         for (User user : inactive) {
-            propertyRepository.findByOwner(user).stream()
-                    .flatMap(p -> p.allMediaUrls().stream())
+            listingRepository.findByOwner(user).stream()
+                    .flatMap(l -> l.allMediaUrls().stream())
                     .forEach(allPhotoUrls::add);
             userRepository.delete(user);
         }

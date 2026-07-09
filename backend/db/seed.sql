@@ -1,5 +1,7 @@
 -- Baltnami — development seed data
--- 5 users · 13 properties (each with one listing) · photos/plans/phones as JSONB · listing translations · saved listings
+-- 5 users · 13 addresses · 14 self-contained listings (one address has a
+-- sell + rent-a-floor pair) · photos/plans/phones as JSONB · listing
+-- translations · listing features · saved listings
 -- All passwords = 'Secret123!'  (bcrypt cost 12, placeholder hashes)
 
 BEGIN;
@@ -25,269 +27,205 @@ INSERT INTO users (id, name, email, password_hash, email_verified) VALUES
      '$2b$12$92In5/RuASAH5A3HNMCIGeDXPfSfmJBWZgNgK2aWdnVPqSJ4G5CpO', true);
 
 -- ─────────────────────────────────────────────
--- Properties (physical asset)
+-- Properties (shared address registry)
 -- ─────────────────────────────────────────────
-INSERT INTO properties (
-    id, owner_id,
-    property_category,
-    rooms, bedrooms, bathrooms, bathroom_layout, m2, land_m2, floor, total_floors, year_built,
-    heating, energy_class, maintenance_cost,
-    photos, plans, video_url,
-    district_slug, city_slug, address, lat, lng
-) VALUES
-
--- ── Jānis Bērziņš (u1) ──────────────────────────────────────────────────────
-
-('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001',
- 'apartment',
- 2, 1, 1, 'combined', 52.40, NULL, 4, 9, 1968,
- 'central', 'D', 45.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000001/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000001/1.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000001/2.jpg"]'::jsonb,
- '[]'::jsonb, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- 'centrs', 'riga', 'Dzirnavu iela 57-18', 56.9490, 24.1052),
-
-('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001',
- 'apartment',
- 3, 2, 1, 'separate', 68.00, NULL, 2, 5, 1985,
- 'central', 'E', 60.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000002/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000002/1.jpg"]'::jsonb,
- '[]'::jsonb, NULL,
- 'teika', 'riga', 'Hospitāļu iela 12-34', 56.9655, 24.1480),
-
-('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001',
- 'house',
- 4, 3, 2, 'separate', 120.00, 400.00, NULL, NULL, 2005,
- 'gas', 'C', NULL,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/1.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/2.jpg"]'::jsonb,
- '[]'::jsonb, 'https://www.youtube.com/watch?v=xvFZjo5PgG0',
- 'majori', 'jurmala', 'Jomas iela 88', 56.9710, 23.7703),
-
--- ── Anna Kalniņa (u2) ───────────────────────────────────────────────────────
-
-('20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002',
- 'apartment',
- 1, 0, 1, 'combined', 38.20, NULL, 8, 12, 2002,
- 'electric', 'D', 35.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000004/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000004/1.jpg"]'::jsonb,
- '[]'::jsonb, NULL,
- 'purvciems', 'riga', 'Stirnu iela 22-81', 56.9743, 24.1890),
-
-('20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000002',
- 'apartment',
- 2, 1, 1, 'combined', 58.00, NULL, 3, 8, NULL,
- 'heat_pump', 'A', 55.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000005/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000005/1.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000005/2.jpg"]'::jsonb,
- '[]'::jsonb, 'https://www.youtube.com/watch?v=L_jWHffIx5E',
- 'agenskalns', 'riga', 'Nometņu iela 74-3', 56.9375, 24.0714),
-
--- ── Māris Ozoliņš (u3) ──────────────────────────────────────────────────────
-
-('20000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000003',
- 'house',
- 5, 4, 2, 'separate', 180.00, 650.00, NULL, NULL, 1998,
- 'gas', 'D', NULL,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000006/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000006/1.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000006/2.jpg"]'::jsonb,
- '[]'::jsonb, NULL,
- 'imanta', 'riga', 'Eduarda Veidenbauma iela 5', 56.9560, 24.0000),
-
-('20000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000003',
- 'apartment',
- 2, 1, 1, 'combined', 54.00, NULL, 0, 9, 1980,
- 'central', 'F', 40.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000007/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000007/1.jpg"]'::jsonb,
- '[]'::jsonb, NULL,
- 'ziepniekkalns', 'riga', 'Zeļļu iela 3-12', 56.9095, 24.0690),
-
-('20000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000003',
- 'apartment',
- 3, 2, 1, 'separate', 72.00, NULL, 6, 9, 1985,
- 'central', 'E', 50.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000008/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000008/1.jpg"]'::jsonb,
- '[]'::jsonb, NULL,
- 'mezciems', 'riga', 'Vīlipa iela 8-64', 56.9820, 24.1680),
-
--- ── Laura Liepiņa (u4) ──────────────────────────────────────────────────────
-
-('20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000004',
- 'apartment',
- 2, 1, 1, 'separate', 62.00, NULL, 5, 12, 2024,
- 'heat_pump', 'A', 65.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000009/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000009/1.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000009/2.jpg"]'::jsonb,
- '[]'::jsonb, 'https://www.youtube.com/watch?v=J---aiyznGQ',
- 'centrs', 'riga', 'Elizabetes iela 31-5A', 56.9530, 24.1120),
-
-('20000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000004',
- 'apartment',
- 1, 0, 1, 'combined', 32.00, NULL, 3, 5, 1974,
- 'central', 'E', 30.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000010/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000010/1.jpg"]'::jsonb,
- '[]'::jsonb, NULL,
- 'teika', 'riga', 'Brīvības gatve 204-17', 56.9680, 24.1550),
-
--- ── Pēteris Krūmiņš (u5) ────────────────────────────────────────────────────
-
-('20000000-0000-0000-0000-000000000011', '10000000-0000-0000-0000-000000000005',
- 'house',
- 4, 3, 2, 'separate', 145.00, 520.00, NULL, NULL, 2012,
- 'heat_pump', 'B', NULL,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000011/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000011/1.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000011/2.jpg"]'::jsonb,
- '[]'::jsonb, NULL,
- 'jugla', 'riga', 'Juglas iela 14', 56.9930, 24.2420),
-
-('20000000-0000-0000-0000-000000000012', '10000000-0000-0000-0000-000000000005',
- 'apartment',
- 2, 1, 1, 'combined', 65.00, NULL, 3, 6, 1955,
- 'central', 'F', 48.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000012/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000012/1.jpg"]'::jsonb,
- '[]'::jsonb, NULL,
- 'centrs', 'riga', 'Čaka iela 42-7', 56.9511, 24.1218),
-
-('20000000-0000-0000-0000-000000000013', '10000000-0000-0000-0000-000000000005',
- 'apartment',
- 3, 2, 1, 'separate', 75.00, NULL, 5, 9, 1990,
- 'central', 'D', 55.00,
- '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/0.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/1.jpg",
-   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/2.jpg"]'::jsonb,
- '[]'::jsonb, NULL,
- 'purvciems', 'riga', 'Dzelzavas iela 60-52', 56.9760, 24.1920);
+INSERT INTO properties (id, owner_id, district_slug, city_slug, address, lat, lng) VALUES
+    ('20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'centrs',        'riga',    'Dzirnavu iela 57-18',    56.9490, 24.1052),
+    ('20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'teika',         'riga',    'Hospitāļu iela 12-34',   56.9655, 24.1480),
+    ('20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001', 'majori',        'jurmala', 'Jomas iela 88',          56.9710, 23.7703),
+    ('20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002', 'purvciems',     'riga',    'Stirnu iela 22-81',      56.9743, 24.1890),
+    ('20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000002', 'agenskalns',    'riga',    'Nometņu iela 74-3',      56.9375, 24.0714),
+    ('20000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000003', 'imanta',        'riga',    'Eduarda Veidenbauma iela 5', 56.9560, 24.0000),
+    ('20000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000003', 'ziepniekkalns', 'riga',    'Zeļļu iela 3-12',        56.9095, 24.0690),
+    ('20000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000003', 'mezciems',      'riga',    'Vīlipa iela 8-64',       56.9820, 24.1680),
+    ('20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000004', 'centrs',        'riga',    'Elizabetes iela 31-5A',  56.9530, 24.1120),
+    ('20000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000004', 'teika',         'riga',    'Brīvības gatve 204-17',  56.9680, 24.1550),
+    ('20000000-0000-0000-0000-000000000011', '10000000-0000-0000-0000-000000000005', 'jugla',         'riga',    'Juglas iela 14',         56.9930, 24.2420),
+    ('20000000-0000-0000-0000-000000000012', '10000000-0000-0000-0000-000000000005', 'centrs',        'riga',    'Čaka iela 42-7',         56.9511, 24.1218),
+    ('20000000-0000-0000-0000-000000000013', '10000000-0000-0000-0000-000000000005', 'purvciems',     'riga',    'Dzelzavas iela 60-52',   56.9760, 24.1920);
 
 -- ─────────────────────────────────────────────
--- Listings (market offer) — one per property in this seed
+-- Listings (self-contained market offers)
 -- ─────────────────────────────────────────────
 INSERT INTO listings (
     id, property_id, owner_id,
     listing_type, price, completion,
+    property_category,
+    rooms, bedrooms, bathrooms, bathroom_layout, m2, land_m2, floor, total_floors, year_built,
+    heating, energy_class, maintenance_cost,
+    photos, plans, video_url,
     posted_at, expires_at,
     phones
 ) VALUES
 
 ('30000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001',
  'buy', 185000.00, NULL,
+ 'apartment', 2, 1, 1, 'combined', 52.40, NULL, 4, 9, 1968, 'central', 'D', 45.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000001/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000001/1.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000001/2.jpg"]'::jsonb,
+ '[]'::jsonb, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  '2026-06-01 09:15:00+03', '2026-06-01 09:15:00+03'::timestamptz + interval '90 days',
  '["+371 29 123 456", "+371 26 789 012"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001',
  'rent', 650.00, NULL,
+ 'apartment', 3, 2, 1, 'separate', 68.00, NULL, 2, 5, 1985, 'central', 'E', 60.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000002/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000002/1.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
  '2026-05-20 14:30:00+03', '2026-05-20 14:30:00+03'::timestamptz + interval '90 days',
  '["+371 29 234 567"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001',
  'buy', 320000.00, NULL,
+ 'house', 4, 3, 2, 'separate', 120.00, 400.00, NULL, NULL, 2005, 'gas', 'C', NULL,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/1.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/2.jpg"]'::jsonb,
+ '[]'::jsonb, 'https://www.youtube.com/watch?v=xvFZjo5PgG0',
  '2026-04-11 10:00:00+03', '2026-04-11 10:00:00+03'::timestamptz + interval '90 days',
  '["+371 26 345 678", "+371 29 456 789"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000004', '20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002',
  'buy', 75000.00, NULL,
+ 'apartment', 1, 0, 1, 'combined', 38.20, NULL, 8, 12, 2002, 'electric', 'D', 35.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000004/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000004/1.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
  '2026-06-05 11:00:00+03', '2026-06-05 11:00:00+03'::timestamptz + interval '90 days',
  '["+371 22 567 890"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000005', '20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000002',
  'new_project', 145000.00, 'not_ready',
+ 'apartment', 2, 1, 1, 'combined', 58.00, NULL, 3, 8, NULL, 'heat_pump', 'A', 55.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000005/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000005/1.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000005/2.jpg"]'::jsonb,
+ '[]'::jsonb, 'https://www.youtube.com/watch?v=L_jWHffIx5E',
  '2026-05-30 16:45:00+03', '2026-05-30 16:45:00+03'::timestamptz + interval '90 days',
  '["+371 29 678 901"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000006', '20000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000003',
  'buy', 295000.00, NULL,
+ 'house', 5, 4, 2, 'separate', 180.00, 650.00, NULL, NULL, 1998, 'gas', 'D', NULL,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000006/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000006/1.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000006/2.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
  '2026-03-28 09:00:00+03', '2026-03-28 09:00:00+03'::timestamptz + interval '90 days',
  '["+371 26 111 222", "+371 29 333 444"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000007', '20000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000003',
  'rent', 480.00, NULL,
+ 'apartment', 2, 1, 1, 'combined', 54.00, NULL, 0, 9, 1980, 'central', 'F', 40.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000007/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000007/1.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
  '2026-06-08 13:20:00+03', '2026-06-08 13:20:00+03'::timestamptz + interval '90 days',
  '["+371 22 555 666"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000008', '20000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000003',
  'buy', 95000.00, NULL,
+ 'apartment', 3, 2, 1, 'separate', 72.00, NULL, 6, 9, 1985, 'central', 'E', 50.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000008/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000008/1.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
  '2026-04-22 10:30:00+03', '2026-04-22 10:30:00+03'::timestamptz + interval '90 days',
  '["+371 29 777 888"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000009', '20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000004',
  'new_project', 220000.00, 'ready',
+ 'apartment', 2, 1, 1, 'separate', 62.00, NULL, 5, 12, 2024, 'heat_pump', 'A', 65.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000009/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000009/1.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000009/2.jpg"]'::jsonb,
+ '[]'::jsonb, 'https://www.youtube.com/watch?v=J---aiyznGQ',
  '2026-06-10 08:00:00+03', '2026-06-10 08:00:00+03'::timestamptz + interval '90 days',
  '["+371 26 999 000", "+371 29 112 233"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000010', '20000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000004',
  'rent', 420.00, NULL,
+ 'apartment', 1, 0, 1, 'combined', 32.00, NULL, 3, 5, 1974, 'central', 'E', 30.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000010/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000010/1.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
  '2026-05-14 17:00:00+03', '2026-05-14 17:00:00+03'::timestamptz + interval '90 days',
  '["+371 22 445 566"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000011', '20000000-0000-0000-0000-000000000011', '10000000-0000-0000-0000-000000000005',
  'buy', 245000.00, NULL,
+ 'house', 4, 3, 2, 'separate', 145.00, 520.00, NULL, NULL, 2012, 'heat_pump', 'B', NULL,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000011/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000011/1.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000011/2.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
  '2026-05-05 12:00:00+03', '2026-05-05 12:00:00+03'::timestamptz + interval '90 days',
  '["+371 29 667 788"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000012', '20000000-0000-0000-0000-000000000012', '10000000-0000-0000-0000-000000000005',
  'buy', 155000.00, NULL,
+ 'apartment', 2, 1, 1, 'combined', 65.00, NULL, 3, 6, 1955, 'central', 'F', 48.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000012/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000012/1.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
  '2026-06-03 15:10:00+03', '2026-06-03 15:10:00+03'::timestamptz + interval '90 days',
  '["+371 26 889 900"]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000013', '20000000-0000-0000-0000-000000000013', '10000000-0000-0000-0000-000000000005',
  'rent', 750.00, NULL,
+ 'apartment', 3, 2, 1, 'separate', 75.00, NULL, 5, 9, 1990, 'central', 'D', 55.00,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/1.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/2.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
  '2026-05-25 09:45:00+03', '2026-05-25 09:45:00+03'::timestamptz + interval '90 days',
- '["+371 29 223 344", "+371 22 556 677"]'::jsonb);
+ '["+371 29 223 344", "+371 22 556 677"]'::jsonb),
+
+-- ── Second listing at the Jūrmala house (20…003): the owner also rents out its
+--    ground floor. Same address, its own scope (one floor) and a trimmed photo set.
+('30000000-0000-0000-0000-000000000014', '20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001',
+ 'rent', 900.00, NULL,
+ 'apartment', 2, 1, 1, 'combined', 60.00, NULL, 1, 2, 2005, 'gas', 'C', NULL,
+ '["https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/0.jpg",
+   "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/2.jpg"]'::jsonb,
+ '[]'::jsonb, NULL,
+ '2026-06-12 10:00:00+03', '2026-06-12 10:00:00+03'::timestamptz + interval '90 days',
+ '["+371 26 345 678"]'::jsonb);
 
 -- ─────────────────────────────────────────────
--- Property features
+-- Listing features
 -- ─────────────────────────────────────────────
-INSERT INTO property_features (property_id, feature) VALUES
-    -- p01: centrs apartment
-    ('20000000-0000-0000-0000-000000000001', 'balcony'),
-    ('20000000-0000-0000-0000-000000000001', 'elevator'),
-    -- p02: teika rental
-    ('20000000-0000-0000-0000-000000000002', 'furnished'),
-    ('20000000-0000-0000-0000-000000000002', 'pets'),
-    -- p03: jurmala house
-    ('20000000-0000-0000-0000-000000000003', 'parking'),
-    -- p04: purvciems studio
-    ('20000000-0000-0000-0000-000000000004', 'elevator'),
-    ('20000000-0000-0000-0000-000000000004', 'balcony'),
-    -- p05: agenskalns new_project
-    ('20000000-0000-0000-0000-000000000005', 'new_building'),
-    ('20000000-0000-0000-0000-000000000005', 'elevator'),
-    ('20000000-0000-0000-0000-000000000005', 'balcony'),
-    ('20000000-0000-0000-0000-000000000005', 'parking'),
-    -- p06: imanta house
-    ('20000000-0000-0000-0000-000000000006', 'parking'),
-    ('20000000-0000-0000-0000-000000000006', 'balcony'),
-    -- p07: ziepniekkalns rental
-    ('20000000-0000-0000-0000-000000000007', 'pets'),
-    -- p08: mezciems apartment
-    ('20000000-0000-0000-0000-000000000008', 'balcony'),
-    -- p09: centrs new_project ready
-    ('20000000-0000-0000-0000-000000000009', 'new_building'),
-    ('20000000-0000-0000-0000-000000000009', 'elevator'),
-    ('20000000-0000-0000-0000-000000000009', 'balcony'),
-    ('20000000-0000-0000-0000-000000000009', 'parking'),
-    -- p10: teika studio
-    ('20000000-0000-0000-0000-000000000010', 'furnished'),
-    -- p11: jugla house
-    ('20000000-0000-0000-0000-000000000011', 'parking'),
-    ('20000000-0000-0000-0000-000000000011', 'balcony'),
-    -- p12: centrs stalinka
-    ('20000000-0000-0000-0000-000000000012', 'balcony'),
-    ('20000000-0000-0000-0000-000000000012', 'elevator'),
-    -- p13: purvciems rental
-    ('20000000-0000-0000-0000-000000000013', 'furnished'),
-    ('20000000-0000-0000-0000-000000000013', 'balcony');
+INSERT INTO listing_features (listing_id, feature) VALUES
+    ('30000000-0000-0000-0000-000000000001', 'balcony'),
+    ('30000000-0000-0000-0000-000000000001', 'elevator'),
+    ('30000000-0000-0000-0000-000000000002', 'furnished'),
+    ('30000000-0000-0000-0000-000000000002', 'pets'),
+    ('30000000-0000-0000-0000-000000000003', 'parking'),
+    ('30000000-0000-0000-0000-000000000004', 'elevator'),
+    ('30000000-0000-0000-0000-000000000004', 'balcony'),
+    ('30000000-0000-0000-0000-000000000005', 'new_building'),
+    ('30000000-0000-0000-0000-000000000005', 'elevator'),
+    ('30000000-0000-0000-0000-000000000005', 'balcony'),
+    ('30000000-0000-0000-0000-000000000005', 'parking'),
+    ('30000000-0000-0000-0000-000000000006', 'parking'),
+    ('30000000-0000-0000-0000-000000000006', 'balcony'),
+    ('30000000-0000-0000-0000-000000000007', 'pets'),
+    ('30000000-0000-0000-0000-000000000008', 'balcony'),
+    ('30000000-0000-0000-0000-000000000009', 'new_building'),
+    ('30000000-0000-0000-0000-000000000009', 'elevator'),
+    ('30000000-0000-0000-0000-000000000009', 'balcony'),
+    ('30000000-0000-0000-0000-000000000009', 'parking'),
+    ('30000000-0000-0000-0000-000000000010', 'furnished'),
+    ('30000000-0000-0000-0000-000000000011', 'parking'),
+    ('30000000-0000-0000-0000-000000000011', 'balcony'),
+    ('30000000-0000-0000-0000-000000000012', 'balcony'),
+    ('30000000-0000-0000-0000-000000000012', 'elevator'),
+    ('30000000-0000-0000-0000-000000000013', 'furnished'),
+    ('30000000-0000-0000-0000-000000000013', 'balcony'),
+    -- l14: rented ground floor of the Jūrmala house
+    ('30000000-0000-0000-0000-000000000014', 'parking'),
+    ('30000000-0000-0000-0000-000000000014', 'furnished');
 
 -- ─────────────────────────────────────────────
 -- Listing translations
@@ -329,7 +267,10 @@ INSERT INTO listing_translations (listing_id, locale, title, description) VALUES
     ('30000000-0000-0000-0000-000000000012', 'en', '2-room in Centrs — Stalinist building', 'High ceilings 3.1 m, parquet, stucco. Needs cosmetic work.'),
     -- l13: purvciems rental
     ('30000000-0000-0000-0000-000000000013', 'lv', '3-istabu Purvciemā ar mēbelēm', 'Pilnībā mēbelēts, balkons, kluss pagalms.'),
-    ('30000000-0000-0000-0000-000000000013', 'en', '3-room in Purvciems with furniture', 'Fully furnished, balcony, quiet courtyard.');
+    ('30000000-0000-0000-0000-000000000013', 'en', '3-room in Purvciems with furniture', 'Fully furnished, balcony, quiet courtyard.'),
+    -- l14: rented ground floor of the Jūrmala house (same address as l03)
+    ('30000000-0000-0000-0000-000000000014', 'lv', 'Jūrmalas mājas 1. stāvs īrei', 'Atsevišķa ieeja, 2 istabas, sava terase. Tā pati māja, kas pārdošanā.'),
+    ('30000000-0000-0000-0000-000000000014', 'en', 'Ground floor of the Jūrmala house for rent', 'Separate entrance, 2 rooms, own terrace. The same house that is also for sale.');
 
 -- ─────────────────────────────────────────────
 -- Saved listings

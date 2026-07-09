@@ -1,29 +1,21 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useLocationDropdown } from './composables/useLocationDropdown';
 import { usePropertyEditForm } from './composables/usePropertyEditForm';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 
-import PropertyKindSection from './components/PropertyKindSection.vue';
 import LocationSection from './components/LocationSection.vue';
-import DetailsSection from './components/DetailsSection.vue';
-import FeaturesSection from './components/FeaturesSection.vue';
-import PhotosSection from './components/PhotosSection.vue';
-import PlansSection from './components/PlansSection.vue';
 
 const props = defineProps<{ id: string }>();
 
 const { t } = useI18n();
 const { localePath } = useLocaleRoute();
 
-const photoUpload = usePhotoUpload();
-const planUpload = usePhotoUpload(3);
 const { selectedLocation, isOpen, districtName, onSelect } =
   useLocationDropdown();
 
 const { form, submitting, submitError, fieldError, submit, loading } =
-  usePropertyEditForm(props.id, selectedLocation, photoUpload, planUpload);
+  usePropertyEditForm(props.id, selectedLocation);
 </script>
 
 <template>
@@ -43,11 +35,6 @@ const { form, submitting, submitError, fieldError, submit, loading } =
       </div>
 
       <form class="flex flex-col gap-10" @submit.prevent="submit">
-        <PropertyKindSection
-          :property-kind="form.propertyKind"
-          @update:property-kind="form.propertyKind = $event"
-        />
-
         <LocationSection
           v-model:form="form"
           :field-error="fieldError"
@@ -55,25 +42,6 @@ const { form, submitting, submitError, fieldError, submit, loading } =
           :selected-location="selectedLocation"
           v-model:is-open="isOpen"
           @select="onSelect"
-        />
-
-        <DetailsSection v-model:form="form" :field-error="fieldError" />
-
-        <FeaturesSection v-model:form="form" />
-
-        <PhotosSection
-          v-model:form="form"
-          :photos="photoUpload.photos.value"
-          :field-error="fieldError"
-          @add-files="photoUpload.addFiles"
-          @remove-photo="photoUpload.remove"
-          @move="photoUpload.move"
-        />
-        <PlansSection
-          :plans="planUpload.photos.value"
-          @add-files="planUpload.addFiles"
-          @remove-plan="planUpload.remove"
-          @move="planUpload.move"
         />
 
         <div class="flex items-center gap-4 pt-2">

@@ -81,24 +81,24 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
             p.get("id"),
             l.get("owner").get("id"),
             l.get("listingType"),
-            p.get("propertyCategory"),
+            l.get("propertyCategory"),
             l.get("price"),
             l.get("vatIncluded"),
-            p.get("rooms"),
-            p.get("bedrooms"),
-            p.get("bathrooms"),
-            p.get("m2"),
-            p.get("landM2"),
-            p.get("floor"),
-            p.get("totalFloors"),
-            p.get("yearBuilt"),
+            l.get("rooms"),
+            l.get("bedrooms"),
+            l.get("bathrooms"),
+            l.get("m2"),
+            l.get("landM2"),
+            l.get("floor"),
+            l.get("totalFloors"),
+            l.get("yearBuilt"),
             l.get("completion"),
             p.get("districtSlug"),
             p.get("citySlug"),
             p.get("address"),
             l.get("postedAt"),
             l.get("expiresAt"),
-            p.get("photos"),
+            l.get("photos"),
             buildTranslationSubquery(query, cb, l, "lv"),
             buildTranslationSubquery(query, cb, l, "en"),
             buildTranslationSubquery(query, cb, l, "ru")
@@ -159,8 +159,8 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
     private Order buildOrder(CriteriaBuilder cb, Root<Listing> l, Join<Listing, Property> p,
                              org.springframework.data.domain.Sort.Order o) {
         Expression<?> expr = switch (o.getProperty()) {
-            case "m2" -> p.get("m2");
-            case "pricePerM2" -> cb.quot(l.<BigDecimal>get("price"), p.<BigDecimal>get("m2"));
+            case "m2" -> l.get("m2");
+            case "pricePerM2" -> cb.quot(l.<BigDecimal>get("price"), l.<BigDecimal>get("m2"));
             default -> l.get(o.getProperty());
         };
         return o.isAscending() ? cb.asc(expr) : cb.desc(expr);
@@ -168,7 +168,7 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
 
     private Map<UUID, List<PropertyFeature>> fetchFeatures(List<UUID> ids) {
         List<Object[]> rows = em.createQuery(
-                "SELECT l.id, f FROM Listing l JOIN l.property p JOIN p.features f WHERE l.id IN :ids",
+                "SELECT l.id, f FROM Listing l JOIN l.features f WHERE l.id IN :ids",
                 Object[].class)
             .setParameter("ids", ids)
             .getResultList();

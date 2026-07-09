@@ -340,7 +340,10 @@ export default {
     deletePropertyAction: 'Удалить объект',
     editPropertyAction: 'Редактировать объект',
     addListingType: '+ Добавить тип объявления',
-    addListingTypeTitle: 'Добавить тип объявления',
+    addAnotherListing: '+ Добавить ещё одно объявление',
+    addListingTypeTitle: 'Добавить ещё одно объявление',
+    addListingTypeSubtitle:
+      'Новое объявление по этому адресу — со своим охватом, фотографиями и ценой. Заполнено из существующего; измените то, что отличается.',
     addListingTypeSubmit: 'Добавить объявление',
     addListingTypeExists:
       'Объявление такого типа для этого объекта уже существует.',

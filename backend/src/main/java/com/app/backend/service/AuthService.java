@@ -37,7 +37,6 @@ import java.util.UUID;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final PropertyRepository propertyRepository;
     private final ListingRepository listingRepository;
     private final SavedListingRepository savedListingRepository;
     private final RefreshTokenRepository refreshTokenRepository;
@@ -136,8 +135,8 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AuthException(HttpStatus.NOT_FOUND, "NOT_FOUND", "User not found"));
 
-        List<String> allFileUrls = propertyRepository.findByOwner(user).stream()
-                .flatMap(p -> p.allMediaUrls().stream())
+        List<String> allFileUrls = listingRepository.findByOwner(user).stream()
+                .flatMap(l -> l.allMediaUrls().stream())
                 .toList();
 
         userRepository.delete(user);

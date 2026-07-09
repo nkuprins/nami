@@ -1,47 +1,23 @@
 import { computed, nextTick, reactive, ref, type Ref } from 'vue';
 import { getProperty, updateProperty } from '../../../api/listingsApi';
 import type { Location } from '../../../data/rawLocations';
-import type { Feature } from '../../../types/listingItem';
 import type { PropertyFieldsForm } from './formTypes';
-import { buildDetails, uploadNewFiles } from './useListingForm';
-import {
-  makeFieldError,
-  propertyFieldErrors,
-  toggleFeature as toggleFeatureHelper,
-} from './formHelpers';
+import { INITIAL_PROPERTY_FIELDS, makeFieldError } from './formHelpers';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
-import type { usePhotoUpload } from './usePhotoUpload';
 
+const DEFAULT_COORDS = { lat: 56.946, lng: 24.105 };
+
+// The property is a shared address now, so this edits only its location. The form
+// keeps the full PropertyFieldsForm shape (LocationSection binds to it), but only
+// its address/coords are read and sent.
 export type PropertyEditFormState = PropertyFieldsForm;
-
-const INITIAL_FORM: PropertyEditFormState = {
-  propertyKind: 'apartment',
-  address: '',
-  rooms: '',
-  bedrooms: '',
-  bathrooms: '',
-  bathroomLayout: '',
-  m2: '',
-  landM2: '',
-  floor: '',
-  totalFloors: '',
-  yearBuilt: '',
-  heating: '',
-  energyClass: '',
-  maintenanceCost: '',
-  features: [],
-  videoUrl: '',
-  coords: null,
-};
 
 export function usePropertyEditForm(
   propertyId: string,
-  selectedLocation: Ref<Location | null>,
-  photoUpload: ReturnType<typeof usePhotoUpload>,
-  planUpload: ReturnType<typeof usePhotoUpload>
+  selectedLocation: Ref<Location | null>
 ) {
   const { localePush } = useLocaleRoute();
-  const form = reactive<PropertyEditFormState>({ ...INITIAL_FORM });
+  const form = reactive<PropertyEditFormState>({ ...INITIAL_PROPERTY_FIELDS });
   const touched = ref(false);
   const submitting = ref(false);
   const submitError = ref('');
@@ -53,55 +29,27 @@ export function usePropertyEditForm(
         localePush('/');
         return;
       }
-      form.propertyKind = p.propertyKind;
       form.address = p.location.address;
-      form.rooms = String(p.details.rooms);
-      form.bedrooms =
-        p.details.bedrooms != null ? String(p.details.bedrooms) : '';
-      form.bathrooms =
-        p.details.bathrooms != null ? String(p.details.bathrooms) : '';
-      form.bathroomLayout = p.details.bathroomLayout ?? '';
-      form.m2 = String(p.details.m2);
-      form.landM2 = p.details.landM2 != null ? String(p.details.landM2) : '';
-      form.floor = p.details.floor != null ? String(p.details.floor) : '';
-      form.totalFloors =
-        p.details.totalFloors != null ? String(p.details.totalFloors) : '';
-      form.yearBuilt =
-        p.details.yearBuilt != null ? String(p.details.yearBuilt) : '';
-      form.heating = p.details.heating ?? '';
-      form.energyClass = p.details.energyClass ?? '';
-      form.maintenanceCost =
-        p.details.maintenanceCost != null
-          ? String(p.details.maintenanceCost)
-          : '';
-      form.features = p.features ? [...p.features] : [];
-      form.videoUrl = p.media.videoUrl ?? '';
       form.coords = p.location.coords;
       selectedLocation.value = {
         city: p.location.city,
         district: p.location.district,
       };
-      photoUpload.seed(p.media.photos ?? []);
-      planUpload.seed(p.media.plans ?? []);
       loading.value = false;
     })
     .catch(() => {
       localePush('/');
     });
 
-  const errors = computed(() =>
-    propertyFieldErrors(form, {
-      hasLocation: !!selectedLocation.value,
-      hasPhotos: photoUpload.photos.value.length > 0,
-    })
-  );
+  const errors = computed(() => {
+    const e: Record<string, string> = {};
+    if (!selectedLocation.value) e.district = 'Required';
+    if (!form.address.trim()) e.address = 'Required';
+    return e;
+  });
 
   const isValid = computed(() => Object.keys(errors.value).length === 0);
   const fieldError = makeFieldError(touched, errors);
-
-  function toggleFeature(f: Feature) {
-    toggleFeatureHelper(form, f);
-  }
 
   async function submit() {
     touched.value = true;
@@ -117,24 +65,13 @@ export function usePropertyEditForm(
     submitError.value = '';
 
     try {
-      const photos = await photoUpload.buildFinalUrls(uploadNewFiles);
-      const plans = await planUpload.buildFinalUrls(uploadNewFiles);
       const location = selectedLocation.value!;
-
       await updateProperty(propertyId, {
-        propertyKind: form.propertyKind,
-        details: buildDetails(form),
-        features: form.features,
-        media: {
-          photos,
-          plans: plans.length ? plans : null,
-          videoUrl: form.videoUrl.trim() || null,
-        },
         location: {
           district: location.district,
           city: location.city,
           address: form.address.trim(),
-          coords: form.coords ?? { lat: 56.946, lng: 24.105 },
+          coords: form.coords ?? DEFAULT_COORDS,
         },
       });
       await localePush('/');
@@ -152,7 +89,6 @@ export function usePropertyEditForm(
     errors,
     isValid,
     fieldError,
-    toggleFeature,
     submit,
     loading,
   };

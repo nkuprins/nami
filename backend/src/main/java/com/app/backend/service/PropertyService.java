@@ -15,7 +15,6 @@ import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.validation.AddressMatcher;
-import com.app.backend.config.AppProperties;
 import com.app.backend.config.CacheConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,11 +26,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.app.backend.exception.ApiException;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** Write operations scoped to a {@link Property}. Listing writes live in {@link ListingService}. */
+/** Write operations scoped to a {@link Property} (the shared address). Listing writes live in {@link ListingService}. */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -44,9 +42,9 @@ public class PropertyService {
     private final UserRepository userRepository;
     private final PropertyMapper propertyMapper;
     private final MediaCleanupService mediaCleanupService;
+    private final MediaUrlValidator mediaUrlValidator;
     private final ImageProcessingPublisher imageProcessingPublisher;
     private final PropertyAccess propertyAccess;
-    private final AppProperties props;
 
     @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true)
     @Transactional
@@ -59,31 +57,24 @@ public class PropertyService {
 
         Property property = new Property();
         property.setOwner(owner);
+        propertyMapper.applyPropertyLocation(property, req.location());
+
         Listing listing = new Listing();
         listing.setProperty(property);
         listing.setOwner(owner);
-
-        propertyMapper.applyCommon(listing, property, req);
-        validateMediaUrls(property.allMediaUrls());
-
-        Location location = req.location();
-        property.setDistrictSlug(location.district());
-        property.setCitySlug(location.city());
-        property.setAddress(location.address());
-        property.setLat(location.coords().lat());
-        property.setLng(location.coords().lng());
-
+        propertyMapper.applyListingContent(listing, req);
+        mediaUrlValidator.validate(listing.allMediaUrls());
         listing.setStatus(PropertyStatus.ACTIVE);
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
         propertyRepository.save(property);
         Listing saved = listingRepository.save(listing);
         log.info("Listing created: {} for property: {} by owner: {}", saved.getId(), property.getId(), ownerId);
-        imageProcessingPublisher.enqueue(property.getId(), property.allMediaUrls());
+        imageProcessingPublisher.enqueue(property.getId(), saved.allMediaUrls());
         return propertyMapper.toDto(saved);
     }
 
-    /** Updates only a property's own fields (details, media, features, location). Its listings are untouched. */
+    /** Updates a property's shared address (location). Its listings' physical/media attributes are untouched. */
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true)
@@ -94,28 +85,15 @@ public class PropertyService {
 
         checkNoDuplicateProperty(property.getOwner(), req.location(), true, propertyId);
 
-        List<String> oldMedia = new ArrayList<>(property.allMediaUrls());
-
-        propertyMapper.applyPropertyFields(property, req);
-        validateMediaUrls(property.allMediaUrls());
-        PropertyDto dto = propertyMapper.toPropertyDto(propertyRepository.save(property));
-
-        List<String> newMedia = property.allMediaUrls();
-        List<String> removed = oldMedia.stream().filter(u -> !newMedia.contains(u)).toList();
-        if (!removed.isEmpty()) {
-            mediaCleanupService.enqueue(removed);
-        }
-
-        List<String> added = newMedia.stream().filter(u -> !oldMedia.contains(u)).toList();
-        imageProcessingPublisher.enqueue(property.getId(), added);
-        return dto;
+        propertyMapper.applyPropertyLocation(property, req.location());
+        return propertyMapper.toPropertyDto(propertyRepository.save(property));
     }
 
-    /** Re-queues every photo and plan of a property for variant generation — a recovery hatch for a lost publish. */
+    /** Re-queues every photo and plan of a listing for variant generation — a recovery hatch for a lost publish. */
     @Transactional(readOnly = true)
-    public void reprocessImages(UUID propertyId, UUID ownerId) {
-        Property property = propertyAccess.loadOwnedProperty(propertyId, ownerId);
-        imageProcessingPublisher.enqueue(property.getId(), property.allMediaUrls());
+    public void reprocessImages(UUID listingId, UUID ownerId) {
+        Listing listing = propertyAccess.loadOwnedListing(listingId, ownerId);
+        imageProcessingPublisher.enqueue(listing.getProperty().getId(), listing.allMediaUrls());
     }
 
     /** Deletes a property and, via cascade, every listing on it. */
@@ -127,28 +105,19 @@ public class PropertyService {
     public void deleteProperty(UUID propertyId, UUID ownerId) {
         Property property = propertyAccess.loadOwnedProperty(propertyId, ownerId);
 
-        List<String> allMediaUrls = property.allMediaUrls();
+        List<Listing> listings = listingRepository.findByPropertyId(propertyId);
+        List<String> allMediaUrls = listings.stream()
+                .flatMap(l -> l.allMediaUrls().stream())
+                .toList();
 
+        // Delete the (managed) listings before their property: they're already loaded here, and a
+        // property removal alone would leave them referencing a removed parent (flush would fail).
+        listingRepository.deleteAll(listings);
         propertyRepository.delete(property);
         log.info("Property {} (and all its listings) deleted by owner: {}", propertyId, ownerId);
 
         if (!allMediaUrls.isEmpty()) {
             mediaCleanupService.enqueue(allMediaUrls);
-        }
-    }
-
-    /**
-     * Rejects photo/plan URLs that don't point at our own CDN. These strings are stored verbatim,
-     * rendered as {@code <img src>} to every viewer, and later handed to the image worker as an S3 key,
-     * so an arbitrary URL is both an SSRF-on-viewer and an arbitrary-bucket-key risk. (Excludes
-     * {@code videoUrl}, which is a legitimately external link and not part of {@code allMediaUrls}.)
-     */
-    private void validateMediaUrls(List<String> mediaUrls) {
-        String prefix = props.s3().cdnUrl() + "/";
-        for (String url : mediaUrls) {
-            if (!url.startsWith(prefix)) {
-                throw new ApiException(HttpStatus.BAD_REQUEST, "Media URL is not an uploaded file: " + url);
-            }
         }
     }
 

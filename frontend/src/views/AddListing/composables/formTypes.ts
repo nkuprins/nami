@@ -8,8 +8,11 @@ import type {
   PropertyKind,
 } from '../../../types/listingItem';
 
-// Fields belonging to the physical property, shared by the create form
-// (AddListingView) and the property-only edit form (EditPropertyView).
+// The physical/media fields of a listing, shared by the create form
+// (AddListingView), the listing edit form (EditListingView) and the
+// add-another-listing form (AddListingToPropertyView). Only the create form
+// also collects `address`/`coords` (the shared location); the listing-scoped
+// forms leave them untouched.
 export interface PropertyFieldsForm {
   propertyKind: PropertyKind;
   address: string;
@@ -50,3 +53,7 @@ export interface ListingFieldsForm {
   completion: PropertyCompletion | '';
   phones: string[];
 }
+
+// A full self-contained listing form: physical/media + terms. Used by the create
+// form, the listing edit form and the add-another-listing form.
+export type ListingFormState = PropertyFieldsForm & ListingFieldsForm;
