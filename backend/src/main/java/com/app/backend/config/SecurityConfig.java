@@ -29,12 +29,13 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final RateLimitFilter rateLimitFilter;
+    private final AppProperties appProperties;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRepository(csrfTokenRepository())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                         .ignoringRequestMatchers(
                                 "/api/auth/register",
@@ -74,6 +75,20 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * Mirrors {@link com.app.backend.security.CookieFactory}: without an explicit
+     * customizer the token cookie derives {@code Secure} from {@code request.isSecure()}
+     * (false behind a TLS-terminating proxy) and carries no {@code SameSite}, which
+     * Firefox treats as {@code None} and then drops for lacking {@code Secure}.
+     */
+    private CookieCsrfTokenRepository csrfTokenRepository() {
+        CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        repository.setCookieCustomizer(cookie -> cookie
+                .secure(appProperties.cookie().secure())
+                .sameSite("Lax"));
+        return repository;
     }
 
     @Bean
