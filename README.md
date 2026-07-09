@@ -11,7 +11,7 @@ Open-source real estate marketplace for Latvia
 | Database | PostgreSQL 17 (pgcrypto) |
 | Storage | AWS S3 + CloudFront CDN |
 | Email | Resend |
-| Auth | JWT (access token) + HttpOnly refresh cookie |
+| Auth | JWT in HttpOnly access + refresh cookies |
 
 ## Features
 
@@ -25,6 +25,7 @@ Open-source real estate marketplace for Latvia
 - Duplicate property address detection on listing creation
 - Bot protection on listing creation (Cloudflare Turnstile)
 - Rate limiting on auth, upload, and property write endpoints
+- CSRF protection on state-changing requests (`SameSite=Lax` cookies plus a double-submit `XSRF-TOKEN`)
 
 ## Prerequisites
 
