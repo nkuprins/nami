@@ -1,5 +1,6 @@
 package com.app.backend.controller;
 
+import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.request.*;
 import com.app.backend.dto.property.response.*;
 import com.app.backend.enums.ListingType;
@@ -49,8 +50,16 @@ public class PropertyController {
     }
 
     @GetMapping("/{id}")
-    public PropertyItemDto getById(@PathVariable UUID id) {
-        return listingQueryService.getById(id);
+    public PropertyItemDto getById(
+            @PathVariable UUID id,
+            @RequestParam(required = false) String locale
+    ) {
+        return listingQueryService.getById(id, locale);
+    }
+
+    @GetMapping("/{id}/translations/{locale}")
+    public LocalizedText getTranslation(@PathVariable UUID id, @PathVariable String locale) {
+        return listingQueryService.getTranslation(id, locale);
     }
 
     @PostMapping

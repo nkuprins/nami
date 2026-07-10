@@ -28,6 +28,7 @@ public record PropertyItemDto(
         Price price,
         PropertyDetails details,
         Map<String, LocalizedText> translations,
+        List<String> availableLocales,
         Location location,
         List<PropertyFeature> features,
         Media media,

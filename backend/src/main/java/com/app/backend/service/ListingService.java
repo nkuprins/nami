@@ -75,7 +75,8 @@ public class ListingService {
     /** Updates a self-contained listing (physical, media, features, terms). Its property's address is untouched. */
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId"),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_TRANSLATION, allEntries = true),
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional
@@ -100,7 +101,8 @@ public class ListingService {
 
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId"),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_TRANSLATION, allEntries = true),
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional
@@ -119,7 +121,8 @@ public class ListingService {
      */
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
-            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#listingId"),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_TRANSLATION, allEntries = true),
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional

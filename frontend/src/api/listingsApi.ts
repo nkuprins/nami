@@ -11,7 +11,9 @@ import type {
   PropertyMedia,
   Feature,
   PropertyCompletion,
+  LocalizedText,
 } from '../types/listingItem';
+import type { Locale } from '../i18n';
 import type { FilterState } from '../types/filter';
 import { fetchApi } from './fetchApi';
 import {
@@ -115,13 +117,30 @@ export async function getMyListings(): Promise<ListingSummary[]> {
   return (await res.json()).map(toListingSummaryDisplayNames);
 }
 
+// With a `locale`, the backend ships only that language's title+description plus
+// `availableLocales` (for the language switcher) — used by display surfaces.
+// Without one, it ships every locale — used by the edit/copy flow.
 export async function getListing(
-  id: string
+  id: string,
+  locale?: Locale
 ): Promise<ListingDetail | undefined> {
-  const res = await fetchApi(`/api/properties/${id}`);
+  const query = locale ? `?locale=${locale}` : '';
+  const res = await fetchApi(`/api/properties/${id}${query}`);
   if (res.status === 404) return undefined;
   if (!res.ok) throw new Error(`getListing: ${res.status}`);
   return toListingDetailDisplayNames(await res.json());
+}
+
+// One language's title+description, fetched on demand when the detail-page
+// language switcher is clicked.
+export async function getListingTranslation(
+  id: string,
+  locale: Locale
+): Promise<LocalizedText | undefined> {
+  const res = await fetchApi(`/api/properties/${id}/translations/${locale}`);
+  if (res.status === 404) return undefined;
+  if (!res.ok) throw new Error(`getListingTranslation: ${res.status}`);
+  return res.json();
 }
 
 // Creates the property + its first listing. `turnstileToken` is the Cloudflare

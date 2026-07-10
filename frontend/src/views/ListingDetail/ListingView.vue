@@ -3,17 +3,17 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import type { ListingDetail } from '../../types/listingItem';
-import {
-  resolveTitle,
-  resolveDescription,
-  hasLanguage,
-} from '../../types/listingItem';
+import { resolveTitle, resolveDescription } from '../../types/listingItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
-import { getListing, deleteListing } from '../../api/listingsApi';
+import {
+  getListing,
+  getListingTranslation,
+  deleteListing,
+} from '../../api/listingsApi';
 import { useSavedStore } from '../../stores/savedStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useShare } from '../../composables/useShare';
@@ -45,7 +45,7 @@ const authStore = useAuthStore();
 
 const listing = ref<ListingDetail | null>(null);
 onMounted(async () => {
-  listing.value = (await getListing(props.id)) ?? null;
+  listing.value = (await getListing(props.id, locale.value)) ?? null;
 });
 
 const saved = computed(() => savedStore.isSaved(props.id));
@@ -68,8 +68,23 @@ async function confirmDelete() {
 }
 
 const contentLocale = ref<Locale>(locale.value);
-watch(locale, (l) => {
+
+// The detail fetch only ships the current language; other languages are fetched
+// on first request and cached into the translations map, so toggling back never
+// hits the network again.
+async function selectLanguage(l: Locale) {
+  const current = listing.value;
+  if (!current) return;
+  if (!current.translations[l]) {
+    const text = await getListingTranslation(props.id, l);
+    if (text) current.translations = { ...current.translations, [l]: text };
+  }
   contentLocale.value = l;
+}
+
+// Follow the app language when it changes while the page is open.
+watch(locale, (l) => {
+  selectLanguage(l);
 });
 
 const displayTitle = computed(() =>
@@ -82,8 +97,8 @@ const renderedDescription = computed(() =>
   displayDescription.value ? renderMarkdown(displayDescription.value) : ''
 );
 const availableLanguages = computed(() =>
-  (['lv', 'en', 'ru'] as const).filter(
-    (l) => listing.value && hasLanguage(listing.value, l)
+  (['lv', 'en', 'ru'] as const).filter((l) =>
+    listing.value?.availableLocales?.includes(l)
   )
 );
 const hasMultipleLanguages = computed(
@@ -188,7 +203,7 @@ function openPlanLightbox(i: number) {
               ? 'bg-ink text-bg border-ink'
               : 'border-line text-ink-2 hover:text-ink hover:border-ink/40'
           "
-          @click="contentLocale = l"
+          @click="selectLanguage(l)"
         >
           {{ l.toUpperCase() }}
         </button>

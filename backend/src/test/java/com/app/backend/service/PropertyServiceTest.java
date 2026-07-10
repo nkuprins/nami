@@ -192,9 +192,9 @@ class PropertyServiceTest {
             Listing l = listing(user());
             PropertyItemDto dto = itemDto(l);
             when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
-            when(propertyMapper.toDto(l)).thenReturn(dto);
+            when(propertyMapper.toDto(eq(l), any())).thenReturn(dto);
 
-            PropertyItemDto result = listingQueryService.getById(l.getId());
+            PropertyItemDto result = listingQueryService.getById(l.getId(), "lv");
 
             assertThat(result.id()).isEqualTo(l.getId());
         }
@@ -204,7 +204,7 @@ class PropertyServiceTest {
             UUID id = UUID.randomUUID();
             when(listingRepository.findById(id)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> listingQueryService.getById(id))
+            assertThatThrownBy(() -> listingQueryService.getById(id, "lv"))
                     .isInstanceOf(ApiException.class);
         }
 
@@ -214,7 +214,7 @@ class PropertyServiceTest {
             l.setStatus(PropertyStatus.INACTIVE);
             when(listingRepository.findById(l.getId())).thenReturn(Optional.of(l));
 
-            assertThatThrownBy(() -> listingQueryService.getById(l.getId()))
+            assertThatThrownBy(() -> listingQueryService.getById(l.getId(), "lv"))
                     .isInstanceOf(ApiException.class);
         }
     }

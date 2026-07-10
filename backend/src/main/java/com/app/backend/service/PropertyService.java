@@ -81,6 +81,7 @@ public class PropertyService {
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_TRANSLATION, allEntries = true),
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional
@@ -104,6 +105,7 @@ public class PropertyService {
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_TRANSLATION, allEntries = true),
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
     })
     @Transactional

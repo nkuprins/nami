@@ -11,6 +11,7 @@ import com.app.backend.entity.User;
 import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,13 +88,13 @@ class PropertyServiceCacheTest extends IntegrationTestBase {
         Listing saved = saveListing();
         clearInvocations(listingRepository);
 
-        PropertyItemDto first = listingQueryService.getById(saved.getId());
-        PropertyItemDto second = listingQueryService.getById(saved.getId());
+        PropertyItemDto first = listingQueryService.getById(saved.getId(), "lv");
+        PropertyItemDto second = listingQueryService.getById(saved.getId(), "lv");
 
         assertThat(first.id()).isEqualTo(saved.getId());
         assertThat(second.id()).isEqualTo(saved.getId());
         verify(listingRepository, times(1)).findById(saved.getId());
-        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(saved.getId())).isNotNull();
+        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(List.of(saved.getId(), "lv"))).isNotNull();
     }
 
     @Test
@@ -110,15 +111,15 @@ class PropertyServiceCacheTest extends IntegrationTestBase {
     @Test
     void delete_evictsBothCaches() {
         Listing saved = saveListing();
-        listingQueryService.getById(saved.getId());
+        listingQueryService.getById(saved.getId(), "lv");
         listingQueryService.list(buyFilter(), "newest", 1);
-        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(saved.getId())).isNotNull();
+        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(List.of(saved.getId(), "lv"))).isNotNull();
         assertThat(listCacheSize()).isEqualTo(1);
 
         listingService.deleteListing(saved.getId(), owner.getId());
 
-        // @CacheEvict on delete: detail key evicted, list cache cleared entirely.
-        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(saved.getId())).isNull();
+        // @CacheEvict on delete: detail cache cleared entirely, list cache cleared entirely.
+        assertThat(cacheManager.getCache(CacheConfig.PROPERTY_DETAIL).get(List.of(saved.getId(), "lv"))).isNull();
         assertThat(listCacheSize()).isZero();
     }
 

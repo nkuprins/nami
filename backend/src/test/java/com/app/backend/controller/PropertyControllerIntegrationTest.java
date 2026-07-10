@@ -124,6 +124,56 @@ class PropertyControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
+    void getById_withoutLocale_returnsAllLocales() throws Exception {
+        Listing saved = saveListing(); // lv + en
+
+        mockMvc.perform(get("/api/properties/{id}", saved.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.translations.lv.title").value("Testa īpašums"))
+                .andExpect(jsonPath("$.translations.en.title").value("Test Property"))
+                .andExpect(jsonPath("$.availableLocales",
+                        org.hamcrest.Matchers.contains("lv", "en")));
+    }
+
+    @Test
+    void getById_withLocale_returnsOnlyThatLocale() throws Exception {
+        Listing saved = saveListing(); // lv + en
+
+        mockMvc.perform(get("/api/properties/{id}", saved.getId()).param("locale", "en"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.translations.en.title").value("Test Property"))
+                .andExpect(jsonPath("$.translations.en.description").isNotEmpty())
+                .andExpect(jsonPath("$.translations.lv").doesNotExist())
+                .andExpect(jsonPath("$.availableLocales",
+                        org.hamcrest.Matchers.contains("lv", "en")));
+    }
+
+    @Test
+    void getTranslation_returnsRequestedLocale() throws Exception {
+        Listing saved = saveListing();
+
+        mockMvc.perform(get("/api/properties/{id}/translations/{locale}", saved.getId(), "en"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Test Property"))
+                .andExpect(jsonPath("$.description").isNotEmpty());
+    }
+
+    @Test
+    void getTranslation_fallsBack_whenLocaleMissing() throws Exception {
+        Listing saved = saveListing(); // no ru → falls back to lv
+
+        mockMvc.perform(get("/api/properties/{id}/translations/{locale}", saved.getId(), "ru"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Testa īpašums"));
+    }
+
+    @Test
+    void getTranslation_returns404_whenNotFound() throws Exception {
+        mockMvc.perform(get("/api/properties/{id}/translations/{locale}", UUID.randomUUID(), "lv"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void create_returns201_whenAuthenticated() throws Exception {
         mockMvc.perform(post("/api/properties")
                         .cookie(ownerCookie)

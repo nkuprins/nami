@@ -1,6 +1,7 @@
 package com.app.backend.service;
 
 import com.app.backend.config.CacheConfig;
+import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.request.PropertyFilter;
 import com.app.backend.dto.property.response.PropertyCategoryCountsDto;
 import com.app.backend.dto.property.response.PropertyItemDto;
@@ -75,12 +76,21 @@ public class ListingQueryService {
         return new PropertyCategoryCountsDto(apartment, house);
     }
 
-    @Cacheable(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "#id")
+    @Cacheable(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "{#id, #locale}")
     @Transactional(readOnly = true)
-    public PropertyItemDto getById(UUID id) {
+    public PropertyItemDto getById(UUID id, String locale) {
         return listingRepository.findById(id)
                 .filter(l -> l.getStatus() == PropertyStatus.ACTIVE)
-                .map(propertyMapper::toDto)
+                .map(l -> propertyMapper.toDto(l, locale))
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+    }
+
+    @Cacheable(cacheNames = CacheConfig.PROPERTY_TRANSLATION, key = "{#id, #locale}")
+    @Transactional(readOnly = true)
+    public LocalizedText getTranslation(UUID id, String locale) {
+        return listingRepository.findById(id)
+                .filter(l -> l.getStatus() == PropertyStatus.ACTIVE)
+                .map(l -> propertyMapper.toTranslation(l, locale))
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
     }
 

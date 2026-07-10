@@ -30,7 +30,7 @@ async function loadSaved() {
   loading.value = true;
   try {
     const results = await Promise.all(
-      savedStore.ids.map((id) => getListing(id))
+      savedStore.ids.map((id) => getListing(id, locale.value))
     );
     items.value = results.filter((p): p is ListingDetail => p !== undefined);
   } catch {

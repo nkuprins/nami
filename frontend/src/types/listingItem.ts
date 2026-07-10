@@ -93,6 +93,9 @@ export interface ListingSummary extends ListingBase {
 export interface ListingDetail extends ListingBase {
   media: PropertyMedia;
   phones: string[] | null;
+  // Locales the listing actually has. Present when the detail was fetched for a
+  // single locale (display); absent on the all-locales edit fetch.
+  availableLocales?: string[];
 }
 
 export type ListingItem = ListingDetail;
@@ -133,14 +136,6 @@ export function resolveDescription(
     if (description) return description;
   }
   return '';
-}
-
-export function hasLanguage(
-  item: Pick<ListingBase, 'translations'>,
-  locale: Locale
-): boolean {
-  const entry = item.translations?.[locale];
-  return Boolean(entry?.title && entry?.description);
 }
 
 // A listing is self-contained, so an address can host any number of listings of

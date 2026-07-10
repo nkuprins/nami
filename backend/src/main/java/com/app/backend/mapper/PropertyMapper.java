@@ -26,7 +26,18 @@ import java.util.Map;
 @Component
 public class PropertyMapper {
 
+    /** Full detail with every locale's translation — used by write responses and the edit flow. */
     public PropertyItemDto toDto(Listing l) {
+        return toDto(l, null);
+    }
+
+    /**
+     * Detail view. When {@code locale} is null the {@code translations} map carries every
+     * locale (edit flow); otherwise it carries a single entry — the fallback-resolved content
+     * for {@code locale}, keyed under {@code locale} — so display callers ship one language.
+     * {@code availableLocales} always lists every locale the listing actually has.
+     */
+    public PropertyItemDto toDto(Listing l, String locale) {
         Property p = l.getProperty();
         List<String> phones = l.getPhones();
         return PropertyItemDto.builder()
@@ -37,7 +48,10 @@ public class PropertyMapper {
                 .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), l.isVatIncluded() ? true : null))
                 .details(toFullDetailsDto(l))
-                .translations(translations(l.getTranslations(), true))
+                .translations(locale == null
+                        ? translations(l.getTranslations(), true)
+                        : singleLocale(l.getTranslations(), locale))
+                .availableLocales(availableLocales(l.getTranslations()))
                 .location(toLocation(p))
                 .features(sortedFeatures(l))
                 .media(toMediaDto(l))
@@ -105,6 +119,46 @@ public class PropertyMapper {
             }
         }
         return result;
+    }
+
+    /** Per-locale fallback chain, mirroring the frontend's {@code LOCALE_FALLBACK_ORDER}. */
+    private static final Map<String, List<String>> FALLBACK_ORDER = Map.of(
+            "lv", List.of("lv", "en", "ru"),
+            "en", List.of("en", "lv", "ru"),
+            "ru", List.of("ru", "lv", "en"));
+
+    /** The single fallback-resolved translation for {@code locale}, keyed under {@code locale}. */
+    private static Map<String, LocalizedText> singleLocale(Map<String, ListingTranslation> tr, String locale) {
+        LocalizedText resolved = resolve(tr, locale);
+        return resolved == null ? Map.of() : Map.of(locale, resolved);
+    }
+
+    /** Every locale the listing has, in {@code lv → en → ru} order; null when it has none. */
+    private static List<String> availableLocales(Map<String, ListingTranslation> tr) {
+        List<String> result = new ArrayList<>();
+        for (SupportedLocale locale : SupportedLocale.values()) {
+            if (tr.containsKey(locale.code)) {
+                result.add(locale.code);
+            }
+        }
+        return result.isEmpty() ? null : result;
+    }
+
+    /** Title+description for the given locale, falling back through {@link #FALLBACK_ORDER}. */
+    public LocalizedText toTranslation(Listing l, String locale) {
+        return resolve(l.getTranslations(), locale);
+    }
+
+    private static LocalizedText resolve(Map<String, ListingTranslation> tr, String locale) {
+        // Every stored translation has both title and description (enforced on write), so
+        // entry-level fallback matches the frontend's field-level fallback.
+        for (String code : FALLBACK_ORDER.getOrDefault(locale, List.of("lv", "en", "ru"))) {
+            ListingTranslation t = tr.get(code);
+            if (t != null) {
+                return new LocalizedText(t.getTitle(), t.getDescription());
+            }
+        }
+        return null;
     }
 
     /** Writes a listing's full content (category, physical, media, features, terms). Owner, status and expiry are set by the caller. */

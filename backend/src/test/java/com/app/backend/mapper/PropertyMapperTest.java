@@ -1,5 +1,6 @@
 package com.app.backend.mapper;
 
+import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.response.PropertyItemDto;
 import com.app.backend.dto.property.response.PropertyListItemDto;
 import com.app.backend.entity.*;
@@ -110,6 +111,57 @@ class PropertyMapperTest {
         PropertyListItemDto dto = mapper.toListDto(l);
 
         assertThat(dto.completion()).isNull();
+    }
+
+    @Test
+    void toDto_withNullLocale_returnsAllLocales_andAvailableLocales() {
+        Listing l = listing(user()); // has lv + en, no ru
+
+        PropertyItemDto dto = mapper.toDto(l, null);
+
+        assertThat(dto.translations()).containsOnlyKeys("lv", "en");
+        assertThat(dto.availableLocales()).containsExactly("lv", "en");
+    }
+
+    @Test
+    void toDto_withLocale_returnsOnlyThatLocale() {
+        Listing l = listing(user()); // has lv + en
+
+        PropertyItemDto dto = mapper.toDto(l, "en");
+
+        assertThat(dto.translations()).containsOnlyKeys("en");
+        assertThat(dto.translations().get("en").title()).isEqualTo("Test Property");
+        assertThat(dto.translations().get("en").description()).isNotBlank();
+        assertThat(dto.availableLocales()).containsExactly("lv", "en");
+    }
+
+    @Test
+    void toDto_withMissingLocale_fallsBackButKeepsRequestedKey() {
+        Listing l = listing(user()); // no ru → ru falls back to lv
+
+        PropertyItemDto dto = mapper.toDto(l, "ru");
+
+        assertThat(dto.translations()).containsOnlyKeys("ru");
+        assertThat(dto.translations().get("ru").title()).isEqualTo("Testa īpašums");
+        assertThat(dto.availableLocales()).containsExactly("lv", "en");
+    }
+
+    @Test
+    void toTranslation_returnsRequestedLocale_whenPresent() {
+        Listing l = listing(user());
+
+        LocalizedText t = mapper.toTranslation(l, "en");
+
+        assertThat(t.title()).isEqualTo("Test Property");
+    }
+
+    @Test
+    void toTranslation_fallsBack_whenLocaleMissing() {
+        Listing l = listing(user()); // no ru → lv per fallback order
+
+        LocalizedText t = mapper.toTranslation(l, "ru");
+
+        assertThat(t.title()).isEqualTo("Testa īpašums");
     }
 
     @Test
