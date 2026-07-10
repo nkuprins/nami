@@ -14,6 +14,7 @@ import {
 } from './composables/useWizardStepValidity';
 import type { ListingType } from '../../types/listingItem';
 
+import ListingSourcePicker from '../../components/listing/ListingSourcePicker.vue';
 import PropertyKindSection from './components/PropertyKindSection.vue';
 import StepDescription from './components/steps/StepDescription.vue';
 import StepPhotos from './components/steps/StepPhotos.vue';
@@ -37,6 +38,9 @@ const {
   form,
   availableTypeOptions,
   loading,
+  siblings,
+  sourceChosen,
+  selectSource,
   submitting,
   submitError,
   errors,
@@ -98,7 +102,13 @@ function handleTypeChange(type: ListingType | '') {
         <p class="text-sm text-ink mt-1">{{ addressLine }}</p>
       </div>
 
-      <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
+      <ListingSourcePicker
+        v-if="!sourceChosen"
+        :listings="siblings"
+        @select="selectSource"
+      />
+
+      <div v-else class="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
         <WizardStepper
           :steps="stepperSteps"
           :current-index="wizard.currentIndex.value"

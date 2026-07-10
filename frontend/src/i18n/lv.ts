@@ -257,6 +257,9 @@ export default {
     duplicateNudgeFuzzy:
       'Šī adrese ļoti līdzinās jūsu īpašumam adresē {address}. Ja tas ir cits īpašums, apstipriniet, lai turpinātu.',
     duplicateNudgeFuzzyContinue: 'Tas ir cits īpašums — turpināt',
+    sourcePickerTitle: 'Sākt no esoša sludinājuma',
+    sourcePickerSubtitle:
+      'Šajā adresē jums ir vairāki sludinājumi. Izvēlieties vienu, lai kopētu tā īpašuma datus un fotoattēlus — pēc tam varēsiet visu pielāgot.',
     stepperLocation: 'Atrašanās vieta',
     stepperCategory: 'Kategorija',
     stepperDescription: 'Apraksts',

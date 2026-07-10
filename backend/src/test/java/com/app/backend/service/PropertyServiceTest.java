@@ -712,6 +712,35 @@ class PropertyServiceTest {
         }
 
         @Test
+        void enqueuesOnlyNewMedia_skippingUrlsReusedFromSiblings() {
+            User owner = user();
+            Listing sibling = listing(owner);
+            Property property = sibling.getProperty();
+            sibling.setPhotos(new ArrayList<>(List.of("https://cdn.test.local/uploads/reused.jpg")));
+
+            when(propertyRepository.findById(property.getId())).thenReturn(Optional.of(property));
+            when(listingRepository.findByPropertyId(property.getId())).thenReturn(List.of(sibling));
+            when(listingRepository.save(any())).thenAnswer(inv -> {
+                Listing l = inv.getArgument(0);
+                l.setId(UUID.randomUUID());
+                return l;
+            });
+            when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+            // The new listing reuses one sibling photo and adds a brand-new one.
+            doAnswer(inv -> {
+                inv.<Listing>getArgument(0).setPhotos(new ArrayList<>(List.of(
+                        "https://cdn.test.local/uploads/reused.jpg",
+                        "https://cdn.test.local/uploads/fresh.jpg")));
+                return null;
+            }).when(propertyMapper).applyListingContent(any(), any());
+
+            listingService.addListing(property.getId(), addListingRequest(), owner.getId());
+
+            verify(imageProcessingPublisher).enqueue(property.getId(),
+                    List.of("https://cdn.test.local/uploads/fresh.jpg"));
+        }
+
+        @Test
         void throwsForbidden_whenNotOwner() {
             User owner = user();
             Property property = listing(owner).getProperty();

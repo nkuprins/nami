@@ -258,6 +258,9 @@ export default {
     duplicateNudgeFuzzy:
       'Этот адрес очень похож на ваш объект по адресу {address}. Если это другой объект, подтвердите, чтобы продолжить.',
     duplicateNudgeFuzzyContinue: 'Это другой объект — продолжить',
+    sourcePickerTitle: 'Начать с существующего объявления',
+    sourcePickerSubtitle:
+      'По этому адресу у вас несколько объявлений. Выберите одно, чтобы скопировать данные объекта и фотографии — потом всё можно изменить.',
     stepperLocation: 'Расположение',
     stepperCategory: 'Категория',
     stepperDescription: 'Описание',

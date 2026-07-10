@@ -258,6 +258,9 @@ export default {
     duplicateNudgeFuzzy:
       'This looks very similar to your property at {address}. If this is a different property, confirm to continue.',
     duplicateNudgeFuzzyContinue: 'This is a different property — continue',
+    sourcePickerTitle: 'Start from an existing listing',
+    sourcePickerSubtitle:
+      'You have several listings at this address. Pick one to copy its property details and photos — you can adjust everything afterwards.',
     stepperLocation: 'Location',
     stepperCategory: 'Category',
     stepperDescription: 'Description',

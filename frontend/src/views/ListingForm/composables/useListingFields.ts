@@ -2,6 +2,7 @@ import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   offerableListingTypes,
+  type ListingSummary,
   type ListingType,
   type PropertyLocation,
   type Translations,
@@ -176,15 +177,33 @@ export function useAddListingToProperty(
   const submitError = ref('');
   const loading = ref(true);
   const propertyLocation = ref<PropertyLocation | null>(null);
+  const siblings = ref<ListingSummary[]>([]);
+  const sourceChosen = ref(false);
 
   const offerable = new Set(offerableListingTypes());
   const availableTypeOptions = computed(() =>
     typeOptions.value.filter((o) => offerable.has(o.id))
   );
 
+  // Seed the new listing's physical/media fields from the sibling the user
+  // picked as a starting point. Every listing at an address describes the same
+  // apartment, so any sibling is a valid template — but they can diverge, so
+  // which one to copy is the user's call (the view offers the choice).
+  async function selectSource(listingId: string) {
+    const sibling = await getListing(listingId);
+    if (sibling) {
+      seedPropertyFields(form, sibling);
+      propertyLocation.value = sibling.location;
+      photoUpload.seed(sibling.media.photos ?? []);
+      planUpload.seed(sibling.media.plans ?? []);
+    }
+    form.type = availableTypeOptions.value[0]?.id ?? '';
+    sourceChosen.value = true;
+  }
+
   // A property always has at least one listing, so no match means it isn't the
-  // current user's property (or doesn't exist) — bail to home. The first sibling
-  // seeds the physical/media fields so the new listing starts from its scope.
+  // current user's property (or doesn't exist) — bail to home. A lone sibling is
+  // seeded automatically; when several exist the user picks which one to copy.
   getMyListings()
     .then(async (all) => {
       const mine = all.filter((l) => l.propertyId === propertyId);
@@ -192,14 +211,11 @@ export function useAddListingToProperty(
         localePush('/');
         return;
       }
-      const sibling = await getListing(mine[0].id);
-      if (sibling) {
-        seedPropertyFields(form, sibling);
-        propertyLocation.value = sibling.location;
-        photoUpload.seed(sibling.media.photos ?? []);
-        planUpload.seed(sibling.media.plans ?? []);
-      }
-      form.type = availableTypeOptions.value[0]?.id ?? '';
+      siblings.value = mine;
+      // Location is the only property-shared field, so the address header can
+      // render before a template is chosen.
+      propertyLocation.value = mine[0].location;
+      if (mine.length === 1) await selectSource(mine[0].id);
       loading.value = false;
     })
     .catch(() => localePush('/'));
@@ -240,6 +256,9 @@ export function useAddListingToProperty(
     form,
     availableTypeOptions,
     loading,
+    siblings,
+    sourceChosen,
+    selectSource,
     submitting,
     submitError,
     errors,

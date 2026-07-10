@@ -22,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /** Write operations scoped to a {@link Listing}. Property (address) writes live in {@link PropertyService}. */
 @Slf4j
@@ -47,6 +49,12 @@ public class ListingService {
     public PropertyItemDto addListing(UUID propertyId, AddListingRequest req, UUID ownerId) {
         Property property = propertyAccess.loadOwnedProperty(propertyId, ownerId);
 
+        // Media reused from a sibling listing already has its variants generated, so only
+        // genuinely-new URLs need processing — skip re-queuing the shared ones.
+        Set<String> alreadyProcessed = listingRepository.findByPropertyId(propertyId).stream()
+                .flatMap(l -> l.allMediaUrls().stream())
+                .collect(Collectors.toSet());
+
         Listing listing = new Listing();
         listing.setProperty(property);
         listing.setOwner(property.getOwner());
@@ -57,7 +65,10 @@ public class ListingService {
 
         Listing saved = listingRepository.save(listing);
         log.info("Listing created: {} for existing property: {} by owner: {}", saved.getId(), propertyId, ownerId);
-        imageProcessingPublisher.enqueue(propertyId, saved.allMediaUrls());
+        List<String> toProcess = saved.allMediaUrls().stream()
+                .filter(u -> !alreadyProcessed.contains(u))
+                .toList();
+        imageProcessingPublisher.enqueue(propertyId, toProcess);
         return propertyMapper.toDto(saved);
     }
 
