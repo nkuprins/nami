@@ -20,10 +20,24 @@ function thumbSrc(entry: { preview: string } | { url: string }): string {
 }
 
 const dragIndex = ref<number | null>(null);
+const overIndex = ref<number | null>(null);
+
+function onDragStart(i: number, e: DragEvent) {
+  dragIndex.value = i;
+  // Required for the drag to actually start in Firefox.
+  e.dataTransfer?.setData('text/plain', String(i));
+  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+}
 
 function onDrop(i: number) {
   if (dragIndex.value !== null) emit('move', dragIndex.value, i);
   dragIndex.value = null;
+  overIndex.value = null;
+}
+
+function onDragEnd() {
+  dragIndex.value = null;
+  overIndex.value = null;
 }
 </script>
 
@@ -33,13 +47,20 @@ function onDrop(i: number) {
       v-for="(entry, i) in props.items"
       :key="i"
       draggable="true"
-      class="relative"
-      @dragstart="dragIndex = i"
+      class="relative cursor-grab active:cursor-grabbing transition-opacity"
+      :class="{
+        'opacity-40': dragIndex === i,
+        'ring-2 ring-accent rounded-lg': overIndex === i && dragIndex !== i,
+      }"
+      @dragstart="onDragStart(i, $event)"
+      @dragenter.prevent="overIndex = i"
       @dragover.prevent
       @drop="onDrop(i)"
+      @dragend="onDragEnd"
     >
       <img
         :src="thumbSrc(entry)"
+        draggable="false"
         class="w-full aspect-square object-cover rounded-lg"
         :alt="props.altText(i)"
       />
