@@ -27,8 +27,6 @@ export function slugify(text: string): string {
     .replace(/\s+/g, '-');
 }
 
-console.time('⏱️ START Locations Engine Initialized');
-
 for (const [cityName, districts] of LOCATION_MAP) {
   const citySlug = slugify(cityName);
   cityBySlug.set(citySlug, cityName);
@@ -40,5 +38,3 @@ for (const [cityName, districts] of LOCATION_MAP) {
     districtSlugByName.set(districtName, districtSlug);
   }
 }
-
-console.timeEnd('⏱️ STOP Locations Engine Initialized');
