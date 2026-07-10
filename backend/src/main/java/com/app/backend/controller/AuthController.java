@@ -2,7 +2,9 @@ package com.app.backend.controller;
 
 import com.app.backend.dto.export.UserExportDto;
 import com.app.backend.dto.auth.*;
+import com.app.backend.service.AccountService;
 import com.app.backend.service.AuthService;
+import com.app.backend.service.UserDataExportService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +20,13 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
+    private final AccountService accountService;
+    private final UserDataExportService userDataExportService;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public AuthUserResponse register(@RequestBody @Valid RegisterRequest req) {
-        return authService.register(req);
+        return accountService.register(req);
     }
 
     @PostMapping("/login")
@@ -53,41 +57,41 @@ public class AuthController {
     @PatchMapping("/me")
     public AuthUserResponse updateProfile(@AuthenticationPrincipal UUID userId,
                                           @RequestBody @Valid UpdateProfileRequest req) {
-        return authService.updateProfile(userId, req);
+        return accountService.updateProfile(userId, req);
     }
 
     @GetMapping("/export")
     public UserExportDto export(@AuthenticationPrincipal UUID userId) {
-        return authService.export(userId);
+        return userDataExportService.export(userId);
     }
 
     @DeleteMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteAccount(@AuthenticationPrincipal UUID userId, HttpServletResponse response) {
-        authService.deleteAccount(userId, response);
+        accountService.deleteAccount(userId, response);
     }
 
     @PostMapping("/verify-email")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void verifyEmail(@RequestBody @Valid VerifyEmailRequest req) {
-        authService.verifyEmail(req);
+        accountService.verifyEmail(req);
     }
 
     @PostMapping("/resend-verification")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void resendVerification(@RequestBody @Valid ResendVerificationRequest req) {
-        authService.resendVerification(req);
+        accountService.resendVerification(req);
     }
 
     @PostMapping("/forgot-password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void forgotPassword(@RequestBody @Valid ForgotPasswordRequest req) {
-        authService.forgotPassword(req);
+        accountService.forgotPassword(req);
     }
 
     @PostMapping("/reset-password")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void resetPassword(@RequestBody @Valid ResetPasswordRequest req) {
-        authService.resetPassword(req);
+        accountService.resetPassword(req);
     }
 }
