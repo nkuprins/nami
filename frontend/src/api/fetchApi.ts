@@ -4,8 +4,30 @@ import { trackWake } from '../composables/useWakeStatus';
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 let refreshPromise: Promise<boolean> | null = null;
+let csrfPrimePromise: Promise<void> | null = null;
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+/**
+ * Plants the `XSRF-TOKEN` cookie before a session's first mutation. A fresh
+ * visitor may mutate (e.g. presign an upload) before any GET has planted the
+ * token, which the server would 403. Priming with one DB-free `GET /api/csrf`
+ * and awaiting it lets the mutation succeed on its first try — no reactive 403.
+ * Fires only when the cookie is absent, and dedupes concurrent callers (parallel
+ * uploads) onto a single request.
+ */
+function ensureCsrfToken(): Promise<void> {
+  if (readCookie('XSRF-TOKEN')) return Promise.resolve();
+  if (!csrfPrimePromise) {
+    csrfPrimePromise = fetch(API_BASE + '/api/csrf', { method: 'GET' })
+      .then(() => undefined)
+      .catch(() => undefined)
+      .finally(() => {
+        csrfPrimePromise = null;
+      });
+  }
+  return csrfPrimePromise;
+}
 
 function readCookie(name: string): string | null {
   const match = document.cookie.match(
@@ -45,20 +67,14 @@ async function fetchApiInner(
   init?: RequestInit
 ): Promise<Response> {
   const method = (init?.method ?? 'GET').toUpperCase();
-  const mutatingWithoutToken =
-    MUTATING_METHODS.has(method) && !readCookie('XSRF-TOKEN');
 
-  let res = await fetch(API_BASE + input, withCsrf(init));
-
-  // CSRF bootstrap: the first mutation of a session runs before any response
-  // has planted the XSRF-TOKEN cookie (edge caches strip Set-Cookie off cached
-  // GETs), so withCsrf sends no header and the server 403s — but that 403
-  // response plants the cookie. Retry once now that we can echo it. Guarded to
-  // the tokenless case so a genuine authorization 403 is never retried.
-  if (res.status === 403 && mutatingWithoutToken && readCookie('XSRF-TOKEN')) {
-    logger.info(`[fetchApi] 403 without CSRF token; retrying for: ${input}`);
-    res = await fetch(API_BASE + input, withCsrf(init));
+  // Ensure the CSRF cookie exists before the session's first mutation, so it is
+  // accepted on the first try rather than 403-ing and needing a retry.
+  if (MUTATING_METHODS.has(method)) {
+    await ensureCsrfToken();
   }
+
+  const res = await fetch(API_BASE + input, withCsrf(init));
 
   if (res.status !== 401) return res;
 
