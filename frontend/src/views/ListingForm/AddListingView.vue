@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { onBeforeRouteLeave } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useLocationDropdown } from './composables/useLocationDropdown';
 import { useListingForm } from './composables/useListingForm';
+import { useListingDraft } from './composables/useListingDraft';
 import { useDuplicatePropertyNudge } from './composables/useDuplicatePropertyNudge';
 import { useWizardNavigation } from './composables/useWizardNavigation';
 import {
@@ -64,6 +66,15 @@ const {
 
 const { wizard, handleContinue, handleBack, jumpToStep, handleJump } =
   useWizardNavigation(STEPS, errors, touched);
+
+// Restore any saved draft (form + location + step) and keep it in sync. Cleared
+// only on a successful submit — `submitting` stays true through the redirect,
+// so a route-leave while it's set means we published; Cancel leaves it false
+// and the draft survives for next time.
+const draft = useListingDraft(form, selectedLocation, wizard);
+onBeforeRouteLeave(() => {
+  if (submitting.value) draft.clear();
+});
 
 // The only hard block on Continue itself (nothing more to reveal by clicking —
 // the duplicate card already explains it). Ordinary field validation is instead
