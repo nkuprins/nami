@@ -76,7 +76,7 @@ function selectNewProject() {
       <div class="flex flex-col gap-1.5">
         <p class="text-sm font-medium text-ink">
           {{ t('addListing.transactionType') }}
-          <span class="text-red-500">*</span>
+          <span class="text-warn">*</span>
         </p>
 
         <div class="flex flex-col gap-2">
@@ -187,7 +187,7 @@ function selectNewProject() {
           </div>
         </div>
 
-        <p v-if="fieldError('type')" class="text-xs text-red-500">
+        <p v-if="fieldError('type')" class="text-xs text-warn">
           {{ fieldError('type') }}
         </p>
       </div>

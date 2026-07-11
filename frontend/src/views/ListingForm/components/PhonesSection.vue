@@ -20,7 +20,7 @@ defineEmits<{
 <template>
   <section class="flex flex-col gap-4">
     <h2 class="text-base font-semibold text-ink border-b border-line pb-2">
-      {{ t('addListing.phoneSection') }}<span class="text-red-500"> *</span>
+      {{ t('addListing.phoneSection') }}<span class="text-warn"> *</span>
     </h2>
 
     <div
@@ -53,7 +53,7 @@ defineEmits<{
           <button
             v-if="form.phones.length > 1"
             type="button"
-            class="size-5 shrink-0 text-ink-3 hover:text-red-500 transition-colors"
+            class="size-5 shrink-0 text-ink-3 hover:text-warn transition-colors"
             @click="$emit('remove-phone', index)"
           >
             <IconClose />

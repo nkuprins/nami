@@ -6,7 +6,12 @@ import type { ListingDetail } from '../../types/listingItem';
 import { resolveTitle, resolveDescription } from '../../types/listingItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
-import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
+import {
+  formatFloor,
+  formatPrice,
+  formatPricePerM2,
+  joinPlace,
+} from '../../utils/format';
 import { renderMarkdown } from '../../utils/renderMarkdown';
 import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import {
@@ -201,7 +206,7 @@ function openPlanLightbox(i: number) {
           :class="
             contentLocale === l
               ? 'bg-ink text-bg border-ink'
-              : 'border-line text-ink-2 hover:text-ink hover:border-ink/40'
+              : 'border-line-2 text-ink-2 hover:text-ink hover:border-ink-3'
           "
           @click="selectLanguage(l)"
         >
@@ -264,7 +269,7 @@ function openPlanLightbox(i: number) {
         <div>
           <div class="mb-1">
             <p class="micro-label">
-              {{ listing.location.district }} · {{ listing.location.city }}
+              {{ joinPlace(listing.location.district, listing.location.city) }}
             </p>
             <h1 class="mt-1 text-xl leading-snug text-ink font-medium">
               {{ displayTitle }}
@@ -290,7 +295,7 @@ function openPlanLightbox(i: number) {
               :class="
                 featureCategory(f) === 'comfort'
                   ? 'bg-accent/10 text-accent-2'
-                  : 'bg-feature-building/10 text-feature-building-2'
+                  : 'bg-surface text-ink-2'
               "
             >
               <span class="size-4.5 shrink-0"
@@ -321,7 +326,7 @@ function openPlanLightbox(i: number) {
                 :class="
                   mediaTab === 'photos'
                     ? 'bg-ink text-cream border-ink'
-                    : 'bg-transparent text-ink-2 border-line hover:border-line-2 hover:text-ink'
+                    : 'bg-transparent text-ink-2 border-line-2 hover:border-ink-3 hover:text-ink'
                 "
                 @click="mediaTab = 'photos'"
               >
@@ -334,7 +339,7 @@ function openPlanLightbox(i: number) {
                 :class="
                   mediaTab === 'plans'
                     ? 'bg-ink text-cream border-ink'
-                    : 'bg-transparent text-ink-2 border-line hover:border-line-2 hover:text-ink'
+                    : 'bg-transparent text-ink-2 border-line-2 hover:border-ink-3 hover:text-ink'
                 "
                 @click="mediaTab = 'plans'"
               >
@@ -347,7 +352,7 @@ function openPlanLightbox(i: number) {
                 :class="
                   mediaTab === 'video'
                     ? 'bg-ink text-cream border-ink'
-                    : 'bg-transparent text-ink-2 border-line hover:border-line-2 hover:text-ink'
+                    : 'bg-transparent text-ink-2 border-line-2 hover:border-ink-3 hover:text-ink'
                 "
                 @click="switchToVideo()"
               >
@@ -420,7 +425,7 @@ function openPlanLightbox(i: number) {
         <!-- Sidebar: desktop only -->
         <aside class="hidden lg:block">
           <div class="sticky top-20 space-y-4">
-            <div class="rounded-xl border border-line p-5 shadow-soft">
+            <div class="rounded-xl p-5 shadow-soft">
               <p class="display-price text-2xl text-ink">{{ price }}</p>
               <p class="text-xs text-ink-2 tabular mt-1">{{ pricePerM2 }}</p>
               <p
@@ -437,7 +442,7 @@ function openPlanLightbox(i: number) {
 
               <button
                 type="button"
-                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-4 text-sm font-medium bg-transparent border border-line rounded-lg cursor-pointer hover:bg-surface transition-colors"
+                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-4 text-sm font-medium bg-transparent border border-line-2 rounded-lg cursor-pointer hover:bg-surface hover:border-ink-3 transition-colors"
                 :class="saved ? 'text-accent-2' : 'text-ink-2 hover:text-ink'"
                 @click="savedStore.toggle(listing.id)"
               >
@@ -449,7 +454,7 @@ function openPlanLightbox(i: number) {
 
               <button
                 type="button"
-                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line rounded-lg cursor-pointer hover:bg-surface hover:text-ink transition-colors"
+                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line-2 rounded-lg cursor-pointer hover:bg-surface hover:border-ink-3 hover:text-ink transition-colors"
                 @click="shareListing"
               >
                 <span class="size-4 shrink-0"><IconShare /></span>
@@ -469,7 +474,7 @@ function openPlanLightbox(i: number) {
                 v-if="isOwner"
                 type="button"
                 :disabled="deleting"
-                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line rounded-lg cursor-pointer hover:bg-warn/5 hover:text-warn hover:border-warn/30 transition-colors disabled:opacity-50"
+                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line-2 rounded-lg cursor-pointer hover:bg-warn/5 hover:text-warn hover:border-warn/30 transition-colors disabled:opacity-50"
                 @click="confirmingDelete = true"
               >
                 <span class="size-4 shrink-0"><IconTrash /></span>

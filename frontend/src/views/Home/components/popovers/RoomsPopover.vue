@@ -42,7 +42,7 @@ function clear() {
         :class="
           modelValue.includes(opt.value)
             ? 'border-ink bg-ink text-bg'
-            : 'border-line text-ink hover:border-line-2'
+            : 'border-line-2 text-ink hover:border-ink-3'
         "
       >
         {{ opt.label }} {{ t('filters.rm') }}

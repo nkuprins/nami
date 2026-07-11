@@ -35,7 +35,7 @@ function listingTitle(item: ListingSummary): string {
       <li v-for="item in listings" :key="item.id">
         <button
           type="button"
-          class="group focus-ring w-full flex items-center gap-3 rounded-xl border border-line bg-bg px-3 py-3 text-left transition-colors hover:bg-surface/60 hover:border-ink-3"
+          class="group focus-ring w-full flex items-center gap-3 rounded-xl border border-line-2 bg-bg px-3 py-3 text-left transition-colors hover:bg-surface/60 hover:border-ink-3"
           @click="$emit('select', item.id)"
         >
           <div class="shrink-0 size-14 rounded-lg overflow-hidden bg-surface">

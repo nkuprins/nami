@@ -96,7 +96,7 @@ async function submit() {
         autocomplete="email"
         :error="emailError"
       />
-      <p v-if="successMsg" class="text-sm text-green-600">{{ successMsg }}</p>
+      <p v-if="successMsg" class="text-sm text-success">{{ successMsg }}</p>
       <p v-if="genericError" class="text-sm text-warn">{{ genericError }}</p>
     </form>
 
@@ -116,7 +116,7 @@ async function submit() {
       <div class="flex gap-3">
         <button
           type="button"
-          class="h-10 flex-1 rounded-lg border border-line text-sm font-medium text-ink-2 hover:text-ink hover:bg-surface transition-colors"
+          class="h-10 flex-1 rounded-full border border-line-2 text-sm font-medium text-ink-2 hover:text-ink hover:bg-surface hover:border-ink-3 transition-colors"
           @click="emit('update:open', false)"
         >
           {{ t('common.cancel') }}
@@ -124,7 +124,7 @@ async function submit() {
         <button
           type="button"
           :disabled="submitting"
-          class="h-10 flex-1 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
+          class="h-10 flex-1 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
           @click="submit"
         >
           {{ submitting ? t('auth.saving') : t('auth.saveChanges') }}

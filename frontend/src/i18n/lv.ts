@@ -12,6 +12,7 @@ export default {
     add: 'Pievienot',
     deleteAccount: 'Dzēst kontu',
     exportData: 'Eksportēt manus datus',
+    menu: 'Izvēlne',
   },
   filters: {
     location: 'Atrašanās vieta',
@@ -91,7 +92,11 @@ export default {
     location: 'Atrašanās vieta',
     contact: 'Kontaktinformācija',
     showNumber: 'Parādīt numuru',
+    show: 'Parādīt',
+    morePhones: 'Vairāk tālruņa numuru',
+    videoTour: 'Video apskate',
     videoUnavailable: 'Video apskate nav pieejama',
+    noPhotos: 'Nav pieejamu fotogrāfiju',
     videoUnavailableDesc:
       'Šo video nevar ielādēt vai pakalpojuma sniedzējs to ir noņēmis.',
     newListing: 'Jauns sludinājums',
@@ -387,6 +392,10 @@ export default {
     confirm: 'Apstiprināt',
     or: 'vai',
     dismiss: 'Aizvērt',
+    close: 'Aizvērt',
+    previous: 'Iepriekšējais',
+    next: 'Nākamais',
+    resetZoom: 'Atiestatīt tālummaiņu',
   },
   footer: {
     allRights: 'Visas tiesības aizsargātas.',

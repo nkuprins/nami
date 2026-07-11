@@ -26,7 +26,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
   <section class="flex flex-col gap-4">
     <div class="flex flex-col gap-1.5">
       <p class="text-sm font-medium text-ink">
-        {{ t('addListing.photosSection') }} <span class="text-red-500">*</span>
+        {{ t('addListing.photosSection') }} <span class="text-warn">*</span>
       </p>
 
       <input
@@ -43,8 +43,8 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
         class="self-start h-9 px-4 rounded-full text-sm font-medium border transition-colors"
         :class="
           fieldError('photos')
-            ? 'border-red-400 text-red-500'
-            : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+            ? 'border-warn/40 text-warn'
+            : 'border-line-2 text-ink-2 hover:border-ink-3 hover:text-ink'
         "
         @click="fileInputRef?.click()"
       >
@@ -72,7 +72,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
         </template>
       </ReorderableMediaGrid>
 
-      <p v-if="fieldError('photos')" class="text-xs text-red-500">
+      <p v-if="fieldError('photos')" class="text-xs text-warn">
         {{ fieldError('photos') }}
       </p>
 

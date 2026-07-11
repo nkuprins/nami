@@ -50,7 +50,7 @@ function onDragEnd() {
       class="relative cursor-grab active:cursor-grabbing transition-opacity"
       :class="{
         'opacity-40': dragIndex === i,
-        'ring-2 ring-accent rounded-lg': overIndex === i && dragIndex !== i,
+        'ring-2 ring-accent-2 rounded-lg': overIndex === i && dragIndex !== i,
       }"
       @dragstart="onDragStart(i, $event)"
       @dragenter.prevent="overIndex = i"

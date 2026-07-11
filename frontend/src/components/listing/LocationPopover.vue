@@ -77,7 +77,7 @@ function clear() {
       type="search"
       :placeholder="t('filters.findDistrict')"
       :aria-label="t('filters.findDistrict')"
-      class="focus-ring w-full h-10 px-3 rounded-md border border-line bg-bg text-sm placeholder:text-ink-3"
+      class="focus-ring w-full h-10 px-3 rounded-md border border-line-2 bg-bg text-sm placeholder:text-ink-3"
     />
     <div class="space-y-4 max-h-72 overflow-y-auto pr-1">
       <div
@@ -119,7 +119,7 @@ function clear() {
               <span>{{ d }}</span>
               <span
                 v-if="isSelected(cityName, d)"
-                class="text-ink text-xs font-bold"
+                class="text-ink text-xs font-semibold"
               >
                 ✓
               </span>

@@ -7,7 +7,12 @@ import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import StatusPill from './StatusPill.vue';
 import SaveHeart from './SaveHeart.vue';
-import { formatFloor, formatPrice, formatPricePerM2 } from '../../utils/format';
+import {
+  formatFloor,
+  formatPrice,
+  formatPricePerM2,
+  joinPlace,
+} from '../../utils/format';
 
 const props = defineProps<{ property: ListingSummary }>();
 const { t } = useI18n();
@@ -60,7 +65,7 @@ const specRow = computed(() => {
     class="focus-ring block group h-full"
   >
     <article
-      class="card-lift relative bg-bg border border-line rounded-xl overflow-hidden h-full flex flex-col"
+      class="card-lift relative bg-bg shadow-soft rounded-xl overflow-hidden h-full flex flex-col"
     >
       <div class="relative aspect-4/3 overflow-hidden shrink-0">
         <img
@@ -84,7 +89,7 @@ const specRow = computed(() => {
       <div class="p-5 flex flex-col flex-1">
         <div class="micro-label">
           <p class="truncate">
-            {{ property.location.city }} · {{ property.location.district }}
+            {{ joinPlace(property.location.city, property.location.district) }}
           </p>
           <p class="truncate">{{ property.location.address }}</p>
         </div>
@@ -98,7 +103,7 @@ const specRow = computed(() => {
               <span
                 v-if="property.price.vatIncluded"
                 :title="t('listing.vatIncluded')"
-                class="text-base font-bold text-ink whitespace-nowrap shrink-0"
+                class="text-base font-semibold text-ink whitespace-nowrap shrink-0"
               >
                 {{ t('listing.vatBadge') }}
               </span>

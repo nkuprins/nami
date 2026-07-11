@@ -159,7 +159,7 @@ const anyActive = computed(
           v-if="anyActive"
           type="button"
           @click="resetAll"
-          class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-4 rounded-md border border-line bg-bg text-sm text-ink-2 hover:text-ink hover:border-line-2 transition-colors"
+          class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-4 rounded-md border border-line-2 bg-bg text-sm text-ink-2 hover:text-ink hover:border-ink-3 transition-colors"
         >
           <span class="size-4 inline-block"><IconRefresh /></span>
           <span>{{ t('filters.reset') }}</span>
@@ -168,7 +168,7 @@ const anyActive = computed(
         <button
           type="button"
           @click="emit('openMore')"
-          class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-4 rounded-md border border-line bg-bg text-sm text-ink-2 hover:text-ink hover:border-line-2 transition-colors"
+          class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-4 rounded-md border border-line-2 bg-bg text-sm text-ink-2 hover:text-ink hover:border-ink-3 transition-colors"
         >
           <span class="size-4 inline-block"><IconSliders /></span>
           <span>{{ t('filters.moreFilters') }}</span>
@@ -183,7 +183,7 @@ const anyActive = computed(
         <button
           type="button"
           @click="emit('search')"
-          class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-5 rounded-md bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors"
+          class="focus-ring inline-flex items-center justify-center gap-2 h-12 px-5 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors"
         >
           <span class="size-4 inline-block"><IconSearch /></span>
           <span>{{ t('filters.search') }}</span>

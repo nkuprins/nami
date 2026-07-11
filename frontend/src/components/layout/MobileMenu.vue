@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import IconClose from '../icons/IconClose.vue';
+
+const { t } = useI18n();
 
 defineProps<{
   open: boolean;
@@ -38,7 +41,7 @@ const emit = defineEmits<{
         <header
           class="flex items-center justify-between px-5 h-14 border-b border-line"
         >
-          <span class="micro-label text-ink-3">Menu</span>
+          <span class="micro-label text-ink-3">{{ t('nav.menu') }}</span>
           <button
             class="focus-ring size-10 -mr-2 grid place-items-center text-ink-2 hover:text-ink"
             @click="emit('update:open', false)"
@@ -52,14 +55,14 @@ const emit = defineEmits<{
             class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
             @click="emit('my-listings')"
           >
-            My listings
+            {{ t('nav.myListings') }}
           </button>
 
           <button
             class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
             @click="emit('saved')"
           >
-            Saved
+            {{ t('nav.saved') }}
             <span
               v-if="savedCount > 0"
               class="tabular text-xs font-medium px-2 h-5 inline-flex items-center rounded-full bg-surface text-ink"
@@ -73,13 +76,13 @@ const emit = defineEmits<{
               class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
               @click="emit('edit-profile')"
             >
-              Edit profile
+              {{ t('auth.editProfile') }}
             </button>
             <button
               class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
               @click="emit('sign-out')"
             >
-              Sign out
+              {{ t('nav.signOut') }}
             </button>
           </template>
           <template v-else>
@@ -87,17 +90,17 @@ const emit = defineEmits<{
               class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink hover:bg-surface transition-colors text-left"
               @click="emit('sign-in')"
             >
-              Sign in
+              {{ t('nav.signIn') }}
             </button>
           </template>
 
           <div class="border-t border-line my-2" />
 
           <button
-            class="focus-ring flex items-center justify-center h-12 px-4 rounded-xl text-[0.9375rem] bg-ink text-bg hover:bg-accent-2 transition-colors"
+            class="focus-ring flex items-center justify-center h-12 px-4 rounded-full text-[0.9375rem] bg-ink text-bg hover:bg-accent-2 transition-colors"
             @click="emit('add-property')"
           >
-            + Add property
+            + {{ t('nav.addProperty') }}
           </button>
         </nav>
 
@@ -109,13 +112,13 @@ const emit = defineEmits<{
             class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-ink-2 hover:text-ink hover:bg-surface transition-colors text-left w-full"
             @click="emit('export-data')"
           >
-            Export my data
+            {{ t('nav.exportData') }}
           </button>
           <button
             class="focus-ring flex items-center gap-3 h-12 px-4 rounded-xl text-[0.9375rem] text-warn/70 hover:text-warn hover:bg-warn/5 transition-colors text-left w-full"
             @click="emit('delete-account')"
           >
-            Delete account
+            {{ t('nav.deleteAccount') }}
           </button>
         </footer>
       </aside>

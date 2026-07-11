@@ -64,12 +64,12 @@ const emit = defineEmits<{
       <button
         type="button"
         :disabled="saving"
-        class="self-start h-9 px-4 rounded-full text-sm font-medium border border-line text-ink-2 hover:border-ink/40 hover:text-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        class="self-start h-9 px-4 rounded-full text-sm font-medium border border-line-2 text-ink-2 hover:border-ink-3 hover:text-ink transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         @click="emit('save-pin')"
       >
         {{ saving ? t('addListing.pinSaving') : t('addListing.pinSaveAction') }}
       </button>
-      <p v-if="saveError" class="text-xs text-red-500">{{ saveError }}</p>
+      <p v-if="saveError" class="text-xs text-warn">{{ saveError }}</p>
     </div>
   </section>
 </template>

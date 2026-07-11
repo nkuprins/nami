@@ -12,6 +12,7 @@ export default {
     add: 'Добавить',
     deleteAccount: 'Удалить аккаунт',
     exportData: 'Экспортировать мои данные',
+    menu: 'Меню',
   },
   filters: {
     location: 'Местоположение',
@@ -92,7 +93,11 @@ export default {
     location: 'Расположение',
     contact: 'Контактные данные',
     showNumber: 'Показать номер',
+    show: 'Показать',
+    morePhones: 'Другие номера телефонов',
+    videoTour: 'Видеотур',
     videoUnavailable: 'Видеотур недоступен',
+    noPhotos: 'Фотографии отсутствуют',
     videoUnavailableDesc:
       'Видео не может быть загружено или удалено провайдером.',
     newListing: 'Новое объявление',
@@ -387,6 +392,10 @@ export default {
     confirm: 'Подтвердить',
     or: 'или',
     dismiss: 'Скрыть',
+    close: 'Закрыть',
+    previous: 'Назад',
+    next: 'Вперёд',
+    resetZoom: 'Сбросить масштаб',
   },
   footer: {
     allRights: 'Все права защищены.',

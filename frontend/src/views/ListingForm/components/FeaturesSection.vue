@@ -33,12 +33,10 @@ function toggle(id: Feature) {
         class="inline-flex items-center gap-2 h-9 pl-3 pr-4 rounded-full text-sm font-medium border transition-colors"
         :class="
           isSelected(opt.id)
-            ? opt.category === 'comfort'
-              ? 'bg-accent-2 border-accent-2 text-bg'
-              : 'bg-feature-building-2 border-feature-building-2 text-bg'
+            ? 'bg-ink border-ink text-bg'
             : opt.category === 'comfort'
-              ? 'bg-accent/8 border-accent/25 text-accent-2 hover:border-accent/50'
-              : 'bg-feature-building/8 border-feature-building/25 text-feature-building-2 hover:border-feature-building/50'
+              ? 'bg-accent/10 border-accent/25 text-accent-2 hover:border-accent/50'
+              : 'bg-surface border-line-2 text-ink-2 hover:border-ink-3'
         "
         @click="toggle(opt.id)"
       >

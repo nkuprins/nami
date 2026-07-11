@@ -99,7 +99,7 @@ function clear() {
           @beforeinput="numericInput"
           inputmode="numeric"
           :placeholder="t('filters.anyAmount')"
-          class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
+          class="focus-ring h-10 px-3 rounded-md border border-line-2 bg-bg text-sm tabular placeholder:text-ink-3"
         />
       </label>
       <label class="flex flex-col gap-1">
@@ -112,7 +112,7 @@ function clear() {
           @beforeinput="numericInput"
           inputmode="numeric"
           :placeholder="t('filters.anyAmount')"
-          class="focus-ring h-10 px-3 rounded-md border border-line bg-bg text-sm tabular placeholder:text-ink-3"
+          class="focus-ring h-10 px-3 rounded-md border border-line-2 bg-bg text-sm tabular placeholder:text-ink-3"
         />
       </label>
     </div>
@@ -123,7 +123,7 @@ function clear() {
           v-for="[mn, mx, label] in suggestions"
           :key="label"
           type="button"
-          class="focus-ring px-3 h-8 rounded-full border border-line text-xs text-ink-2 hover:text-ink hover:border-line-2 transition-colors"
+          class="focus-ring px-3 h-8 rounded-full border border-line-2 text-xs text-ink-2 hover:text-ink hover:border-ink-3 transition-colors"
           @click="pickPreset(mn, mx)"
         >
           {{ label }}

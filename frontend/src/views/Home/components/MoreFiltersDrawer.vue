@@ -144,7 +144,7 @@ function reset() {
             min="0"
             :placeholder="t('advFilters.min')"
             :aria-label="`${t('advFilters.area')} ${t('advFilters.min')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
+            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
           />
           <input
             v-model="m2Max.value"
@@ -152,7 +152,7 @@ function reset() {
             min="0"
             :placeholder="t('advFilters.max')"
             :aria-label="`${t('advFilters.area')} ${t('advFilters.max')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
+            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
           />
         </div>
       </section>
@@ -166,7 +166,7 @@ function reset() {
             min="0"
             :placeholder="t('advFilters.min')"
             :aria-label="`${t('advFilters.floor')} ${t('advFilters.min')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
+            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
           />
           <input
             v-model="floorMax.value"
@@ -174,7 +174,7 @@ function reset() {
             min="0"
             :placeholder="t('advFilters.max')"
             :aria-label="`${t('advFilters.floor')} ${t('advFilters.max')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
+            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
           />
         </div>
         <div class="flex flex-wrap gap-2">
@@ -215,7 +215,7 @@ function reset() {
             :class="
               draft.bedrooms.includes(n)
                 ? 'border-ink bg-ink text-bg'
-                : 'border-line text-ink hover:border-line-2'
+                : 'border-line-2 text-ink hover:border-ink-3'
             "
           >
             {{ n }}
@@ -235,7 +235,7 @@ function reset() {
             :class="
               draft.bathrooms.includes(n)
                 ? 'border-ink bg-ink text-bg'
-                : 'border-line text-ink hover:border-line-2'
+                : 'border-line-2 text-ink hover:border-ink-3'
             "
           >
             {{ n }}
@@ -253,7 +253,7 @@ function reset() {
             max="2030"
             :placeholder="t('advFilters.from')"
             :aria-label="`${t('advFilters.yearBuilt')} ${t('advFilters.from')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
+            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
           />
           <input
             v-model="yearMax.value"
@@ -262,7 +262,7 @@ function reset() {
             max="2030"
             :placeholder="t('advFilters.to')"
             :aria-label="`${t('advFilters.yearBuilt')} ${t('advFilters.to')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line text-sm tabular"
+            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
           />
         </div>
       </section>
@@ -273,7 +273,7 @@ function reset() {
           <label
             v-for="opt in featureOptions"
             :key="opt.id"
-            class="focus-ring flex items-center justify-between gap-3 px-3 py-2.5 rounded-md border border-line hover:border-line-2 cursor-pointer transition-colors"
+            class="focus-ring flex items-center justify-between gap-3 px-3 py-2.5 rounded-md border border-line-2 hover:border-ink-3 cursor-pointer transition-colors"
             :class="
               draft.features.includes(opt.id) ? 'bg-cream/70 border-line-2' : ''
             "
@@ -300,7 +300,7 @@ function reset() {
           <label
             v-for="opt in heatingOptions"
             :key="opt.id"
-            class="focus-ring flex items-center gap-3 px-3 py-2.5 rounded-md border border-line hover:border-line-2 cursor-pointer transition-colors"
+            class="focus-ring flex items-center gap-3 px-3 py-2.5 rounded-md border border-line-2 hover:border-ink-3 cursor-pointer transition-colors"
             :class="
               draft.heating.includes(opt.id) ? 'bg-cream/70 border-line-2' : ''
             "
@@ -328,7 +328,7 @@ function reset() {
             :class="
               draft.energyClass.includes(opt.id)
                 ? 'border-ink bg-ink text-bg'
-                : 'border-line text-ink hover:border-line-2'
+                : 'border-line-2 text-ink hover:border-ink-3'
             "
           >
             {{ opt.label }}
@@ -351,7 +351,7 @@ function reset() {
             :class="
               draft.completion === opt.id
                 ? 'border-ink bg-ink text-bg'
-                : 'border-line text-ink hover:border-line-2'
+                : 'border-line-2 text-ink hover:border-ink-3'
             "
           >
             {{ opt.label }}
@@ -372,7 +372,7 @@ function reset() {
         <button
           type="button"
           @click="apply"
-          class="focus-ring inline-flex items-center justify-center gap-2 h-11 px-5 rounded-md bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors min-w-44"
+          class="focus-ring inline-flex items-center justify-center gap-2 h-11 px-5 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors min-w-44"
         >
           <span>{{ t('advFilters.apply') }}</span>
         </button>

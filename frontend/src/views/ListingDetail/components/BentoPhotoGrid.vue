@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { mediaVariant, onVariantError } from '../../../utils/mediaVariant';
 
 defineProps<{
@@ -9,6 +10,8 @@ defineProps<{
 const emit = defineEmits<{
   'open-lightbox': [index: number];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -106,8 +109,8 @@ const emit = defineEmits<{
   <!-- 0 photos -->
   <div
     v-else
-    class="hidden lg:flex items-center justify-center rounded-xl overflow-hidden h-[420px] mb-8 bg-surface border border-dashed border-line"
+    class="hidden lg:flex items-center justify-center rounded-xl overflow-hidden h-[420px] mb-8 bg-surface"
   >
-    <p class="text-sm text-ink-3">No photos available</p>
+    <p class="text-sm text-ink-3">{{ t('listing.noPhotos') }}</p>
   </div>
 </template>

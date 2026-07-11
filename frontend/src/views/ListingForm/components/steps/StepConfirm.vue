@@ -172,7 +172,7 @@ function priceLine(type: ListingType, amount: string): string {
       </div>
     </div>
 
-    <p v-if="rentListingWarning" class="text-sm text-amber-600">
+    <p v-if="rentListingWarning" class="text-sm text-ink-2">
       {{ t('addListing.rentListingFailed') }}
     </p>
 
@@ -191,6 +191,6 @@ function priceLine(type: ListingType, amount: string): string {
       </button>
     </div>
 
-    <p v-if="submitError" class="text-sm text-red-500">{{ submitError }}</p>
+    <p v-if="submitError" class="text-sm text-warn">{{ submitError }}</p>
   </div>
 </template>

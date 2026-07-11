@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import {
   normalizeVideoEmbedUrl,
   getVideoThumbnailUrl,
@@ -10,6 +11,8 @@ const props = defineProps<{
   videoUrl: string;
   alt: string;
 }>();
+
+const { t } = useI18n();
 
 const videoHasError = ref(false);
 const videoExpanded = ref(false);
@@ -26,18 +29,20 @@ const videoThumbnailUrl = computed(() => getVideoThumbnailUrl(props.videoUrl));
 <template>
   <div
     v-if="videoHasError"
-    class="relative aspect-video overflow-hidden rounded-xl border border-dashed border-line bg-surface flex flex-col items-center justify-center text-center p-6"
+    class="relative aspect-video overflow-hidden rounded-xl bg-surface flex flex-col items-center justify-center text-center p-6"
   >
     <i class="ti ti-video-off text-2xl text-ink-3 mb-2" aria-hidden="true" />
-    <p class="text-sm font-medium text-ink">Video tour unavailable</p>
+    <p class="text-sm font-medium text-ink">
+      {{ t('listing.videoUnavailable') }}
+    </p>
     <p class="text-xs text-ink-2 mt-1 max-w-xs">
-      This video cannot be loaded or has been removed by the provider.
+      {{ t('listing.videoUnavailableDesc') }}
     </p>
   </div>
 
   <div
     v-else
-    class="relative aspect-video overflow-hidden rounded-xl border border-line bg-black shadow-sm"
+    class="relative aspect-video overflow-hidden rounded-xl bg-black"
   >
     <Transition name="fade" mode="out-in">
       <button
@@ -50,7 +55,7 @@ const videoThumbnailUrl = computed(() => getVideoThumbnailUrl(props.videoUrl));
         <img
           v-if="videoThumbnailUrl"
           :src="videoThumbnailUrl"
-          :alt="`${alt} video tour thumbnail`"
+          :alt="`${alt} — ${t('listing.videoTour')}`"
           class="absolute inset-0 h-full w-full object-cover"
           @error="handleVideoError"
         />
@@ -64,7 +69,7 @@ const videoThumbnailUrl = computed(() => getVideoThumbnailUrl(props.videoUrl));
 
         <div class="absolute inset-0 flex items-center justify-center">
           <span
-            class="flex size-14 items-center justify-center rounded-full bg-white/90 text-ink shadow-lg transition-transform group-hover:scale-105"
+            class="flex size-14 items-center justify-center rounded-full bg-white/90 text-ink shadow-lift transition-transform group-hover:scale-105"
           >
             <IconPlayer />
           </span>
@@ -75,7 +80,7 @@ const videoThumbnailUrl = computed(() => getVideoThumbnailUrl(props.videoUrl));
         v-else
         :src="`${videoEmbedUrl}&autoplay=1`"
         class="h-full w-full border-none"
-        title="Video tour"
+        :title="t('listing.videoTour')"
         allow="
           accelerometer;
           autoplay;

@@ -97,7 +97,7 @@ function open(i: number) {
           />
           <div class="absolute inset-0 flex items-center justify-center">
             <span
-              class="flex size-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-lg transition-transform group-hover:scale-105"
+              class="flex size-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-lift transition-transform group-hover:scale-105"
             >
               <IconPlayer />
             </span>

@@ -316,7 +316,7 @@ onBeforeUnmount(() => {
     <select
       v-model.number="renewMonths"
       :aria-label="t('addListing.listingDuration')"
-      class="mt-2 h-10 w-full rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
+      class="mt-2 h-10 w-full rounded-lg border border-line-2 bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink"
     >
       <option v-for="n in 6" :key="n" :value="n">
         {{ n }} {{ t('addListing.months') }}

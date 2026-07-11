@@ -43,13 +43,13 @@ const emit = defineEmits<{
 
           <div class="flex gap-2 justify-end">
             <button
-              class="focus-ring h-9 px-4 rounded-lg border border-line text-sm text-ink-2 hover:bg-surface transition-colors"
+              class="focus-ring h-9 px-4 rounded-full border border-line-2 text-sm text-ink-2 hover:bg-surface hover:border-ink-3 transition-colors"
               @click="emit('update:open', false)"
             >
               {{ cancelLabel ?? 'Cancel' }}
             </button>
             <button
-              class="focus-ring h-9 px-4 rounded-lg text-sm font-medium transition-colors"
+              class="focus-ring h-9 px-4 rounded-full text-sm font-medium transition-colors"
               :class="
                 danger
                   ? 'bg-warn text-bg hover:bg-warn/90'

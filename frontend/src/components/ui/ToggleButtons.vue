@@ -38,7 +38,7 @@ function toggle(id: string) {
       :class="
         isSelected(opt.id)
           ? 'bg-ink text-bg border-ink'
-          : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+          : 'border-line-2 text-ink-2 hover:border-ink-3 hover:text-ink'
       "
       @click="toggle(opt.id)"
     >

@@ -17,7 +17,6 @@ import IconClose from '../icons/IconClose.vue';
 import IconUser from '../icons/IconUser.vue';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { LOCALES, LOCALE_NAMES } from '../../i18n';
-import IconFlag from '../icons/IconFlag.vue';
 import { authApi } from '../../api/authApi';
 
 const { t } = useI18n();
@@ -171,9 +170,6 @@ async function handleExportData() {
             class="focus-ring inline-flex items-center gap-1 h-9 pl-2 pr-2.5 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
             @click="langMenuOpen = !langMenuOpen"
           >
-            <span class="w-4.5 h-3.5 shrink-0 mr-1"
-              ><IconFlag :locale="locale"
-            /></span>
             {{ locale }}
             <span class="size-3 text-ink-3"
               ><IconChevron :dir="langMenuOpen ? 'up' : 'down'"
@@ -197,9 +193,6 @@ async function handleExportData() {
                 "
                 @click="langMenuOpen = false"
               >
-                <span class="w-4.5 h-3.5 shrink-0"
-                  ><IconFlag :locale="l"
-                /></span>
                 {{ LOCALE_NAMES[l] }}
               </RouterLink>
             </div>
@@ -283,9 +276,6 @@ async function handleExportData() {
             class="focus-ring inline-flex items-center gap-1 h-10 pl-1.5 pr-2 rounded-full text-xs font-semibold uppercase tracking-wide text-ink-2 hover:text-ink hover:bg-surface transition-colors"
             @click="mobileLangOpen = !mobileLangOpen"
           >
-            <span class="w-4 h-3 shrink-0 mr-0.5"
-              ><IconFlag :locale="locale"
-            /></span>
             {{ locale }}
             <span class="size-3 text-ink-3"
               ><IconChevron :dir="mobileLangOpen ? 'up' : 'down'"
@@ -308,7 +298,6 @@ async function handleExportData() {
                 "
                 @click="mobileLangOpen = false"
               >
-                <span class="w-4 h-3 shrink-0"><IconFlag :locale="l" /></span>
                 {{ LOCALE_NAMES[l] }}
               </RouterLink>
             </div>

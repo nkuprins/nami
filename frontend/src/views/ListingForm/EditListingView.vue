@@ -95,7 +95,7 @@ onMounted(async () => {
     <template v-else>
       <div class="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-ink">
+          <h1 class="display-headline text-3xl text-ink">
             {{ t('editListing.title') }}
           </h1>
           <p class="text-sm text-ink-3 mt-1">{{ t('editListing.subtitle') }}</p>
@@ -120,7 +120,7 @@ onMounted(async () => {
             class="rounded-xl border p-6 transition-shadow"
             :class="
               highlightedSection === 'location'
-                ? 'border-accent-2 ring-2 ring-accent/40'
+                ? 'border-accent-2 ring-2 ring-accent-2/25'
                 : 'border-line'
             "
           >
@@ -153,7 +153,7 @@ onMounted(async () => {
                 :model-value="form.type"
                 @update:model-value="form.type = $event as ListingType"
               />
-              <p v-if="fieldError('type')" class="text-xs text-red-500">
+              <p v-if="fieldError('type')" class="text-xs text-warn">
                 {{ fieldError('type') }}
               </p>
             </section>
@@ -221,7 +221,7 @@ onMounted(async () => {
                   : t('editListing.publishListing')
               }}
             </button>
-            <p v-if="submitError" class="text-sm text-red-500">
+            <p v-if="submitError" class="text-sm text-warn">
               {{ submitError }}
             </p>
           </div>

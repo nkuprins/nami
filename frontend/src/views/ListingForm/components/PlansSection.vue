@@ -36,7 +36,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
       />
       <button
         type="button"
-        class="self-start h-9 px-4 rounded-full text-sm font-medium border border-line text-ink-2 hover:border-ink/40 hover:text-ink transition-colors"
+        class="self-start h-9 px-4 rounded-full text-sm font-medium border border-line-2 text-ink-2 hover:border-ink-3 hover:text-ink transition-colors"
         @click="fileInputRef?.click()"
       >
         {{ t('addListing.addPlans') }}

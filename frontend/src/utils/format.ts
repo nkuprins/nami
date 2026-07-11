@@ -69,3 +69,8 @@ export function formatFloor(
   if (!total) return `${floor} ${unit}`;
   return `${floor}/${total} ${unit}`;
 }
+
+/** Join two place names, collapsing duplicates ("Sigulda · Sigulda" → "Sigulda"). */
+export function joinPlace(a: string, b: string, sep = ' · '): string {
+  return !b || a === b ? a : `${a}${sep}${b}`;
+}

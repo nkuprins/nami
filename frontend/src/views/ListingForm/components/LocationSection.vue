@@ -32,14 +32,14 @@ defineEmits<{
     <div class="flex flex-col gap-1.5 relative">
       <label class="text-sm font-medium text-ink" for="ap-district-toggle"
         >{{ t('addListing.districtLabel') }}
-        <span class="text-red-500">*</span></label
+        <span class="text-warn">*</span></label
       >
       <button
         id="ap-district-toggle"
         type="button"
         class="h-10 px-3 rounded-lg border text-sm text-ink bg-bg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-all text-left"
         :class="
-          fieldError('district') ? 'border-red-400 bg-red-50' : 'border-line'
+          fieldError('district') ? 'border-warn/40 bg-warn/5' : 'border-line-2'
         "
         @click="$emit('update:isOpen', !isOpen)"
       >
@@ -62,7 +62,7 @@ defineEmits<{
 
       <div
         v-if="isOpen"
-        class="absolute top-[calc(100%+4px)] left-0 z-50 w-full bg-bg border border-line rounded-lg shadow-xl p-3"
+        class="absolute top-[calc(100%+4px)] left-0 z-50 w-full bg-bg border border-line rounded-lg shadow-lift p-3"
       >
         <LocationPopover
           :model-value="selectedLocation ? [selectedLocation] : []"
@@ -71,7 +71,7 @@ defineEmits<{
         />
       </div>
 
-      <p v-if="fieldError('district')" class="text-xs text-red-500 mt-1">
+      <p v-if="fieldError('district')" class="text-xs text-warn mt-1">
         {{ fieldError('district') }}
       </p>
     </div>

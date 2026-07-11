@@ -58,7 +58,7 @@ function onSearch() {
     <ListingGrid :items="items" :loading="loading">
       <template #empty>
         <div
-          class="border border-dashed border-line rounded-2xl py-24 px-8 text-center bg-cream/40"
+          class="rounded-2xl py-24 px-8 text-center bg-surface/60"
         >
           <p class="micro-label mb-4">{{ t('results.noMatches') }}</p>
           <h3 class="display-headline text-3xl text-ink mb-3">

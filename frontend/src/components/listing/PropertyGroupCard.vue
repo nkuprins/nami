@@ -5,7 +5,7 @@ import type { ListingSummary } from '../../types/listingItem';
 import { resolveTitle } from '../../types/listingItem';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
-import { formatPrice } from '../../utils/format';
+import { formatPrice, joinPlace } from '../../utils/format';
 import Popover from '../ui/Popover.vue';
 import IconTrash from '../icons/IconTrash.vue';
 import IconEdit from '../icons/IconEdit.vue';
@@ -44,7 +44,7 @@ const location = computed(() => representative.value.location);
 const addressLine = computed(
   () =>
     location.value.address ||
-    `${location.value.district}, ${location.value.city}`
+    joinPlace(location.value.district, location.value.city, ', ')
 );
 
 function listingTitle(item: ListingSummary): string {
@@ -96,18 +96,18 @@ function requestDeleteListing(id: string) {
 </script>
 
 <template>
-  <div class="rounded-xl border border-line bg-bg overflow-hidden">
+  <div class="rounded-xl shadow-soft bg-bg overflow-hidden">
     <!-- Group identity = the shared physical address, not any one listing -->
     <div class="flex items-start gap-2.5 px-4 pt-4 pb-3.5 bg-surface/40">
       <span class="mt-0.5 size-4 shrink-0 text-ink-3"><IconBuilding /></span>
       <div class="min-w-0 flex-1">
         <p
-          class="font-display text-[0.95rem] md:text-base leading-tight text-ink truncate"
+          class="text-[0.9375rem] md:text-base font-medium leading-tight text-ink truncate"
         >
           {{ addressLine }}
         </p>
         <p class="text-xs text-ink-2 mt-1 truncate">
-          {{ location.district }} · {{ location.city }}
+          {{ joinPlace(location.district, location.city) }}
         </p>
       </div>
 

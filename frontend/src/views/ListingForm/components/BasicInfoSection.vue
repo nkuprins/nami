@@ -77,7 +77,7 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           :class="
             activeLang === lang
               ? 'bg-ink text-bg border-ink'
-              : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+              : 'border-line-2 text-ink-2 hover:border-ink-3 hover:text-ink'
           "
           @click="activeLang = lang"
         >
@@ -92,7 +92,7 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
 
       <p
         v-if="titleError || descriptionError"
-        class="text-xs text-red-500 mb-2"
+        class="text-xs text-warn mb-2"
       >
         {{ titleError || descriptionError }}
       </p>
@@ -109,7 +109,7 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           :placeholder="t('addListing.titlePlaceholder')"
           required
         />
-        <p v-if="lvTitleWarning" class="text-xs text-amber-600 -mt-2">
+        <p v-if="lvTitleWarning" class="text-xs text-ink-2 -mt-2">
           {{ warningMessage(lvTitleWarning) }}
         </p>
 
@@ -129,7 +129,7 @@ function warningMessage(w: 'latvianInEn' | 'separator' | null): string {
           :placeholder="t('addListing.titlePlaceholder')"
           required
         />
-        <p v-if="enTitleWarning" class="text-xs text-amber-600 -mt-2">
+        <p v-if="enTitleWarning" class="text-xs text-ink-2 -mt-2">
           {{ warningMessage(enTitleWarning) }}
         </p>
 

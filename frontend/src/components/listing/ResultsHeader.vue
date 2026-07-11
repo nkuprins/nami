@@ -35,7 +35,7 @@ function pick(id: SortKey) {
     <div class="space-y-1">
       <p class="micro-label">{{ t('results.results') }}</p>
       <h2 class="display-headline text-3xl sm:text-4xl text-ink">
-        <span class="tabular">{{ total }}</span>
+        <span class="display-price">{{ total }}</span>
         <span class="text-ink-2">
           {{
             ' ' + (total === 1 ? t('results.listing') : t('results.listings'))
@@ -47,13 +47,13 @@ function pick(id: SortKey) {
       </p>
     </div>
 
-    <div class="relative">
+    <div class="relative sm:mb-1">
       <button
         ref="anchor"
         type="button"
         @click="open = !open"
         :aria-expanded="open"
-        class="focus-ring inline-flex items-center gap-3 h-11 px-4 rounded-md border border-line bg-bg hover:border-line-2 transition-colors text-sm"
+        class="focus-ring inline-flex items-center gap-3 h-11 px-5 rounded-full border border-line-2 bg-bg hover:border-ink-3 transition-colors text-sm"
       >
         <span class="micro-label">{{ t('sort.sort') }}</span>
         <span class="text-ink">{{ currentSortLabel }}</span>
@@ -86,7 +86,7 @@ function pick(id: SortKey) {
 
             <span
               v-if="state.sort === opt.id"
-              class="size-1.5 rounded-full bg-accent shrink-0"
+              class="size-1.5 rounded-full bg-accent-2 shrink-0"
               aria-hidden="true"
             />
           </button>

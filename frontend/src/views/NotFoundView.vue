@@ -12,7 +12,7 @@ const { t } = useI18n();
         class="w-full max-w-3xl text-center my-auto flex flex-col items-center justify-center z-10 gap-6 md:gap-8"
       >
         <h1
-          class="display-headline text-8xl sm:text-[12rem] text-ink select-none tabular tracking-tighter opacity-90"
+          class="font-sans font-semibold text-8xl sm:text-[12rem] leading-none text-ink select-none tabular tracking-tighter opacity-90"
         >
           404
         </h1>

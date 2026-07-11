@@ -79,7 +79,7 @@ function handleTypeChange(type: ListingType | '') {
     <template v-else>
       <div class="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-ink">
+          <h1 class="display-headline text-3xl text-ink">
             {{ t('drawers.addListingTypeTitle') }}
           </h1>
           <p class="text-sm text-ink-3 mt-1">
@@ -136,7 +136,7 @@ function handleTypeChange(type: ListingType | '') {
                     handleTypeChange($event as ListingType | '')
                   "
                 />
-                <p v-if="fieldError('type')" class="text-xs text-red-500">
+                <p v-if="fieldError('type')" class="text-xs text-warn">
                   {{ fieldError('type') }}
                 </p>
               </section>

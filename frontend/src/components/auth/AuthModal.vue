@@ -186,11 +186,11 @@ async function handleResend() {
           autocomplete="email"
           placeholder="you@example.com"
         />
-        <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
+        <p v-if="error" class="text-sm text-warn">{{ error }}</p>
         <button
           type="submit"
           :disabled="submitting"
-          class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
+          class="h-10 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
         >
           {{ t('auth.sendResetLink') }}
         </button>
@@ -278,7 +278,7 @@ async function handleResend() {
               tab === 'signin' ? 'current-password' : 'new-password'
             "
             placeholder="••••••••••••••••"
-            class="h-10 px-3 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+            class="h-10 px-3 rounded-lg border border-line-2 bg-bg text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
           />
         </div>
 
@@ -288,7 +288,7 @@ async function handleResend() {
             <input
               v-model="agreedToTerms"
               type="checkbox"
-              class="mt-0.5 size-4 rounded border-line accent-ink shrink-0 cursor-pointer"
+              class="mt-0.5 size-4 rounded border-line-2 accent-ink shrink-0 cursor-pointer"
               @change="termsError = false"
             />
             <span class="text-sm text-ink-2 leading-snug">
@@ -310,7 +310,7 @@ async function handleResend() {
               </RouterLink>
             </span>
           </label>
-          <p v-if="termsError" class="text-xs text-red-500">
+          <p v-if="termsError" class="text-xs text-warn">
             {{ t('auth.agreeToTerms') }}
           </p>
         </div>
@@ -333,12 +333,12 @@ async function handleResend() {
             }}
           </button>
         </div>
-        <p v-else-if="error" class="text-sm text-red-500">{{ error }}</p>
+        <p v-else-if="error" class="text-sm text-warn">{{ error }}</p>
 
         <button
           type="submit"
           :disabled="submitting"
-          class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
+          class="h-10 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
         >
           {{ tab === 'signin' ? t('auth.signIn') : t('auth.createAccount') }}
         </button>

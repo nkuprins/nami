@@ -22,7 +22,7 @@ const rendered = computed(() =>
     <div class="flex items-center justify-between">
       <label class="text-sm font-medium text-ink" :for="id">
         {{ t('addListing.descriptionLabel') }}
-        <span class="text-red-500">*</span>
+        <span class="text-warn">*</span>
       </label>
       <div class="flex gap-1">
         <button
@@ -31,7 +31,7 @@ const rendered = computed(() =>
           :class="
             !preview
               ? 'bg-ink text-bg border-ink'
-              : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+              : 'border-line-2 text-ink-2 hover:border-ink-3 hover:text-ink'
           "
           @click="preview = false"
         >
@@ -43,7 +43,7 @@ const rendered = computed(() =>
           :class="
             preview
               ? 'bg-ink text-bg border-ink'
-              : 'border-line text-ink-2 hover:border-ink/40 hover:text-ink'
+              : 'border-line-2 text-ink-2 hover:border-ink-3 hover:text-ink'
           "
           @click="preview = true"
         >
@@ -58,7 +58,7 @@ const rendered = computed(() =>
       v-model="model"
       rows="14"
       :placeholder="t('addListing.descriptionPlaceholder')"
-      class="px-3 py-2.5 rounded-lg border border-line bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
+      class="px-3 py-2.5 rounded-lg border border-line-2 bg-bg text-sm text-ink placeholder:text-ink-3 resize-y min-h-80 focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition-colors"
     />
     <div
       v-show="preview"
@@ -74,7 +74,7 @@ const rendered = computed(() =>
       </p>
     </div>
 
-    <p v-if="warning" class="text-xs text-amber-600">
+    <p v-if="warning" class="text-xs text-ink-2">
       {{ warning }}
     </p>
   </div>

@@ -95,11 +95,11 @@ async function submit() {
           autocomplete="new-password"
           placeholder="••••••••••••••••"
         />
-        <p v-if="error" class="text-sm text-red-500">{{ error }}</p>
+        <p v-if="error" class="text-sm text-warn">{{ error }}</p>
         <button
           type="submit"
           :disabled="submitting"
-          class="h-10 rounded-lg bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
+          class="h-10 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
         >
           {{ t('resetPassword.update') }}
         </button>

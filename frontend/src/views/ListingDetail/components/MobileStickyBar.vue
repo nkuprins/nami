@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import IconPhone from '../../../components/icons/IconPhone.vue';
 import IconChevron from '../../../components/icons/IconChevron.vue';
 import { formatPhone } from '../../../utils/utils';
@@ -14,6 +15,8 @@ defineProps<{
 const emit = defineEmits<{
   'reveal-phone': [];
 }>();
+
+const { t } = useI18n();
 
 const phonePopoverOpen = ref(false);
 const phonePopoverEl = ref<HTMLElement | null>(null);
@@ -67,7 +70,7 @@ onBeforeUnmount(() => {
             v-if="phones.length > 1"
             class="flex items-center px-2.5 border-l border-cream/20 text-cream cursor-pointer hover:bg-white/10 transition-colors"
             @click="phonePopoverOpen = !phonePopoverOpen"
-            aria-label="More phone numbers"
+            :aria-label="t('listing.morePhones')"
           >
             <span class="size-4"
               ><IconChevron :dir="phonePopoverOpen ? 'down' : 'up'"
@@ -96,11 +99,11 @@ onBeforeUnmount(() => {
       <!-- Not yet revealed -->
       <button
         v-else-if="phones?.length"
-        class="flex items-center gap-1.5 px-5 py-2.5 bg-ink text-cream text-sm font-medium rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+        class="flex items-center gap-1.5 px-5 py-2.5 bg-ink text-bg text-sm font-medium rounded-full cursor-pointer hover:bg-accent-2 transition-colors"
         @click="emit('reveal-phone')"
       >
         <span class="size-4 shrink-0"><IconPhone /></span>
-        Show number
+        {{ t('listing.showNumber') }}
       </button>
     </div>
   </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue';
+import { useI18n } from 'vue-i18n';
 import IconChevron from '../icons/IconChevron.vue';
 import IconClose from '../icons/IconClose.vue';
 import { usePinchZoom } from '../../composables/usePinchZoom';
@@ -12,6 +13,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
+
+const { t } = useI18n();
 
 const index = ref(props.initialIndex ?? 0);
 const direction = ref<'forward' | 'backward'>('forward');
@@ -193,11 +196,11 @@ onBeforeUnmount(() => {
               class="focus-ring h-7 sm:h-9 px-3 sm:px-4 rounded-full bg-cream/10 hover:bg-cream/20 text-cream text-xs sm:text-sm transition-colors"
               @click="resetZoom"
             >
-              Reset zoom
+              {{ t('common.resetZoom') }}
             </button>
             <button
               class="focus-ring size-9 sm:size-11 grid place-items-center rounded-full bg-cream/10 hover:bg-cream/20 text-cream transition-colors"
-              aria-label="Close"
+              :aria-label="t('common.close')"
               @click="close"
             >
               <span class="size-5 sm:size-6"><IconClose /></span>
@@ -243,7 +246,7 @@ onBeforeUnmount(() => {
             <button
               class="hidden sm:grid focus-ring size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors absolute top-1/2 -translate-y-1/2 z-10"
               :style="{ left: `${arrowInset}px` }"
-              aria-label="Previous"
+              :aria-label="t('common.previous')"
               @click="prev"
             >
               <span class="size-5 md:size-6 inline-block"
@@ -253,7 +256,7 @@ onBeforeUnmount(() => {
             <button
               class="hidden sm:grid focus-ring size-10 md:size-12 place-items-center rounded-full bg-ink/50 hover:bg-ink/80 text-cream transition-colors absolute top-1/2 -translate-y-1/2 z-10"
               :style="{ right: `${arrowInset}px` }"
-              aria-label="Next"
+              :aria-label="t('common.next')"
               @click="next"
             >
               <span class="size-5 md:size-6 inline-block"

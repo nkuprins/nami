@@ -12,6 +12,7 @@ export default {
     add: 'Add',
     deleteAccount: 'Delete account',
     exportData: 'Export my data',
+    menu: 'Menu',
   },
   filters: {
     location: 'Location',
@@ -91,7 +92,11 @@ export default {
     location: 'Location',
     contact: 'Contact details',
     showNumber: 'Show number',
+    show: 'Show',
+    morePhones: 'More phone numbers',
+    videoTour: 'Video tour',
     videoUnavailable: 'Video tour unavailable',
+    noPhotos: 'No photos available',
     videoUnavailableDesc:
       'This video cannot be loaded or has been removed by the provider.',
     newListing: 'New listing',
@@ -386,6 +391,10 @@ export default {
     confirm: 'Confirm',
     or: 'or',
     dismiss: 'Dismiss',
+    close: 'Close',
+    previous: 'Previous',
+    next: 'Next',
+    resetZoom: 'Reset zoom',
   },
   footer: {
     allRights: 'All rights reserved.',

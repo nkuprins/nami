@@ -71,12 +71,12 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
         <div class="flex flex-col gap-1.5">
           <label for="ap-duration" class="text-sm font-medium text-ink">
             {{ t('addListing.listingDuration') }}
-            <span class="text-red-500">*</span>
+            <span class="text-warn">*</span>
           </label>
           <select
             id="ap-duration"
             v-model.number="form.durationMonths"
-            class="h-10 rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
+            class="h-10 rounded-lg border border-line-2 bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink"
           >
             <option v-for="n in 6" :key="n" :value="n">
               {{ n }} {{ t('addListing.months') }}
@@ -114,12 +114,12 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
         <div class="flex flex-col gap-1.5">
           <label for="ap-rent-duration" class="text-sm font-medium text-ink">
             {{ t('addListing.listingDuration') }}
-            <span class="text-red-500">*</span>
+            <span class="text-warn">*</span>
           </label>
           <select
             id="ap-rent-duration"
             v-model.number="form.rentDurationMonths"
-            class="h-10 rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
+            class="h-10 rounded-lg border border-line-2 bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink"
           >
             <option v-for="n in 6" :key="n" :value="n">
               {{ n }} {{ t('addListing.months') }}
@@ -155,12 +155,12 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
       <div v-if="!isEdit" class="flex flex-col gap-1.5">
         <label for="ap-single-duration" class="text-sm font-medium text-ink">
           {{ t('addListing.listingDuration') }}
-          <span class="text-red-500">*</span>
+          <span class="text-warn">*</span>
         </label>
         <select
           id="ap-single-duration"
           v-model.number="form.durationMonths"
-          class="h-10 rounded-lg border border-line bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-accent-2"
+          class="h-10 rounded-lg border border-line-2 bg-bg px-3 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink"
         >
           <option v-for="n in 6" :key="n" :value="n">
             {{ n }} {{ t('addListing.months') }}
@@ -173,14 +173,14 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
     <div v-if="form.type === 'new_project'" class="flex flex-col gap-1.5">
       <p class="text-sm font-medium text-ink">
         {{ t('addListing.completionStatus') }}
-        <span class="text-red-500">*</span>
+        <span class="text-warn">*</span>
       </p>
       <ToggleButtons
         :options="completionOptions"
         :model-value="form.completion ?? ''"
         @update:model-value="form.completion = $event as typeof form.completion"
       />
-      <p v-if="fieldError('completion')" class="text-xs text-red-500">
+      <p v-if="fieldError('completion')" class="text-xs text-warn">
         {{ fieldError('completion') }}
       </p>
     </div>

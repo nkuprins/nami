@@ -2,7 +2,7 @@
   <svg
     viewBox="0 0 24 24"
     aria-hidden="true"
-    class="size-full text-slate-500 hover:text-slate-700 transition-colors"
+    class="size-full text-ink-3 hover:text-ink-2 transition-colors"
     fill="currentColor"
     stroke="currentColor"
     stroke-width="2"

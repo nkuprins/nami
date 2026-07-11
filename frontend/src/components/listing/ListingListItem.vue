@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
-import { formatPrice } from '../../utils/format';
+import { formatPrice, joinPlace } from '../../utils/format';
 import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import type { ListingType } from '../../types/listingItem';
 
@@ -21,7 +21,7 @@ const emit = defineEmits<{
 
 <template>
   <div
-    class="flex flex-col rounded-xl border border-line overflow-hidden hover:border-ink/30 transition-colors"
+    class="flex flex-col rounded-xl border border-line-2 overflow-hidden hover:border-ink-3 transition-colors"
   >
     <div class="flex min-h-20 sm:min-h-24">
       <RouterLink
@@ -49,13 +49,13 @@ const emit = defineEmits<{
               {{ title }}
             </p>
             <p class="text-xs text-ink-2 mt-0.5 line-clamp-1">
-              {{ district }}, {{ city }}
+              {{ joinPlace(district, city, ', ') }}
             </p>
             <div class="min-w-0 overflow-hidden mt-0.5">
               <slot name="subtitle" />
             </div>
           </div>
-          <p class="text-sm sm:text-lg font-bold text-ink">
+          <p class="display-price text-base sm:text-lg text-ink">
             {{ formatPrice(price, type) }}
           </p>
         </div>

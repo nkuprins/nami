@@ -116,7 +116,7 @@ watch(
   <div class="mx-auto max-w-4xl px-4 sm:px-6 py-10 sm:py-14">
     <div class="mb-8 flex items-start justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-ink">{{ t('addListing.title') }}</h1>
+        <h1 class="display-headline text-3xl text-ink">{{ t('addListing.title') }}</h1>
         <p class="text-sm text-ink-3 mt-1">{{ t('addListing.subtitle') }}</p>
       </div>
       <RouterLink

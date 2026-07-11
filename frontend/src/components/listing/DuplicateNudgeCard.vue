@@ -59,7 +59,7 @@ const { localePath } = useLocaleRoute();
         </RouterLink>
         <button
           type="button"
-          class="focus-ring h-9 px-4 rounded-full border border-line text-sm text-ink-2 hover:bg-surface transition-colors"
+          class="focus-ring h-9 px-4 rounded-full border border-line-2 text-sm text-ink-2 hover:bg-surface hover:border-ink-3 transition-colors"
           @click="$emit('add-listing')"
         >
           {{ t('addListing.duplicateNudgeAddListing') }}

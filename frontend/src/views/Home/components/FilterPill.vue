@@ -33,7 +33,7 @@ function toggle() {
       :class="{
         'border-ink text-ink': open,
         'border-ink/50 text-ink': active && !open,
-        'border-line hover:border-line-2': !open && !active,
+        'border-line-2 hover:border-ink-3': !open && !active,
       }"
     >
       <span class="flex flex-col leading-tight min-w-0">

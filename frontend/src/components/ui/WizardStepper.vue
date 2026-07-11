@@ -38,7 +38,7 @@ function stepState(i: number): 'current' | 'done' | 'upcoming' {
   >
     <div class="absolute left-[11px] top-3 bottom-3 w-px bg-line" />
     <div
-      class="absolute left-[11px] top-3 w-px bg-accent transition-all duration-300"
+      class="absolute left-[11px] top-3 w-px bg-accent-2 transition-all duration-300"
       :style="{ height: `${progressPercent}%` }"
     />
     <button
@@ -54,7 +54,7 @@ function stepState(i: number): 'current' | 'done' | 'upcoming' {
         class="relative z-10 size-[22px] shrink-0 rounded-full grid place-items-center font-mono text-[0.65rem] transition-colors"
         :class="{
           'bg-ink text-bg': stepState(i) === 'current',
-          'bg-bg border border-accent text-accent-2': stepState(i) === 'done',
+          'bg-bg border border-accent-2 text-accent-2': stepState(i) === 'done',
           'bg-bg border border-line text-ink-3': stepState(i) === 'upcoming',
         }"
       >
@@ -83,7 +83,7 @@ function stepState(i: number): 'current' | 'done' | 'upcoming' {
     </p>
     <div class="h-1 rounded-full bg-line overflow-hidden">
       <div
-        class="h-full bg-accent transition-all duration-300"
+        class="h-full bg-accent-2 transition-all duration-300"
         :style="{ width: `${progressPercent}%` }"
       />
     </div>
