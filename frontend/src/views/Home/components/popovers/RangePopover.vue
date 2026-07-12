@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { ListingType } from '../../../../types/listingItem';
 import { groupFmt } from '../../../../utils/format';
 import { numericInput } from '../../../../utils/utils';
 
@@ -12,12 +11,12 @@ const { t } = useI18n();
 const props = defineProps<{
   min: number | undefined;
   max: number | undefined;
-  type: ListingType;
-  vatIncluded?: boolean;
+  unit?: string;
+  // [min, max, label] — either bound may be undefined for an open-ended pick.
+  presets?: Array<[number | undefined, number | undefined, string]>;
 }>();
 const emit = defineEmits<{
   'update:range': [min: number | undefined, max: number | undefined];
-  'update:vatIncluded': [value: boolean];
 }>();
 
 const rawMin = ref(props.min);
@@ -37,25 +36,6 @@ watch(
     rawMax.value = mx as number | undefined;
   }
 );
-
-const suggestions = computed<
-  Array<[number | undefined, number | undefined, string]>
->(() => {
-  if (props.type === 'rent') {
-    return [
-      [undefined, 500, 'Under €500'],
-      [500, 900, '€500 – €900'],
-      [900, 1500, '€900 – €1,500'],
-      [1500, undefined, '€1,500+'],
-    ];
-  }
-  return [
-    [undefined, 150_000, 'Under €150k'],
-    [150_000, 300_000, '€150k – €300k'],
-    [300_000, 600_000, '€300k – €600k'],
-    [600_000, undefined, '€600k+'],
-  ];
-});
 
 let timer: number | null = null;
 
@@ -80,44 +60,39 @@ function pickPreset(mn: number | undefined, mx: number | undefined) {
   rawMax.value = mx;
   emit('update:range', mn, mx);
 }
-
 </script>
 
 <template>
-  <div class="space-y-4 min-w-70">
+  <div class="space-y-4 min-w-64">
     <div class="grid grid-cols-2 gap-2">
       <label class="flex flex-col gap-1">
-        <span class="micro-label">{{
-          t('filters.minPrice', { unit: type === 'rent' ? '€ / mo' : '€' })
-        }}</span>
+        <span class="micro-label">{{ t('advFilters.min') }}</span>
         <input
           :value="displayMin"
           @input="onInput('min', $event)"
           @beforeinput="numericInput"
           inputmode="numeric"
-          :placeholder="t('filters.anyAmount')"
+          :placeholder="unit || t('filters.any')"
           class="focus-ring h-10 px-3 rounded-md border border-line-2 bg-bg text-sm tabular placeholder:text-ink-3"
         />
       </label>
       <label class="flex flex-col gap-1">
-        <span class="micro-label">{{
-          t('filters.maxPrice', { unit: type === 'rent' ? '€ / mo' : '€' })
-        }}</span>
+        <span class="micro-label">{{ t('advFilters.max') }}</span>
         <input
           :value="displayMax"
           @input="onInput('max', $event)"
           @beforeinput="numericInput"
           inputmode="numeric"
-          :placeholder="t('filters.anyAmount')"
+          :placeholder="unit || t('filters.any')"
           class="focus-ring h-10 px-3 rounded-md border border-line-2 bg-bg text-sm tabular placeholder:text-ink-3"
         />
       </label>
     </div>
-    <div>
+    <div v-if="presets?.length">
       <p class="micro-label mb-2">{{ t('filters.quickPicks') }}</p>
       <div class="flex flex-wrap gap-1.5">
         <button
-          v-for="[mn, mx, label] in suggestions"
+          v-for="[mn, mx, label] in presets"
           :key="label"
           type="button"
           class="focus-ring px-3 h-8 rounded-full border border-line-2 text-xs text-ink-2 hover:text-ink hover:border-ink-3 transition-colors"
@@ -128,21 +103,8 @@ function pickPreset(mn: number | undefined, mx: number | undefined) {
       </div>
     </div>
 
-    <label
-      class="flex items-center gap-2 pt-3 border-t border-line text-sm text-ink-2 cursor-pointer"
-    >
-      <input
-        type="checkbox"
-        :checked="!!vatIncluded"
-        @change="
-          emit(
-            'update:vatIncluded',
-            ($event.target as HTMLInputElement).checked
-          )
-        "
-        class="accent-ink size-4"
-      />
-      {{ t('filters.vatIncluded') }}
-    </label>
+    <div v-if="$slots.footer" class="pt-3 border-t border-line">
+      <slot name="footer" />
+    </div>
   </div>
 </template>

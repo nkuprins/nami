@@ -1,19 +1,15 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { ROOM_COUNT_OPTIONS, roomCountLabel } from '../../../../types/filter';
 
 const { t } = useI18n();
 const props = defineProps<{ modelValue: number[] }>();
 const emit = defineEmits<{ 'update:modelValue': [value: number[]] }>();
 
-const options: Array<{ value: number; label: string }> = [
-  { value: 1, label: '1' },
-  { value: 2, label: '2' },
-  { value: 3, label: '3' },
-  { value: 4, label: '4' },
-  { value: 5, label: '5' },
-  { value: 6, label: '6' },
-  { value: 7, label: '7+' },
-];
+const options = ROOM_COUNT_OPTIONS.map((value) => ({
+  value,
+  label: roomCountLabel(value),
+}));
 
 function toggle(v: number) {
   const set = new Set(props.modelValue);
@@ -25,9 +21,6 @@ function toggle(v: number) {
   );
 }
 
-function clear() {
-  emit('update:modelValue', []);
-}
 </script>
 
 <template>
@@ -48,14 +41,7 @@ function clear() {
         {{ opt.label }} {{ t('filters.rm') }}
       </button>
     </div>
-    <div class="flex items-center justify-between pt-3 border-t border-line">
-      <button
-        type="button"
-        class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
-        @click="clear"
-      >
-        {{ t('filters.clear') }}
-      </button>
+    <div class="pt-3 border-t border-line text-right">
       <p class="micro-label">
         {{ modelValue.length || t('filters.any') }} {{ t('filters.selected') }}
       </p>

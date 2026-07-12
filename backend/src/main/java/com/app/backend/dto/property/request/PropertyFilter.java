@@ -1,11 +1,14 @@
 package com.app.backend.dto.property.request;
 
+import com.app.backend.enums.BathroomLayout;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
+import com.app.backend.enums.SewageType;
+import com.app.backend.enums.VentilationType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
@@ -28,14 +31,21 @@ public record PropertyFilter(
         List<Integer> bathrooms,
         @DecimalMin("1.00") @DecimalMax("9999.99") BigDecimal m2Min,
         @DecimalMin("1.00") @DecimalMax("9999.99") BigDecimal m2Max,
+        @DecimalMin("1.00") @DecimalMax("999999.99") BigDecimal landM2Min,
+        @DecimalMin("1.00") @DecimalMax("999999.99") BigDecimal landM2Max,
         @Min(0) @Max(100) Short floorMin,
         @Min(0) @Max(100) Short floorMax,
         Boolean notGround,
         Boolean notTop,
         @Min(1800) @Max(2035) Short yearMin,
         @Min(1800) @Max(2035) Short yearMax,
+        @DecimalMin("0.01") @DecimalMax("99999.99") BigDecimal maintenanceCostMax,
+        BathroomLayout bathroomLayout,
+        Boolean vatIncluded,
         List<HeatingType> heating,
         List<EnergyClass> energyClass,
+        List<SewageType> sewage,
+        List<VentilationType> ventilation,
         List<PropertyFeature> features,
         PropertyCompletion completion
 ) {}

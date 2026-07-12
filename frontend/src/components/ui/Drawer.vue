@@ -5,7 +5,10 @@ import IconClose from '../icons/IconClose.vue';
 
 const { t } = useI18n();
 
-const props = defineProps<{ open: boolean; title: string }>();
+const props = withDefaults(
+  defineProps<{ open: boolean; title: string; width?: string }>(),
+  { width: 'w-120' }
+);
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
 function close() {
@@ -49,7 +52,7 @@ onBeforeUnmount(() => {
     <transition name="drawer-right">
       <aside
         v-if="open"
-        class="hidden md:flex fixed inset-y-0 right-0 w-120 z-50 bg-bg shadow-lift border-l border-line flex-col"
+        :class="`hidden md:flex fixed inset-y-0 right-0 ${width} z-50 bg-bg shadow-lift border-l border-line flex-col`"
       >
         <header
           class="flex items-center justify-between px-6 h-16 border-b border-line"

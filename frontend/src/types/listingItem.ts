@@ -9,13 +9,41 @@ export const KNOWN_FEATURES = [
   'pets',
   'new_building',
   'basement',
+  'renovated',
+  'air_conditioning',
+  'terrace',
+  'sauna',
+  'fireplace',
+  'underfloor_heating',
+  'individual_meters',
+  'storage_room',
+  'walk_in_closet',
+  'pool',
+  'bathtub',
+  'shower',
+  'washing_machine',
+  'boiler',
+  'glazed_balcony',
+  'french_balcony',
+  'loggia',
+] as const;
+export const KNOWN_SEWAGE = ['central', 'local'] as const;
+export const KNOWN_VENTILATION = [
+  'natural',
+  'mechanical',
+  'recuperation',
 ] as const;
 export const KNOWN_HEATING = [
   'central',
+  'central_gas',
   'gas',
   'electric',
   'heat_pump',
+  'air_water_heat_pump',
+  'geothermal',
   'solid_fuel',
+  'stove',
+  'combined',
   'none',
 ] as const;
 export const KNOWN_ENERGY_CLASS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'] as const;
@@ -28,6 +56,8 @@ export type Feature = (typeof KNOWN_FEATURES)[number];
 export type HeatingType = (typeof KNOWN_HEATING)[number];
 export type EnergyClass = (typeof KNOWN_ENERGY_CLASS)[number];
 export type BathroomLayout = (typeof KNOWN_BATHROOM_LAYOUT)[number];
+export type SewageType = (typeof KNOWN_SEWAGE)[number];
+export type VentilationType = (typeof KNOWN_VENTILATION)[number];
 
 export interface PriceInfo {
   amount: number;
@@ -47,6 +77,8 @@ export interface PropertyDetails {
   heating?: HeatingType;
   energyClass?: EnergyClass;
   maintenanceCost?: number;
+  sewage?: SewageType;
+  ventilation?: VentilationType;
 }
 
 export interface LocalizedText {

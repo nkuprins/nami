@@ -228,6 +228,8 @@ public class PropertyMapper {
                 .heating(l.getHeating())
                 .energyClass(l.getEnergyClass())
                 .maintenanceCost(l.getMaintenanceCost())
+                .sewage(l.getSewage())
+                .ventilation(l.getVentilation())
                 .build();
     }
 
@@ -259,6 +261,8 @@ public class PropertyMapper {
         listing.setHeating(details.heating());
         listing.setEnergyClass(details.energyClass());
         listing.setMaintenanceCost(details.maintenanceCost());
+        listing.setSewage(details.sewage());
+        listing.setVentilation(details.ventilation());
     }
 
     private static void applyMedia(Listing listing, Media media) {

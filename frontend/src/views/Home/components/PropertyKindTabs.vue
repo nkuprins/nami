@@ -4,12 +4,12 @@ import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import IconApartment from '../../../components/icons/IconApartment.vue';
 import IconHouse from '../../../components/icons/IconHouse.vue';
 
-const props = defineProps<{
+defineProps<{
   modelValue: PropertyKind | undefined;
   counts?: { apartment: number; house: number };
 }>();
 const emit = defineEmits<{
-  'update:modelValue': [value: PropertyKind | undefined];
+  'update:modelValue': [value: PropertyKind];
 }>();
 
 const { kindLabel } = usePropertyLabels();
@@ -18,7 +18,7 @@ const kindIcons = { apartment: IconApartment, house: IconHouse } as const;
 const kinds = ['apartment', 'house'] as const;
 
 function pick(kind: PropertyKind) {
-  emit('update:modelValue', props.modelValue === kind ? undefined : kind);
+  emit('update:modelValue', kind);
 }
 </script>
 

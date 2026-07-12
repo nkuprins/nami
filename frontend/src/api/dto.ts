@@ -70,14 +70,22 @@ export function buildParams(f: FilterState): URLSearchParams {
   f.bathrooms.forEach((r) => p.append('bathrooms', String(r)));
   if (f.m2Min != null) p.set('m2Min', String(f.m2Min));
   if (f.m2Max != null) p.set('m2Max', String(f.m2Max));
+  if (f.landM2Min != null) p.set('landM2Min', String(f.landM2Min));
+  if (f.landM2Max != null) p.set('landM2Max', String(f.landM2Max));
   if (f.floorMin != null) p.set('floorMin', String(f.floorMin));
   if (f.floorMax != null) p.set('floorMax', String(f.floorMax));
   if (f.notGround) p.set('notGround', 'true');
   if (f.notTop) p.set('notTop', 'true');
   if (f.yearMin != null) p.set('yearMin', String(f.yearMin));
   if (f.yearMax != null) p.set('yearMax', String(f.yearMax));
+  if (f.maintenanceCostMax != null)
+    p.set('maintenanceCostMax', String(f.maintenanceCostMax));
+  if (f.bathroomLayout) p.set('bathroomLayout', f.bathroomLayout);
+  if (f.vatIncluded) p.set('vatIncluded', 'true');
   f.heating.forEach((h) => p.append('heating', h));
   f.energyClass.forEach((e) => p.append('energyClass', e));
+  f.sewage.forEach((s) => p.append('sewage', s));
+  f.ventilation.forEach((v) => p.append('ventilation', v));
   f.features.forEach((ft) => p.append('features', ft));
   if (f.completion) p.set('completion', f.completion);
   p.set('sort', f.sort);

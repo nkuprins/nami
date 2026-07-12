@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  options: Array<{ id: string; label: string }>;
+  options: Array<{ id: string; label: string; hint?: string }>;
   modelValue: string | string[];
   multiple?: boolean;
 }>();
@@ -34,6 +34,7 @@ function toggle(id: string) {
       v-for="opt in options"
       :key="opt.id"
       type="button"
+      :title="opt.hint"
       class="h-9 px-4 rounded-full text-sm font-medium border transition-colors"
       :class="
         isSelected(opt.id)

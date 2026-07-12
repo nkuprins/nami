@@ -112,6 +112,8 @@ export const INITIAL_PROPERTY_FIELDS: PropertyFieldsForm = {
   heating: '',
   energyClass: '',
   maintenanceCost: '',
+  sewage: '',
+  ventilation: '',
   features: [],
   videoUrl: '',
   coords: null,
@@ -136,6 +138,8 @@ export function buildDetails(form: PropertyFieldsForm): PropertyDetails {
     maintenanceCost: form.maintenanceCost
       ? parseDecimal(form.maintenanceCost)
       : undefined,
+    sewage: form.sewage || undefined,
+    ventilation: form.ventilation || undefined,
   };
 }
 
@@ -172,6 +176,8 @@ export function seedPropertyFields(
   form.energyClass = d.energyClass ?? '';
   form.maintenanceCost =
     d.maintenanceCost != null ? String(d.maintenanceCost) : '';
+  form.sewage = d.sewage ?? '';
+  form.ventilation = d.ventilation ?? '';
   form.features = listing.features ? [...listing.features] : [];
   form.videoUrl = listing.media.videoUrl ?? '';
 }

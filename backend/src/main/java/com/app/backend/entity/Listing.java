@@ -8,6 +8,8 @@ import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.PropertyStatus;
+import com.app.backend.enums.SewageType;
+import com.app.backend.enums.VentilationType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -108,6 +110,16 @@ public class Listing {
 
     @Column(name = "maintenance_cost", precision = 10, scale = 2)
     private BigDecimal maintenanceCost;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "sewage")
+    private SewageType sewage;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "ventilation")
+    private VentilationType ventilation;
 
     @Column(name = "video_url")
     private String videoUrl;

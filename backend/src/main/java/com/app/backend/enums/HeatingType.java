@@ -10,10 +10,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum HeatingType implements DbValueEnum {
     CENTRAL("central"),
+    CENTRAL_GAS("central_gas"),
     GAS("gas"),
     ELECTRIC("electric"),
     HEAT_PUMP("heat_pump"),
+    AIR_WATER_HEAT_PUMP("air_water_heat_pump"),
+    GEOTHERMAL("geothermal"),
     SOLID_FUEL("solid_fuel"),
+    STOVE("stove"),
+    COMBINED("combined"),
     NONE("none");
 
     @EnumeratedValue

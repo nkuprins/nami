@@ -3,6 +3,8 @@ package com.app.backend.dto.property.model;
 import com.app.backend.enums.BathroomLayout;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
+import com.app.backend.enums.SewageType;
+import com.app.backend.enums.VentilationType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -35,5 +37,7 @@ public record PropertyDetails(
         @Min(1800) @Max(2035) Short yearBuilt,
         HeatingType heating,
         EnergyClass energyClass,
-        @DecimalMin("0.00") @DecimalMax("99999999.99") @Digits(integer = 8, fraction = 2) BigDecimal maintenanceCost
+        @DecimalMin("0.00") @DecimalMax("99999999.99") @Digits(integer = 8, fraction = 2) BigDecimal maintenanceCost,
+        SewageType sewage,
+        VentilationType ventilation
 ) {}

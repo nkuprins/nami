@@ -77,6 +77,12 @@ export const useFiltersStore = defineStore('filters', () => {
     logger.info(`[FiltersStore] Kind mutation: ${state.kind} ➔ ${kind}`);
     state.kind = kind;
     state.page = 1;
+    // Land area only exists on houses; drop a lingering land filter when the
+    // user leaves the house tab so it can't wrongly exclude every apartment.
+    if (kind !== 'house') {
+      state.landM2Min = undefined;
+      state.landM2Max = undefined;
+    }
   }
 
   function setLocations(humanLocs: Location[]) {
@@ -107,9 +113,39 @@ export const useFiltersStore = defineStore('filters', () => {
     state.priceMax = max;
   }
 
+  function setVatIncluded(v: boolean) {
+    state.vatIncluded = v || undefined;
+  }
+
   function setRooms(rooms: number[]) {
     logger.info('[FiltersStore] Targeted rooms selection changed:', rooms);
     state.rooms = [...rooms];
+  }
+
+  function setM2Range(min: number | undefined, max: number | undefined) {
+    logger.info(`[FiltersStore] Area range: Min(${min}) - Max(${max})`);
+    state.m2Min = min;
+    state.m2Max = max;
+  }
+
+  function setLandRange(min: number | undefined, max: number | undefined) {
+    logger.info(`[FiltersStore] Land range: Min(${min}) - Max(${max})`);
+    state.landM2Min = min;
+    state.landM2Max = max;
+  }
+
+  function setFloorRange(min: number | undefined, max: number | undefined) {
+    logger.info(`[FiltersStore] Floor range: Min(${min}) - Max(${max})`);
+    state.floorMin = min;
+    state.floorMax = max;
+  }
+
+  function setNotGround(v: boolean) {
+    state.notGround = v || undefined;
+  }
+
+  function setNotTop(v: boolean) {
+    state.notTop = v || undefined;
   }
 
   // Commits the deferred pill filters (location / price / rooms) and refetches.
@@ -142,18 +178,17 @@ export const useFiltersStore = defineStore('filters', () => {
 
   function resetAdvanced() {
     logger.info('[FiltersStore] Discarding active advanced parameters.');
-    state.m2Min = undefined;
-    state.m2Max = undefined;
-    state.floorMin = undefined;
-    state.floorMax = undefined;
-    state.notGround = undefined;
-    state.notTop = undefined;
+    // Area, land and floor (incl. its ground/top toggles) are inline pills now.
     state.yearMin = undefined;
     state.yearMax = undefined;
+    state.maintenanceCostMax = undefined;
+    state.bathroomLayout = undefined;
     state.bedrooms = [];
     state.bathrooms = [];
     state.heating = [];
     state.energyClass = [];
+    state.sewage = [];
+    state.ventilation = [];
     state.features = [];
     state.completion = undefined;
     state.page = 1;
@@ -180,7 +215,13 @@ export const useFiltersStore = defineStore('filters', () => {
     setKind,
     setLocations,
     setPriceRange,
+    setVatIncluded,
     setRooms,
+    setM2Range,
+    setLandRange,
+    setFloorRange,
+    setNotGround,
+    setNotTop,
     applySearch,
     setSort,
     setPage,

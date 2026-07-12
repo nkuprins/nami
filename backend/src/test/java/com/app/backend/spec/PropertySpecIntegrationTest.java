@@ -365,4 +365,79 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
 
         assertThat(results).hasSize(1).allMatch(l -> l.getFloor() == 1);
     }
+
+    @Test
+    void filtersByLandArea_excludesListingsWithoutLand() {
+        Listing smallPlot = TestData.listing(owner);
+        smallPlot.setPropertyCategory(PropertyCategory.HOUSE);
+        smallPlot.setLandM2(new BigDecimal("500.00"));
+        save(smallPlot);
+
+        Listing bigPlot = TestData.listing(owner);
+        bigPlot.setPropertyCategory(PropertyCategory.HOUSE);
+        bigPlot.setLandM2(new BigDecimal("1200.00"));
+        save(bigPlot);
+
+        Listing apartment = TestData.listing(owner); // landM2 == null
+        save(apartment);
+
+        // landM2Min=800 matches only the 1200 m² plot; the null-land apartment is excluded.
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().landM2Min(new BigDecimal("800"))));
+
+        assertThat(results).hasSize(1)
+                .allMatch(l -> l.getLandM2().compareTo(new BigDecimal("1200")) == 0);
+    }
+
+    @Test
+    void filtersByBathroomLayout() {
+        Listing separate = TestData.listing(owner);
+        separate.setBathroomLayout(BathroomLayout.SEPARATE);
+        save(separate);
+
+        Listing combined = TestData.listing(owner);
+        combined.setBathroomLayout(BathroomLayout.COMBINED);
+        save(combined);
+
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().bathroomLayout(BathroomLayout.SEPARATE)));
+
+        assertThat(results).hasSize(1).allMatch(l -> l.getBathroomLayout() == BathroomLayout.SEPARATE);
+    }
+
+    @Test
+    void filtersByMaintenanceCostMax_excludesListingsWithoutCost() {
+        Listing cheap = TestData.listing(owner);
+        cheap.setMaintenanceCost(new BigDecimal("50.00"));
+        save(cheap);
+
+        Listing pricey = TestData.listing(owner);
+        pricey.setMaintenanceCost(new BigDecimal("200.00"));
+        save(pricey);
+
+        Listing unknown = TestData.listing(owner); // maintenanceCost == null
+        save(unknown);
+
+        // maintenanceCostMax=100 matches only the €50 listing; the null-cost one is excluded.
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().maintenanceCostMax(new BigDecimal("100"))));
+
+        assertThat(results).hasSize(1)
+                .allMatch(l -> l.getMaintenanceCost().compareTo(new BigDecimal("50")) == 0);
+    }
+
+    @Test
+    void filtersByVatIncluded() {
+        Listing withVat = TestData.listing(owner);
+        withVat.setVatIncluded(true);
+        save(withVat);
+
+        Listing withoutVat = TestData.listing(owner); // vatIncluded == false by default
+        save(withoutVat);
+
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().vatIncluded(true)));
+
+        assertThat(results).hasSize(1).allMatch(Listing::isVatIncluded);
+    }
 }

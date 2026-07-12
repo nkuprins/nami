@@ -6,7 +6,7 @@ import { useSavedStore } from '../../stores/savedStore';
 import { useAuthStore } from '../../stores/authStore';
 import AuthModal from '../auth/AuthModal.vue';
 import SavedDrawer from '../listing/SavedDrawer.vue';
-import MyPropertiesDrawer from '../listing/MyPropertiesDrawer.vue';
+import MyPropertiesModal from '../listing/MyPropertiesModal.vue';
 import DeleteAccountDialog from '../auth/DeleteAccountDialog.vue';
 import EditProfileDialog from '../auth/EditProfileDialog.vue';
 import MobileMenu from './MobileMenu.vue';
@@ -18,11 +18,13 @@ import IconUser from '../icons/IconUser.vue';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { LOCALES, LOCALE_NAMES } from '../../i18n';
 import { authApi } from '../../api/authApi';
+import { useFiltersStore } from '../../stores/filterStore';
 
 const { t } = useI18n();
 const { locale, localePath, localePush, switchLocalePath } = useLocaleRoute();
 const savedStore = useSavedStore();
 const auth = useAuthStore();
+const filters = useFiltersStore();
 
 const authOpen = ref(false);
 const savedOpen = ref(false);
@@ -115,6 +117,7 @@ async function handleExportData() {
       <RouterLink
         :to="localePath('/')"
         class="focus-ring flex flex-col group shrink-0"
+        @click="filters.resetAll()"
       >
         <span
           class="display-headline text-[1.5rem] sm:text-[1.6rem] leading-none text-ink"
@@ -350,7 +353,7 @@ async function handleExportData() {
 
   <AuthModal v-model:open="authOpen" />
   <SavedDrawer v-model:open="savedOpen" />
-  <MyPropertiesDrawer v-model:open="myPropertiesOpen" />
+  <MyPropertiesModal v-model:open="myPropertiesOpen" />
   <EditProfileDialog
     v-model:open="editProfileOpen"
     @delete-account="

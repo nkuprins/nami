@@ -15,6 +15,13 @@ import java.util.UUID;
 
 public class PropertySpec {
 
+    /**
+     * Highest room / bedroom / bathroom bucket offered in the filters; the top value
+     * matches "that many or more". Mirror of the frontend's ROOM_COUNT_MAX
+     * (src/types/filter.ts) — keep the two in sync.
+     */
+    private static final int ROOM_COUNT_MAX = 7;
+
     public static Specification<Listing> build(PropertySearchCriteria criteria) {
         return (root, query, cb) -> {
             // A listing is self-contained; only the shared location lives on the property.
@@ -48,6 +55,11 @@ public class PropertySpec {
             if (criteria.m2Min() != null) predicates.add(cb.ge(root.get(Listing_.m2), criteria.m2Min()));
             if (criteria.m2Max() != null) predicates.add(cb.le(root.get(Listing_.m2), criteria.m2Max()));
 
+            // Land area lives only on houses; apartments have a null landM2, so a
+            // ge/le bound naturally excludes them (no extra null guard needed).
+            if (criteria.landM2Min() != null) predicates.add(cb.ge(root.get(Listing_.landM2), criteria.landM2Min()));
+            if (criteria.landM2Max() != null) predicates.add(cb.le(root.get(Listing_.landM2), criteria.landM2Max()));
+
             if (criteria.floorMin() != null) predicates.add(cb.ge(floor, criteria.floorMin()));
             if (criteria.floorMax() != null) predicates.add(cb.le(floor, criteria.floorMax()));
 
@@ -77,8 +89,28 @@ public class PropertySpec {
                 predicates.add(root.get(Listing_.energyClass).in(criteria.energyClass()));
             }
 
+            if (criteria.sewage() != null && !criteria.sewage().isEmpty()) {
+                predicates.add(root.get(Listing_.sewage).in(criteria.sewage()));
+            }
+
+            if (criteria.ventilation() != null && !criteria.ventilation().isEmpty()) {
+                predicates.add(root.get(Listing_.ventilation).in(criteria.ventilation()));
+            }
+
             if (criteria.yearMin() != null) predicates.add(cb.ge(root.get(Listing_.yearBuilt), criteria.yearMin()));
             if (criteria.yearMax() != null) predicates.add(cb.le(root.get(Listing_.yearBuilt), criteria.yearMax()));
+
+            if (criteria.maintenanceCostMax() != null) {
+                predicates.add(cb.le(root.get(Listing_.maintenanceCost), criteria.maintenanceCostMax()));
+            }
+
+            if (criteria.bathroomLayout() != null) {
+                predicates.add(cb.equal(root.get(Listing_.bathroomLayout), criteria.bathroomLayout()));
+            }
+
+            if (Boolean.TRUE.equals(criteria.vatIncluded())) {
+                predicates.add(cb.isTrue(root.get(Listing_.vatIncluded)));
+            }
 
             if (criteria.features() != null && !criteria.features().isEmpty()) {
                 Subquery<UUID> sub = query.subquery(UUID.class);
@@ -104,16 +136,18 @@ public class PropertySpec {
 
     /**
      * Multi-select count filter: exact match on each selected value, with the top bucket
-     * ({@code 7}) matching "7 or more". Shared by rooms / bedrooms / bathrooms.
+     * ({@link #ROOM_COUNT_MAX}) matching "that many or more". Shared by rooms / bedrooms / bathrooms.
      */
     private static void addCountFilter(List<Predicate> predicates, CriteriaBuilder cb,
                                        Path<Short> path, List<Integer> values) {
         if (values == null || values.isEmpty()) return;
         List<Predicate> or = new ArrayList<>();
+        boolean hasTopBucket = false;
         for (int v : values) {
-            if (v < 7) or.add(cb.equal(path, (short) v));
+            if (v >= ROOM_COUNT_MAX) hasTopBucket = true;
+            else or.add(cb.equal(path, (short) v));
         }
-        if (values.contains(7)) or.add(cb.ge(path, (short) 7));
+        if (hasTopBucket) or.add(cb.ge(path, (short) ROOM_COUNT_MAX));
         if (!or.isEmpty()) predicates.add(cb.or(or.toArray(new Predicate[0])));
     }
 }

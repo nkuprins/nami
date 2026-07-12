@@ -29,6 +29,23 @@ export const FEATURE_LABELS: Record<Feature, string> = {
   pets: 'Pets allowed',
   new_building: 'New building',
   basement: 'Basement',
+  renovated: 'Renovated',
+  air_conditioning: 'Air conditioning',
+  terrace: 'Terrace',
+  sauna: 'Sauna',
+  fireplace: 'Fireplace',
+  underfloor_heating: 'Underfloor heating',
+  individual_meters: 'Individual meters',
+  storage_room: 'Storage room',
+  walk_in_closet: 'Walk-in closet',
+  pool: 'Swimming pool',
+  bathtub: 'Bathtub',
+  shower: 'Shower',
+  washing_machine: 'Washing machine',
+  boiler: 'Water heater',
+  glazed_balcony: 'Glazed balcony',
+  french_balcony: 'French balcony',
+  loggia: 'Loggia',
 };
 
 export const TYPE_OPTIONS = Object.entries(TYPES_LABELS).map(([id, label]) => ({

@@ -6,14 +6,17 @@ import Popover from '../../../components/ui/Popover.vue';
 
 const { t } = useI18n();
 
-defineProps<{
+const props = defineProps<{
   label: string;
   summary?: string;
   active?: boolean;
   title?: string;
   align?: 'start' | 'center' | 'end';
+  // Fixed popover width; when omitted the popover matches the pill's width.
   width?: number;
 }>();
+
+const emit = defineEmits<{ clear: [] }>();
 
 const open = ref(false);
 const anchor = ref<HTMLButtonElement | null>(null);
@@ -24,12 +27,12 @@ function toggle() {
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative min-w-0">
     <button
       ref="anchor"
       type="button"
       @click="toggle"
-      class="focus-ring w-full inline-flex items-center justify-between gap-2 h-12 px-4 rounded-md border bg-bg text-left transition-colors"
+      class="focus-ring w-full inline-flex items-center justify-between gap-2 h-12 px-4 rounded-md border bg-bg text-left transition-colors select-none"
       :class="{
         'border-ink text-ink': open,
         'border-ink/50 text-ink': active && !open,
@@ -56,9 +59,19 @@ function toggle() {
       :anchor-el="anchor"
       :title="title ?? label"
       :align="align"
-      :width="width"
+      :width="props.width"
+      :match-anchor="props.width === undefined"
       @update:open="(v) => (open = v)"
     >
+      <template #actions>
+        <button
+          type="button"
+          class="focus-ring text-xs text-ink-2 underline underline-offset-4 hover:text-ink"
+          @click="emit('clear')"
+        >
+          {{ t('filters.clear') }}
+        </button>
+      </template>
       <slot />
     </Popover>
   </div>

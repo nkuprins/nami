@@ -4,7 +4,11 @@ import { useI18n } from 'vue-i18n';
 import Drawer from '../../../components/ui/Drawer.vue';
 import { useFiltersStore } from '../../../stores/filterStore';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
-import type { FilterState } from '../../../types/filter';
+import {
+  ROOM_COUNT_OPTIONS,
+  roomCountLabel,
+  type FilterState,
+} from '../../../types/filter';
 import { Feature } from '../../../types/listingItem';
 
 const props = defineProps<{ open: boolean }>();
@@ -17,24 +21,23 @@ const {
   completionOptions,
   heatingOptions,
   energyClassOptions,
+  bathroomLayoutOptions,
+  sewageOptions,
+  ventilationOptions,
 } = usePropertyLabels();
-
-const BEDROOM_BATHROOM_OPTIONS = [1, 2, 3, 4, 5];
 
 type Draft = Pick<
   FilterState,
-  | 'm2Min'
-  | 'm2Max'
-  | 'floorMin'
-  | 'floorMax'
-  | 'notGround'
-  | 'notTop'
   | 'yearMin'
   | 'yearMax'
+  | 'maintenanceCostMax'
+  | 'bathroomLayout'
   | 'bedrooms'
   | 'bathrooms'
   | 'heating'
   | 'energyClass'
+  | 'sewage'
+  | 'ventilation'
   | 'features'
   | 'completion'
 >;
@@ -43,18 +46,16 @@ const draft = reactive<Draft>(makeDraftFromState());
 
 function makeDraftFromState(): Draft {
   return {
-    m2Min: state.m2Min,
-    m2Max: state.m2Max,
-    floorMin: state.floorMin,
-    floorMax: state.floorMax,
-    notGround: state.notGround,
-    notTop: state.notTop,
     yearMin: state.yearMin,
     yearMax: state.yearMax,
+    maintenanceCostMax: state.maintenanceCostMax,
+    bathroomLayout: state.bathroomLayout,
     bedrooms: [...state.bedrooms],
     bathrooms: [...state.bathrooms],
     heating: [...state.heating],
     energyClass: [...state.energyClass],
+    sewage: [...state.sewage],
+    ventilation: [...state.ventilation],
     features: [...state.features],
     completion: state.completion,
   };
@@ -81,6 +82,20 @@ function toggleEnergyClass(id: (typeof draft.energyClass)[number]) {
   draft.energyClass = [...set];
 }
 
+function toggleSewage(id: (typeof draft.sewage)[number]) {
+  const set = new Set(draft.sewage);
+  if (set.has(id)) set.delete(id);
+  else set.add(id);
+  draft.sewage = [...set];
+}
+
+function toggleVentilation(id: (typeof draft.ventilation)[number]) {
+  const set = new Set(draft.ventilation);
+  if (set.has(id)) set.delete(id);
+  else set.add(id);
+  draft.ventilation = [...set];
+}
+
 watch(
   () => props.open,
   (val) => {
@@ -95,9 +110,7 @@ function toggleFeature(f: Feature) {
   draft.features = [...set];
 }
 
-function bindNumber(
-  key: 'm2Min' | 'm2Max' | 'floorMin' | 'floorMax' | 'yearMin' | 'yearMax'
-) {
+function bindNumber(key: 'yearMin' | 'yearMax' | 'maintenanceCostMax') {
   return {
     get value() {
       const v = draft[key];
@@ -110,12 +123,9 @@ function bindNumber(
   };
 }
 
-const m2Min = bindNumber('m2Min');
-const m2Max = bindNumber('m2Max');
-const floorMin = bindNumber('floorMin');
-const floorMax = bindNumber('floorMax');
 const yearMin = bindNumber('yearMin');
 const yearMax = bindNumber('yearMax');
+const maintenanceCostMax = bindNumber('maintenanceCostMax');
 
 function apply() {
   applyAdvanced({ ...draft });
@@ -132,82 +142,18 @@ function reset() {
   <Drawer
     :open="open"
     :title="t('advFilters.title')"
+    width="w-[56rem] max-w-[94vw]"
     @update:open="(v) => emit('update:open', v)"
   >
-    <div class="space-y-8">
-      <section>
-        <p class="micro-label mb-2">{{ t('advFilters.area') }}</p>
-        <div class="grid grid-cols-2 gap-2">
-          <input
-            v-model="m2Min.value"
-            type="number"
-            min="0"
-            :placeholder="t('advFilters.min')"
-            :aria-label="`${t('advFilters.area')} ${t('advFilters.min')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
-          />
-          <input
-            v-model="m2Max.value"
-            type="number"
-            min="0"
-            :placeholder="t('advFilters.max')"
-            :aria-label="`${t('advFilters.area')} ${t('advFilters.max')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
-          />
-        </div>
-      </section>
-
-      <section>
-        <p class="micro-label mb-2">{{ t('advFilters.floor') }}</p>
-        <div class="grid grid-cols-2 gap-2 mb-2">
-          <input
-            v-model="floorMin.value"
-            type="number"
-            min="0"
-            :placeholder="t('advFilters.min')"
-            :aria-label="`${t('advFilters.floor')} ${t('advFilters.min')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
-          />
-          <input
-            v-model="floorMax.value"
-            type="number"
-            min="0"
-            :placeholder="t('advFilters.max')"
-            :aria-label="`${t('advFilters.floor')} ${t('advFilters.max')}`"
-            class="focus-ring h-11 px-3 rounded-md border border-line-2 text-sm tabular"
-          />
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <label
-            class="inline-flex items-center gap-2 text-sm text-ink-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              :checked="!!draft.notGround"
-              @change="draft.notGround = !draft.notGround || undefined"
-              class="accent-ink size-4"
-            />
-            {{ t('advFilters.notGround') }}
-          </label>
-          <label
-            class="inline-flex items-center gap-2 text-sm text-ink-2 cursor-pointer"
-          >
-            <input
-              type="checkbox"
-              :checked="!!draft.notTop"
-              @change="draft.notTop = !draft.notTop || undefined"
-              class="accent-ink size-4"
-            />
-            {{ t('advFilters.notTop') }}
-          </label>
-        </div>
-      </section>
-
+    <div
+      class="space-y-6 md:space-y-0 md:grid md:grid-cols-3 md:gap-x-8 md:items-start"
+    >
+      <div class="space-y-6">
       <section>
         <p class="micro-label mb-2">{{ t('advFilters.bedrooms') }}</p>
         <div class="flex flex-wrap gap-1.5">
           <button
-            v-for="n in BEDROOM_BATHROOM_OPTIONS"
+            v-for="n in ROOM_COUNT_OPTIONS"
             :key="n"
             type="button"
             @click="toggleNumeric('bedrooms', n)"
@@ -218,7 +164,7 @@ function reset() {
                 : 'border-line-2 text-ink hover:border-ink-3'
             "
           >
-            {{ n }}
+            {{ roomCountLabel(n) }}
           </button>
         </div>
       </section>
@@ -227,7 +173,7 @@ function reset() {
         <p class="micro-label mb-2">{{ t('advFilters.bathrooms') }}</p>
         <div class="flex flex-wrap gap-1.5">
           <button
-            v-for="n in BEDROOM_BATHROOM_OPTIONS"
+            v-for="n in ROOM_COUNT_OPTIONS"
             :key="n"
             type="button"
             @click="toggleNumeric('bathrooms', n)"
@@ -238,7 +184,30 @@ function reset() {
                 : 'border-line-2 text-ink hover:border-ink-3'
             "
           >
-            {{ n }}
+            {{ roomCountLabel(n) }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">{{ t('advFilters.bathroomLayout') }}</p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in bathroomLayoutOptions"
+            :key="opt.id"
+            type="button"
+            @click="
+              draft.bathroomLayout =
+                draft.bathroomLayout === opt.id ? undefined : opt.id
+            "
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
+            :class="
+              draft.bathroomLayout === opt.id
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line-2 text-ink hover:border-ink-3'
+            "
+          >
+            {{ opt.label }}
           </button>
         </div>
       </section>
@@ -268,29 +237,41 @@ function reset() {
       </section>
 
       <section>
-        <p class="micro-label mb-3">{{ t('advFilters.features') }}</p>
-        <div class="grid grid-cols-1 gap-1.5">
-          <label
-            v-for="opt in featureOptions"
+        <p class="micro-label mb-2">{{ t('advFilters.maintenanceCost') }}</p>
+        <input
+          v-model="maintenanceCostMax.value"
+          type="number"
+          min="0"
+          :placeholder="t('advFilters.maintenanceCostMax')"
+          :aria-label="t('advFilters.maintenanceCostMax')"
+          class="focus-ring w-full h-11 px-3 rounded-md border border-line-2 text-sm tabular"
+        />
+      </section>
+      </div>
+
+      <div class="space-y-6">
+      <section>
+        <p class="micro-label mb-3">{{ t('advFilters.energyClass') }}</p>
+        <div class="flex flex-wrap gap-1.5">
+          <button
+            v-for="opt in energyClassOptions"
             :key="opt.id"
-            class="focus-ring flex items-center justify-between gap-3 px-3 py-2.5 rounded-md border border-line-2 hover:border-ink-3 cursor-pointer transition-colors"
+            type="button"
+            @click="toggleEnergyClass(opt.id)"
+            :style="
+              draft.energyClass.includes(opt.id)
+                ? {}
+                : { backgroundColor: opt.color + '38', borderColor: opt.color }
+            "
+            class="focus-ring inline-flex items-center justify-center min-w-10 h-10 px-3 rounded-md border text-sm font-medium transition-colors"
             :class="
-              draft.features.includes(opt.id) ? 'bg-cream/70 border-line-2' : ''
+              draft.energyClass.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'text-ink'
             "
           >
-            <div class="flex items-center gap-3">
-              <input
-                type="checkbox"
-                :checked="draft.features.includes(opt.id)"
-                @change="toggleFeature(opt.id)"
-                class="accent-ink size-4"
-              />
-              <div>
-                <p class="text-sm text-ink leading-tight">{{ opt.label }}</p>
-                <p class="micro-label text-[0.625rem]!">{{ opt.hint }}</p>
-              </div>
-            </div>
-          </label>
+            {{ opt.label }}
+          </button>
         </div>
       </section>
 
@@ -311,22 +292,45 @@ function reset() {
               @change="toggleHeating(opt.id)"
               class="accent-ink size-4"
             />
-            <p class="text-sm text-ink leading-tight">{{ opt.label }}</p>
+            <div>
+              <p class="text-sm text-ink leading-tight">{{ opt.label }}</p>
+              <p class="micro-label text-[0.625rem]!">{{ opt.hint }}</p>
+            </div>
           </label>
         </div>
       </section>
 
       <section>
-        <p class="micro-label mb-3">{{ t('advFilters.energyClass') }}</p>
-        <div class="flex flex-wrap gap-1.5">
+        <p class="micro-label mb-2">{{ t('advFilters.sewage') }}</p>
+        <div class="flex flex-wrap gap-2">
           <button
-            v-for="opt in energyClassOptions"
+            v-for="opt in sewageOptions"
             :key="opt.id"
             type="button"
-            @click="toggleEnergyClass(opt.id)"
-            class="focus-ring inline-flex items-center justify-center min-w-10 h-10 px-3 rounded-md border text-sm transition-colors"
+            @click="toggleSewage(opt.id)"
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
             :class="
-              draft.energyClass.includes(opt.id)
+              draft.sewage.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line-2 text-ink hover:border-ink-3'
+            "
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">{{ t('advFilters.ventilation') }}</p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in ventilationOptions"
+            :key="opt.id"
+            type="button"
+            @click="toggleVentilation(opt.id)"
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
+            :class="
+              draft.ventilation.includes(opt.id)
                 ? 'border-ink bg-ink text-bg'
                 : 'border-line-2 text-ink hover:border-ink-3'
             "
@@ -358,6 +362,33 @@ function reset() {
           </button>
         </div>
       </section>
+      </div>
+
+      <div class="space-y-6">
+      <section>
+        <p class="micro-label mb-3">{{ t('advFilters.features') }}</p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in featureOptions"
+            :key="opt.id"
+            type="button"
+            :title="opt.hint"
+            @click="toggleFeature(opt.id)"
+            class="focus-ring inline-flex items-center gap-2 h-9 pl-3 pr-4 rounded-full text-sm font-medium border transition-colors"
+            :class="
+              draft.features.includes(opt.id)
+                ? 'bg-ink border-ink text-bg'
+                : opt.category === 'comfort'
+                  ? 'bg-accent/10 border-accent/25 text-accent-2 hover:border-accent/50'
+                  : 'bg-surface border-line-2 text-ink-2 hover:border-ink-3'
+            "
+          >
+            <span class="size-4.5 shrink-0"><component :is="opt.icon" /></span>
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+      </div>
     </div>
 
     <template #footer>

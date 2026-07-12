@@ -6,6 +6,8 @@ import type {
   ListingType,
   PropertyCompletion,
   PropertyKind,
+  SewageType,
+  VentilationType,
 } from '../../../types/listingItem';
 
 // The physical/media fields of a listing, shared by the create form
@@ -28,6 +30,8 @@ export interface PropertyFieldsForm {
   heating: HeatingType | '';
   energyClass: EnergyClass | '';
   maintenanceCost: string;
+  sewage: SewageType | '';
+  ventilation: VentilationType | '';
   features: Feature[];
   videoUrl: string;
   coords: { lat: number; lng: number } | null;

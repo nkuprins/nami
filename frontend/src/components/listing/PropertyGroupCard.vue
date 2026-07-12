@@ -271,10 +271,10 @@ function requestDeleteListing(id: string) {
     <div class="p-3 border-t border-line">
       <button
         type="button"
-        class="focus-ring w-full h-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-line-2 text-xs font-semibold text-ink-2 hover:text-ink hover:bg-surface hover:border-ink-3 transition-colors"
+        class="group focus-ring w-full h-10 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-line-2 text-xs font-semibold text-ink-2 hover:text-accent-2 hover:bg-accent/5 hover:border-accent/40 transition-colors"
         @click="emit('add-listing', propertyId)"
       >
-        <IconPlus class="size-[18px] text-ink-3" />
+        <IconPlus class="size-[18px] text-ink-3 group-hover:text-accent-2 transition-colors" />
         {{ t('drawers.addAnotherListing') }}
       </button>
     </div>

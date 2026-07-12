@@ -7,6 +7,8 @@ import type {
   ListingType,
   PropertyCompletion,
   PropertyKind,
+  SewageType,
+  VentilationType,
 } from '../types/listingItem';
 
 const photo = (seed: string, wide = false) =>
@@ -48,6 +50,8 @@ interface RawListing {
   heating?: HeatingType;
   energyClass?: EnergyClass;
   maintenanceCost?: number;
+  sewage?: SewageType;
+  ventilation?: VentilationType;
   features: Feature[];
   district: string;
   city: string;
@@ -89,6 +93,8 @@ function toListingDetail(r: RawListing): ListingDetail {
       heating: r.heating,
       energyClass: r.energyClass,
       maintenanceCost: r.maintenanceCost,
+      sewage: r.sewage,
+      ventilation: r.ventilation,
     },
     translations,
     location: {
@@ -245,6 +251,8 @@ const rawListings: RawListing[] = [
     landM2: 820,
     yearBuilt: 1932,
     heating: 'solid_fuel',
+    sewage: 'local',
+    ventilation: 'mechanical',
     features: ['parking', 'pets'],
     district: 'Mežaparks',
     city: 'Rīga',
@@ -771,6 +779,8 @@ const rawListings: RawListing[] = [
     yearBuilt: 2026,
     heating: 'heat_pump',
     energyClass: 'A',
+    sewage: 'central',
+    ventilation: 'recuperation',
     features: ['parking', 'elevator', 'new_building'],
     district: 'Āgenskalns',
     city: 'Rīga',

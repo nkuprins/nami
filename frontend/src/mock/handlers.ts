@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { mockListings } from './listings';
 import { logger } from '../utils/logger';
 import { cityByName, districtSlugByName } from '../data/locations';
-import { PAGE_SIZE } from '../types/filter';
+import { PAGE_SIZE, ROOM_COUNT_MAX } from '../types/filter';
 
 const MOCK_OWNER_ID = 'mock-user-1';
 // Properties owned by the mock user: two multi-listing properties (buy+rent
@@ -112,31 +112,46 @@ function filterByPriceRange(items: CatalogItem[], params: URLSearchParams) {
   return result;
 }
 
+// Matches the backend's count filter: an exact match on each selected value,
+// with the top bucket (ROOM_COUNT_MAX) meaning "that many or more".
+function countMatches(count: number | null | undefined, selected: number[]) {
+  if (count == null) return false;
+  return selected.some((v) =>
+    v >= ROOM_COUNT_MAX ? count >= ROOM_COUNT_MAX : count === v
+  );
+}
+
 function filterByRoomCounts(items: CatalogItem[], params: URLSearchParams) {
   const rooms = params.getAll('rooms').map(Number);
   const bedrooms = params.getAll('bedrooms').map(Number);
   const bathrooms = params.getAll('bathrooms').map(Number);
   let result = items;
   if (rooms.length)
-    result = result.filter((i) => rooms.includes(i.details.rooms));
+    result = result.filter((i) => countMatches(i.details.rooms, rooms));
   if (bedrooms.length)
-    result = result.filter(
-      (i) => i.details.bedrooms != null && bedrooms.includes(i.details.bedrooms)
-    );
+    result = result.filter((i) => countMatches(i.details.bedrooms, bedrooms));
   if (bathrooms.length)
-    result = result.filter(
-      (i) =>
-        i.details.bathrooms != null && bathrooms.includes(i.details.bathrooms)
-    );
+    result = result.filter((i) => countMatches(i.details.bathrooms, bathrooms));
   return result;
 }
 
 function filterBySize(items: CatalogItem[], params: URLSearchParams) {
   const m2Min = params.get('m2Min');
   const m2Max = params.get('m2Max');
+  const landM2Min = params.get('landM2Min');
+  const landM2Max = params.get('landM2Max');
   let result = items;
   if (m2Min) result = result.filter((i) => i.details.m2 >= Number(m2Min));
   if (m2Max) result = result.filter((i) => i.details.m2 <= Number(m2Max));
+  // Land area only exists on houses; a null-land listing fails either bound.
+  if (landM2Min)
+    result = result.filter(
+      (i) => i.details.landM2 != null && i.details.landM2 >= Number(landM2Min)
+    );
+  if (landM2Max)
+    result = result.filter(
+      (i) => i.details.landM2 != null && i.details.landM2 <= Number(landM2Max)
+    );
   return result;
 }
 
@@ -154,7 +169,7 @@ function filterByFloor(items: CatalogItem[], params: URLSearchParams) {
     );
   if (params.get('notGround') === 'true')
     result = result.filter(
-      (i) => i.details.floor == null || i.details.floor > 1
+      (i) => i.details.floor == null || i.details.floor !== 1
     );
   if (params.get('notTop') === 'true')
     result = result.filter(
@@ -201,6 +216,24 @@ function filterByEnergyClass(items: CatalogItem[], params: URLSearchParams) {
   );
 }
 
+function filterBySewage(items: CatalogItem[], params: URLSearchParams) {
+  const sewage = params.getAll('sewage');
+  if (!sewage.length) return items;
+  return items.filter(
+    (i) => i.details.sewage != null && sewage.includes(i.details.sewage)
+  );
+}
+
+function filterByVentilation(items: CatalogItem[], params: URLSearchParams) {
+  const ventilation = params.getAll('ventilation');
+  if (!ventilation.length) return items;
+  return items.filter(
+    (i) =>
+      i.details.ventilation != null &&
+      ventilation.includes(i.details.ventilation)
+  );
+}
+
 function filterByFeatures(items: CatalogItem[], params: URLSearchParams) {
   const features = params.getAll('features');
   if (!features.length) return items;
@@ -215,6 +248,27 @@ function filterByCompletion(items: CatalogItem[], params: URLSearchParams) {
   return items.filter((i) => i.completion === completion);
 }
 
+function filterByMaintenanceCost(items: CatalogItem[], params: URLSearchParams) {
+  const max = params.get('maintenanceCostMax');
+  if (!max) return items;
+  return items.filter(
+    (i) =>
+      i.details.maintenanceCost != null &&
+      i.details.maintenanceCost <= Number(max)
+  );
+}
+
+function filterByBathroomLayout(items: CatalogItem[], params: URLSearchParams) {
+  const layout = params.get('bathroomLayout');
+  if (!layout) return items;
+  return items.filter((i) => i.details.bathroomLayout === layout);
+}
+
+function filterByVat(items: CatalogItem[], params: URLSearchParams) {
+  if (params.get('vatIncluded') !== 'true') return items;
+  return items.filter((i) => i.price.vatIncluded === true);
+}
+
 function applyFilters(params: URLSearchParams) {
   let items = [...dtoCatalog];
   items = filterByType(items, params);
@@ -227,8 +281,13 @@ function applyFilters(params: URLSearchParams) {
   items = filterByYear(items, params);
   items = filterByHeating(items, params);
   items = filterByEnergyClass(items, params);
+  items = filterBySewage(items, params);
+  items = filterByVentilation(items, params);
   items = filterByFeatures(items, params);
   items = filterByCompletion(items, params);
+  items = filterByMaintenanceCost(items, params);
+  items = filterByBathroomLayout(items, params);
+  items = filterByVat(items, params);
 
   const sort = (params.get('sort') ?? 'newest') as SortKey;
   const sorters: Record<SortKey, (a: CatalogItem, b: CatalogItem) => number> = {

@@ -2,17 +2,23 @@ import type { LocationQuery } from 'vue-router';
 import { DEFAULT_FILTER_STATE } from '../types/filter';
 import { type FilterState } from '../types/filter';
 import {
+  BathroomLayout,
   EnergyClass,
   Feature,
   HeatingType,
+  KNOWN_BATHROOM_LAYOUT,
   KNOWN_COMPLETION,
   KNOWN_ENERGY_CLASS,
   KNOWN_FEATURES,
   KNOWN_HEATING,
   KNOWN_KINDS,
+  KNOWN_SEWAGE,
   KNOWN_TYPES,
+  KNOWN_VENTILATION,
   PropertyCompletion,
   PropertyKind,
+  SewageType,
+  VentilationType,
 } from '../types/listingItem';
 import { KNOWN_SORTS } from '../types/sort';
 import { Location } from '../data/rawLocations';
@@ -97,6 +103,10 @@ export const FilterCodec = {
       sort: parse.enum(q.sort, KNOWN_SORTS, defaults.sort),
       completion: parse.optionalEnum(q.completion, KNOWN_COMPLETION) as
         PropertyCompletion | undefined,
+      bathroomLayout: parse.optionalEnum(
+        q.bathroomLayout,
+        KNOWN_BATHROOM_LAYOUT
+      ) as BathroomLayout | undefined,
       kind: (parse.optionalEnum(q.kind, KNOWN_KINDS) ?? defaults.kind) as
         PropertyKind | undefined,
 
@@ -111,20 +121,29 @@ export const FilterCodec = {
         q.energyClass,
         KNOWN_ENERGY_CLASS
       ) as EnergyClass[],
+      sewage: parse.enumList(q.sewage, KNOWN_SEWAGE) as SewageType[],
+      ventilation: parse.enumList(
+        q.ventilation,
+        KNOWN_VENTILATION
+      ) as VentilationType[],
 
       // Range Parameters (Numbers)
       priceMin: parse.number(q.priceMin),
       priceMax: parse.number(q.priceMax),
       m2Min: parse.number(q.m2Min),
       m2Max: parse.number(q.m2Max),
+      landM2Min: parse.number(q.landM2Min),
+      landM2Max: parse.number(q.landM2Max),
       floorMin: parse.number(q.floorMin),
       floorMax: parse.number(q.floorMax),
       yearMin: parse.number(q.yearMin),
       yearMax: parse.number(q.yearMax),
+      maintenanceCostMax: parse.number(q.maintenanceCostMax),
 
       // Boolean Flags & Pagination Guards
       notGround: parse.boolean(q.notGround),
       notTop: parse.boolean(q.notTop),
+      vatIncluded: parse.boolean(q.vatIncluded),
       page: Math.max(1, parse.number(q.page) ?? 1),
     };
   },
@@ -146,6 +165,8 @@ export const FilterCodec = {
       'bathrooms',
       'heating',
       'energyClass',
+      'sewage',
+      'ventilation',
       'features',
     ] as const;
     for (const key of listKeys) {
@@ -158,10 +179,13 @@ export const FilterCodec = {
       'priceMax',
       'm2Min',
       'm2Max',
+      'landM2Min',
+      'landM2Max',
       'floorMin',
       'floorMax',
       'yearMin',
       'yearMax',
+      'maintenanceCostMax',
     ] as const;
     for (const key of numericKeys) {
       const value = state[key];
@@ -170,6 +194,8 @@ export const FilterCodec = {
 
     if (state.notGround) q.notGround = '1';
     if (state.notTop) q.notTop = '1';
+    if (state.vatIncluded) q.vatIncluded = '1';
+    if (state.bathroomLayout) q.bathroomLayout = state.bathroomLayout;
     if (state.completion) q.completion = state.completion;
     if (state.sort !== defaults.sort) q.sort = state.sort;
     if (state.page > 1) q.page = String(state.page);

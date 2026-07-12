@@ -17,12 +17,34 @@ CREATE TYPE property_feature    AS ENUM (
     'furnished',
     'pets',
     'new_building',
-    'basement'
+    'basement',
+    'renovated',
+    'air_conditioning',
+    'terrace',
+    'sauna',
+    'fireplace',
+    'underfloor_heating',
+    'individual_meters',
+    'storage_room',
+    'walk_in_closet',
+    'pool',
+    'bathtub',
+    'shower',
+    'washing_machine',
+    'boiler',
+    'glazed_balcony',
+    'french_balcony',
+    'loggia'
 );
-CREATE TYPE heating_type        AS ENUM ('central', 'gas', 'electric', 'heat_pump', 'solid_fuel', 'none');
+CREATE TYPE heating_type        AS ENUM (
+    'central', 'central_gas', 'gas', 'electric', 'heat_pump', 'air_water_heat_pump',
+    'geothermal', 'solid_fuel', 'stove', 'combined', 'none'
+);
 -- Uppercase: canonical EU energy-performance-certificate letters, shown to users verbatim
 CREATE TYPE energy_class        AS ENUM ('A', 'B', 'C', 'D', 'E', 'F', 'G');
 CREATE TYPE bathroom_layout     AS ENUM ('separate', 'combined');
+CREATE TYPE sewage_type         AS ENUM ('central', 'local');
+CREATE TYPE ventilation_type    AS ENUM ('natural', 'mechanical', 'recuperation');
 
 -- ─────────────────────────────────────────────
 -- Users
@@ -135,6 +157,8 @@ CREATE TABLE listings (
     heating             heating_type,
     energy_class        energy_class,
     maintenance_cost    NUMERIC(10, 2)    CHECK (maintenance_cost >= 0),   -- monthly, EUR
+    sewage              sewage_type,
+    ventilation         ventilation_type,
 
     -- Media: ordered arrays of URL strings; array order is display order
     photos              JSONB             NOT NULL DEFAULT '[]',
