@@ -196,6 +196,33 @@ const mockPendingListingIds = new Set(
   dtoCatalog.slice(0, 2).map((item) => item.id)
 );
 
+// Mirrors backend CadastreQueryService's tolerances against one fixed mock
+// "official" record, so the PENDING_REVIEW path can be exercised in mock
+// mode without a real VZD ingest. Only applies once an address has resolved
+// to a building (arBuildingCode set, same fail-open-to-ACTIVE rule as the
+// backend); apartment area is only checked when an apartment number is given.
+const MOCK_OFFICIAL_YEAR_BUILT = 1985;
+const MOCK_OFFICIAL_AREA_M2 = 52.8;
+const YEAR_MISMATCH_TOLERANCE_YEARS = 5;
+const AREA_MISMATCH_RATIO = 0.15;
+
+function isCadastreMismatch(body: any): boolean {
+  if (!body.location?.arBuildingCode) return false;
+  const yearBuilt = body.details?.yearBuilt;
+  if (
+    yearBuilt != null &&
+    Math.abs(yearBuilt - MOCK_OFFICIAL_YEAR_BUILT) >
+      YEAR_MISMATCH_TOLERANCE_YEARS
+  )
+    return true;
+  const m2 = body.details?.m2;
+  if (body.location?.apartment && m2 != null) {
+    const ratio = Math.abs(m2 - MOCK_OFFICIAL_AREA_M2) / MOCK_OFFICIAL_AREA_M2;
+    if (ratio > AREA_MISMATCH_RATIO) return true;
+  }
+  return false;
+}
+
 const mockSavedIds = new Set<string>();
 
 type SortKey =
@@ -740,6 +767,15 @@ export const handlers = [
       postedAt: new Date().toISOString(),
     };
     dtoCatalog.unshift(created);
+    const mismatch = isCadastreMismatch(body);
+    logger.debug('[mock] cadastre mismatch check', {
+      arBuildingCode: body.location?.arBuildingCode,
+      apartment: body.location?.apartment,
+      yearBuilt: body.details?.yearBuilt,
+      m2: body.details?.m2,
+      mismatch,
+    });
+    if (mismatch) mockPendingListingIds.add(created.id);
     return HttpResponse.json(created, { status: 201 });
   }),
 

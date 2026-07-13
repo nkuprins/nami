@@ -164,6 +164,15 @@ async function handleExportData() {
           </span>
         </button>
 
+        <!-- Internal moderation queue; not part of the public i18n'd site. -->
+        <RouterLink
+          v-if="auth.isAdmin"
+          :to="localePath('/admin')"
+          class="focus-ring inline-flex items-center h-9 px-3 rounded-full text-sm text-ink-2 hover:text-ink hover:bg-surface transition-colors"
+        >
+          Admin
+        </RouterLink>
+
         <div
           class="relative"
           @mouseenter="langMenuOpen = true"
