@@ -330,7 +330,7 @@ function reset() {
             />
             <div>
               <p class="text-sm text-ink leading-tight">{{ opt.label }}</p>
-              <p class="micro-label text-[0.625rem]!">{{ opt.hint }}</p>
+              <p class="text-xs text-ink-3 leading-tight">{{ opt.hint }}</p>
             </div>
           </label>
         </div>

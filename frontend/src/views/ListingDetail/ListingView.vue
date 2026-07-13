@@ -507,17 +507,17 @@ function openPlanLightbox(i: number) {
           <div class="sticky top-20 space-y-4">
             <div class="rounded-xl p-5 shadow-soft">
               <p class="display-price text-2xl text-ink">{{ price }}</p>
-              <p class="text-xs text-ink-2 tabular mt-1">{{ pricePerM2 }}</p>
+              <p class="text-sm text-ink-2 tabular mt-1">{{ pricePerM2 }}</p>
               <p
                 v-if="listing.price.vatIncluded"
-                class="text-xs text-ink-3 mt-0.5"
+                class="text-sm text-ink-3 mt-0.5"
               >
                 {{ t('listing.vatIncluded') }}
               </p>
 
               <SpecDots
                 :parts="specRow"
-                class="text-xs text-ink-2 mt-3 pb-5 border-b border-line"
+                class="text-sm text-ink-2 mt-3 pb-5 border-b border-line"
               />
 
               <button
