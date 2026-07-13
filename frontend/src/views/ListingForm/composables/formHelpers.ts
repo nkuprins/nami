@@ -48,7 +48,7 @@ export function useListingFormControls(
       if (!isValid.value) {
         await nextTick();
         document
-          .querySelector('.text-red-500')
+          .querySelector('.text-xs.text-warn')
           ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return false;
       }

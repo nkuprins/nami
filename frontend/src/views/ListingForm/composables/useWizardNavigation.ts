@@ -19,7 +19,7 @@ export function useWizardNavigation(
       await nextTick();
       document
         .querySelector(
-          `[data-step="${wizard.currentStep.value}"] .text-red-500`
+          `[data-step="${wizard.currentStep.value}"] .text-xs.text-warn`
         )
         ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
