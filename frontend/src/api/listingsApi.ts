@@ -18,6 +18,7 @@ import type {
   ParkingType,
   PropertyCompletion,
   LocalizedText,
+  PhoneContact,
 } from '../types/listingItem';
 import type { Locale } from '../i18n';
 import type { FilterState } from '../types/filter';
@@ -60,7 +61,7 @@ export interface CreateListingPayload {
   extras: PropertyExtra[];
   parking: ParkingType[];
   media: PropertyMedia;
-  phones: string[];
+  phones: PhoneContact[];
   completion?: PropertyCompletion;
   durationMonths: number;
   confirmedDuplicate?: boolean; // set once the user confirms past a fuzzy near-match
@@ -82,7 +83,7 @@ export interface AddListingPayload {
   extras: PropertyExtra[];
   parking: ParkingType[];
   media: PropertyMedia;
-  phones: string[];
+  phones: PhoneContact[];
   completion?: PropertyCompletion;
   durationMonths: number;
 }
@@ -101,7 +102,7 @@ export interface UpdateListingPayload {
   extras: PropertyExtra[];
   parking: ParkingType[];
   media: PropertyMedia;
-  phones: string[];
+  phones: PhoneContact[];
   completion?: PropertyCompletion;
 }
 

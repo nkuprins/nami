@@ -32,7 +32,7 @@ export function useListingEditForm(
   const form = reactive<ListingEditFormState>({
     ...INITIAL_PROPERTY_FIELDS,
     ...INITIAL_LISTING_FIELDS,
-    phones: [''],
+    phones: [{ phone: '', name: '', email: '' }],
   });
   const touched = ref(false);
   const submitting = ref(false);
@@ -70,7 +70,9 @@ export function useListingEditForm(
       form.price = String(Math.round(p.price.amount));
       form.vatIncluded = p.price.vatIncluded ?? false;
       form.completion = p.completion ?? '';
-      form.phones = p.phones?.length ? [...p.phones] : [''];
+      form.phones = p.phones?.length
+        ? p.phones.map((ph) => ({ ...ph }))
+        : [{ phone: '', name: '', email: '' }];
       seedPropertyFields(form, p);
       form.address = p.location.address;
       form.coords = p.location.coords;

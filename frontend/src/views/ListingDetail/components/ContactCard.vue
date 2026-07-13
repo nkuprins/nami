@@ -2,11 +2,12 @@
 import { useI18n } from 'vue-i18n';
 import IconPhone from '../../../components/icons/IconPhone.vue';
 import { formatPhone } from '../../../utils/utils';
+import type { PhoneContact } from '../../../types/listingItem';
 
 const { t } = useI18n();
 
 defineProps<{
-  phones?: string[];
+  phones?: PhoneContact[];
   phoneRevealed: boolean;
 }>();
 
@@ -29,24 +30,24 @@ function maskPhone(phone: string): string {
     <div class="flex flex-col gap-2">
       <template v-if="phoneRevealed">
         <a
-          v-for="(phone, i) in phones"
+          v-for="(contact, i) in phones"
           :key="i"
-          :href="`tel:${formatPhone(phone).replace(/\s/g, '')}`"
+          :href="`tel:${formatPhone(contact.phone).replace(/\s/g, '')}`"
           class="w-full flex items-center justify-center gap-1.5 py-2.5 bg-transparent text-ink text-sm font-medium rounded-lg border border-line-2 cursor-pointer hover:bg-surface hover:border-ink-3 transition-colors"
         >
           <span class="size-4 shrink-0"><IconPhone /></span>
-          {{ formatPhone(phone) }}
+          {{ formatPhone(contact.phone) }}
         </a>
       </template>
       <template v-else>
         <button
-          v-for="(phone, i) in phones"
+          v-for="(contact, i) in phones"
           :key="i"
           class="w-full flex items-center justify-center gap-1.5 py-2.5 bg-transparent text-ink text-sm font-medium rounded-lg border border-line-2 cursor-pointer hover:bg-surface hover:border-ink-3 transition-colors"
           @click="$emit('reveal-phone')"
         >
           <span class="size-4 shrink-0"><IconPhone /></span>
-          {{ maskPhone(phone) }}
+          {{ maskPhone(contact.phone) }}
           <span class="text-xs text-ink-3 ml-1">{{ t('listing.show') }}</span>
         </button>
       </template>

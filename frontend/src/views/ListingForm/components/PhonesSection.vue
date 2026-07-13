@@ -26,7 +26,8 @@ defineEmits<{
     <div
       v-for="(_, index) in form.phones"
       :key="index"
-      class="sm:grid sm:grid-cols-2 gap-4"
+      class="flex flex-col gap-3"
+      :class="index > 0 ? 'pt-3 border-t border-line' : ''"
     >
       <div class="flex flex-col gap-1.5 w-full">
         <label
@@ -41,7 +42,7 @@ defineEmits<{
           <FormField
             :id="`ap-phone-${index}`"
             :label="''"
-            v-model="form.phones[index]"
+            v-model="form.phones[index].phone"
             :error="
               fieldError(`phone_${index}`) ||
               (index === 0 ? fieldError('phones') : '')
@@ -58,6 +59,43 @@ defineEmits<{
           >
             <IconClose />
           </button>
+        </div>
+      </div>
+
+      <div class="sm:grid sm:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5 w-full">
+          <label
+            v-if="index === 0"
+            class="text-sm font-medium text-ink"
+            :for="`ap-phone-name-${index}`"
+          >
+            {{ t('addListing.contactName') }}
+          </label>
+          <FormField
+            :id="`ap-phone-name-${index}`"
+            :label="''"
+            v-model="form.phones[index].name"
+            :placeholder="t('addListing.contactNamePlaceholder')"
+            class="w-full"
+          />
+        </div>
+        <div class="flex flex-col gap-1.5 w-full">
+          <label
+            v-if="index === 0"
+            class="text-sm font-medium text-ink"
+            :for="`ap-phone-email-${index}`"
+          >
+            {{ t('addListing.contactEmail') }}
+          </label>
+          <FormField
+            :id="`ap-phone-email-${index}`"
+            :label="''"
+            v-model="form.phones[index].email"
+            :error="fieldError(`email_${index}`)"
+            type="email"
+            :placeholder="t('addListing.contactEmailPlaceholder')"
+            class="w-full"
+          />
         </div>
       </div>
     </div>

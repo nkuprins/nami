@@ -76,7 +76,15 @@ export interface ListingFieldsForm {
   rentDurationMonths: number;
   durationMonths: number;
   completion: PropertyCompletion | '';
-  phones: string[];
+  phones: PhoneContactForm[];
+}
+
+// A phone entry as edited in the form. name/email may be left blank — the
+// backend fills them from the account holder when submitted blank.
+export interface PhoneContactForm {
+  phone: string;
+  name: string;
+  email: string;
 }
 
 // A full self-contained listing form: physical/media + terms. Used by the create

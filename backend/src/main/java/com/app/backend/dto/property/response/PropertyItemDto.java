@@ -3,6 +3,7 @@ package com.app.backend.dto.property.response;
 import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.model.Location;
 import com.app.backend.dto.property.model.Media;
+import com.app.backend.dto.property.model.PhoneContact;
 import com.app.backend.dto.property.model.Price;
 import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.enums.Communication;
@@ -45,7 +46,7 @@ public record PropertyItemDto(
         List<PropertyExtra> extras,
         List<ParkingType> parking,
         Media media,
-        List<String> phones,
+        List<PhoneContact> phones,
         OffsetDateTime postedAt,
         PropertyCompletion completion,
         OffsetDateTime expiresAt,

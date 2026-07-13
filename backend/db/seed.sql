@@ -66,7 +66,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000001/2.jpg"]'::jsonb,
  '[]'::jsonb, 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
  '2026-06-01 09:15:00+03', '2026-06-01 09:15:00+03'::timestamptz + interval '90 days',
- '["+371 29 123 456", "+371 26 789 012"]'::jsonb),
+ '[{"phone": "+371 29 123 456", "name": "Jānis Bērziņš", "email": "janis.berzins@gmail.com"}, {"phone": "+371 26 789 012", "name": "Jānis Bērziņš", "email": "janis.berzins@gmail.com"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001',
  'rent', 650.00, NULL,
@@ -75,7 +75,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000002/1.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-05-20 14:30:00+03', '2026-05-20 14:30:00+03'::timestamptz + interval '90 days',
- '["+371 29 234 567"]'::jsonb),
+ '[{"phone": "+371 29 234 567", "name": "Jānis Bērziņš", "email": "janis.berzins@gmail.com"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000001',
  'buy', 320000.00, NULL,
@@ -85,7 +85,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/2.jpg"]'::jsonb,
  '[]'::jsonb, 'https://www.youtube.com/watch?v=xvFZjo5PgG0',
  '2026-04-11 10:00:00+03', '2026-04-11 10:00:00+03'::timestamptz + interval '90 days',
- '["+371 26 345 678", "+371 29 456 789"]'::jsonb),
+ '[{"phone": "+371 26 345 678", "name": "Jānis Bērziņš", "email": "janis.berzins@gmail.com"}, {"phone": "+371 29 456 789", "name": "Jānis Bērziņš", "email": "janis.berzins@gmail.com"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000004', '20000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002',
  'buy', 75000.00, NULL,
@@ -94,7 +94,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000004/1.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-06-05 11:00:00+03', '2026-06-05 11:00:00+03'::timestamptz + interval '90 days',
- '["+371 22 567 890"]'::jsonb),
+ '[{"phone": "+371 22 567 890", "name": "Anna Kalniņa", "email": "anna.kalnina@inbox.lv"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000005', '20000000-0000-0000-0000-000000000005', '10000000-0000-0000-0000-000000000002',
  'new_project', 145000.00, 'not_ready',
@@ -104,7 +104,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000005/2.jpg"]'::jsonb,
  '[]'::jsonb, 'https://www.youtube.com/watch?v=L_jWHffIx5E',
  '2026-05-30 16:45:00+03', '2026-05-30 16:45:00+03'::timestamptz + interval '90 days',
- '["+371 29 678 901"]'::jsonb),
+ '[{"phone": "+371 29 678 901", "name": "Anna Kalniņa", "email": "anna.kalnina@inbox.lv"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000006', '20000000-0000-0000-0000-000000000006', '10000000-0000-0000-0000-000000000003',
  'buy', 295000.00, NULL,
@@ -114,7 +114,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000006/2.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-03-28 09:00:00+03', '2026-03-28 09:00:00+03'::timestamptz + interval '90 days',
- '["+371 26 111 222", "+371 29 333 444"]'::jsonb),
+ '[{"phone": "+371 26 111 222", "name": "Māris Ozoliņš", "email": "maris.ozolins@gmail.com"}, {"phone": "+371 29 333 444", "name": "Māris Ozoliņš", "email": "maris.ozolins@gmail.com"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000007', '20000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000003',
  'rent', 480.00, NULL,
@@ -123,7 +123,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000007/1.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-06-08 13:20:00+03', '2026-06-08 13:20:00+03'::timestamptz + interval '90 days',
- '["+371 22 555 666"]'::jsonb),
+ '[{"phone": "+371 22 555 666", "name": "Māris Ozoliņš", "email": "maris.ozolins@gmail.com"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000008', '20000000-0000-0000-0000-000000000008', '10000000-0000-0000-0000-000000000003',
  'buy', 95000.00, NULL,
@@ -132,7 +132,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000008/1.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-04-22 10:30:00+03', '2026-04-22 10:30:00+03'::timestamptz + interval '90 days',
- '["+371 29 777 888"]'::jsonb),
+ '[{"phone": "+371 29 777 888", "name": "Māris Ozoliņš", "email": "maris.ozolins@gmail.com"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000009', '20000000-0000-0000-0000-000000000009', '10000000-0000-0000-0000-000000000004',
  'new_project', 220000.00, 'ready',
@@ -142,7 +142,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000009/2.jpg"]'::jsonb,
  '[]'::jsonb, 'https://www.youtube.com/watch?v=J---aiyznGQ',
  '2026-06-10 08:00:00+03', '2026-06-10 08:00:00+03'::timestamptz + interval '90 days',
- '["+371 26 999 000", "+371 29 112 233"]'::jsonb),
+ '[{"phone": "+371 26 999 000", "name": "Laura Liepiņa", "email": "laura.liepina@draugiem.lv"}, {"phone": "+371 29 112 233", "name": "Laura Liepiņa", "email": "laura.liepina@draugiem.lv"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000010', '20000000-0000-0000-0000-000000000010', '10000000-0000-0000-0000-000000000004',
  'rent', 420.00, NULL,
@@ -151,7 +151,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000010/1.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-05-14 17:00:00+03', '2026-05-14 17:00:00+03'::timestamptz + interval '90 days',
- '["+371 22 445 566"]'::jsonb),
+ '[{"phone": "+371 22 445 566", "name": "Laura Liepiņa", "email": "laura.liepina@draugiem.lv"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000011', '20000000-0000-0000-0000-000000000011', '10000000-0000-0000-0000-000000000005',
  'buy', 245000.00, NULL,
@@ -161,7 +161,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000011/2.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-05-05 12:00:00+03', '2026-05-05 12:00:00+03'::timestamptz + interval '90 days',
- '["+371 29 667 788"]'::jsonb),
+ '[{"phone": "+371 29 667 788", "name": "Pēteris Krūmiņš", "email": "peteris.krumins@gmail.com"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000012', '20000000-0000-0000-0000-000000000012', '10000000-0000-0000-0000-000000000005',
  'buy', 155000.00, NULL,
@@ -170,7 +170,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000012/1.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-06-03 15:10:00+03', '2026-06-03 15:10:00+03'::timestamptz + interval '90 days',
- '["+371 26 889 900"]'::jsonb),
+ '[{"phone": "+371 26 889 900", "name": "Pēteris Krūmiņš", "email": "peteris.krumins@gmail.com"}]'::jsonb),
 
 ('30000000-0000-0000-0000-000000000013', '20000000-0000-0000-0000-000000000013', '10000000-0000-0000-0000-000000000005',
  'rent', 750.00, NULL,
@@ -180,7 +180,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000013/2.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-05-25 09:45:00+03', '2026-05-25 09:45:00+03'::timestamptz + interval '90 days',
- '["+371 29 223 344", "+371 22 556 677"]'::jsonb),
+ '[{"phone": "+371 29 223 344", "name": "Pēteris Krūmiņš", "email": "peteris.krumins@gmail.com"}, {"phone": "+371 22 556 677", "name": "Pēteris Krūmiņš", "email": "peteris.krumins@gmail.com"}]'::jsonb),
 
 -- ── Second listing at the Jūrmala house (20…003): the owner also rents out its
 --    ground floor. Same address, its own scope (one floor) and a trimmed photo set.
@@ -191,7 +191,7 @@ INSERT INTO listings (
    "https://baltnami-media.s3.eu-north-1.amazonaws.com/photos/20000000-0000-0000-0000-000000000003/2.jpg"]'::jsonb,
  '[]'::jsonb, NULL,
  '2026-06-12 10:00:00+03', '2026-06-12 10:00:00+03'::timestamptz + interval '90 days',
- '["+371 26 345 678"]'::jsonb);
+ '[{"phone": "+371 26 345 678", "name": "Jānis Bērziņš", "email": "janis.berzins@gmail.com"}]'::jsonb);
 
 -- ─────────────────────────────────────────────
 -- Listing features

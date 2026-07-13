@@ -132,7 +132,7 @@ function toListingDetail(r: RawListing): ListingDetail {
       videoUrl: r.videoUrl ?? null,
       websiteUrl: r.websiteUrl ?? null,
     },
-    phones: r.phones ?? null,
+    phones: r.phones?.map((phone) => ({ phone, name: '', email: '' })) ?? null,
     postedAt: r.postedAt,
     completion: r.completion,
     status: 'active',

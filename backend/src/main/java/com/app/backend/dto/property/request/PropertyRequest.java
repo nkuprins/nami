@@ -2,6 +2,7 @@ package com.app.backend.dto.property.request;
 
 import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.model.Media;
+import com.app.backend.dto.property.model.PhoneContact;
 import com.app.backend.dto.property.model.Price;
 import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.enums.Communication;
@@ -51,7 +52,7 @@ public interface PropertyRequest {
 
     Media media();
 
-    List<String> phones();
+    List<PhoneContact> phones();
 
     PropertyCompletion completion();
 }

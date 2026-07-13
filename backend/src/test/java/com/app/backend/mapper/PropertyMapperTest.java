@@ -1,6 +1,7 @@
 package com.app.backend.mapper;
 
 import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.model.PhoneContact;
 import com.app.backend.dto.property.request.CreatePropertyRequest;
 import com.app.backend.dto.property.response.PropertyItemDto;
 import com.app.backend.dto.property.response.PropertyListItemDto;
@@ -240,5 +241,33 @@ class PropertyMapperTest {
         assertThat(l.getSecurity()).containsExactly(SecurityFeature.GUARD);
         assertThat(l.getExtras()).containsExactly(PropertyExtra.FURNITURE);
         assertThat(l.getParking()).containsExactly(ParkingType.FREE_PARKING);
+    }
+
+    @Test
+    void applyListingContent_fillsBlankPhoneContact_fromOwner() {
+        User owner = user("owner@example.com");
+        Listing l = listing(owner);
+        CreatePropertyRequest req = createPropertyRequest().toBuilder()
+                .phones(List.of(new PhoneContact("+37129999999", "", null)))
+                .build();
+
+        mapper.applyListingContent(l, req);
+
+        assertThat(l.getPhones()).containsExactly(
+                new PhoneContact("+37129999999", owner.getName(), owner.getEmail()));
+    }
+
+    @Test
+    void applyListingContent_keepsExplicitPhoneContact() {
+        User owner = user("owner@example.com");
+        Listing l = listing(owner);
+        CreatePropertyRequest req = createPropertyRequest().toBuilder()
+                .phones(List.of(new PhoneContact("+37129999999", "Agent Name", "agent@example.com")))
+                .build();
+
+        mapper.applyListingContent(l, req);
+
+        assertThat(l.getPhones()).containsExactly(
+                new PhoneContact("+37129999999", "Agent Name", "agent@example.com"));
     }
 }

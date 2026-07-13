@@ -16,7 +16,8 @@ const STEP_MATCHERS: Record<ListingWizardStep, (key: string) => boolean> = {
     k === 'rentPrice' ||
     k === 'completion' ||
     k === 'phones' ||
-    k.startsWith('phone_'),
+    k.startsWith('phone_') ||
+    k.startsWith('email_'),
   confirm: () => false,
 };
 

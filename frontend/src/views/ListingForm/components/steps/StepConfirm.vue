@@ -35,7 +35,9 @@ const title = computed(
   () => props.form.titleLv || props.form.titleEn || props.form.titleRu || ''
 );
 
-const phones = computed(() => props.form.phones.filter((p) => p.trim()));
+const phones = computed(() =>
+  props.form.phones.filter((p) => p.phone.trim()).map((p) => p.phone)
+);
 
 function thumbSrc(entry: { preview: string } | { url: string }): string {
   return 'preview' in entry ? entry.preview : entry.url;

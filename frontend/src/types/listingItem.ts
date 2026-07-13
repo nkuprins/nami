@@ -159,6 +159,15 @@ export interface PropertyMedia {
   websiteUrl: string | null;
 }
 
+// A contact phone number with the name/email to show alongside it. When
+// name/email are left blank on submit, the backend fills them from the
+// listing owner's account.
+export interface PhoneContact {
+  phone: string;
+  name: string;
+  email: string;
+}
+
 interface ListingBase {
   id: string; // listing id
   propertyId: string; // id of the underlying physical property
@@ -187,7 +196,7 @@ export interface ListingSummary extends ListingBase {
 
 export interface ListingDetail extends ListingBase {
   media: PropertyMedia;
-  phones: string[] | null;
+  phones: PhoneContact[] | null;
   // Locales the listing actually has. Present when the detail was fetched for a
   // single locale (display); absent on the all-locales edit fetch.
   availableLocales?: string[];

@@ -4,11 +4,12 @@ import { useI18n } from 'vue-i18n';
 import IconPhone from '../../../components/icons/IconPhone.vue';
 import IconChevron from '../../../components/icons/IconChevron.vue';
 import { formatPhone } from '../../../utils/utils';
+import type { PhoneContact } from '../../../types/listingItem';
 
 defineProps<{
   price: string;
   pricePerM2: string;
-  phones: string[] | undefined;
+  phones: PhoneContact[] | undefined;
   phoneRevealed: boolean;
 }>();
 
@@ -60,11 +61,11 @@ onBeforeUnmount(() => {
       >
         <div class="flex items-stretch bg-ink rounded-lg overflow-hidden">
           <a
-            :href="`tel:${formatPhone(phones[0]).replace(/\s/g, '')}`"
+            :href="`tel:${formatPhone(phones[0].phone).replace(/\s/g, '')}`"
             class="flex items-center gap-1.5 px-5 py-2.5 text-cream text-sm font-medium hover:opacity-90 transition-opacity"
           >
             <span class="size-4 shrink-0"><IconPhone /></span>
-            {{ formatPhone(phones[0]) }}
+            {{ formatPhone(phones[0].phone) }}
           </a>
           <button
             v-if="phones.length > 1"
@@ -84,13 +85,13 @@ onBeforeUnmount(() => {
             class="absolute bottom-full right-0 mb-2 w-56 bg-bg border border-line rounded-xl shadow-lift p-2"
           >
             <a
-              v-for="(phone, i) in phones"
+              v-for="(contact, i) in phones"
               :key="i"
-              :href="`tel:${formatPhone(phone).replace(/\s/g, '')}`"
+              :href="`tel:${formatPhone(contact.phone).replace(/\s/g, '')}`"
               class="flex items-center gap-2 px-3 py-2.5 text-sm text-ink font-medium rounded-lg hover:bg-surface transition-colors"
             >
               <span class="size-4 shrink-0"><IconPhone /></span>
-              {{ formatPhone(phone) }}
+              {{ formatPhone(contact.phone) }}
             </a>
           </div>
         </Transition>

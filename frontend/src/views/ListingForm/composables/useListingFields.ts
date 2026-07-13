@@ -4,10 +4,15 @@ import {
   offerableListingTypes,
   type ListingSummary,
   type ListingType,
+  type PhoneContact,
   type PropertyLocation,
   type Translations,
 } from '../../../types/listingItem';
-import type { ListingFieldsForm, ListingFormState } from './formTypes';
+import type {
+  ListingFieldsForm,
+  ListingFormState,
+  PhoneContactForm,
+} from './formTypes';
 import type {
   AddListingPayload,
   UpdateListingPayload,
@@ -20,6 +25,7 @@ import {
 } from '../../../api/listingsApi';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
+import { useAuthStore } from '../../../stores/authStore';
 import type { usePhotoUpload } from './usePhotoUpload';
 import {
   buildDetails,
@@ -50,7 +56,7 @@ export const INITIAL_LISTING_FIELDS: ListingFieldsForm = {
   rentDurationMonths: 3,
   durationMonths: 3,
   completion: '',
-  phones: [''],
+  phones: [{ phone: '', name: '', email: '' }],
 };
 
 export function buildTranslations(form: ListingFieldsForm): Translations {
@@ -71,6 +77,19 @@ export function buildTranslations(form: ListingFieldsForm): Translations {
       description: form.descriptionRu.trim() || undefined,
     };
   return t;
+}
+
+// Trims each entry and drops rows with no phone number typed, converting the
+// form's phone entries into the shape the API expects. A blank name/email is
+// sent through as-is — the backend fills it from the account holder.
+export function filledPhones(phones: PhoneContactForm[]): PhoneContact[] {
+  return phones
+    .filter((p) => p.phone.trim())
+    .map((p) => ({
+      phone: p.phone.trim(),
+      name: p.name.trim(),
+      email: p.email.trim(),
+    }));
 }
 
 // The self-contained listing body shared by add + update (update omits duration).
@@ -96,7 +115,7 @@ export function buildListingBody(
     extras: form.extras,
     parking: form.parking,
     media: buildMedia(form, photos, plans),
-    phones: form.phones.filter((p) => p.trim()),
+    phones: filledPhones(form.phones),
     completion:
       form.type === 'new_project' && form.completion
         ? form.completion
@@ -126,18 +145,20 @@ export function listingFieldErrors(
   if (form.type === 'new_project' && !form.completion)
     e.completion = 'Required for new projects';
 
-  const filledPhones = form.phones.filter((p) => p.trim());
-  if (filledPhones.length === 0)
-    e.phones = 'At least one phone number required';
+  const filled = form.phones.filter((p) => p.phone.trim());
+  if (filled.length === 0) e.phones = 'At least one phone number required';
   const phoneRe = /^\+?[\d\s\-()]{7,}$/;
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const seen = new Set<string>();
   form.phones.forEach((p, i) => {
-    const normalized = p.replace(/[\s\-()]/g, '');
-    if (p.trim() && !phoneRe.test(p.trim()))
+    const normalized = p.phone.replace(/[\s\-()]/g, '');
+    if (p.phone.trim() && !phoneRe.test(p.phone.trim()))
       e[`phone_${i}`] = 'Invalid phone format';
     else if (normalized && seen.has(normalized))
       e[`phone_${i}`] = 'Duplicate phone number';
     if (normalized) seen.add(normalized);
+    if (p.email.trim() && !emailRe.test(p.email.trim()))
+      e[`email_${i}`] = 'Invalid email format';
   });
 
   return e;
@@ -172,11 +193,18 @@ export function useAddListingToProperty(
   const { t } = useI18n();
   const { localePush } = useLocaleRoute();
   const { typeOptions } = usePropertyLabels();
+  const authStore = useAuthStore();
 
   const form = reactive<ListingFormState>({
     ...INITIAL_PROPERTY_FIELDS,
     ...INITIAL_LISTING_FIELDS,
-    phones: [''],
+    phones: [
+      {
+        phone: '',
+        name: authStore.user?.name ?? '',
+        email: authStore.user?.email ?? '',
+      },
+    ],
   });
   const touched = ref(false);
   const submitting = ref(false);

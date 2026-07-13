@@ -6,6 +6,7 @@ import com.app.backend.dto.property.request.CreatePropertyRequest;
 import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.model.Location;
 import com.app.backend.dto.property.model.Media;
+import com.app.backend.dto.property.model.PhoneContact;
 import com.app.backend.dto.property.model.Price;
 import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.dto.property.request.UpdateListingRequest;
@@ -177,7 +178,7 @@ public final class TestData {
                         new CoordsDto(56.9496, 24.1052)))
                 .features(List.of(PropertyFeature.BALCONY, PropertyFeature.PARKING))
                 .media(Media.builder().photos(List.of("https://cdn.test.local/uploads/p1.jpg")).build())
-                .phones(List.of("+37120000000"))
+                .phones(List.of(new PhoneContact("+37120000000", "Test User", "test@example.com")))
                 .durationMonths(3)
                 .build();
     }
@@ -205,7 +206,7 @@ public final class TestData {
                         "en", new LocalizedText("Updated Apartment", "Updated description")))
                 .features(List.of(PropertyFeature.ELEVATOR, PropertyFeature.FURNISHED))
                 .media(Media.builder().photos(List.of("https://cdn.test.local/uploads/p1.jpg")).build())
-                .phones(List.of("+37120000001"))
+                .phones(List.of(new PhoneContact("+37120000001", "Test User", "test@example.com")))
                 .build();
     }
 
@@ -239,7 +240,7 @@ public final class TestData {
                         "en", new LocalizedText("Test Apartment for rent", "Description in English")))
                 .features(List.of(PropertyFeature.BALCONY))
                 .media(Media.builder().photos(List.of("https://cdn.test.local/uploads/p1.jpg")).build())
-                .phones(List.of("+37120000002"))
+                .phones(List.of(new PhoneContact("+37120000002", "Test User", "test@example.com")))
                 .durationMonths(3)
                 .build();
     }

@@ -17,6 +17,7 @@ import com.app.backend.enums.SewageType;
 import com.app.backend.enums.StoveType;
 import com.app.backend.enums.VentilationSystem;
 import com.app.backend.enums.VentilationType;
+import com.app.backend.dto.property.model.PhoneContact;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -169,10 +170,10 @@ public class Listing {
     @BatchSize(size = 20)
     private Map<String, ListingTranslation> translations = new HashMap<>();
 
-    // Ordered array of phone strings; list order is display order
+    // Ordered array of contact entries (phone + name + email); list order is display order
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "phones", nullable = false)
-    private List<String> phones = new ArrayList<>();
+    private List<PhoneContact> phones = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "listing_features", joinColumns = @JoinColumn(name = "listing_id"))

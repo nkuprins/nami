@@ -8,10 +8,12 @@ import type {
 import type {
   ListingFieldsForm,
   ListingFormState,
+  PhoneContactForm,
   PropertyFieldsForm,
 } from './formTypes';
 import { parseDecimal } from '../../../utils/utils';
 import { requestPresignedUrls, uploadFilesToS3 } from '../../../api/uploadApi';
+import { useAuthStore } from '../../../stores/authStore';
 
 // Shared by every create/edit form composable so `touched`-gated field
 // errors behave identically everywhere.
@@ -36,12 +38,17 @@ export function useListingFormControls(
 ) {
   const isValid = computed(() => Object.keys(errors.value).length === 0);
   const fieldError = makeFieldError(touched, errors);
+  const authStore = useAuthStore();
 
   return {
     isValid,
     fieldError,
     toggleFeature: (f: Feature) => toggleFeature(form, f),
-    addPhone: () => addPhone(form),
+    addPhone: () =>
+      addPhone(form, {
+        name: authStore.user?.name ?? '',
+        email: authStore.user?.email ?? '',
+      }),
     removePhone: (index: number) => removePhone(form, index),
     async validateForSubmit(): Promise<boolean> {
       touched.value = true;
@@ -57,11 +64,17 @@ export function useListingFormControls(
   };
 }
 
-export function addPhone(form: { phones: string[] }): void {
-  form.phones.push('');
+export function addPhone(
+  form: { phones: PhoneContactForm[] },
+  defaults: { name: string; email: string }
+): void {
+  form.phones.push({ phone: '', name: defaults.name, email: defaults.email });
 }
 
-export function removePhone(form: { phones: string[] }, index: number): void {
+export function removePhone(
+  form: { phones: PhoneContactForm[] },
+  index: number
+): void {
   form.phones.splice(index, 1);
 }
 

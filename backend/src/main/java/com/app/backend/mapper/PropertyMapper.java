@@ -4,6 +4,7 @@ import com.app.backend.dto.property.model.CoordsDto;
 import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.model.Location;
 import com.app.backend.dto.property.model.Media;
+import com.app.backend.dto.property.model.PhoneContact;
 import com.app.backend.dto.property.model.Price;
 import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.dto.property.response.PropertyDto;
@@ -13,6 +14,7 @@ import com.app.backend.dto.property.request.PropertyRequest;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.ListingTranslation;
 import com.app.backend.entity.Property;
+import com.app.backend.entity.User;
 import com.app.backend.enums.SupportedLocale;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -39,7 +41,7 @@ public class PropertyMapper {
      */
     public PropertyItemDto toDto(Listing l, String locale) {
         Property p = l.getProperty();
-        List<String> phones = l.getPhones();
+        List<PhoneContact> phones = l.getPhones();
         return PropertyItemDto.builder()
                 .id(l.getId())
                 .propertyId(p.getId())
@@ -186,7 +188,17 @@ public class PropertyMapper {
         replace(listing.getExtras(), req.extras());
         replace(listing.getParking(), req.parking());
         applyTranslations(listing, req.translations());
-        listing.setPhones(nullToEmpty(req.phones()));
+        listing.setPhones(applyPhoneDefaults(nullToEmpty(req.phones()), listing.getOwner()));
+    }
+
+    /** Fills a blank contact name/email in a phone entry from the listing owner's account. */
+    private static List<PhoneContact> applyPhoneDefaults(List<PhoneContact> phones, User owner) {
+        return phones.stream()
+                .map(p -> new PhoneContact(
+                        p.phone(),
+                        StringUtils.hasText(p.name()) ? p.name() : owner.getName(),
+                        StringUtils.hasText(p.email()) ? p.email() : owner.getEmail()))
+                .toList();
     }
 
     /** Writes a property's location (shared by all listings at the address). */
@@ -295,7 +307,7 @@ public class PropertyMapper {
         listing.setWebsiteUrl(media != null ? media.websiteUrl() : null);
     }
 
-    private static List<String> nullToEmpty(List<String> values) {
+    private static <T> List<T> nullToEmpty(List<T> values) {
         return values != null ? new ArrayList<>(values) : new ArrayList<>();
     }
 }

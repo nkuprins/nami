@@ -5,9 +5,11 @@ import type { ListingFormState } from './formTypes';
 import {
   buildListingBody,
   buildTranslations,
+  filledPhones,
   INITIAL_LISTING_FIELDS,
   listingFieldErrors,
 } from './useListingFields';
+import { useAuthStore } from '../../../stores/authStore';
 import {
   buildDetails,
   buildMedia,
@@ -41,7 +43,17 @@ export function useListingForm(
   turnstile?: { token: () => string; reset: () => void }
 ) {
   const { localePush } = useLocaleRoute();
-  const form = reactive<ListingFormState>({ ...INITIAL_FORM });
+  const authStore = useAuthStore();
+  const form = reactive<ListingFormState>({
+    ...INITIAL_FORM,
+    phones: [
+      {
+        phone: '',
+        name: authStore.user?.name ?? '',
+        email: authStore.user?.email ?? '',
+      },
+    ],
+  });
   const touched = ref(false);
   const submitting = ref(false);
   const submitError = ref('');
@@ -74,7 +86,7 @@ export function useListingForm(
     submitError.value = '';
     rentListingWarning.value = false;
 
-    const filledPhones = form.phones.filter((p) => p.trim());
+    const phones = filledPhones(form.phones);
 
     try {
       const photos = await photoUpload.buildFinalUrls(uploadNewFiles);
@@ -108,7 +120,7 @@ export function useListingForm(
           extras: form.extras,
           parking: form.parking,
           media: buildMedia(form, photos, plans),
-          phones: filledPhones,
+          phones,
           completion:
             form.type === 'new_project' && form.completion
               ? form.completion

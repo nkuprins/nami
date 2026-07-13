@@ -278,7 +278,9 @@ CREATE TABLE listings (
     expires_at          TIMESTAMPTZ       NOT NULL,
     expiry_warning_sent BOOLEAN           NOT NULL DEFAULT false,
 
-    -- Contact phones: ordered array of strings; array order is display order
+    -- Contact phones: ordered array of {phone, name, email} objects; array order
+    -- is display order. name/email default to the owner's account values when
+    -- left blank on write (see PropertyMapper#applyListingContent).
     phones              JSONB             NOT NULL DEFAULT '[]',
 
     CONSTRAINT chk_land_m2_apartment
