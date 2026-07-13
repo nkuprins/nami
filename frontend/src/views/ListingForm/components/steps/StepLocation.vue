@@ -14,6 +14,7 @@ defineProps<{
   isOpen: boolean;
   matchKind: DuplicateMatchKind;
   match: ListingSummary | null;
+  acknowledged: boolean;
 }>();
 
 defineEmits<{
@@ -38,6 +39,7 @@ defineEmits<{
     <DuplicateNudgeCard
       :match-kind="matchKind"
       :match="match"
+      :acknowledged="acknowledged"
       @add-listing="$emit('add-listing')"
       @acknowledge-fuzzy="$emit('acknowledge-fuzzy')"
     />

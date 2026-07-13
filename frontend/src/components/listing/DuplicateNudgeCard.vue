@@ -8,6 +8,7 @@ import IconBuilding from '../icons/IconBuilding.vue';
 const props = defineProps<{
   matchKind: DuplicateMatchKind;
   match: ListingSummary | null;
+  acknowledged: boolean;
 }>();
 
 defineEmits<{ 'add-listing': []; 'acknowledge-fuzzy': [] }>();
@@ -19,7 +20,7 @@ const { localePath } = useLocaleRoute();
 <template>
   <Transition name="pop">
     <div
-      v-if="matchKind !== 'none' && match"
+      v-if="matchKind !== 'none' && match && !acknowledged"
       class="rounded-xl border p-4 flex flex-col gap-3"
       :class="
         matchKind === 'exact'

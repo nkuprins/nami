@@ -184,6 +184,7 @@ watch(
               :is-open="isOpen"
               :match-kind="nudge.matchKind.value"
               :match="nudge.match.value"
+              :acknowledged="nudge.acknowledged.value"
               @update:is-open="isOpen = $event"
               @select="onSelect"
               @add-listing="goAddToExisting"
