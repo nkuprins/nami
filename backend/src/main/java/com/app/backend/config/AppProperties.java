@@ -11,7 +11,8 @@ public record AppProperties(
         String frontendUrl,
         CookieProperties cookie,
         TurnstileProperties turnstile,
-        AddressRegisterProperties addressRegister
+        AddressRegisterProperties addressRegister,
+        CadastreProperties cadastre
 ) {
     public record JwtProperties(String secret, long accessTokenTtlSeconds, long refreshTokenTtlSeconds) {}
     public record ResendProperties(String apiKey, String from) {}
@@ -21,5 +22,7 @@ public record AppProperties(
     public record S3Properties(String bucket, String region, long presignTtlMinutes, String cdnUrl) {}
     public record AddressRegisterProperties(boolean autoIngest, AddressRegisterUrls urls) {}
     public record AddressRegisterUrls(String novads, String pagasts, String pilseta,
-                                      String ciems, String iela, String eka) {}
+                                      String ciems, String iela, String eka, String dziv) {}
+    public record CadastreProperties(boolean autoIngest, CadastreUrls urls) {}
+    public record CadastreUrls(String building, String premiseGroup) {}
 }

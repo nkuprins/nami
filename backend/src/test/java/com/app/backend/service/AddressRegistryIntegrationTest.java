@@ -34,6 +34,7 @@ class AddressRegistryIntegrationTest extends IntegrationTestBase {
         registry.add("app.address-register.urls.ciems", () -> dir.resolve("aw_ciems.csv").toUri());
         registry.add("app.address-register.urls.iela", () -> dir.resolve("aw_iela.csv").toUri());
         registry.add("app.address-register.urls.eka", () -> dir.resolve("aw_eka.csv").toUri());
+        registry.add("app.address-register.urls.dziv", () -> dir.resolve("aw_dziv.csv").toUri());
     }
 
     @Autowired private AddressRegistryIngestService ingestService;
@@ -44,8 +45,8 @@ class AddressRegistryIntegrationTest extends IntegrationTestBase {
     void ingest_thenAutocompleteResolvesTerritoriesStreetsAndBuildings() throws Exception {
         AddressIngestStats stats = ingestService.ingest();
 
-        // DEL rows and orphans are dropped: 1 city + 2 parishes + 3 villages; 4 streets; 6 buildings.
-        assertThat(stats).isEqualTo(new AddressIngestStats(6, 4, 6));
+        // DEL rows and orphans are dropped: 1 city + 2 parishes + 3 villages; 4 streets; 6 buildings; 2 apartments.
+        assertThat(stats).isEqualTo(new AddressIngestStats(6, 4, 6, 2));
 
         // A Rīga neighbourhood isn't a register territory — falls back to the city's streets.
         List<StreetOptionDto> riga = queryService.searchStreets("riga", "teika", "briv");
@@ -84,6 +85,11 @@ class AddressRegistryIntegrationTest extends IntegrationTestBase {
                     assertThat(b.streetName()).isNull();
                     assertThat(b.houseName()).isEqualTo("Riņņi");
                 });
+
+        // Apartments resolve to their own VAR code under the parent building.
+        assertThat(registryRepository.findApartmentCode(6001L, "1")).hasValue(7001L);
+        assertThat(registryRepository.findApartmentCode(6001L, "99")).isEmpty(); // DEL row dropped
+        assertThat(registryRepository.findApartmentCode(6002L, "1")).isEmpty(); // wrong building
 
         // Public endpoints expose the same data without authentication.
         mockMvc.perform(get("/api/address/streets")

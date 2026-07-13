@@ -68,6 +68,11 @@ export const router = createRouter({
           component: () => import('./views/TermsView.vue'),
         },
         {
+          path: 'admin',
+          name: 'admin-review',
+          component: () => import('./views/Admin/AdminReviewView.vue'),
+        },
+        {
           path: ':pathMatch(.*)*',
           name: 'not-found',
           component: () => import('./views/NotFoundView.vue'),
@@ -95,7 +100,8 @@ router.beforeEach(async (to) => {
   const needsAuth =
     to.name === 'add-listing' ||
     to.name === 'edit-listing' ||
-    to.name === 'add-listing-to-property';
+    to.name === 'add-listing-to-property' ||
+    to.name === 'admin-review';
   if (needsAuth) {
     // The app now mounts before session restoration finishes, so wait for it
     // before deciding whether to bounce an authenticated user off a guarded route.
@@ -103,5 +109,8 @@ router.beforeEach(async (to) => {
     if (!auth.isAuthenticated) {
       return { name: 'home', params: { locale: locale ?? 'lv' } };
     }
+  }
+  if (to.name === 'admin-review' && !auth.isAdmin) {
+    return { name: 'home', params: { locale: locale ?? 'lv' } };
   }
 });

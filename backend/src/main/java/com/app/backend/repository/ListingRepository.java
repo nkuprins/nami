@@ -41,4 +41,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID>, JpaSpec
             ListingType listingType, PropertyCategory propertyCategory, PropertyStatus status);
 
     List<Listing> findByPropertyId(UUID propertyId);
+
+    @EntityGraph(attributePaths = {"owner", "property", "features", "translations"})
+    List<Listing> findByStatusOrderByPostedAtAsc(PropertyStatus status);
 }

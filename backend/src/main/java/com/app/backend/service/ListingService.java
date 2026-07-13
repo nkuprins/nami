@@ -39,6 +39,7 @@ public class ListingService {
     private final MediaCleanupService mediaCleanupService;
     private final MediaUrlValidator mediaUrlValidator;
     private final ImageProcessingPublisher imageProcessingPublisher;
+    private final CadastreQueryService cadastreQueryService;
 
     /** Adds another self-contained listing at an address that already has at least one (e.g. rent one floor of a listed house). */
     @Caching(evict = {
@@ -60,7 +61,8 @@ public class ListingService {
         listing.setOwner(property.getOwner());
         propertyMapper.applyListingContent(listing, req);
         mediaUrlValidator.validate(listing.allMediaUrls());
-        listing.setStatus(PropertyStatus.ACTIVE);
+        listing.setStatus(cadastreQueryService.decideStatus(
+                property.getArBuildingCode(), property.getApartment(), listing.getM2(), listing.getYearBuilt()));
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
         Listing saved = listingRepository.save(listing);
@@ -86,6 +88,14 @@ public class ListingService {
         List<String> oldMedia = new ArrayList<>(listing.allMediaUrls());
         propertyMapper.applyListingContent(listing, req);
         mediaUrlValidator.validate(listing.allMediaUrls());
+        // Re-derive status so a fixed area/build year can clear a hold — but never
+        // resurrect a listing that's inactive for an unrelated reason (expiry, admin
+        // rejection); those come back only through an explicit renew().
+        if (listing.getStatus() != PropertyStatus.INACTIVE) {
+            Property property = listing.getProperty();
+            listing.setStatus(cadastreQueryService.decideStatus(
+                    property.getArBuildingCode(), property.getApartment(), listing.getM2(), listing.getYearBuilt()));
+        }
         Listing saved = listingRepository.save(listing);
 
         List<String> newMedia = saved.allMediaUrls();
@@ -108,8 +118,10 @@ public class ListingService {
     @Transactional
     public PropertyItemDto renew(UUID listingId, RenewPropertyRequest req, UUID ownerId) {
         Listing listing = propertyAccess.loadOwnedListing(listingId, ownerId);
+        Property property = listing.getProperty();
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
-        listing.setStatus(PropertyStatus.ACTIVE);
+        listing.setStatus(cadastreQueryService.decideStatus(
+                property.getArBuildingCode(), property.getApartment(), listing.getM2(), listing.getYearBuilt()));
         listing.setExpiryWarningSent(false);
         return propertyMapper.toDto(listingRepository.save(listing));
     }

@@ -12,6 +12,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<AuthUser | null>(null);
   const initializing = ref(true);
   const isAuthenticated = computed(() => user.value !== null);
+  const isAdmin = computed(() => user.value?.admin === true);
 
   const handleGlobalLogout = () => {
     logger.info(
@@ -187,6 +188,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user: readonly(user),
     isAuthenticated,
+    isAdmin,
     initializing: readonly(initializing),
     init,
     login,

@@ -1,5 +1,6 @@
 package com.app.backend.repository;
 
+import com.app.backend.dto.address.ApartmentRow;
 import com.app.backend.dto.address.BuildingAddress;
 import com.app.backend.dto.address.BuildingOptionDto;
 import com.app.backend.dto.address.BuildingRow;
@@ -38,6 +39,7 @@ public class AddressRegistryRepository {
     }
 
     public void deleteAll() {
+        jdbc.getJdbcTemplate().update("DELETE FROM address_apartments");
         jdbc.getJdbcTemplate().update("DELETE FROM address_buildings");
         jdbc.getJdbcTemplate().update("DELETE FROM address_streets");
         jdbc.getJdbcTemplate().update("DELETE FROM address_territories");
@@ -96,7 +98,29 @@ public class AddressRegistryRepository {
         });
     }
 
+    public void insertApartments(List<ApartmentRow> rows) {
+        jdbc.getJdbcTemplate().batchUpdate("""
+                INSERT INTO address_apartments (code, building_code, name, norm_name)
+                VALUES (?, ?, ?, ?) ON CONFLICT (code) DO NOTHING
+                """, rows, rows.size(), (PreparedStatement ps, ApartmentRow r) -> {
+            ps.setLong(1, r.code());
+            ps.setLong(2, r.buildingCode());
+            ps.setString(3, r.name());
+            ps.setString(4, r.normName());
+        });
+    }
+
     // ── queries ───────────────────────────────────────────────
+
+    /** The apartment's own VAR code, resolved from its parent building and normalized number. */
+    public Optional<Long> findApartmentCode(long buildingCode, String normApartment) {
+        List<Long> found = jdbc.query("""
+                SELECT code FROM address_apartments
+                WHERE building_code = :building AND norm_name = :name
+                """, Map.of("building", buildingCode, "name", normApartment),
+                (rs, i) -> rs.getLong("code"));
+        return found.stream().findFirst();
+    }
 
     public List<TerritoryRow> findTerritoriesByNormName(String normName) {
         return jdbc.query("""

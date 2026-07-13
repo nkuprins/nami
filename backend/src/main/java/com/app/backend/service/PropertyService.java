@@ -8,7 +8,6 @@ import com.app.backend.dto.property.request.UpdatePropertyRequest;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.Property;
 import com.app.backend.entity.User;
-import com.app.backend.enums.PropertyStatus;
 import com.app.backend.mapper.PropertyMapper;
 import com.app.backend.dto.address.BuildingAddress;
 import com.app.backend.messaging.ImageProcessingPublisher;
@@ -48,6 +47,7 @@ public class PropertyService {
     private final MediaUrlValidator mediaUrlValidator;
     private final ImageProcessingPublisher imageProcessingPublisher;
     private final PropertyAccess propertyAccess;
+    private final CadastreQueryService cadastreQueryService;
 
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
@@ -71,7 +71,8 @@ public class PropertyService {
         listing.setOwner(owner);
         propertyMapper.applyListingContent(listing, req);
         mediaUrlValidator.validate(listing.allMediaUrls());
-        listing.setStatus(PropertyStatus.ACTIVE);
+        listing.setStatus(cadastreQueryService.decideStatus(
+                location.arBuildingCode(), location.apartment(), listing.getM2(), listing.getYearBuilt()));
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
         propertyRepository.save(property);

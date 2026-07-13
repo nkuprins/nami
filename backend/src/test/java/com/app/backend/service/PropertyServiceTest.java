@@ -16,6 +16,7 @@ import com.app.backend.enums.PropertyStatus;
 import com.app.backend.mapper.PropertyMapper;
 import com.app.backend.messaging.ImageProcessingPublisher;
 import com.app.backend.repository.AddressRegistryRepository;
+import com.app.backend.repository.CadastreRepository;
 import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
@@ -58,6 +59,7 @@ class PropertyServiceTest {
     @Mock private PropertyRepository propertyRepository;
     @Mock private UserRepository userRepository;
     @Mock private AddressRegistryRepository addressRegistryRepository;
+    @Mock private CadastreRepository cadastreRepository;
     @Mock private PropertyMapper propertyMapper;
     @Mock private MediaCleanupService mediaCleanupService;
     @Mock private ImageProcessingPublisher imageProcessingPublisher;
@@ -73,13 +75,15 @@ class PropertyServiceTest {
         propertyAccess = new PropertyAccess(propertyRepository, listingRepository);
         AppProperties props = new AppProperties(null,
                 new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"),
-                null, null, null, null, null, null);
+                null, null, null, null, null, null, null);
         MediaUrlValidator mediaUrlValidator = new MediaUrlValidator(props);
+        CadastreQueryService cadastreQueryService =
+                new CadastreQueryService(cadastreRepository, addressRegistryRepository);
         propertyService = new PropertyService(propertyRepository, listingRepository, userRepository,
                 addressRegistryRepository, propertyMapper, mediaCleanupService, mediaUrlValidator,
-                imageProcessingPublisher, propertyAccess);
+                imageProcessingPublisher, propertyAccess, cadastreQueryService);
         listingService = new ListingService(listingRepository, propertyRepository, propertyMapper, propertyAccess,
-                mediaCleanupService, mediaUrlValidator, imageProcessingPublisher);
+                mediaCleanupService, mediaUrlValidator, imageProcessingPublisher, cadastreQueryService);
         propertyQueryService = new PropertyQueryService(propertyMapper, propertyAccess);
         listingQueryService = new ListingQueryService(listingRepository, userRepository, propertyMapper);
         TransactionSynchronizationManager.initSynchronization();

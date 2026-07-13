@@ -5,6 +5,7 @@ import com.app.backend.dto.auth.AuthUserResponse;
 import com.app.backend.dto.auth.LoginRequest;
 import com.app.backend.entity.RefreshToken;
 import com.app.backend.entity.User;
+import com.app.backend.enums.UserRole;
 import com.app.backend.exception.AuthException;
 import com.app.backend.repository.RefreshTokenRepository;
 import com.app.backend.repository.UserRepository;
@@ -110,6 +111,7 @@ public class AuthService {
     }
 
     private AuthUserResponse toResponse(User user) {
-        return new AuthUserResponse(user.getId(), user.getName(), user.getEmail(), user.isEmailVerified());
+        return new AuthUserResponse(user.getId(), user.getName(), user.getEmail(), user.isEmailVerified(),
+                user.getRole() == UserRole.ADMIN);
     }
 }

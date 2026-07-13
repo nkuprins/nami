@@ -3,6 +3,7 @@ package com.app.backend.service;
 import com.app.backend.config.AppProperties;
 import com.app.backend.config.CacheConfig;
 import com.app.backend.dto.address.AddressIngestStats;
+import com.app.backend.dto.address.ApartmentRow;
 import com.app.backend.dto.address.BuildingRow;
 import com.app.backend.dto.address.StreetRow;
 import com.app.backend.dto.address.TerritoryRow;
@@ -40,9 +41,10 @@ import java.util.function.BiConsumer;
  *
  * <p>Each run downloads the register CSVs, then wipes and reloads the mirror in
  * one transaction: territories (cities 104, parishes 105, villages 106) with
- * their municipality resolved through the parent chain, streets, and buildings.
- * Only rows with status {@code EKS} (existing) are kept. Buildings are streamed
- * in batches because the file holds ~1M rows.
+ * their municipality resolved through the parent chain, streets, buildings, and
+ * apartments (each with their own VAR code, hanging off a building). Only rows
+ * with status {@code EKS} (existing) are kept. Buildings and apartments are
+ * streamed in batches since those files hold ~1M rows each.
  */
 @Slf4j
 @Service
@@ -55,6 +57,7 @@ public class AddressRegistryIngestService {
     private static final int TYPE_PARISH = 105;
     private static final int TYPE_VILLAGE = 106;
     private static final int TYPE_STREET = 107;
+    private static final int TYPE_BUILDING = 108;
     private static final int TYPE_NOVADS = 113;
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
@@ -77,6 +80,7 @@ public class AddressRegistryIngestService {
             Path ciemi = download(urls.ciems(), temp);
             Path ielas = download(urls.iela(), temp);
             Path ekas = download(urls.eka(), temp);
+            Path dzivi = download(urls.dziv(), temp);
 
             Map<Long, String> novadsNames = readNovadsNames(novadi);
             List<TerritoryRow> territories = new ArrayList<>();
@@ -99,13 +103,15 @@ public class AddressRegistryIngestService {
                 for (List<StreetRow> batch : batches(streets)) {
                     repository.insertStreets(batch);
                 }
-                int buildings = loadBuildings(ekas, territoryCodes, streetTerritory);
-                return new AddressIngestStats(territories.size(), streets.size(), buildings);
+                Set<Long> buildingCodes = new HashSet<>();
+                int buildings = loadBuildings(ekas, territoryCodes, streetTerritory, buildingCodes);
+                int apartments = loadApartments(dzivi, buildingCodes);
+                return new AddressIngestStats(territories.size(), streets.size(), buildings, apartments);
             }));
 
             evictAddressCaches();
-            log.info("Address register ingest done: {} territories, {} streets, {} buildings",
-                    stats.territories(), stats.streets(), stats.buildings());
+            log.info("Address register ingest done: {} territories, {} streets, {} buildings, {} apartments",
+                    stats.territories(), stats.streets(), stats.buildings(), stats.apartments());
             return stats;
         } finally {
             for (Path path : temp) {
@@ -201,7 +207,7 @@ public class AddressRegistryIngestService {
 
     /** Streams the ~1M-row building file straight into batched inserts (runs inside the reload transaction). */
     private int loadBuildings(Path file, Set<Long> territoryCodes,
-                              Map<Long, Long> streetTerritory) {
+                              Map<Long, Long> streetTerritory, Set<Long> buildingCodes) {
         List<BuildingRow> batch = new ArrayList<>(BATCH_SIZE);
         int[] total = {0};
         try {
@@ -227,9 +233,11 @@ public class AddressRegistryIngestService {
                 if (name.isBlank()) {
                     return;
                 }
-                batch.add(new BuildingRow(parseLong(csv.col(row, "KODS")), streetCode, territoryCode,
+                long code = parseLong(csv.col(row, "KODS"));
+                batch.add(new BuildingRow(code, streetCode, territoryCode,
                         name, AddressMatcher.normalize(name),
                         parseDouble(csv.col(row, "DD_N")), parseDouble(csv.col(row, "DD_E"))));
+                buildingCodes.add(code);
                 if (batch.size() == BATCH_SIZE) {
                     repository.insertBuildings(List.copyOf(batch));
                     total[0] += batch.size();
@@ -241,6 +249,41 @@ public class AddressRegistryIngestService {
         }
         if (!batch.isEmpty()) {
             repository.insertBuildings(List.copyOf(batch));
+            total[0] += batch.size();
+        }
+        return total[0];
+    }
+
+    /** Streams the apartment file, keeping only rows whose parent building survived ingest. */
+    private int loadApartments(Path file, Set<Long> buildingCodes) {
+        List<ApartmentRow> batch = new ArrayList<>(BATCH_SIZE);
+        int[] total = {0};
+        try {
+            forEachExisting(file, (csv, row) -> {
+                if (parseInt(csv.col(row, "VKUR_TIPS")) != TYPE_BUILDING) {
+                    return; // apartments hang off a building; skip anything else
+                }
+                long buildingCode = parseLong(csv.col(row, "VKUR_CD"));
+                if (!buildingCodes.contains(buildingCode)) {
+                    return; // parent building was skipped
+                }
+                String name = csv.col(row, "NOSAUKUMS");
+                if (name.isBlank()) {
+                    return;
+                }
+                batch.add(new ApartmentRow(parseLong(csv.col(row, "KODS")), buildingCode,
+                        name, AddressMatcher.normalize(name)));
+                if (batch.size() == BATCH_SIZE) {
+                    repository.insertApartments(List.copyOf(batch));
+                    total[0] += batch.size();
+                    batch.clear();
+                }
+            });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        if (!batch.isEmpty()) {
+            repository.insertApartments(List.copyOf(batch));
             total[0] += batch.size();
         }
         return total[0];

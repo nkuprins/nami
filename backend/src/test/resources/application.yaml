@@ -43,3 +43,9 @@ app:
       ciems: ""
       iela: ""
       eka: ""
+      dziv: ""
+  cadastre:
+    auto-ingest: false
+    urls:
+      building: ""
+      premise-group: ""

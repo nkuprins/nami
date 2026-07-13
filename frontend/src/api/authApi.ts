@@ -10,6 +10,7 @@ export interface AuthUser {
   name: string;
   email: string;
   emailVerified: boolean;
+  admin: boolean;
 }
 
 export const authApi = {

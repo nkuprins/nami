@@ -9,7 +9,8 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TYPE listing_type        AS ENUM ('buy', 'rent', 'new_project');
 CREATE TYPE property_category   AS ENUM ('apartment', 'house');
 CREATE TYPE property_completion AS ENUM ('ready', 'not_ready');
-CREATE TYPE property_status     AS ENUM ('active', 'inactive');
+CREATE TYPE property_status     AS ENUM ('active', 'inactive', 'pending_review');
+CREATE TYPE user_role           AS ENUM ('user', 'admin');
 CREATE TYPE property_feature    AS ENUM (
     'balcony',
     'parking',
@@ -72,6 +73,7 @@ CREATE TABLE users (
     password_hash TEXT        NOT NULL
                               CHECK (char_length(password_hash) >= 60),
     email_verified BOOLEAN     NOT NULL DEFAULT false,
+    role          user_role   NOT NULL DEFAULT 'user',
     last_login_at TIMESTAMPTZ NULL,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -159,6 +161,42 @@ CREATE TABLE address_buildings (
 CREATE INDEX idx_address_buildings_street_norm    ON address_buildings (street_code, norm_name text_pattern_ops);
 CREATE INDEX idx_address_buildings_territory_norm ON address_buildings (territory_code, norm_name text_pattern_ops)
     WHERE street_code IS NULL;
+
+-- Individual apartments (VZD "dzīvoklis"), each with their own VAR address
+-- code. Links a listing's free-typed apartment number to the official code
+-- the cadastre mirror's premise groups reference (see cadastre_premises).
+CREATE TABLE address_apartments (
+    code           BIGINT PRIMARY KEY,      -- VZD KODS
+    building_code  BIGINT NOT NULL REFERENCES address_buildings (code) ON DELETE CASCADE,
+    name           TEXT   NOT NULL,         -- apartment number as VZD names it ("10", "3A")
+    norm_name      TEXT   NOT NULL
+);
+
+CREATE INDEX idx_address_apartments_building_norm ON address_apartments (building_code, norm_name);
+
+-- ─────────────────────────────────────────────
+-- VZD Cadastre mirror
+--
+-- A weekly-refreshed copy of Latvia's official real-property cadastre (open
+-- data, CC-BY-4.0), cross-checked against a listing's posted area/build year
+-- at creation and edit time. No FKs to the address_* mirror: both are wiped
+-- and reloaded independently by their own ingest services.
+-- ─────────────────────────────────────────────
+CREATE TABLE cadastre_buildings (
+    cadastre_nr      TEXT PRIMARY KEY,   -- VZD BuildingCadastreNr
+    ar_building_code BIGINT,             -- VZD VARISCode; matches address_buildings.code
+    year_built       SMALLINT
+);
+
+CREATE INDEX idx_cadastre_buildings_ar_code ON cadastre_buildings (ar_building_code);
+
+CREATE TABLE cadastre_premises (
+    cadastre_nr TEXT PRIMARY KEY,        -- VZD PremiseGroupCadastreNr
+    ar_code     BIGINT,                  -- VZD PremiseGroupVARISCode; matches address_apartments.code
+    area_m2     NUMERIC(8, 2)
+);
+
+CREATE INDEX idx_cadastre_premises_ar_code ON cadastre_premises (ar_code);
 
 -- ─────────────────────────────────────────────
 -- Properties (address registry)

@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum PropertyStatus {
     ACTIVE("active"),
-    INACTIVE("inactive");
+    INACTIVE("inactive"),
+    PENDING_REVIEW("pending_review");
 
     @EnumeratedValue
     private final String dbValue;

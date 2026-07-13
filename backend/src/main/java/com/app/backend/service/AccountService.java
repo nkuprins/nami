@@ -11,6 +11,7 @@ import com.app.backend.dto.auth.VerifyEmailRequest;
 import com.app.backend.entity.EmailVerificationToken;
 import com.app.backend.entity.PasswordResetToken;
 import com.app.backend.entity.User;
+import com.app.backend.enums.UserRole;
 import com.app.backend.exception.AuthException;
 import com.app.backend.repository.EmailVerificationTokenRepository;
 import com.app.backend.repository.ListingRepository;
@@ -228,6 +229,7 @@ public class AccountService {
     }
 
     private AuthUserResponse toResponse(User user) {
-        return new AuthUserResponse(user.getId(), user.getName(), user.getEmail(), user.isEmailVerified());
+        return new AuthUserResponse(user.getId(), user.getName(), user.getEmail(), user.isEmailVerified(),
+                user.getRole() == UserRole.ADMIN);
     }
 }

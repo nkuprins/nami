@@ -33,7 +33,7 @@ class EmailServiceTest {
                 new AppProperties.ResendProperties("re_key", "test@test.local"),
                 "http://localhost:3000",
                 new AppProperties.CookieProperties(false),
-                null, null
+                null, null, null
         );
         emailService = new EmailService(props, resendClient);
     }

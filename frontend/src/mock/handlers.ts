@@ -168,6 +168,10 @@ function toListItem(item: CatalogItem) {
   };
 }
 
+// VITE_MOCK_ADMIN=true grants the mock session the admin role, so /admin is
+// reachable in mock mode without a real backend/role to promote.
+const MOCK_IS_ADMIN = import.meta.env.VITE_MOCK_ADMIN === 'true';
+
 // In-memory mock auth state. VITE_MOCK_AUTO_LOGIN seeds an already-signed-in
 // user (owning MOCK_OWNED_PROPERTY_IDS) so E2E/Playwright runs skip the login
 // form entirely — see mock/index.ts for the matching session-cookie bypass.
@@ -176,6 +180,7 @@ let mockUser: {
   name: string;
   email: string;
   emailVerified: boolean;
+  admin: boolean;
 } | null =
   import.meta.env.VITE_MOCK_AUTO_LOGIN === 'true'
     ? {
@@ -183,8 +188,13 @@ let mockUser: {
         name: 'Jānis Bērziņš',
         email: 'janis.berzins@gmail.com',
         emailVerified: true,
+        admin: MOCK_IS_ADMIN,
       }
     : null;
+
+const mockPendingListingIds = new Set(
+  dtoCatalog.slice(0, 2).map((item) => item.id)
+);
 
 const mockSavedIds = new Set<string>();
 
@@ -475,6 +485,7 @@ export const handlers = [
           name: registeredNames.get(email.toLowerCase()) ?? email.split('@')[0],
           email,
           emailVerified: true,
+          admin: MOCK_IS_ADMIN,
         };
         return HttpResponse.json(mockUser);
       }
@@ -582,6 +593,22 @@ export const handlers = [
         expiresAt: i % 3 === 0 ? pastExpiry : soonExpiry,
       }))
     );
+  }),
+
+  // --- ADMIN ENDPOINTS ---
+  http.get('/api/admin/listings/pending', () => {
+    const pending = dtoCatalog.filter((i) => mockPendingListingIds.has(i.id));
+    return HttpResponse.json(pending.map(toListItem));
+  }),
+
+  http.post('/api/admin/listings/:id/approve', ({ params }) => {
+    mockPendingListingIds.delete(params.id as string);
+    return new HttpResponse(null, { status: 200 });
+  }),
+
+  http.post('/api/admin/listings/:id/reject', ({ params }) => {
+    mockPendingListingIds.delete(params.id as string);
+    return new HttpResponse(null, { status: 200 });
   }),
 
   http.post('/api/properties/:id/renew', async ({ params, request }) => {
