@@ -13,6 +13,13 @@ const {
   energyClassOptions,
   sewageOptions,
   ventilationOptions,
+  roofOptions,
+  ventilationSystemOptions,
+  communicationOptions,
+  stoveOptions,
+  securityOptions,
+  extrasOptions,
+  parkingOptions,
 } = usePropertyLabels();
 import type { PropertyFieldsForm } from '../composables/formTypes';
 
@@ -192,6 +199,93 @@ defineProps<{
         @update:model-value="
           form.ventilation = $event as typeof form.ventilation
         "
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <p class="text-sm font-medium text-ink">
+        {{ t('addListing.roofLabel') }}
+      </p>
+      <ToggleButtons
+        :options="roofOptions"
+        :model-value="form.roof ?? ''"
+        @update:model-value="form.roof = $event as typeof form.roof"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <p class="text-sm font-medium text-ink">
+        {{ t('addListing.ventilationSystemsLabel') }}
+      </p>
+      <ToggleButtons
+        :options="ventilationSystemOptions"
+        :multiple="true"
+        :model-value="form.ventilationSystems"
+        @update:model-value="
+          form.ventilationSystems = $event as typeof form.ventilationSystems
+        "
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <p class="text-sm font-medium text-ink">
+        {{ t('addListing.communicationsLabel') }}
+      </p>
+      <ToggleButtons
+        :options="communicationOptions"
+        :multiple="true"
+        :model-value="form.communications"
+        @update:model-value="
+          form.communications = $event as typeof form.communications
+        "
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <p class="text-sm font-medium text-ink">
+        {{ t('addListing.stoveLabel') }}
+      </p>
+      <ToggleButtons
+        :options="stoveOptions"
+        :multiple="true"
+        :model-value="form.stove"
+        @update:model-value="form.stove = $event as typeof form.stove"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <p class="text-sm font-medium text-ink">
+        {{ t('addListing.securityLabel') }}
+      </p>
+      <ToggleButtons
+        :options="securityOptions"
+        :multiple="true"
+        :model-value="form.security"
+        @update:model-value="form.security = $event as typeof form.security"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <p class="text-sm font-medium text-ink">
+        {{ t('addListing.extrasLabel') }}
+      </p>
+      <ToggleButtons
+        :options="extrasOptions"
+        :multiple="true"
+        :model-value="form.extras"
+        @update:model-value="form.extras = $event as typeof form.extras"
+      />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <p class="text-sm font-medium text-ink">
+        {{ t('addListing.parkingLabel') }}
+      </p>
+      <ToggleButtons
+        :options="parkingOptions"
+        :multiple="true"
+        :model-value="form.parking"
+        @update:model-value="form.parking = $event as typeof form.parking"
       />
     </div>
 

@@ -48,6 +48,50 @@ export const KNOWN_HEATING = [
 ] as const;
 export const KNOWN_ENERGY_CLASS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'] as const;
 export const KNOWN_BATHROOM_LAYOUT = ['separate', 'combined'] as const;
+export const KNOWN_ROOF = [
+  'bitumen',
+  'eternit',
+  'pvc',
+  'roll_material',
+  'steel',
+  'stone',
+  'tile',
+  'white_tin',
+  'zinc_plate',
+] as const;
+export const KNOWN_VENTILATION_SYSTEMS = [
+  'climate_control',
+  'supply_ventilation',
+  'air_conditioner',
+] as const;
+export const KNOWN_COMMUNICATIONS = [
+  'cable_tv',
+  'internet',
+  'telephone',
+  'digital_tv',
+] as const;
+export const KNOWN_STOVE = ['electric_stove', 'wood_burning', 'gas_stove'] as const;
+export const KNOWN_SECURITY = [
+  'locking_entrance',
+  'guard',
+  'security_system',
+  'steel_door',
+  'video_cameras',
+] as const;
+export const KNOWN_EXTRAS = [
+  'separate_entrance',
+  'enclosed_yard',
+  'private_garden',
+  'furniture',
+  'furniture_possible',
+] as const;
+export const KNOWN_PARKING = [
+  'free_parking',
+  'paid_parking',
+  'no_parking',
+  'underground_parking',
+  'own_parking_space',
+] as const;
 
 export type ListingType = (typeof KNOWN_TYPES)[number];
 export type PropertyKind = (typeof KNOWN_KINDS)[number];
@@ -58,6 +102,13 @@ export type EnergyClass = (typeof KNOWN_ENERGY_CLASS)[number];
 export type BathroomLayout = (typeof KNOWN_BATHROOM_LAYOUT)[number];
 export type SewageType = (typeof KNOWN_SEWAGE)[number];
 export type VentilationType = (typeof KNOWN_VENTILATION)[number];
+export type RoofType = (typeof KNOWN_ROOF)[number];
+export type VentilationSystem = (typeof KNOWN_VENTILATION_SYSTEMS)[number];
+export type Communication = (typeof KNOWN_COMMUNICATIONS)[number];
+export type StoveType = (typeof KNOWN_STOVE)[number];
+export type SecurityFeature = (typeof KNOWN_SECURITY)[number];
+export type PropertyExtra = (typeof KNOWN_EXTRAS)[number];
+export type ParkingType = (typeof KNOWN_PARKING)[number];
 
 export interface PriceInfo {
   amount: number;
@@ -79,6 +130,7 @@ export interface PropertyDetails {
   maintenanceCost?: number;
   sewage?: SewageType;
   ventilation?: VentilationType;
+  roof?: RoofType;
 }
 
 export interface LocalizedText {
@@ -100,6 +152,7 @@ export interface PropertyMedia {
   photos: string[] | null;
   plans: string[] | null;
   videoUrl: string | null;
+  websiteUrl: string | null;
 }
 
 interface ListingBase {
@@ -113,6 +166,12 @@ interface ListingBase {
   translations: Translations;
   location: PropertyLocation;
   features: Feature[] | null;
+  ventilationSystems: VentilationSystem[] | null;
+  communications: Communication[] | null;
+  stove: StoveType[] | null;
+  security: SecurityFeature[] | null;
+  extras: PropertyExtra[] | null;
+  parking: ParkingType[] | null;
   postedAt: string;
   expiresAt?: string;
   completion?: PropertyCompletion;

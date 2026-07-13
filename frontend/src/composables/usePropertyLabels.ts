@@ -10,6 +10,13 @@ import {
   KNOWN_BATHROOM_LAYOUT,
   KNOWN_SEWAGE,
   KNOWN_VENTILATION,
+  KNOWN_ROOF,
+  KNOWN_VENTILATION_SYSTEMS,
+  KNOWN_COMMUNICATIONS,
+  KNOWN_STOVE,
+  KNOWN_SECURITY,
+  KNOWN_EXTRAS,
+  KNOWN_PARKING,
   type ListingType,
   type PropertyKind,
   type PropertyCompletion,
@@ -19,6 +26,13 @@ import {
   type BathroomLayout,
   type SewageType,
   type VentilationType,
+  type RoofType,
+  type VentilationSystem,
+  type Communication,
+  type StoveType,
+  type SecurityFeature,
+  type PropertyExtra,
+  type ParkingType,
 } from '../types/listingItem';
 import IconBalcony from '../components/icons/IconBalcony.vue';
 import IconParking from '../components/icons/IconParking.vue';
@@ -151,6 +165,37 @@ export function usePropertyLabels() {
     KNOWN_VENTILATION.map((id) => ({ id, label: t(`ventilation.${id}`) }))
   );
 
+  const roofOptions = computed(() =>
+    KNOWN_ROOF.map((id) => ({ id, label: t(`roof.${id}`) }))
+  );
+
+  const ventilationSystemOptions = computed(() =>
+    KNOWN_VENTILATION_SYSTEMS.map((id) => ({
+      id,
+      label: t(`ventilationSystems.${id}`),
+    }))
+  );
+
+  const communicationOptions = computed(() =>
+    KNOWN_COMMUNICATIONS.map((id) => ({ id, label: t(`communications.${id}`) }))
+  );
+
+  const stoveOptions = computed(() =>
+    KNOWN_STOVE.map((id) => ({ id, label: t(`stove.${id}`) }))
+  );
+
+  const securityOptions = computed(() =>
+    KNOWN_SECURITY.map((id) => ({ id, label: t(`security.${id}`) }))
+  );
+
+  const extrasOptions = computed(() =>
+    KNOWN_EXTRAS.map((id) => ({ id, label: t(`extras.${id}`) }))
+  );
+
+  const parkingOptions = computed(() =>
+    KNOWN_PARKING.map((id) => ({ id, label: t(`parking.${id}`) }))
+  );
+
   function typeLabel(id: ListingType): string {
     return t(`types.${id}`);
   }
@@ -195,6 +240,34 @@ export function usePropertyLabels() {
     return t(`ventilation.${id}`);
   }
 
+  function roofLabel(id: RoofType): string {
+    return t(`roof.${id}`);
+  }
+
+  function ventilationSystemLabel(id: VentilationSystem): string {
+    return t(`ventilationSystems.${id}`);
+  }
+
+  function communicationLabel(id: Communication): string {
+    return t(`communications.${id}`);
+  }
+
+  function stoveLabel(id: StoveType): string {
+    return t(`stove.${id}`);
+  }
+
+  function securityLabel(id: SecurityFeature): string {
+    return t(`security.${id}`);
+  }
+
+  function extrasLabel(id: PropertyExtra): string {
+    return t(`extras.${id}`);
+  }
+
+  function parkingLabel(id: ParkingType): string {
+    return t(`parking.${id}`);
+  }
+
   return {
     typeOptions,
     categoryOptions,
@@ -206,6 +279,13 @@ export function usePropertyLabels() {
     bathroomLayoutOptions,
     sewageOptions,
     ventilationOptions,
+    roofOptions,
+    ventilationSystemOptions,
+    communicationOptions,
+    stoveOptions,
+    securityOptions,
+    extrasOptions,
+    parkingOptions,
     typeLabel,
     kindLabel,
     completionLabel,
@@ -217,5 +297,12 @@ export function usePropertyLabels() {
     bathroomLayoutLabel,
     sewageLabel,
     ventilationLabel,
+    roofLabel,
+    ventilationSystemLabel,
+    communicationLabel,
+    stoveLabel,
+    securityLabel,
+    extrasLabel,
+    parkingLabel,
   };
 }

@@ -189,7 +189,14 @@ export const useFiltersStore = defineStore('filters', () => {
     state.energyClass = [];
     state.sewage = [];
     state.ventilation = [];
+    state.roof = [];
     state.features = [];
+    state.ventilationSystems = [];
+    state.communications = [];
+    state.stove = [];
+    state.security = [];
+    state.extras = [];
+    state.parking = [];
     state.completion = undefined;
     state.page = 1;
     searchNonce.value++;

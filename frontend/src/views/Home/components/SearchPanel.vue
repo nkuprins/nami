@@ -162,6 +162,13 @@ const advancedCount = computed(() => {
   if (state.maintenanceCostMax !== undefined) n++;
   if (state.bathroomLayout) n++;
   n += state.features.length;
+  n += state.roof.length;
+  n += state.ventilationSystems.length;
+  n += state.communications.length;
+  n += state.stove.length;
+  n += state.security.length;
+  n += state.extras.length;
+  n += state.parking.length;
   if (state.completion) n++;
   return n;
 });

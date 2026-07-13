@@ -35,6 +35,7 @@ import PhotoLightBox from '../../components/listing/PhotoLightBox.vue';
 import SpecDots from '../../components/listing/SpecDots.vue';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.vue';
 import IconShare from '../../components/icons/IconShare.vue';
+import IconLink from '../../components/icons/IconLink.vue';
 import IconArrowLeft from '../../components/icons/IconArrowLeft.vue';
 import IconHeart from '../../components/icons/IconHeart.vue';
 import IconEdit from '../../components/icons/IconEdit.vue';
@@ -44,13 +45,59 @@ const props = defineProps<{ id: string }>();
 const router = useRouter();
 const { t } = useI18n();
 const { locale, localePath } = useLocaleRoute();
-const { featureLabel, featureIcon, featureCategory } = usePropertyLabels();
+const {
+  featureLabel,
+  featureIcon,
+  featureCategory,
+  roofLabel,
+  ventilationSystemLabel,
+  communicationLabel,
+  stoveLabel,
+  securityLabel,
+  extrasLabel,
+  parkingLabel,
+} = usePropertyLabels();
 const savedStore = useSavedStore();
 const authStore = useAuthStore();
 
 const listing = ref<ListingDetail | null>(null);
 onMounted(async () => {
   listing.value = (await getListing(props.id, locale.value)) ?? null;
+});
+
+// Non-empty multi-select attribute sets (+ single-select roof), each resolved to
+// display labels for the chip rows below the amenity features.
+const attributeGroups = computed(() => {
+  const l = listing.value;
+  if (!l) return [];
+  const groups: { title: string; items: string[] }[] = [];
+  if (l.details.roof)
+    groups.push({ title: t('advFilters.roof'), items: [roofLabel(l.details.roof)] });
+  if (l.ventilationSystems?.length)
+    groups.push({
+      title: t('advFilters.ventilationSystems'),
+      items: l.ventilationSystems.map(ventilationSystemLabel),
+    });
+  if (l.communications?.length)
+    groups.push({
+      title: t('advFilters.communications'),
+      items: l.communications.map(communicationLabel),
+    });
+  if (l.stove?.length)
+    groups.push({ title: t('advFilters.stove'), items: l.stove.map(stoveLabel) });
+  if (l.security?.length)
+    groups.push({
+      title: t('advFilters.security'),
+      items: l.security.map(securityLabel),
+    });
+  if (l.extras?.length)
+    groups.push({ title: t('advFilters.extras'), items: l.extras.map(extrasLabel) });
+  if (l.parking?.length)
+    groups.push({
+      title: t('advFilters.parking'),
+      items: l.parking.map(parkingLabel),
+    });
+  return groups;
 });
 
 const saved = computed(() => savedStore.isSaved(props.id));
@@ -148,6 +195,11 @@ function switchToVideo() {
 
 const videoTourUrl = computed(() => {
   const raw = listing.value?.media.videoUrl;
+  return typeof raw === 'string' ? raw.trim() : '';
+});
+
+const websiteUrl = computed(() => {
+  const raw = listing.value?.media.websiteUrl;
   return typeof raw === 'string' ? raw.trim() : '';
 });
 
@@ -277,6 +329,16 @@ function openPlanLightbox(i: number) {
             <p class="mt-1 text-sm text-ink-2">
               {{ listing.location.address }}
             </p>
+            <a
+              v-if="websiteUrl"
+              :href="websiteUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-accent-2 hover:underline"
+            >
+              <span class="size-4 shrink-0"><IconLink /></span>
+              {{ t('listing.website') }}
+            </a>
           </div>
 
           <SpecDots
@@ -303,6 +365,24 @@ function openPlanLightbox(i: number) {
               /></span>
               {{ featureLabel(f) }}
             </span>
+          </div>
+
+          <div
+            v-if="attributeGroups.length"
+            class="mt-4 flex flex-col gap-3"
+          >
+            <div v-for="g in attributeGroups" :key="g.title">
+              <p class="micro-label mb-1.5">{{ g.title }}</p>
+              <div class="flex flex-wrap gap-2">
+                <span
+                  v-for="item in g.items"
+                  :key="item"
+                  class="inline-flex items-center h-9 px-4 rounded-full text-sm font-medium bg-surface text-ink-2"
+                >
+                  {{ item }}
+                </span>
+              </div>
+            </div>
           </div>
 
           <hr class="border-none border-t border-line my-5" />

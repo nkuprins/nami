@@ -10,6 +10,12 @@ import type {
   PropertyLocation,
   PropertyMedia,
   Feature,
+  VentilationSystem,
+  Communication,
+  StoveType,
+  SecurityFeature,
+  PropertyExtra,
+  ParkingType,
   PropertyCompletion,
   LocalizedText,
 } from '../types/listingItem';
@@ -47,6 +53,12 @@ export interface CreateListingPayload {
   translations: Translations;
   location: PropertyLocation; // display names in, translated to slugs internally
   features: Feature[];
+  ventilationSystems: VentilationSystem[];
+  communications: Communication[];
+  stove: StoveType[];
+  security: SecurityFeature[];
+  extras: PropertyExtra[];
+  parking: ParkingType[];
   media: PropertyMedia;
   phones: string[];
   completion?: PropertyCompletion;
@@ -63,6 +75,12 @@ export interface AddListingPayload {
   details: PropertyDetails;
   translations: Translations;
   features: Feature[];
+  ventilationSystems: VentilationSystem[];
+  communications: Communication[];
+  stove: StoveType[];
+  security: SecurityFeature[];
+  extras: PropertyExtra[];
+  parking: ParkingType[];
   media: PropertyMedia;
   phones: string[];
   completion?: PropertyCompletion;
@@ -76,6 +94,12 @@ export interface UpdateListingPayload {
   details: PropertyDetails;
   translations: Translations;
   features: Feature[];
+  ventilationSystems: VentilationSystem[];
+  communications: Communication[];
+  stove: StoveType[];
+  security: SecurityFeature[];
+  extras: PropertyExtra[];
+  parking: ParkingType[];
   media: PropertyMedia;
   phones: string[];
   completion?: PropertyCompletion;

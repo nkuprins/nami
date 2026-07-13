@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import ToggleButtons from '../../components/ui/ToggleButtons.vue';
+import FormField from '../../components/ui/FormField.vue';
 import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePhotoUpload } from './composables/usePhotoUpload';
@@ -207,6 +208,18 @@ onMounted(async () => {
               @add-phone="addPhone"
               @remove-phone="removePhone"
             />
+            <div>
+              <FormField
+                id="ap-website-url"
+                :label="t('addListing.websiteUrl')"
+                v-model="form.websiteUrl"
+                type="url"
+                placeholder="https://..."
+              />
+              <p class="text-xs text-ink-3 mt-1.5">
+                {{ t('addListing.websiteUrlHint') }}
+              </p>
+            </div>
           </div>
 
           <div class="mt-2 pt-6 border-t border-line flex items-center gap-4">

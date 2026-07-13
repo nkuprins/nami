@@ -13,7 +13,6 @@ import com.app.backend.dto.property.request.PropertyRequest;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.ListingTranslation;
 import com.app.backend.entity.Property;
-import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.SupportedLocale;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -22,6 +21,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class PropertyMapper {
@@ -53,7 +53,13 @@ public class PropertyMapper {
                         : singleLocale(l.getTranslations(), locale))
                 .availableLocales(availableLocales(l.getTranslations()))
                 .location(toLocation(p))
-                .features(sortedFeatures(l))
+                .features(sorted(l.getFeatures()))
+                .ventilationSystems(sorted(l.getVentilationSystems()))
+                .communications(sorted(l.getCommunications()))
+                .stove(sorted(l.getStove()))
+                .security(sorted(l.getSecurity()))
+                .extras(sorted(l.getExtras()))
+                .parking(sorted(l.getParking()))
                 .media(toMediaDto(l))
                 .phones(phones.isEmpty() ? null : phones)
                 .postedAt(l.getPostedAt())
@@ -95,7 +101,7 @@ public class PropertyMapper {
                 .details(details)
                 .translations(translations(l.getTranslations(), false))
                 .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null))
-                .features(sortedFeatures(l))
+                .features(sorted(l.getFeatures()))
                 .photo(photo)
                 .postedAt(l.getPostedAt())
                 .completion(l.getCompletion())
@@ -170,10 +176,13 @@ public class PropertyMapper {
         listing.setCompletion(req.completion());
         applyDetails(listing, req.details());
         applyMedia(listing, req.media());
-        listing.getFeatures().clear();
-        if (req.features() != null) {
-            listing.getFeatures().addAll(req.features());
-        }
+        replace(listing.getFeatures(), req.features());
+        replace(listing.getVentilationSystems(), req.ventilationSystems());
+        replace(listing.getCommunications(), req.communications());
+        replace(listing.getStove(), req.stove());
+        replace(listing.getSecurity(), req.security());
+        replace(listing.getExtras(), req.extras());
+        replace(listing.getParking(), req.parking());
         applyTranslations(listing, req.translations());
         listing.setPhones(nullToEmpty(req.phones()));
     }
@@ -210,8 +219,15 @@ public class PropertyMapper {
         }
     }
 
-    private static List<PropertyFeature> sortedFeatures(Listing l) {
-        return l.getFeatures().isEmpty() ? null : l.getFeatures().stream().sorted().toList();
+    /** Sorted list for a response (null when empty, so {@code NON_NULL} drops it). */
+    private static <T extends Enum<T>> List<T> sorted(Set<T> values) {
+        return values.isEmpty() ? null : values.stream().sorted().toList();
+    }
+
+    /** Replaces a managed collection's contents in place (clear + addAll), tolerating a null source. */
+    private static <T> void replace(Set<T> target, List<T> source) {
+        target.clear();
+        if (source != null) target.addAll(source);
     }
 
     private static PropertyDetails toFullDetailsDto(Listing l) {
@@ -230,6 +246,7 @@ public class PropertyMapper {
                 .maintenanceCost(l.getMaintenanceCost())
                 .sewage(l.getSewage())
                 .ventilation(l.getVentilation())
+                .roof(l.getRoof())
                 .build();
     }
 
@@ -240,6 +257,7 @@ public class PropertyMapper {
                 .photos(photos.isEmpty() ? null : photos)
                 .plans(plans.isEmpty() ? null : plans)
                 .videoUrl(l.getVideoUrl())
+                .websiteUrl(l.getWebsiteUrl())
                 .build();
     }
 
@@ -263,12 +281,14 @@ public class PropertyMapper {
         listing.setMaintenanceCost(details.maintenanceCost());
         listing.setSewage(details.sewage());
         listing.setVentilation(details.ventilation());
+        listing.setRoof(details.roof());
     }
 
     private static void applyMedia(Listing listing, Media media) {
         listing.setPhotos(nullToEmpty(media != null ? media.photos() : null));
         listing.setPlans(nullToEmpty(media != null ? media.plans() : null));
         listing.setVideoUrl(media != null ? media.videoUrl() : null);
+        listing.setWebsiteUrl(media != null ? media.websiteUrl() : null);
     }
 
     private static List<String> nullToEmpty(List<String> values) {

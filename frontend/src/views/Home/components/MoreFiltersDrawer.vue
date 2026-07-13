@@ -24,6 +24,13 @@ const {
   bathroomLayoutOptions,
   sewageOptions,
   ventilationOptions,
+  roofOptions,
+  ventilationSystemOptions,
+  communicationOptions,
+  stoveOptions,
+  securityOptions,
+  extrasOptions,
+  parkingOptions,
 } = usePropertyLabels();
 
 type Draft = Pick<
@@ -38,7 +45,14 @@ type Draft = Pick<
   | 'energyClass'
   | 'sewage'
   | 'ventilation'
+  | 'roof'
   | 'features'
+  | 'ventilationSystems'
+  | 'communications'
+  | 'stove'
+  | 'security'
+  | 'extras'
+  | 'parking'
   | 'completion'
 >;
 
@@ -56,9 +70,25 @@ function makeDraftFromState(): Draft {
     energyClass: [...state.energyClass],
     sewage: [...state.sewage],
     ventilation: [...state.ventilation],
+    roof: [...state.roof],
     features: [...state.features],
+    ventilationSystems: [...state.ventilationSystems],
+    communications: [...state.communications],
+    stove: [...state.stove],
+    security: [...state.security],
+    extras: [...state.extras],
+    parking: [...state.parking],
     completion: state.completion,
   };
+}
+
+// Generic multi-select toggle for the new attribute-set drafts; returns a new
+// array so Vue reactivity fires on assignment (draft.<key> = toggleEnum(...)).
+function toggleEnum<T>(list: T[], id: T): T[] {
+  const set = new Set(list);
+  if (set.has(id)) set.delete(id);
+  else set.add(id);
+  return [...set];
 }
 
 function toggleNumeric(key: 'bedrooms' | 'bathrooms', v: number) {
@@ -251,7 +281,10 @@ function reset() {
 
       <div class="space-y-6">
       <section>
-        <p class="micro-label mb-3">{{ t('advFilters.energyClass') }}</p>
+        <p class="micro-label mb-3">
+          {{ t('advFilters.energyClass') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
         <div class="flex flex-wrap gap-1.5">
           <button
             v-for="opt in energyClassOptions"
@@ -276,7 +309,10 @@ function reset() {
       </section>
 
       <section>
-        <p class="micro-label mb-3">{{ t('advFilters.heating') }}</p>
+        <p class="micro-label mb-3">
+          {{ t('advFilters.heating') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
         <div class="grid grid-cols-1 gap-1.5">
           <label
             v-for="opt in heatingOptions"
@@ -301,7 +337,10 @@ function reset() {
       </section>
 
       <section>
-        <p class="micro-label mb-2">{{ t('advFilters.sewage') }}</p>
+        <p class="micro-label mb-2">
+          {{ t('advFilters.sewage') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
         <div class="flex flex-wrap gap-2">
           <button
             v-for="opt in sewageOptions"
@@ -321,7 +360,10 @@ function reset() {
       </section>
 
       <section>
-        <p class="micro-label mb-2">{{ t('advFilters.ventilation') }}</p>
+        <p class="micro-label mb-2">
+          {{ t('advFilters.ventilation') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
         <div class="flex flex-wrap gap-2">
           <button
             v-for="opt in ventilationOptions"
@@ -366,7 +408,10 @@ function reset() {
 
       <div class="space-y-6">
       <section>
-        <p class="micro-label mb-3">{{ t('advFilters.features') }}</p>
+        <p class="micro-label mb-3">
+          {{ t('advFilters.features') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAll') }}</span>
+        </p>
         <div class="flex flex-wrap gap-2">
           <button
             v-for="opt in featureOptions"
@@ -384,6 +429,174 @@ function reset() {
             "
           >
             <span class="size-4.5 shrink-0"><component :is="opt.icon" /></span>
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">
+          {{ t('advFilters.roof') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in roofOptions"
+            :key="opt.id"
+            type="button"
+            @click="draft.roof = toggleEnum(draft.roof, opt.id)"
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
+            :class="
+              draft.roof.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line-2 text-ink hover:border-ink-3'
+            "
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">
+          {{ t('advFilters.ventilationSystems') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in ventilationSystemOptions"
+            :key="opt.id"
+            type="button"
+            @click="
+              draft.ventilationSystems = toggleEnum(
+                draft.ventilationSystems,
+                opt.id
+              )
+            "
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
+            :class="
+              draft.ventilationSystems.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line-2 text-ink hover:border-ink-3'
+            "
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">
+          {{ t('advFilters.communications') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in communicationOptions"
+            :key="opt.id"
+            type="button"
+            @click="
+              draft.communications = toggleEnum(draft.communications, opt.id)
+            "
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
+            :class="
+              draft.communications.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line-2 text-ink hover:border-ink-3'
+            "
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">
+          {{ t('advFilters.stove') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in stoveOptions"
+            :key="opt.id"
+            type="button"
+            @click="draft.stove = toggleEnum(draft.stove, opt.id)"
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
+            :class="
+              draft.stove.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line-2 text-ink hover:border-ink-3'
+            "
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">
+          {{ t('advFilters.security') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in securityOptions"
+            :key="opt.id"
+            type="button"
+            @click="draft.security = toggleEnum(draft.security, opt.id)"
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
+            :class="
+              draft.security.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line-2 text-ink hover:border-ink-3'
+            "
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">
+          {{ t('advFilters.extras') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in extrasOptions"
+            :key="opt.id"
+            type="button"
+            @click="draft.extras = toggleEnum(draft.extras, opt.id)"
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
+            :class="
+              draft.extras.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line-2 text-ink hover:border-ink-3'
+            "
+          >
+            {{ opt.label }}
+          </button>
+        </div>
+      </section>
+
+      <section>
+        <p class="micro-label mb-2">
+          {{ t('advFilters.parking') }}
+          <span class="ml-1 normal-case tracking-normal font-normal text-ink-3">· {{ t('advFilters.matchAny') }}</span>
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="opt in parkingOptions"
+            :key="opt.id"
+            type="button"
+            @click="draft.parking = toggleEnum(draft.parking, opt.id)"
+            class="focus-ring px-4 h-10 rounded-md border text-sm transition-colors"
+            :class="
+              draft.parking.includes(opt.id)
+                ? 'border-ink bg-ink text-bg'
+                : 'border-line-2 text-ink hover:border-ink-3'
+            "
+          >
             {{ opt.label }}
           </button>
         </div>

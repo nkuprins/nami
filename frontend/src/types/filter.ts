@@ -1,12 +1,19 @@
 import {
   BathroomLayout,
+  Communication,
   EnergyClass,
   Feature,
   HeatingType,
+  ParkingType,
   PropertyCompletion,
+  PropertyExtra,
   PropertyKind,
   ListingType,
+  RoofType,
+  SecurityFeature,
   SewageType,
+  StoveType,
+  VentilationSystem,
   VentilationType,
 } from './listingItem';
 import { SortKey } from './sort';
@@ -38,7 +45,14 @@ export interface FilterState {
   energyClass: EnergyClass[];
   sewage: SewageType[];
   ventilation: VentilationType[];
+  roof: RoofType[];
   features: Feature[];
+  ventilationSystems: VentilationSystem[];
+  communications: Communication[];
+  stove: StoveType[];
+  security: SecurityFeature[];
+  extras: PropertyExtra[];
+  parking: ParkingType[];
   completion?: PropertyCompletion;
   sort: SortKey;
   page: number;
@@ -71,7 +85,14 @@ export const ALL_FILTER_KEYS = Object.keys({
   energyClass: 0,
   sewage: 0,
   ventilation: 0,
+  roof: 0,
   features: 0,
+  ventilationSystems: 0,
+  communications: 0,
+  stove: 0,
+  security: 0,
+  extras: 0,
+  parking: 0,
   completion: 0,
   sort: 0,
   page: 0,
@@ -88,7 +109,14 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   energyClass: [],
   sewage: [],
   ventilation: [],
+  roof: [],
   features: [],
+  ventilationSystems: [],
+  communications: [],
+  stove: [],
+  security: [],
+  extras: [],
+  parking: [],
   sort: 'newest',
   page: 1,
 };

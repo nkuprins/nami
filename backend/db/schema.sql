@@ -45,6 +45,21 @@ CREATE TYPE energy_class        AS ENUM ('A', 'B', 'C', 'D', 'E', 'F', 'G');
 CREATE TYPE bathroom_layout     AS ENUM ('separate', 'combined');
 CREATE TYPE sewage_type         AS ENUM ('central', 'local');
 CREATE TYPE ventilation_type    AS ENUM ('natural', 'mechanical', 'recuperation');
+CREATE TYPE roof_type           AS ENUM (
+    'bitumen', 'eternit', 'pvc', 'roll_material', 'steel', 'stone', 'tile', 'white_tin', 'zinc_plate'
+);
+CREATE TYPE ventilation_system  AS ENUM ('climate_control', 'supply_ventilation', 'air_conditioner');
+CREATE TYPE communication_type  AS ENUM ('cable_tv', 'internet', 'telephone', 'digital_tv');
+CREATE TYPE stove_type          AS ENUM ('electric_stove', 'wood_burning', 'gas_stove');
+CREATE TYPE security_feature    AS ENUM (
+    'locking_entrance', 'guard', 'security_system', 'steel_door', 'video_cameras'
+);
+CREATE TYPE property_extra      AS ENUM (
+    'separate_entrance', 'enclosed_yard', 'private_garden', 'furniture', 'furniture_possible'
+);
+CREATE TYPE parking_type        AS ENUM (
+    'free_parking', 'paid_parking', 'no_parking', 'underground_parking', 'own_parking_space'
+);
 
 -- ─────────────────────────────────────────────
 -- Users
@@ -159,11 +174,13 @@ CREATE TABLE listings (
     maintenance_cost    NUMERIC(10, 2)    CHECK (maintenance_cost >= 0),   -- monthly, EUR
     sewage              sewage_type,
     ventilation         ventilation_type,
+    roof                roof_type,
 
     -- Media: ordered arrays of URL strings; array order is display order
     photos              JSONB             NOT NULL DEFAULT '[]',
     plans               JSONB             NOT NULL DEFAULT '[]',
     video_url           TEXT,
+    website_url         TEXT,
 
     -- new_project specific; 'not_ready → no year_built' rule enforced at service layer
     completion          property_completion,
@@ -204,6 +221,51 @@ CREATE TABLE listing_features (
 );
 
 CREATE INDEX idx_listing_features_feature ON listing_features (feature);
+
+-- ─────────────────────────────────────────────
+-- Listing attribute sets (multi-select property attributes)
+-- ─────────────────────────────────────────────
+CREATE TABLE listing_ventilation_systems (
+    listing_id         UUID               NOT NULL REFERENCES listings (id) ON DELETE CASCADE,
+    ventilation_system ventilation_system NOT NULL,
+    PRIMARY KEY (listing_id, ventilation_system)
+);
+CREATE INDEX idx_listing_ventilation_systems ON listing_ventilation_systems (ventilation_system);
+
+CREATE TABLE listing_communications (
+    listing_id    UUID               NOT NULL REFERENCES listings (id) ON DELETE CASCADE,
+    communication communication_type NOT NULL,
+    PRIMARY KEY (listing_id, communication)
+);
+CREATE INDEX idx_listing_communications ON listing_communications (communication);
+
+CREATE TABLE listing_stove (
+    listing_id UUID       NOT NULL REFERENCES listings (id) ON DELETE CASCADE,
+    stove      stove_type NOT NULL,
+    PRIMARY KEY (listing_id, stove)
+);
+CREATE INDEX idx_listing_stove ON listing_stove (stove);
+
+CREATE TABLE listing_security (
+    listing_id UUID             NOT NULL REFERENCES listings (id) ON DELETE CASCADE,
+    security   security_feature NOT NULL,
+    PRIMARY KEY (listing_id, security)
+);
+CREATE INDEX idx_listing_security ON listing_security (security);
+
+CREATE TABLE listing_extras (
+    listing_id UUID           NOT NULL REFERENCES listings (id) ON DELETE CASCADE,
+    extra      property_extra NOT NULL,
+    PRIMARY KEY (listing_id, extra)
+);
+CREATE INDEX idx_listing_extras ON listing_extras (extra);
+
+CREATE TABLE listing_parking (
+    listing_id UUID         NOT NULL REFERENCES listings (id) ON DELETE CASCADE,
+    parking    parking_type NOT NULL,
+    PRIMARY KEY (listing_id, parking)
+);
+CREATE INDEX idx_listing_parking ON listing_parking (parking);
 
 -- ─────────────────────────────────────────────
 -- Listing translations

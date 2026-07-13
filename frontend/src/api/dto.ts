@@ -86,7 +86,14 @@ export function buildParams(f: FilterState): URLSearchParams {
   f.energyClass.forEach((e) => p.append('energyClass', e));
   f.sewage.forEach((s) => p.append('sewage', s));
   f.ventilation.forEach((v) => p.append('ventilation', v));
+  f.roof.forEach((r) => p.append('roof', r));
   f.features.forEach((ft) => p.append('features', ft));
+  f.ventilationSystems.forEach((v) => p.append('ventilationSystems', v));
+  f.communications.forEach((c) => p.append('communications', c));
+  f.stove.forEach((s) => p.append('stove', s));
+  f.security.forEach((s) => p.append('security', s));
+  f.extras.forEach((e) => p.append('extras', e));
+  f.parking.forEach((pk) => p.append('parking', pk));
   if (f.completion) p.set('completion', f.completion);
   p.set('sort', f.sort);
   p.set('page', String(f.page));

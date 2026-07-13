@@ -1,13 +1,20 @@
 import type {
   BathroomLayout,
+  Communication,
   EnergyClass,
   Feature,
   HeatingType,
   ListingDetail,
   ListingType,
+  ParkingType,
   PropertyCompletion,
+  PropertyExtra,
   PropertyKind,
+  RoofType,
+  SecurityFeature,
   SewageType,
+  StoveType,
+  VentilationSystem,
   VentilationType,
 } from '../types/listingItem';
 
@@ -52,7 +59,14 @@ interface RawListing {
   maintenanceCost?: number;
   sewage?: SewageType;
   ventilation?: VentilationType;
+  roof?: RoofType;
   features: Feature[];
+  ventilationSystems?: VentilationSystem[];
+  communications?: Communication[];
+  stove?: StoveType[];
+  security?: SecurityFeature[];
+  extras?: PropertyExtra[];
+  parking?: ParkingType[];
   district: string;
   city: string;
   address: string;
@@ -61,6 +75,7 @@ interface RawListing {
   photos: string[];
   plans?: string[];
   videoUrl?: string;
+  websiteUrl?: string;
   postedAt: string;
   completion?: PropertyCompletion;
 }
@@ -95,6 +110,7 @@ function toListingDetail(r: RawListing): ListingDetail {
       maintenanceCost: r.maintenanceCost,
       sewage: r.sewage,
       ventilation: r.ventilation,
+      roof: r.roof,
     },
     translations,
     location: {
@@ -104,10 +120,17 @@ function toListingDetail(r: RawListing): ListingDetail {
       coords: r.coords,
     },
     features: r.features,
+    ventilationSystems: r.ventilationSystems ?? null,
+    communications: r.communications ?? null,
+    stove: r.stove ?? null,
+    security: r.security ?? null,
+    extras: r.extras ?? null,
+    parking: r.parking ?? null,
     media: {
       photos: r.photos,
       plans: r.plans ?? null,
       videoUrl: r.videoUrl ?? null,
+      websiteUrl: r.websiteUrl ?? null,
     },
     phones: r.phones ?? null,
     postedAt: r.postedAt,
@@ -139,7 +162,14 @@ const rawListings: RawListing[] = [
     yearBuilt: 1908,
     heating: 'central',
     energyClass: 'C',
+    roof: 'tile',
     features: ['balcony', 'elevator', 'basement'],
+    ventilationSystems: ['air_conditioner', 'climate_control'],
+    communications: ['internet', 'cable_tv', 'telephone'],
+    stove: ['gas_stove'],
+    security: ['locking_entrance', 'video_cameras'],
+    extras: ['separate_entrance', 'furniture'],
+    parking: ['own_parking_space', 'underground_parking'],
     district: 'Centrs',
     city: 'Rīga',
     address: 'Elizabetes iela 21',
@@ -169,6 +199,7 @@ const rawListings: RawListing[] = [
     ),
     plans: plans('001a', '001b'),
     videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    websiteUrl: 'https://example.com/riverside-residence',
     postedAt: '2026-05-19T10:00:00Z',
   },
   {
@@ -193,7 +224,14 @@ const rawListings: RawListing[] = [
     yearBuilt: 1908,
     heating: 'central',
     energyClass: 'C',
+    roof: 'tile',
     features: ['balcony', 'elevator', 'basement'],
+    ventilationSystems: ['air_conditioner', 'climate_control'],
+    communications: ['internet', 'cable_tv', 'telephone'],
+    stove: ['gas_stove'],
+    security: ['locking_entrance', 'video_cameras'],
+    extras: ['separate_entrance', 'furniture'],
+    parking: ['own_parking_space', 'underground_parking'],
     district: 'Centrs',
     city: 'Rīga',
     address: 'Elizabetes iela 21',
@@ -253,7 +291,13 @@ const rawListings: RawListing[] = [
     heating: 'solid_fuel',
     sewage: 'local',
     ventilation: 'mechanical',
+    roof: 'steel',
     features: ['parking', 'pets'],
+    communications: ['internet'],
+    stove: ['wood_burning'],
+    security: ['guard', 'security_system'],
+    extras: ['private_garden', 'enclosed_yard'],
+    parking: ['free_parking'],
     district: 'Mežaparks',
     city: 'Rīga',
     address: 'Hamburgas iela 4',

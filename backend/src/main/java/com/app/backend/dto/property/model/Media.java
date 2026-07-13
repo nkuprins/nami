@@ -12,5 +12,6 @@ import java.util.List;
 public record Media(
         @Size(max = 30) List<@NotBlank String> photos,
         @Size(max = 3) List<@NotBlank String> plans,
-        String videoUrl
+        String videoUrl,
+        String websiteUrl
 ) {}

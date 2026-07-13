@@ -7,6 +7,7 @@ import com.app.backend.entity.Property_;
 import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.PropertyStatus;
 import jakarta.persistence.criteria.*;
+import jakarta.persistence.metamodel.SetAttribute;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;
@@ -97,6 +98,10 @@ public class PropertySpec {
                 predicates.add(root.get(Listing_.ventilation).in(criteria.ventilation()));
             }
 
+            if (criteria.roof() != null && !criteria.roof().isEmpty()) {
+                predicates.add(root.get(Listing_.roof).in(criteria.roof()));
+            }
+
             if (criteria.yearMin() != null) predicates.add(cb.ge(root.get(Listing_.yearBuilt), criteria.yearMin()));
             if (criteria.yearMax() != null) predicates.add(cb.le(root.get(Listing_.yearBuilt), criteria.yearMax()));
 
@@ -126,12 +131,39 @@ public class PropertySpec {
                 predicates.add(cb.exists(sub));
             }
 
+            addAnyOfFilter(predicates, query, cb, root, Listing_.ventilationSystems, criteria.ventilationSystems());
+            addAnyOfFilter(predicates, query, cb, root, Listing_.communications, criteria.communications());
+            addAnyOfFilter(predicates, query, cb, root, Listing_.stove, criteria.stove());
+            addAnyOfFilter(predicates, query, cb, root, Listing_.security, criteria.security());
+            addAnyOfFilter(predicates, query, cb, root, Listing_.extras, criteria.extras());
+            addAnyOfFilter(predicates, query, cb, root, Listing_.parking, criteria.parking());
+
             if (criteria.completion() != null) {
                 predicates.add(cb.equal(root.get(Listing_.completion), criteria.completion()));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
+    }
+
+    /**
+     * ANY-of set filter: matches a listing that has at least one of the selected values in the
+     * given collection attribute (EXISTS subquery, no all-of {@code having} clause). Shared by the
+     * ventilation-systems / communications / stove / security / extras / parking attribute sets.
+     */
+    private static <T> void addAnyOfFilter(List<Predicate> predicates, CriteriaQuery<?> query,
+                                           CriteriaBuilder cb, Root<Listing> root,
+                                           SetAttribute<Listing, T> attribute, List<T> values) {
+        if (values == null || values.isEmpty()) return;
+        Subquery<UUID> sub = query.subquery(UUID.class);
+        Root<Listing> subListing = sub.from(Listing.class);
+        Join<Listing, T> join = subListing.join(attribute);
+        sub.select(subListing.get(Listing_.id));
+        sub.where(
+                cb.equal(subListing.get(Listing_.id), root.get(Listing_.id)),
+                join.in(values)
+        );
+        predicates.add(cb.exists(sub));
     }
 
     /**

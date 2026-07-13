@@ -440,4 +440,60 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
 
         assertThat(results).hasSize(1).allMatch(Listing::isVatIncluded);
     }
+
+    @Test
+    void filtersByRoof() {
+        Listing tile = TestData.listing(owner);
+        tile.setRoof(RoofType.TILE);
+        save(tile);
+
+        Listing steel = TestData.listing(owner);
+        steel.setRoof(RoofType.STEEL);
+        save(steel);
+
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().roof(List.of(RoofType.TILE))));
+
+        assertThat(results).hasSize(1).allMatch(l -> l.getRoof() == RoofType.TILE);
+    }
+
+    @Test
+    void filtersByParking_matchesAny() {
+        // ANY-of: a listing matches if it has at least one of the selected values, even
+        // when it also carries an unselected value — the distinguishing case vs ALL-of.
+        Listing freeAndPaid = TestData.listing(owner);
+        freeAndPaid.setParking(Set.of(ParkingType.FREE_PARKING, ParkingType.PAID_PARKING));
+        save(freeAndPaid);
+
+        Listing underground = TestData.listing(owner);
+        underground.setParking(Set.of(ParkingType.UNDERGROUND_PARKING));
+        save(underground);
+
+        Listing none = TestData.listing(owner); // no parking set
+        save(none);
+
+        List<Listing> results = listingRepository.findAll(buildSpec(PropertySearchCriteria.builder()
+                .parking(List.of(ParkingType.FREE_PARKING, ParkingType.UNDERGROUND_PARKING))));
+
+        assertThat(results).hasSize(2)
+                .allMatch(l -> l.getParking().contains(ParkingType.FREE_PARKING)
+                        || l.getParking().contains(ParkingType.UNDERGROUND_PARKING));
+    }
+
+    @Test
+    void filtersByVentilationSystems_matchesAny() {
+        Listing ac = TestData.listing(owner);
+        ac.setVentilationSystems(Set.of(VentilationSystem.AIR_CONDITIONER));
+        save(ac);
+
+        Listing climate = TestData.listing(owner);
+        climate.setVentilationSystems(Set.of(VentilationSystem.CLIMATE_CONTROL));
+        save(climate);
+
+        List<Listing> results = listingRepository.findAll(buildSpec(PropertySearchCriteria.builder()
+                .ventilationSystems(List.of(VentilationSystem.AIR_CONDITIONER))));
+
+        assertThat(results).hasSize(1)
+                .allMatch(l -> l.getVentilationSystems().contains(VentilationSystem.AIR_CONDITIONER));
+    }
 }

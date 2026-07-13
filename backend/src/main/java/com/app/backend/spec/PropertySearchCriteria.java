@@ -2,13 +2,20 @@ package com.app.backend.spec;
 
 import com.app.backend.dto.property.request.PropertyFilter;
 import com.app.backend.enums.BathroomLayout;
+import com.app.backend.enums.Communication;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.ParkingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
+import com.app.backend.enums.PropertyExtra;
 import com.app.backend.enums.PropertyFeature;
+import com.app.backend.enums.RoofType;
+import com.app.backend.enums.SecurityFeature;
 import com.app.backend.enums.SewageType;
+import com.app.backend.enums.StoveType;
+import com.app.backend.enums.VentilationSystem;
 import com.app.backend.enums.VentilationType;
 import lombok.Builder;
 
@@ -43,7 +50,14 @@ public record PropertySearchCriteria(
         List<EnergyClass> energyClass,
         List<SewageType> sewage,
         List<VentilationType> ventilation,
+        List<RoofType> roof,
         List<PropertyFeature> features,
+        List<VentilationSystem> ventilationSystems,
+        List<Communication> communications,
+        List<StoveType> stove,
+        List<SecurityFeature> security,
+        List<PropertyExtra> extras,
+        List<ParkingType> parking,
         PropertyCompletion completion
 ) {
 
@@ -68,7 +82,14 @@ public record PropertySearchCriteria(
                 .energyClass(filter.energyClass() != null ? filter.energyClass() : List.of())
                 .sewage(filter.sewage() != null ? filter.sewage() : List.of())
                 .ventilation(filter.ventilation() != null ? filter.ventilation() : List.of())
+                .roof(filter.roof() != null ? filter.roof() : List.of())
                 .features(filter.features() != null ? filter.features() : List.of())
+                .ventilationSystems(filter.ventilationSystems() != null ? filter.ventilationSystems() : List.of())
+                .communications(filter.communications() != null ? filter.communications() : List.of())
+                .stove(filter.stove() != null ? filter.stove() : List.of())
+                .security(filter.security() != null ? filter.security() : List.of())
+                .extras(filter.extras() != null ? filter.extras() : List.of())
+                .parking(filter.parking() != null ? filter.parking() : List.of())
                 .completion(filter.completion())
                 .build();
     }

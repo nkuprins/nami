@@ -1,13 +1,20 @@
 package com.app.backend.dto.property.request;
 
 import com.app.backend.enums.BathroomLayout;
+import com.app.backend.enums.Communication;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.ParkingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
+import com.app.backend.enums.PropertyExtra;
 import com.app.backend.enums.PropertyFeature;
+import com.app.backend.enums.RoofType;
+import com.app.backend.enums.SecurityFeature;
 import com.app.backend.enums.SewageType;
+import com.app.backend.enums.StoveType;
+import com.app.backend.enums.VentilationSystem;
 import com.app.backend.enums.VentilationType;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -46,6 +53,13 @@ public record PropertyFilter(
         List<EnergyClass> energyClass,
         List<SewageType> sewage,
         List<VentilationType> ventilation,
+        List<RoofType> roof,
         List<PropertyFeature> features,
+        List<VentilationSystem> ventilationSystems,
+        List<Communication> communications,
+        List<StoveType> stove,
+        List<SecurityFeature> security,
+        List<PropertyExtra> extras,
+        List<ParkingType> parking,
         PropertyCompletion completion
 ) {}

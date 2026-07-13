@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import PricingSection from '../PricingSection.vue';
 import PhonesSection from '../PhonesSection.vue';
+import FormField from '../../../../components/ui/FormField.vue';
 import TurnstileWidget from '../../../../components/ui/TurnstileWidget.vue';
 import type { ListingFormState } from '../../composables/formTypes';
+
+const { t } = useI18n();
 
 const form = defineModel<ListingFormState>('form', { required: true });
 const turnstileToken = defineModel<string>('turnstileToken', {
@@ -41,6 +45,18 @@ defineExpose({ resetTurnstile });
       @add-phone="$emit('add-phone')"
       @remove-phone="$emit('remove-phone', $event)"
     />
+    <div>
+      <FormField
+        id="ap-website-url"
+        :label="t('addListing.websiteUrl')"
+        v-model="form.websiteUrl"
+        type="url"
+        placeholder="https://..."
+      />
+      <p class="text-xs text-ink-3 mt-1.5">
+        {{ t('addListing.websiteUrlHint') }}
+      </p>
+    </div>
     <TurnstileWidget
       v-if="turnstileEnabled"
       ref="turnstileWidget"

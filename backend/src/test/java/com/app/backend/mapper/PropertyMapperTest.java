@@ -1,15 +1,24 @@
 package com.app.backend.mapper;
 
 import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.request.CreatePropertyRequest;
 import com.app.backend.dto.property.response.PropertyItemDto;
 import com.app.backend.dto.property.response.PropertyListItemDto;
 import com.app.backend.entity.*;
+import com.app.backend.enums.Communication;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.ParkingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
+import com.app.backend.enums.PropertyExtra;
 import com.app.backend.enums.PropertyFeature;
+import com.app.backend.enums.RoofType;
+import com.app.backend.enums.SecurityFeature;
+import com.app.backend.enums.StoveType;
+import com.app.backend.enums.VentilationSystem;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Set;
 
 import static com.app.backend.testutil.TestData.*;
@@ -173,5 +182,63 @@ class PropertyMapperTest {
 
         assertThat(dto.details().floor()).isEqualTo((short) 2);
         assertThat(dto.details().rooms()).isEqualTo(l.getRooms());
+    }
+
+    @Test
+    void toDto_mapsRoof_andAttributeSets() {
+        Listing l = listing(user());
+        l.setRoof(RoofType.TILE);
+        l.setVentilationSystems(Set.of(VentilationSystem.AIR_CONDITIONER));
+        l.setCommunications(Set.of(Communication.INTERNET, Communication.CABLE_TV));
+        l.setStove(Set.of(StoveType.GAS_STOVE));
+        l.setSecurity(Set.of(SecurityFeature.GUARD));
+        l.setExtras(Set.of(PropertyExtra.FURNITURE));
+        l.setParking(Set.of(ParkingType.FREE_PARKING));
+
+        PropertyItemDto dto = mapper.toDto(l);
+
+        assertThat(dto.details().roof()).isEqualTo(RoofType.TILE);
+        assertThat(dto.ventilationSystems()).containsExactly(VentilationSystem.AIR_CONDITIONER);
+        assertThat(dto.communications()).containsExactlyInAnyOrder(Communication.CABLE_TV, Communication.INTERNET);
+        assertThat(dto.stove()).containsExactly(StoveType.GAS_STOVE);
+        assertThat(dto.security()).containsExactly(SecurityFeature.GUARD);
+        assertThat(dto.extras()).containsExactly(PropertyExtra.FURNITURE);
+        assertThat(dto.parking()).containsExactly(ParkingType.FREE_PARKING);
+    }
+
+    @Test
+    void toDto_returnsNullAttributeSets_whenEmpty() {
+        Listing l = listing(user());
+
+        PropertyItemDto dto = mapper.toDto(l);
+
+        assertThat(dto.ventilationSystems()).isNull();
+        assertThat(dto.parking()).isNull();
+        assertThat(dto.details().roof()).isNull();
+    }
+
+    @Test
+    void applyListingContent_writesRoof_andAttributeSets() {
+        Listing l = new Listing();
+        CreatePropertyRequest base = createPropertyRequest();
+        CreatePropertyRequest req = base.toBuilder()
+                .details(base.details().toBuilder().roof(RoofType.STEEL).build())
+                .ventilationSystems(List.of(VentilationSystem.AIR_CONDITIONER))
+                .communications(List.of(Communication.INTERNET, Communication.CABLE_TV))
+                .stove(List.of(StoveType.GAS_STOVE))
+                .security(List.of(SecurityFeature.GUARD))
+                .extras(List.of(PropertyExtra.FURNITURE))
+                .parking(List.of(ParkingType.FREE_PARKING))
+                .build();
+
+        mapper.applyListingContent(l, req);
+
+        assertThat(l.getRoof()).isEqualTo(RoofType.STEEL);
+        assertThat(l.getVentilationSystems()).containsExactly(VentilationSystem.AIR_CONDITIONER);
+        assertThat(l.getCommunications()).containsExactlyInAnyOrder(Communication.CABLE_TV, Communication.INTERNET);
+        assertThat(l.getStove()).containsExactly(StoveType.GAS_STOVE);
+        assertThat(l.getSecurity()).containsExactly(SecurityFeature.GUARD);
+        assertThat(l.getExtras()).containsExactly(PropertyExtra.FURNITURE);
+        assertThat(l.getParking()).containsExactly(ParkingType.FREE_PARKING);
     }
 }

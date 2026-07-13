@@ -114,8 +114,16 @@ export const INITIAL_PROPERTY_FIELDS: PropertyFieldsForm = {
   maintenanceCost: '',
   sewage: '',
   ventilation: '',
+  roof: '',
   features: [],
+  ventilationSystems: [],
+  communications: [],
+  stove: [],
+  security: [],
+  extras: [],
+  parking: [],
   videoUrl: '',
+  websiteUrl: '',
   coords: null,
 };
 
@@ -140,6 +148,7 @@ export function buildDetails(form: PropertyFieldsForm): PropertyDetails {
       : undefined,
     sewage: form.sewage || undefined,
     ventilation: form.ventilation || undefined,
+    roof: form.roof || undefined,
   };
 }
 
@@ -152,6 +161,7 @@ export function buildMedia(
     photos,
     plans: plans.length ? plans : null,
     videoUrl: form.videoUrl.trim() || null,
+    websiteUrl: form.websiteUrl.trim() || null,
   };
 }
 
@@ -178,8 +188,20 @@ export function seedPropertyFields(
     d.maintenanceCost != null ? String(d.maintenanceCost) : '';
   form.sewage = d.sewage ?? '';
   form.ventilation = d.ventilation ?? '';
+  form.roof = d.roof ?? '';
   form.features = listing.features ? [...listing.features] : [];
+  form.ventilationSystems = listing.ventilationSystems
+    ? [...listing.ventilationSystems]
+    : [];
+  form.communications = listing.communications
+    ? [...listing.communications]
+    : [];
+  form.stove = listing.stove ? [...listing.stove] : [];
+  form.security = listing.security ? [...listing.security] : [];
+  form.extras = listing.extras ? [...listing.extras] : [];
+  form.parking = listing.parking ? [...listing.parking] : [];
   form.videoUrl = listing.media.videoUrl ?? '';
+  form.websiteUrl = listing.media.websiteUrl ?? '';
 }
 
 export async function uploadNewFiles(files: File[]): Promise<string[]> {

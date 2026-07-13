@@ -1,14 +1,21 @@
 package com.app.backend.entity;
 
 import com.app.backend.enums.BathroomLayout;
+import com.app.backend.enums.Communication;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.ParkingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
+import com.app.backend.enums.PropertyExtra;
 import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.PropertyStatus;
+import com.app.backend.enums.RoofType;
+import com.app.backend.enums.SecurityFeature;
 import com.app.backend.enums.SewageType;
+import com.app.backend.enums.StoveType;
+import com.app.backend.enums.VentilationSystem;
 import com.app.backend.enums.VentilationType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -37,7 +44,8 @@ import java.util.stream.Stream;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = {"property", "owner", "translations", "phones", "features", "photos", "plans"})
+@ToString(exclude = {"property", "owner", "translations", "phones", "features", "photos", "plans",
+        "ventilationSystems", "communications", "stove", "security", "extras", "parking"})
 public class Listing {
 
     @Id
@@ -121,8 +129,16 @@ public class Listing {
     @Column(name = "ventilation")
     private VentilationType ventilation;
 
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "roof")
+    private RoofType roof;
+
     @Column(name = "video_url")
     private String videoUrl;
+
+    @Column(name = "website_url")
+    private String websiteUrl;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
@@ -165,6 +181,54 @@ public class Listing {
     @Column(name = "feature")
     @BatchSize(size = 20)
     private Set<PropertyFeature> features = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "listing_ventilation_systems", joinColumns = @JoinColumn(name = "listing_id"))
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "ventilation_system")
+    @BatchSize(size = 20)
+    private Set<VentilationSystem> ventilationSystems = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "listing_communications", joinColumns = @JoinColumn(name = "listing_id"))
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "communication")
+    @BatchSize(size = 20)
+    private Set<Communication> communications = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "listing_stove", joinColumns = @JoinColumn(name = "listing_id"))
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "stove")
+    @BatchSize(size = 20)
+    private Set<StoveType> stove = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "listing_security", joinColumns = @JoinColumn(name = "listing_id"))
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "security")
+    @BatchSize(size = 20)
+    private Set<SecurityFeature> security = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "listing_extras", joinColumns = @JoinColumn(name = "listing_id"))
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "extra")
+    @BatchSize(size = 20)
+    private Set<PropertyExtra> extras = new HashSet<>();
+
+    @ElementCollection
+    @CollectionTable(name = "listing_parking", joinColumns = @JoinColumn(name = "listing_id"))
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "parking")
+    @BatchSize(size = 20)
+    private Set<ParkingType> parking = new HashSet<>();
 
     // Ordered arrays of URL strings; list order is display order
     @JdbcTypeCode(SqlTypes.JSON)

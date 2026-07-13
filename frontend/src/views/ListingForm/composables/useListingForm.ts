@@ -97,6 +97,12 @@ export function useListingForm(
             coords: form.coords ?? DEFAULT_COORDS,
           },
           features: form.features,
+          ventilationSystems: form.ventilationSystems,
+          communications: form.communications,
+          stove: form.stove,
+          security: form.security,
+          extras: form.extras,
+          parking: form.parking,
           media: buildMedia(form, photos, plans),
           phones: filledPhones,
           completion:

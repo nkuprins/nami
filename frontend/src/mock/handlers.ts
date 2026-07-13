@@ -234,11 +234,35 @@ function filterByVentilation(items: CatalogItem[], params: URLSearchParams) {
   );
 }
 
+function filterByRoof(items: CatalogItem[], params: URLSearchParams) {
+  const roof = params.getAll('roof');
+  if (!roof.length) return items;
+  return items.filter(
+    (i) => i.details.roof != null && roof.includes(i.details.roof)
+  );
+}
+
 function filterByFeatures(items: CatalogItem[], params: URLSearchParams) {
   const features = params.getAll('features');
   if (!features.length) return items;
   return items.filter((i) =>
     features.every((f) => (i.features as string[] | null)?.includes(f))
+  );
+}
+
+// ANY-of set filter: keeps a listing that has at least one of the selected
+// values — mirrors the backend's EXISTS-without-having semantics for the new
+// attribute sets (ventilation systems, communications, stove, security, extras,
+// parking). Distinct from filterByFeatures, which requires ALL selected.
+function filterByAnyOfSet(
+  items: CatalogItem[],
+  params: URLSearchParams,
+  key: 'ventilationSystems' | 'communications' | 'stove' | 'security' | 'extras' | 'parking'
+) {
+  const selected = params.getAll(key);
+  if (!selected.length) return items;
+  return items.filter((i) =>
+    selected.some((v) => (i[key] as string[] | null)?.includes(v))
   );
 }
 
@@ -283,7 +307,14 @@ function applyFilters(params: URLSearchParams) {
   items = filterByEnergyClass(items, params);
   items = filterBySewage(items, params);
   items = filterByVentilation(items, params);
+  items = filterByRoof(items, params);
   items = filterByFeatures(items, params);
+  items = filterByAnyOfSet(items, params, 'ventilationSystems');
+  items = filterByAnyOfSet(items, params, 'communications');
+  items = filterByAnyOfSet(items, params, 'stove');
+  items = filterByAnyOfSet(items, params, 'security');
+  items = filterByAnyOfSet(items, params, 'extras');
+  items = filterByAnyOfSet(items, params, 'parking');
   items = filterByCompletion(items, params);
   items = filterByMaintenanceCost(items, params);
   items = filterByBathroomLayout(items, params);

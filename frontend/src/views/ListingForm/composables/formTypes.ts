@@ -1,12 +1,19 @@
 import type {
   BathroomLayout,
+  Communication,
   EnergyClass,
   Feature,
   HeatingType,
   ListingType,
+  ParkingType,
   PropertyCompletion,
+  PropertyExtra,
   PropertyKind,
+  RoofType,
+  SecurityFeature,
   SewageType,
+  StoveType,
+  VentilationSystem,
   VentilationType,
 } from '../../../types/listingItem';
 
@@ -32,8 +39,16 @@ export interface PropertyFieldsForm {
   maintenanceCost: string;
   sewage: SewageType | '';
   ventilation: VentilationType | '';
+  roof: RoofType | '';
   features: Feature[];
+  ventilationSystems: VentilationSystem[];
+  communications: Communication[];
+  stove: StoveType[];
+  security: SecurityFeature[];
+  extras: PropertyExtra[];
+  parking: ParkingType[];
   videoUrl: string;
+  websiteUrl: string;
   coords: { lat: number; lng: number } | null;
 }
 

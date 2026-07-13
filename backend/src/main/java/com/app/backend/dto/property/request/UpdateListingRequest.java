@@ -4,10 +4,16 @@ import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.model.Media;
 import com.app.backend.dto.property.model.Price;
 import com.app.backend.dto.property.model.PropertyDetails;
+import com.app.backend.enums.Communication;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.ParkingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
+import com.app.backend.enums.PropertyExtra;
 import com.app.backend.enums.PropertyFeature;
+import com.app.backend.enums.SecurityFeature;
+import com.app.backend.enums.StoveType;
+import com.app.backend.enums.VentilationSystem;
 import com.app.backend.validation.ValidPropertyRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -31,6 +37,12 @@ public record UpdateListingRequest(
         @NotNull @Valid PropertyDetails details,
         Map<String, LocalizedText> translations,
         List<PropertyFeature> features,
+        List<VentilationSystem> ventilationSystems,
+        List<Communication> communications,
+        List<StoveType> stove,
+        List<SecurityFeature> security,
+        List<PropertyExtra> extras,
+        List<ParkingType> parking,
         @Valid Media media,
         List<@NotBlank String> phones,
         PropertyCompletion completion

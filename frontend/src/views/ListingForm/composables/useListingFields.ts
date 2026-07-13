@@ -89,6 +89,12 @@ export function buildListingBody(
     details: buildDetails(form),
     translations: buildTranslations(form),
     features: form.features,
+    ventilationSystems: form.ventilationSystems,
+    communications: form.communications,
+    stove: form.stove,
+    security: form.security,
+    extras: form.extras,
+    parking: form.parking,
     media: buildMedia(form, photos, plans),
     phones: form.phones.filter((p) => p.trim()),
     completion:

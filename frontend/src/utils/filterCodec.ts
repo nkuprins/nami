@@ -3,21 +3,35 @@ import { DEFAULT_FILTER_STATE } from '../types/filter';
 import { type FilterState } from '../types/filter';
 import {
   BathroomLayout,
+  Communication,
   EnergyClass,
   Feature,
   HeatingType,
   KNOWN_BATHROOM_LAYOUT,
+  KNOWN_COMMUNICATIONS,
   KNOWN_COMPLETION,
   KNOWN_ENERGY_CLASS,
+  KNOWN_EXTRAS,
   KNOWN_FEATURES,
   KNOWN_HEATING,
   KNOWN_KINDS,
+  KNOWN_PARKING,
+  KNOWN_ROOF,
+  KNOWN_SECURITY,
   KNOWN_SEWAGE,
+  KNOWN_STOVE,
   KNOWN_TYPES,
   KNOWN_VENTILATION,
+  KNOWN_VENTILATION_SYSTEMS,
+  ParkingType,
   PropertyCompletion,
+  PropertyExtra,
   PropertyKind,
+  RoofType,
+  SecurityFeature,
   SewageType,
+  StoveType,
+  VentilationSystem,
   VentilationType,
 } from '../types/listingItem';
 import { KNOWN_SORTS } from '../types/sort';
@@ -126,6 +140,19 @@ export const FilterCodec = {
         q.ventilation,
         KNOWN_VENTILATION
       ) as VentilationType[],
+      roof: parse.enumList(q.roof, KNOWN_ROOF) as RoofType[],
+      ventilationSystems: parse.enumList(
+        q.ventilationSystems,
+        KNOWN_VENTILATION_SYSTEMS
+      ) as VentilationSystem[],
+      communications: parse.enumList(
+        q.communications,
+        KNOWN_COMMUNICATIONS
+      ) as Communication[],
+      stove: parse.enumList(q.stove, KNOWN_STOVE) as StoveType[],
+      security: parse.enumList(q.security, KNOWN_SECURITY) as SecurityFeature[],
+      extras: parse.enumList(q.extras, KNOWN_EXTRAS) as PropertyExtra[],
+      parking: parse.enumList(q.parking, KNOWN_PARKING) as ParkingType[],
 
       // Range Parameters (Numbers)
       priceMin: parse.number(q.priceMin),
@@ -167,7 +194,14 @@ export const FilterCodec = {
       'energyClass',
       'sewage',
       'ventilation',
+      'roof',
       'features',
+      'ventilationSystems',
+      'communications',
+      'stove',
+      'security',
+      'extras',
+      'parking',
     ] as const;
     for (const key of listKeys) {
       const value = state[key];
