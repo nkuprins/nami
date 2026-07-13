@@ -21,10 +21,12 @@ export interface DuplicateCheckInput {
 
 // Duplicate-property guard: stops the user from creating a second physical
 // property at a location they already own. Register-linked addresses compare
-// exactly (same building + same apartment); a hit hard-blocks submission.
-// Against legacy free-text properties the old fuzzy match remains: an exact
-// normalized match hard-blocks, a near-match (likely typo) blocks until the
-// user actively confirms it really is a different property.
+// building + apartment exactly for a hard block; within the same building, a
+// near-matching apartment string (likely typo, e.g. "5" vs "5a") blocks until
+// confirmed, while a clearly different apartment number is left alone.
+// Legacy free-text properties keep the same fuzzy match applied to the whole
+// address: an exact normalized match hard-blocks, a near-match blocks until
+// the user actively confirms it really is a different property.
 export function useDuplicatePropertyNudge() {
   const myListings = ref<ListingSummary[] | null>(null);
   const match = ref<ListingSummary | null>(null);
@@ -60,17 +62,29 @@ export function useDuplicatePropertyNudge() {
     await ensureLoaded();
     const mine = myListings.value ?? [];
 
-    // Register-linked vs register-linked: exact structural comparison. A
-    // different house or apartment is legitimately different — no fuzz.
+    // Register-linked vs register-linked: same building + same apartment is an
+    // exact duplicate; same building with a near-matching apartment string
+    // (likely typo) is a fuzzy match; a different building or a clearly
+    // different apartment number is legitimately different.
     let exact: ListingSummary | null = null;
+    let registerFuzzy: ListingSummary | null = null;
     if (arBuildingCode != null) {
       const apartment = normalizeApartment(input.apartment);
+      const sameBuilding = mine.filter(
+        (item) => item.location.arBuildingCode === arBuildingCode
+      );
       exact =
-        mine.find(
-          (item) =>
-            item.location.arBuildingCode === arBuildingCode &&
-            normalizeApartment(item.location.apartment) === apartment
+        sameBuilding.find(
+          (item) => normalizeApartment(item.location.apartment) === apartment
         ) ?? null;
+      registerFuzzy = exact
+        ? null
+        : (sameBuilding.find((item) =>
+            isNearAddress(
+              normalizeApartment(item.location.apartment),
+              apartment
+            )
+          ) ?? null);
     }
 
     // Legacy free-text properties keep the string match within city+district.
@@ -85,9 +99,9 @@ export function useDuplicatePropertyNudge() {
       null;
     const fuzzy = exact
       ? null
-      : (legacy.find((item) =>
-          isNearAddress(item.location.address, address)
-        ) ?? null);
+      : (registerFuzzy ??
+        (legacy.find((item) => isNearAddress(item.location.address, address)) ??
+          null));
     const found = exact ?? fuzzy;
 
     // A fuzzy confirmation only applies to the property it was given for.

@@ -405,7 +405,7 @@ export default {
     duplicateNudgeTitle: 'Уже есть объявление?',
     duplicateNudge: 'У вас уже есть объект по адресу {address}.',
     duplicateNudgeView: 'Посмотреть',
-    duplicateNudgeAddListing: 'Добавить тип объявления вместо этого',
+    duplicateNudgeAddListing: 'Добавить объявление к этому объекту',
     duplicateNudgeFuzzyTitle: 'Похожий адрес',
     duplicateNudgeFuzzy:
       'Этот адрес очень похож на ваш объект по адресу {address}. Если это другой объект, подтвердите, чтобы продолжить.',

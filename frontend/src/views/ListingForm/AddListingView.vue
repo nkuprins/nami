@@ -11,6 +11,7 @@ import { useWizardNavigation } from './composables/useWizardNavigation';
 import {
   buildStepperSteps,
   LISTING_WIZARD_STEPS,
+  type ListingWizardStep,
 } from './composables/useWizardStepValidity';
 import { selectedBuildingCode } from './composables/formHelpers';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
@@ -84,11 +85,34 @@ const continueBlocked = computed(
   () => wizard.currentStep.value === 'location' && nudge.blockSubmit.value
 );
 
+const locationStepIndex = STEPS.indexOf('location');
+
 let nudgeTimer: ReturnType<typeof setTimeout> | undefined;
 
 function goAddToExisting() {
   if (!nudge.match.value) return;
   localePush(`/property/${nudge.match.value.propertyId}/add-listing`);
+}
+
+// Steps already completed on an earlier pass (before the address became a
+// duplicate) stay clickable in the stepper rail and reachable via Confirm's
+// "edit" links — without this guard either would jump straight past the
+// blocked Location step, leaving the user stuck on a Confirm screen whose
+// Submit silently no-ops (see useListingForm's `duplicate?.blocked()` check).
+function guardedJump(index: number) {
+  if (nudge.blockSubmit.value && index > locationStepIndex) {
+    jumpToStep('location');
+    return;
+  }
+  handleJump(index);
+}
+
+function guardedEditStep(step: ListingWizardStep) {
+  if (nudge.blockSubmit.value && STEPS.indexOf(step) > locationStepIndex) {
+    jumpToStep('location');
+    return;
+  }
+  jumpToStep(step);
 }
 
 watch(
@@ -107,7 +131,11 @@ watch(
         nudge.check({ arBuildingCode, apartment, address, district, city }),
       400
     );
-  }
+  },
+  // immediate: a restored draft (see useListingDraft) fills these fields
+  // before this watcher exists, so without it a duplicate address that was
+  // already there on mount would never get (re-)checked.
+  { immediate: true }
 );
 
 // Changing the transaction type after Publish was already filled in can
@@ -139,7 +167,7 @@ watch(
         :steps="stepperSteps"
         :current-index="wizard.currentIndex.value"
         :completed="wizard.completed.value"
-        @jump="handleJump"
+        @jump="guardedJump"
       />
 
       <div class="w-full min-w-0 max-w-2xl">
@@ -223,7 +251,7 @@ watch(
               :submitting="submitting"
               :submit-error="submitError"
               :rent-listing-warning="rentListingWarning"
-              @edit-step="jumpToStep"
+              @edit-step="guardedEditStep"
               @submit="submit"
             />
           </div>

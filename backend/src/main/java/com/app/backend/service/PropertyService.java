@@ -166,11 +166,13 @@ public class PropertyService {
 
     /**
      * Rejects creating (or editing into) a second property at a location the owner
-     * already has. Register-linked addresses compare exactly — same building and
-     * same apartment is a duplicate, anything else (other house, other apartment)
-     * is legitimately different. Legacy free-text addresses keep the fuzzy match:
-     * exact is always blocked, a near match (likely typo or disguised copy) is
-     * blocked unless the caller has confirmed it is a genuinely different property.
+     * already has. Register-linked addresses compare exactly on building + apartment
+     * for a hard duplicate; within the same building, an apartment string that's a
+     * near match (likely typo, e.g. "5" vs "5a") is blocked unless the caller has
+     * confirmed it is a genuinely different apartment — a different building, or a
+     * clearly different apartment number, is legitimately different. Legacy
+     * free-text addresses keep the same fuzzy match applied to the whole address:
+     * exact is always blocked, a near match is blocked unless confirmed.
      */
     private void checkNoDuplicateProperty(User owner, Location location, boolean confirmedDuplicate,
                                           UUID excludeId) {
@@ -180,9 +182,15 @@ public class PropertyService {
                 continue;
             }
             if (location.arBuildingCode() != null && existing.getArBuildingCode() != null) {
-                if (location.arBuildingCode().equals(existing.getArBuildingCode())
-                        && apartment.equals(normalizedApartment(existing.getApartment()))) {
-                    throw new ApiException(HttpStatus.CONFLICT, "You already have a property at this address");
+                if (location.arBuildingCode().equals(existing.getArBuildingCode())) {
+                    String existingApartment = normalizedApartment(existing.getApartment());
+                    if (apartment.equals(existingApartment)) {
+                        throw new ApiException(HttpStatus.CONFLICT, "You already have a property at this address");
+                    }
+                    if (!confirmedDuplicate && AddressMatcher.isNearMatch(existingApartment, apartment)) {
+                        throw new ApiException(HttpStatus.CONFLICT,
+                                "NEAR_DUPLICATE: this looks very similar to a property you already have");
+                    }
                 }
                 continue;
             }

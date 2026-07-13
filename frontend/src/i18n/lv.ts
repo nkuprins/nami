@@ -404,7 +404,7 @@ export default {
     duplicateNudgeTitle: 'Vai jau ir sludinājums?',
     duplicateNudge: 'Jums jau ir īpašums adresē {address}.',
     duplicateNudgeView: 'Skatīt to',
-    duplicateNudgeAddListing: 'Tā vietā pievienot sludinājuma veidu',
+    duplicateNudgeAddListing: 'Tā vietā pievienot sludinājumu šim īpašumam',
     duplicateNudgeFuzzyTitle: 'Līdzīga adrese',
     duplicateNudgeFuzzy:
       'Šī adrese ļoti līdzinās jūsu īpašumam adresē {address}. Ja tas ir cits īpašums, apstipriniet, lai turpinātu.',

@@ -59,7 +59,7 @@ const { localePath } = useLocaleRoute();
         </RouterLink>
         <button
           type="button"
-          class="focus-ring h-9 px-4 rounded-full border border-line-2 text-sm text-ink-2 hover:bg-surface hover:border-ink-3 transition-colors"
+          class="focus-ring h-9 px-4 rounded-full border border-ink/30 text-sm text-ink hover:bg-ink hover:text-bg hover:border-ink transition-colors"
           @click="$emit('add-listing')"
         >
           {{ t('addListing.duplicateNudgeAddListing') }}
@@ -67,7 +67,7 @@ const { localePath } = useLocaleRoute();
         <button
           v-if="matchKind === 'fuzzy'"
           type="button"
-          class="text-sm text-ink-3 hover:text-ink underline underline-offset-2 transition-colors"
+          class="focus-ring h-9 px-4 rounded-full border border-dashed border-ink-3 text-sm text-ink-2 hover:border-ink hover:text-ink transition-colors"
           @click="$emit('acknowledge-fuzzy')"
         >
           {{ t('addListing.duplicateNudgeFuzzyContinue') }}

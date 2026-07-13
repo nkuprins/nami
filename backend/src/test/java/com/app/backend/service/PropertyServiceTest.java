@@ -435,6 +435,49 @@ class PropertyServiceTest {
                     });
         }
 
+        @Test
+        void throwsConflict_whenSameBuildingAndNearMatchingApartment() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            stubBuilding(6001L, "12", "Brīvības iela");
+            when(propertyRepository.findByOwner(owner))
+                    .thenReturn(List.of(structuredProperty(owner, 6001L, "125a")));
+
+            // "125a" vs "125b" is a near match (likely typo), not a clearly different apartment.
+            assertThatThrownBy(() -> propertyService.create(registerLinkedRequest(6001L, "125b"), owner.getId()))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> {
+                        assertThat(((ApiException) ex).getStatus().value()).isEqualTo(409);
+                        assertThat(ex.getMessage()).contains("NEAR_DUPLICATE");
+                    });
+        }
+
+        @Test
+        void allowsCreate_whenNearMatchingApartmentConfirmed() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            stubBuilding(6001L, "12", "Brīvības iela");
+            when(propertyRepository.findByOwner(owner))
+                    .thenReturn(List.of(structuredProperty(owner, 6001L, "125a")));
+            when(propertyRepository.save(any())).thenAnswer(inv -> {
+                Property p = inv.getArgument(0);
+                p.setId(UUID.randomUUID());
+                return p;
+            });
+            when(listingRepository.save(any())).thenAnswer(inv -> {
+                Listing l = inv.getArgument(0);
+                l.setId(UUID.randomUUID());
+                return l;
+            });
+            when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+
+            CreatePropertyRequest req = registerLinkedRequest(6001L, "125b").toBuilder()
+                    .confirmedDuplicate(true)
+                    .build();
+
+            assertThat(propertyService.create(req, owner.getId())).isNotNull();
+        }
+
         @ParameterizedTest
         @MethodSource("legitimateNeighbours")
         void allowsCreate_forNeighbouringStructuredAddresses(Long existingBuilding, String existingApt,

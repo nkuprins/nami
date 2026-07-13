@@ -405,7 +405,7 @@ export default {
     duplicateNudgeTitle: 'Already listed?',
     duplicateNudge: 'You already have a property at {address}.',
     duplicateNudgeView: 'View it',
-    duplicateNudgeAddListing: 'Add a listing type instead',
+    duplicateNudgeAddListing: 'Add a listing to this property instead',
     duplicateNudgeFuzzyTitle: 'Similar address found',
     duplicateNudgeFuzzy:
       'This looks very similar to your property at {address}. If this is a different property, confirm to continue.',
