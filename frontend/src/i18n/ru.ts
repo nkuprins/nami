@@ -316,6 +316,11 @@ export default {
     publishListing: 'Опубликовать',
     submitting: 'Отправка…',
     cancel: 'Отмена',
+    clearDraft: 'Очистить черновик',
+    clearDraftConfirmTitle: 'Очистить черновик?',
+    clearDraftConfirmDesc:
+      'Все введённые данные будут удалены, и форма начнётся заново.',
+    clearDraftConfirmLabel: 'Очистить черновик',
     submitError: 'Что-то пошло не так. Пожалуйста, попробуйте ещё раз.',
     basicInfo: 'Основная информация',
     titleLabel: 'Заголовок',

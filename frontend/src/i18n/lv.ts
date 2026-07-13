@@ -315,6 +315,11 @@ export default {
     publishListing: 'Publicēt sludinājumu',
     submitting: 'Iesniedz…',
     cancel: 'Atcelt',
+    clearDraft: 'Notīrīt melnrakstu',
+    clearDraftConfirmTitle: 'Notīrīt melnrakstu?',
+    clearDraftConfirmDesc:
+      'Tiks dzēsta visa ievadītā informācija un forma sāksies no jauna.',
+    clearDraftConfirmLabel: 'Notīrīt melnrakstu',
     submitError: 'Kaut kas nogāja greizi. Lūdzu, mēģiniet vēlreiz.',
     basicInfo: 'Pamatinformācija',
     titleLabel: 'Nosaukums',

@@ -1,4 +1,4 @@
-import { watch, type Ref } from 'vue';
+import { ref, watch, type Ref } from 'vue';
 import type { Location } from '../../../data/rawLocations';
 import type { ListingFormState } from './formTypes';
 import { LISTING_WIZARD_STEPS } from './useWizardStepValidity';
@@ -31,6 +31,8 @@ export function useListingDraft(
     completed: Ref<Set<number>>;
   }
 ) {
+  const hasDraft = ref(false);
+
   restore();
 
   function restore() {
@@ -52,9 +54,11 @@ export function useListingDraft(
     wizard.completed.value = new Set(
       (snap.completed ?? []).filter((i) => i < PHOTOS_STEP)
     );
+    hasDraft.value = true;
   }
 
   function clear() {
+    hasDraft.value = false;
     try {
       localStorage.removeItem(DRAFT_KEY);
     } catch {
@@ -77,6 +81,7 @@ export function useListingDraft(
         };
         try {
           localStorage.setItem(DRAFT_KEY, JSON.stringify(snap));
+          hasDraft.value = true;
         } catch {
           // Ignore — quota/private mode; the draft just won't be kept.
         }
@@ -85,5 +90,5 @@ export function useListingDraft(
     { deep: true }
   );
 
-  return { clear };
+  return { clear, hasDraft };
 }

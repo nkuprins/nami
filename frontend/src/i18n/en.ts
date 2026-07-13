@@ -315,6 +315,11 @@ export default {
     publishListing: 'Publish listing',
     submitting: 'Submitting…',
     cancel: 'Cancel',
+    clearDraft: 'Clear draft',
+    clearDraftConfirmTitle: 'Clear draft?',
+    clearDraftConfirmDesc:
+      'This will discard everything you entered and start the form over.',
+    clearDraftConfirmLabel: 'Clear draft',
     submitError: 'Something went wrong. Please try again.',
     basicInfo: 'Basic info',
     titleLabel: 'Title',

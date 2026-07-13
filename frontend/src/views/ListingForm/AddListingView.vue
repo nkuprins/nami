@@ -16,6 +16,7 @@ import {
 import { selectedBuildingCode } from './composables/formHelpers';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import WizardStepper from '../../components/ui/WizardStepper.vue';
+import ConfirmDialog from '../../components/ui/ConfirmDialog.vue';
 
 import StepLocation from './components/steps/StepLocation.vue';
 import StepCategory from './components/steps/StepCategory.vue';
@@ -77,6 +78,12 @@ const draft = useListingDraft(form, selectedLocation, wizard);
 onBeforeRouteLeave(() => {
   if (submitting.value) draft.clear();
 });
+
+const confirmingClearDraft = ref(false);
+function clearDraft() {
+  draft.clear();
+  window.location.reload();
+}
 
 // The only hard block on Continue itself (nothing more to reveal by clicking —
 // the duplicate card already explains it). Ordinary field validation is instead
@@ -154,13 +161,33 @@ watch(
         <h1 class="display-headline text-3xl text-ink">{{ t('addListing.title') }}</h1>
         <p class="text-sm text-ink-3 mt-1">{{ t('addListing.subtitle') }}</p>
       </div>
-      <RouterLink
-        :to="localePath('/')"
-        class="text-sm text-ink-2 hover:text-ink underline underline-offset-2 transition-colors shrink-0 mt-1"
-      >
-        {{ t('addListing.cancel') }}
-      </RouterLink>
+      <div class="flex items-center gap-4 shrink-0 mt-1">
+        <button
+          v-if="draft.hasDraft.value"
+          type="button"
+          class="text-sm text-ink-2 hover:text-ink underline underline-offset-2 transition-colors"
+          @click="confirmingClearDraft = true"
+        >
+          {{ t('addListing.clearDraft') }}
+        </button>
+        <RouterLink
+          :to="localePath('/')"
+          class="text-sm text-ink-2 hover:text-ink underline underline-offset-2 transition-colors"
+        >
+          {{ t('addListing.cancel') }}
+        </RouterLink>
+      </div>
     </div>
+
+    <ConfirmDialog
+      :open="confirmingClearDraft"
+      :title="t('addListing.clearDraftConfirmTitle')"
+      :description="t('addListing.clearDraftConfirmDesc')"
+      :confirm-label="t('addListing.clearDraftConfirmLabel')"
+      danger
+      @update:open="confirmingClearDraft = false"
+      @confirm="clearDraft"
+    />
 
     <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-start">
       <WizardStepper
