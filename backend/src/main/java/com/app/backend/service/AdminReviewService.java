@@ -58,4 +58,34 @@ public class AdminReviewService {
         }
         listing.setStatus(status);
     }
+
+    /** Takes down any live listing, e.g. for a reported/abusive posting — not limited to the
+     * cadastre-mismatch queue above. */
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
+    })
+    @Transactional
+    public void suspend(UUID listingId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+        if (listing.getStatus() != PropertyStatus.ACTIVE) {
+            throw new ApiException(HttpStatus.CONFLICT, "Listing is not active");
+        }
+        listing.setStatus(PropertyStatus.INACTIVE);
+    }
+
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_DETAIL, allEntries = true),
+            @CacheEvict(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, allEntries = true)
+    })
+    @Transactional
+    public void reactivate(UUID listingId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+        if (listing.getStatus() != PropertyStatus.INACTIVE) {
+            throw new ApiException(HttpStatus.CONFLICT, "Listing is not suspended");
+        }
+        listing.setStatus(PropertyStatus.ACTIVE);
+    }
 }

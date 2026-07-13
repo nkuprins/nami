@@ -191,6 +191,7 @@ export interface ListingDetail extends ListingBase {
   // Locales the listing actually has. Present when the detail was fetched for a
   // single locale (display); absent on the all-locales edit fetch.
   availableLocales?: string[];
+  status: 'active' | 'inactive' | 'pending_review';
 }
 
 export type ListingItem = ListingDetail;

@@ -85,6 +85,15 @@ public class ListingQueryService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
     }
 
+    /** Same as {@link #getById}, but for admin moderation — bypasses the ACTIVE filter so a
+     * suspended listing can still be viewed and reactivated. Not cached; low-volume admin path. */
+    @Transactional(readOnly = true)
+    public PropertyItemDto getByIdForAdmin(UUID id, String locale) {
+        return listingRepository.findById(id)
+                .map(l -> propertyMapper.toDto(l, locale))
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND));
+    }
+
     @Cacheable(cacheNames = CacheConfig.PROPERTY_TRANSLATION, key = "{#id, #locale}")
     @Transactional(readOnly = true)
     public LocalizedText getTranslation(UUID id, String locale) {

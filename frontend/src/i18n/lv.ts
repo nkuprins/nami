@@ -135,6 +135,13 @@ export default {
     deleteConfirmDesc:
       'Šis sludinājums tiks neatgriezeniski dzēsts un nevarēs tikt atjaunots.',
     deleteConfirmLabel: 'Dzēst',
+    suspend: 'Apturēt sludinājumu',
+    suspendConfirmTitle: 'Apturēt šo sludinājumu?',
+    suspendConfirmDesc:
+      'Sludinājums tiks paslēpts no publiskās vietnes. To varēs atkārtoti aktivizēt vēlāk.',
+    suspendConfirmLabel: 'Apturēt',
+    reactivate: 'Aktivizēt sludinājumu',
+    suspendedNotice: 'Šis sludinājums ir apturēts un paslēpts no publiskās vietnes.',
     vatIncluded: 'PVN iekļauts',
     vatBadge: 'PVN',
   },

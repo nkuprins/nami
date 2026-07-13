@@ -448,7 +448,7 @@ function filterByVat(items: CatalogItem[], params: URLSearchParams) {
 }
 
 function applyFilters(params: URLSearchParams) {
-  let items = [...dtoCatalog];
+  let items = dtoCatalog.filter((i) => i.status === 'active');
   items = filterByType(items, params);
   items = filterByKind(items, params);
   items = filterByLocation(items, params);
@@ -597,7 +597,8 @@ export const handlers = [
 
   http.get('/api/properties/counts', ({ request }) => {
     const type = new URL(request.url).searchParams.get('type');
-    const items = type ? dtoCatalog.filter((i) => i.type === type) : dtoCatalog;
+    let items = dtoCatalog.filter((i) => i.status === 'active');
+    if (type) items = items.filter((i) => i.type === type);
     return HttpResponse.json({
       apartment: items.filter((i) => i.propertyKind === 'apartment').length,
       house: items.filter((i) => i.propertyKind === 'house').length,
@@ -630,11 +631,36 @@ export const handlers = [
 
   http.post('/api/admin/listings/:id/approve', ({ params }) => {
     mockPendingListingIds.delete(params.id as string);
+    const item = dtoCatalog.find((i) => i.id === params.id);
+    if (item) item.status = 'active';
     return new HttpResponse(null, { status: 200 });
   }),
 
   http.post('/api/admin/listings/:id/reject', ({ params }) => {
     mockPendingListingIds.delete(params.id as string);
+    const item = dtoCatalog.find((i) => i.id === params.id);
+    if (item) item.status = 'inactive';
+    return new HttpResponse(null, { status: 200 });
+  }),
+
+  http.get('/api/admin/listings/:id', ({ params }) => {
+    const item = dtoCatalog.find((i) => i.id === params.id);
+    return item
+      ? HttpResponse.json(item)
+      : new HttpResponse(null, { status: 404 });
+  }),
+
+  http.post('/api/admin/listings/:id/suspend', ({ params }) => {
+    const item = dtoCatalog.find((i) => i.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    item.status = 'inactive';
+    return new HttpResponse(null, { status: 200 });
+  }),
+
+  http.post('/api/admin/listings/:id/reactivate', ({ params }) => {
+    const item = dtoCatalog.find((i) => i.id === params.id);
+    if (!item) return new HttpResponse(null, { status: 404 });
+    item.status = 'active';
     return new HttpResponse(null, { status: 200 });
   }),
 
@@ -749,7 +775,9 @@ export const handlers = [
 
   // Look how clean parametric routes look instead of regex!
   http.get('/api/properties/:id', ({ params }) => {
-    const item = dtoCatalog.find((i) => i.id === params.id);
+    const item = dtoCatalog.find(
+      (i) => i.id === params.id && i.status === 'active'
+    );
     return item
       ? HttpResponse.json(item)
       : new HttpResponse(null, { status: 404 });
@@ -759,15 +787,16 @@ export const handlers = [
   http.post('/api/properties', async ({ request }) => {
     const body = (await request.json()) as any;
     const propertyId = `prop-mock-${Date.now()}`;
+    const mismatch = isCadastreMismatch(body);
     const created = {
       ...body,
       id: `mock-${Date.now()}`,
       propertyId,
       ownerId: mockUser?.id ?? MOCK_OWNER_ID,
       postedAt: new Date().toISOString(),
+      status: mismatch ? 'pending_review' : 'active',
     };
     dtoCatalog.unshift(created);
-    const mismatch = isCadastreMismatch(body);
     logger.debug('[mock] cadastre mismatch check', {
       arBuildingCode: body.location?.arBuildingCode,
       apartment: body.location?.apartment,

@@ -135,6 +135,7 @@ function toListingDetail(r: RawListing): ListingDetail {
     phones: r.phones ?? null,
     postedAt: r.postedAt,
     completion: r.completion,
+    status: 'active',
   };
 }
 

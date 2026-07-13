@@ -12,6 +12,7 @@ import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyExtra;
 import com.app.backend.enums.PropertyFeature;
+import com.app.backend.enums.PropertyStatus;
 import com.app.backend.enums.SecurityFeature;
 import com.app.backend.enums.StoveType;
 import com.app.backend.enums.VentilationSystem;
@@ -47,5 +48,6 @@ public record PropertyItemDto(
         List<String> phones,
         OffsetDateTime postedAt,
         PropertyCompletion completion,
-        OffsetDateTime expiresAt
+        OffsetDateTime expiresAt,
+        PropertyStatus status
 ) {}

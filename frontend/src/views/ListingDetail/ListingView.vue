@@ -19,6 +19,11 @@ import {
   getListingTranslation,
   deleteListing,
 } from '../../api/listingsApi';
+import {
+  getListingForAdmin,
+  suspendListing,
+  reactivateListing,
+} from '../../api/adminApi';
 import { useSavedStore } from '../../stores/savedStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useShare } from '../../composables/useShare';
@@ -40,6 +45,8 @@ import IconArrowLeft from '../../components/icons/IconArrowLeft.vue';
 import IconHeart from '../../components/icons/IconHeart.vue';
 import IconEdit from '../../components/icons/IconEdit.vue';
 import IconTrash from '../../components/icons/IconTrash.vue';
+import IconFail from '../../components/icons/IconFail.vue';
+import IconRefresh from '../../components/icons/IconRefresh.vue';
 
 const props = defineProps<{ id: string }>();
 const router = useRouter();
@@ -63,6 +70,12 @@ const authStore = useAuthStore();
 const listing = ref<ListingDetail | null>(null);
 onMounted(async () => {
   listing.value = (await getListing(props.id, locale.value)) ?? null;
+  // Suspended listings 404 on the public endpoint; admins can still reach them
+  // here to reactivate.
+  if (!listing.value && authStore.isAdmin) {
+    listing.value =
+      (await getListingForAdmin(props.id, locale.value)) ?? null;
+  }
 });
 
 // Non-empty multi-select attribute sets (+ single-select roof), each resolved to
@@ -116,6 +129,31 @@ async function confirmDelete() {
     await router.replace(localePath('/'));
   } catch {
     deleting.value = false;
+  }
+}
+
+const isAdmin = computed(() => authStore.isAdmin);
+const confirmingSuspend = ref(false);
+const suspendBusy = ref(false);
+
+async function confirmSuspend() {
+  suspendBusy.value = true;
+  try {
+    await suspendListing(props.id);
+    if (listing.value) listing.value.status = 'inactive';
+  } finally {
+    suspendBusy.value = false;
+    confirmingSuspend.value = false;
+  }
+}
+
+async function reactivate() {
+  suspendBusy.value = true;
+  try {
+    await reactivateListing(props.id);
+    if (listing.value) listing.value.status = 'active';
+  } finally {
+    suspendBusy.value = false;
   }
 }
 
@@ -296,6 +334,24 @@ function openPlanLightbox(i: number) {
             @click.stop="confirmingDelete = true"
           >
             <span class="size-4"><IconTrash /></span>
+          </button>
+          <button
+            v-if="isAdmin && listing.status === 'active'"
+            type="button"
+            :disabled="suspendBusy"
+            class="size-9 grid place-items-center rounded-full bg-bg/90 backdrop-blur text-ink-2 cursor-pointer hover:bg-bg hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50"
+            @click.stop="confirmingSuspend = true"
+          >
+            <span class="size-4"><IconFail /></span>
+          </button>
+          <button
+            v-if="isAdmin && listing.status === 'inactive'"
+            type="button"
+            :disabled="suspendBusy"
+            class="size-9 grid place-items-center rounded-full bg-bg/90 backdrop-blur text-ink-2 cursor-pointer hover:bg-bg hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50"
+            @click.stop="reactivate"
+          >
+            <span class="size-4"><IconRefresh /></span>
           </button>
           <button
             type="button"
@@ -561,6 +617,35 @@ function openPlanLightbox(i: number) {
                 {{ t('listing.delete') }}
               </button>
 
+              <button
+                v-if="isAdmin && listing.status === 'active'"
+                type="button"
+                :disabled="suspendBusy"
+                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line-2 rounded-lg cursor-pointer hover:bg-warn/5 hover:text-warn hover:border-warn/30 transition-colors disabled:opacity-50"
+                @click="confirmingSuspend = true"
+              >
+                <span class="size-4 shrink-0"><IconFail /></span>
+                {{ t('listing.suspend') }}
+              </button>
+
+              <button
+                v-if="isAdmin && listing.status === 'inactive'"
+                type="button"
+                :disabled="suspendBusy"
+                class="w-full flex items-center justify-center gap-1.5 py-2.5 mt-2 text-sm font-medium text-ink-2 bg-transparent border border-line rounded-lg hover:bg-surface hover:text-ink transition-colors disabled:opacity-50"
+                @click="reactivate"
+              >
+                <span class="size-4 shrink-0"><IconRefresh /></span>
+                {{ t('listing.reactivate') }}
+              </button>
+
+              <p
+                v-if="isAdmin && listing.status === 'inactive'"
+                class="text-xs text-ink-3 mt-2"
+              >
+                {{ t('listing.suspendedNotice') }}
+              </p>
+
               <ContactCard
                 class="mt-5"
                 :phones="listing.phones ?? undefined"
@@ -589,6 +674,16 @@ function openPlanLightbox(i: number) {
       danger
       @update:open="confirmingDelete = false"
       @confirm="confirmDelete"
+    />
+
+    <ConfirmDialog
+      :open="confirmingSuspend"
+      :title="t('listing.suspendConfirmTitle')"
+      :description="t('listing.suspendConfirmDesc')"
+      :confirm-label="t('listing.suspendConfirmLabel')"
+      danger
+      @update:open="confirmingSuspend = false"
+      @confirm="confirmSuspend"
     />
   </div>
 </template>

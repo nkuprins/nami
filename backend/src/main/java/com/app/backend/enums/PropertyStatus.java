@@ -1,5 +1,7 @@
 package com.app.backend.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.EnumeratedValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +14,10 @@ public enum PropertyStatus {
     PENDING_REVIEW("pending_review");
 
     @EnumeratedValue
+    @JsonValue
     private final String dbValue;
 
+    @JsonCreator
     public static PropertyStatus fromDbValue(String value) {
         for (PropertyStatus s : values()) {
             if (s.dbValue.equals(value)) return s;

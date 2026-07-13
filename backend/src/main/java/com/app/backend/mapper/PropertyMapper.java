@@ -65,6 +65,7 @@ public class PropertyMapper {
                 .postedAt(l.getPostedAt())
                 .completion(l.getCompletion())
                 .expiresAt(l.getExpiresAt())
+                .status(l.getStatus())
                 .build();
     }
 

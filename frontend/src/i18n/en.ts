@@ -135,6 +135,13 @@ export default {
     deleteConfirmDesc:
       'This listing will be permanently removed and cannot be recovered.',
     deleteConfirmLabel: 'Delete',
+    suspend: 'Suspend listing',
+    suspendConfirmTitle: 'Suspend this listing?',
+    suspendConfirmDesc:
+      'The listing will be hidden from the public site. You can reactivate it later.',
+    suspendConfirmLabel: 'Suspend',
+    reactivate: 'Reactivate listing',
+    suspendedNotice: 'This listing is suspended and hidden from the public site.',
     vatIncluded: 'VAT included',
     vatBadge: 'VAT',
   },

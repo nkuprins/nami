@@ -136,6 +136,13 @@ export default {
     deleteConfirmDesc:
       'Объявление будет удалено навсегда и не может быть восстановлено.',
     deleteConfirmLabel: 'Удалить',
+    suspend: 'Приостановить объявление',
+    suspendConfirmTitle: 'Приостановить это объявление?',
+    suspendConfirmDesc:
+      'Объявление будет скрыто с публичного сайта. Позже его можно будет снова активировать.',
+    suspendConfirmLabel: 'Приостановить',
+    reactivate: 'Активировать объявление',
+    suspendedNotice: 'Это объявление приостановлено и скрыто с публичного сайта.',
     vatIncluded: 'НДС включён',
     vatBadge: 'НДС',
   },
