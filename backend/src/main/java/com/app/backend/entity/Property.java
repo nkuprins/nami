@@ -41,6 +41,16 @@ public class Property {
     @Column(name = "address", nullable = false)
     private String address;
 
+    /**
+     * State Address Register building code the address was picked from. NULL on
+     * rows created before the register integration (legacy free-text addresses).
+     */
+    @Column(name = "ar_building_code")
+    private Long arBuildingCode;
+
+    @Column(name = "apartment")
+    private String apartment;
+
     @Column(name = "lat", nullable = false)
     private Double lat;
 

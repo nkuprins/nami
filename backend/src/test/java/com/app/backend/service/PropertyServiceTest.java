@@ -1,6 +1,7 @@
 package com.app.backend.service;
 
 import com.app.backend.config.AppProperties;
+import com.app.backend.dto.address.BuildingAddress;
 import com.app.backend.dto.property.model.*;
 import com.app.backend.dto.property.request.*;
 import com.app.backend.dto.property.response.*;
@@ -14,6 +15,7 @@ import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.mapper.PropertyMapper;
 import com.app.backend.messaging.ImageProcessingPublisher;
+import com.app.backend.repository.AddressRegistryRepository;
 import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
@@ -55,6 +57,7 @@ class PropertyServiceTest {
     @Mock private ListingRepository listingRepository;
     @Mock private PropertyRepository propertyRepository;
     @Mock private UserRepository userRepository;
+    @Mock private AddressRegistryRepository addressRegistryRepository;
     @Mock private PropertyMapper propertyMapper;
     @Mock private MediaCleanupService mediaCleanupService;
     @Mock private ImageProcessingPublisher imageProcessingPublisher;
@@ -70,10 +73,11 @@ class PropertyServiceTest {
         propertyAccess = new PropertyAccess(propertyRepository, listingRepository);
         AppProperties props = new AppProperties(null,
                 new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"),
-                null, null, null, null, null);
+                null, null, null, null, null, null);
         MediaUrlValidator mediaUrlValidator = new MediaUrlValidator(props);
         propertyService = new PropertyService(propertyRepository, listingRepository, userRepository,
-                propertyMapper, mediaCleanupService, mediaUrlValidator, imageProcessingPublisher, propertyAccess);
+                addressRegistryRepository, propertyMapper, mediaCleanupService, mediaUrlValidator,
+                imageProcessingPublisher, propertyAccess);
         listingService = new ListingService(listingRepository, propertyRepository, propertyMapper, propertyAccess,
                 mediaCleanupService, mediaUrlValidator, imageProcessingPublisher);
         propertyQueryService = new PropertyQueryService(propertyMapper, propertyAccess);
@@ -377,6 +381,140 @@ class PropertyServiceTest {
             propertyService.create(req, owner.getId());
 
             assertThat(captor.getValue().getCompletion()).isEqualTo(PropertyCompletion.READY);
+        }
+
+        // ── register-linked (structured) addresses ────────────
+
+        private CreatePropertyRequest registerLinkedRequest(Long buildingCode, String apartment) {
+            Location loc = new Location("centre", "riga", "typed by client", buildingCode, apartment,
+                    new CoordsDto(56.9496, 24.1052));
+            return createPropertyRequest().toBuilder().location(loc).build();
+        }
+
+        private void stubBuilding(long code, String houseName, String streetName) {
+            when(addressRegistryRepository.findBuildingAddress(code)).thenReturn(Optional.of(
+                    new BuildingAddress(code, houseName, streetName, "Rīga", 56.95, 24.11)));
+        }
+
+        private Property structuredProperty(User owner, long buildingCode, String apartment) {
+            Property existing = listing(owner).getProperty();
+            existing.setArBuildingCode(buildingCode);
+            existing.setApartment(apartment);
+            return existing;
+        }
+
+        @Test
+        void throwsBadRequest_whenBuildingCodeUnknown() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            when(addressRegistryRepository.findBuildingAddress(6001L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> propertyService.create(registerLinkedRequest(6001L, null), owner.getId()))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> assertThat(((ApiException) ex).getStatus().value()).isEqualTo(400));
+        }
+
+        @Test
+        void throwsConflict_whenSameBuildingAndSameApartment() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            stubBuilding(6001L, "12", "Brīvības iela");
+            when(propertyRepository.findByOwner(owner))
+                    .thenReturn(List.of(structuredProperty(owner, 6001L, "4")));
+
+            // "dz. 4" and "4" normalize to the same apartment — a disguised duplicate.
+            assertThatThrownBy(() -> propertyService.create(registerLinkedRequest(6001L, "dz. 4"), owner.getId()))
+                    .isInstanceOf(ApiException.class)
+                    .satisfies(ex -> {
+                        assertThat(((ApiException) ex).getStatus().value()).isEqualTo(409);
+                        assertThat(ex.getMessage()).doesNotContain("NEAR_DUPLICATE");
+                    });
+        }
+
+        @ParameterizedTest
+        @MethodSource("legitimateNeighbours")
+        void allowsCreate_forNeighbouringStructuredAddresses(Long existingBuilding, String existingApt,
+                                                             Long newBuilding, String newApt) {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            stubBuilding(newBuilding, "12", "Brīvības iela");
+            when(propertyRepository.findByOwner(owner))
+                    .thenReturn(List.of(structuredProperty(owner, existingBuilding, existingApt)));
+            when(propertyRepository.save(any())).thenAnswer(inv -> {
+                Property p = inv.getArgument(0);
+                p.setId(UUID.randomUUID());
+                return p;
+            });
+            when(listingRepository.save(any())).thenAnswer(inv -> {
+                Listing l = inv.getArgument(0);
+                l.setId(UUID.randomUUID());
+                return l;
+            });
+            when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+
+            // No confirmation flag needed: structured comparison knows these differ.
+            assertThat(propertyService.create(registerLinkedRequest(newBuilding, newApt), owner.getId()))
+                    .isNotNull();
+        }
+
+        static Stream<Arguments> legitimateNeighbours() {
+            return Stream.of(
+                    // same street, different house (the old fuzzy matcher flagged this)
+                    Arguments.of(6003L, null, 6001L, null),
+                    // same house, different apartment
+                    Arguments.of(6001L, "4", 6001L, "5")
+            );
+        }
+
+        @Test
+        void derivesCanonicalAddressFromRegister() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            stubBuilding(6001L, "12", "Brīvības iela");
+            when(propertyRepository.save(any())).thenAnswer(inv -> {
+                Property p = inv.getArgument(0);
+                p.setId(UUID.randomUUID());
+                return p;
+            });
+            when(listingRepository.save(any())).thenAnswer(inv -> {
+                Listing l = inv.getArgument(0);
+                l.setId(UUID.randomUUID());
+                return l;
+            });
+            when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+            ArgumentCaptor<Location> applied = ArgumentCaptor.forClass(Location.class);
+
+            propertyService.create(registerLinkedRequest(6001L, "  4 "), owner.getId());
+
+            verify(propertyMapper).applyPropertyLocation(any(), applied.capture());
+            assertThat(applied.getValue().address()).isEqualTo("Brīvības iela 12 - 4");
+            assertThat(applied.getValue().apartment()).isEqualTo("4");
+        }
+
+        @Test
+        void derivesQuotedAddressForRuralNamedHouse() {
+            User owner = user();
+            when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
+            when(addressRegistryRepository.findBuildingAddress(6006L)).thenReturn(Optional.of(
+                    new BuildingAddress(6006L, "Riņņi", null, "Skultes pag.", 57.35, 24.42)));
+            when(propertyRepository.save(any())).thenAnswer(inv -> {
+                Property p = inv.getArgument(0);
+                p.setId(UUID.randomUUID());
+                return p;
+            });
+            when(listingRepository.save(any())).thenAnswer(inv -> {
+                Listing l = inv.getArgument(0);
+                l.setId(UUID.randomUUID());
+                return l;
+            });
+            when(propertyMapper.toDto(any(Listing.class))).thenAnswer(inv -> itemDto(inv.getArgument(0)));
+            ArgumentCaptor<Location> applied = ArgumentCaptor.forClass(Location.class);
+
+            propertyService.create(registerLinkedRequest(6006L, null), owner.getId());
+
+            verify(propertyMapper).applyPropertyLocation(any(), applied.capture());
+            assertThat(applied.getValue().address()).isEqualTo("\"Riņņi\"");
+            assertThat(applied.getValue().apartment()).isNull();
         }
     }
 
@@ -780,7 +918,7 @@ class PropertyServiceTest {
                 .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), null))
                 .details(PropertyDetails.builder().rooms(l.getRooms()).m2(l.getM2()).build())
-                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null))
+                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null, null))
                 .features(List.of())
                 .postedAt(l.getPostedAt())
                 .expiresAt(l.getExpiresAt())
@@ -791,7 +929,7 @@ class PropertyServiceTest {
         return PropertyDto.builder()
                 .id(p.getId())
                 .ownerId(p.getOwner().getId())
-                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
+                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null,
                         coordsOf(p)))
                 .build();
     }
@@ -805,7 +943,7 @@ class PropertyServiceTest {
                 .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), null))
                 .details(PropertyDetails.builder().rooms(l.getRooms()).m2(l.getM2()).build())
-                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
+                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null,
                         coordsOf(p)))
                 .features(List.of())
                 .media(Media.builder().photos(List.of()).build())

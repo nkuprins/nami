@@ -1,15 +1,30 @@
 import { computed, ref } from 'vue';
 import { getMyListings } from '../../../api/listingsApi';
 import type { ListingSummary } from '../../../types/listingItem';
-import { isExactAddress, isNearAddress } from '../../../utils/addressMatch';
+import {
+  isExactAddress,
+  isNearAddress,
+  normalizeApartment,
+} from '../../../utils/addressMatch';
 
 export type DuplicateMatchKind = 'none' | 'exact' | 'fuzzy';
 
+export interface DuplicateCheckInput {
+  // Present when the address was picked from the State Address Register.
+  arBuildingCode: number | undefined;
+  apartment: string;
+  // Composed display address, used against legacy free-text properties.
+  address: string;
+  district: string | undefined;
+  city: string | undefined;
+}
+
 // Duplicate-property guard: stops the user from creating a second physical
-// property at a location they already own. An exact address match hard-blocks
-// submission (they must view or add a listing to the existing one); a fuzzy
-// near-match (likely typo) blocks until the user actively confirms it really is
-// a different property.
+// property at a location they already own. Register-linked addresses compare
+// exactly (same building + same apartment); a hit hard-blocks submission.
+// Against legacy free-text properties the old fuzzy match remains: an exact
+// normalized match hard-blocks, a near-match (likely typo) blocks until the
+// user actively confirms it really is a different property.
 export function useDuplicatePropertyNudge() {
   const myListings = ref<ListingSummary[] | null>(null);
   const match = ref<ListingSummary | null>(null);
@@ -36,27 +51,41 @@ export function useDuplicatePropertyNudge() {
     matchKind.value = 'none';
   }
 
-  async function check(
-    address: string,
-    district: string | undefined,
-    city: string | undefined
-  ) {
+  async function check(input: DuplicateCheckInput) {
+    const { arBuildingCode, address, district, city } = input;
     if (!address.trim() || !district || !city) {
       reset();
       return;
     }
     await ensureLoaded();
-    const candidates = (myListings.value ?? []).filter(
+    const mine = myListings.value ?? [];
+
+    // Register-linked vs register-linked: exact structural comparison. A
+    // different house or apartment is legitimately different — no fuzz.
+    let exact: ListingSummary | null = null;
+    if (arBuildingCode != null) {
+      const apartment = normalizeApartment(input.apartment);
+      exact =
+        mine.find(
+          (item) =>
+            item.location.arBuildingCode === arBuildingCode &&
+            normalizeApartment(item.location.apartment) === apartment
+        ) ?? null;
+    }
+
+    // Legacy free-text properties keep the string match within city+district.
+    const legacy = mine.filter(
       (item) =>
-        item.location.district === district && item.location.city === city
+        item.location.arBuildingCode == null &&
+        item.location.district === district &&
+        item.location.city === city
     );
-    const exact =
-      candidates.find((item) =>
-        isExactAddress(item.location.address, address)
-      ) ?? null;
+    exact ??=
+      legacy.find((item) => isExactAddress(item.location.address, address)) ??
+      null;
     const fuzzy = exact
       ? null
-      : (candidates.find((item) =>
+      : (legacy.find((item) =>
           isNearAddress(item.location.address, address)
         ) ?? null);
     const found = exact ?? fuzzy;

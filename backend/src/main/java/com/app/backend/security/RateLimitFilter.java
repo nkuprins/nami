@@ -65,6 +65,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (uri.startsWith("/api/properties")) {
             return "GET".equals(method) ? Limit.READ : Limit.WRITE;
         }
+        if (uri.startsWith("/api/address")) {
+            return Limit.READ;
+        }
         return null;
     }
 

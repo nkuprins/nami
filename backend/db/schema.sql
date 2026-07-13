@@ -118,6 +118,49 @@ CREATE TABLE email_verification_tokens (
 CREATE INDEX idx_email_verification_tokens_user ON email_verification_tokens(user_id);
 
 -- ─────────────────────────────────────────────
+-- State Address Register (VZD) mirror
+--
+-- A weekly-refreshed copy of Latvia's official address register (open data,
+-- CC-BY-4.0) powering strict street/house autocomplete. Rows are wiped and
+-- reloaded by AddressRegistryIngestService, so user data never references
+-- these tables with foreign keys — the stable VZD codes are the linkage.
+-- ─────────────────────────────────────────────
+CREATE TABLE address_territories (
+    code             BIGINT   PRIMARY KEY,  -- VZD KODS
+    type_cd          SMALLINT NOT NULL,     -- 104 city, 105 parish, 106 village
+    name             TEXT     NOT NULL,
+    norm_name        TEXT     NOT NULL,     -- diacritics-folded lowercase, for matching
+    novads_name      TEXT,                  -- resolved municipality; NULL for republic cities
+    norm_novads_name TEXT
+);
+
+CREATE INDEX idx_address_territories_norm_name   ON address_territories (norm_name);
+CREATE INDEX idx_address_territories_norm_novads ON address_territories (norm_novads_name);
+
+CREATE TABLE address_streets (
+    code           BIGINT PRIMARY KEY,      -- VZD KODS
+    territory_code BIGINT NOT NULL REFERENCES address_territories (code) ON DELETE CASCADE,
+    name           TEXT   NOT NULL,
+    norm_name      TEXT   NOT NULL
+);
+
+CREATE INDEX idx_address_streets_territory_norm ON address_streets (territory_code, norm_name text_pattern_ops);
+
+CREATE TABLE address_buildings (
+    code           BIGINT PRIMARY KEY,      -- VZD KODS
+    street_code    BIGINT REFERENCES address_streets (code) ON DELETE CASCADE,  -- NULL: rural house named directly under its territory
+    territory_code BIGINT NOT NULL REFERENCES address_territories (code) ON DELETE CASCADE,
+    name           TEXT   NOT NULL,         -- house number ("12", "12 k-1") or rural house name
+    norm_name      TEXT   NOT NULL,
+    lat            DOUBLE PRECISION,
+    lng            DOUBLE PRECISION
+);
+
+CREATE INDEX idx_address_buildings_street_norm    ON address_buildings (street_code, norm_name text_pattern_ops);
+CREATE INDEX idx_address_buildings_territory_norm ON address_buildings (territory_code, norm_name text_pattern_ops)
+    WHERE street_code IS NULL;
+
+-- ─────────────────────────────────────────────
 -- Properties (address registry)
 --
 -- A thin, shared record of a physical address. Every physical/media attribute
@@ -132,6 +175,12 @@ CREATE TABLE properties (
     district_slug     TEXT              NOT NULL CHECK (district_slug ~ '^[a-z0-9-]+$'),
     city_slug         TEXT              NOT NULL CHECK (city_slug ~ '^[a-z0-9-]+$'),
     address           TEXT              NOT NULL CHECK (char_length(address) > 0),
+    -- Strict-address linkage: the State Address Register building code the
+    -- address was picked from, plus the free-typed apartment number. NULL on
+    -- rows created before the register integration (legacy free-text addresses).
+    -- No FK: address_buildings is wiped and reloaded on every register refresh.
+    ar_building_code  BIGINT,
+    apartment         TEXT,
     lat               DOUBLE PRECISION  NOT NULL,
     lng               DOUBLE PRECISION  NOT NULL,
 

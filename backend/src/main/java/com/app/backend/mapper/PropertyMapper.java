@@ -100,7 +100,8 @@ public class PropertyMapper {
                 .price(new Price(l.getPrice(), l.isVatIncluded() ? true : null))
                 .details(details)
                 .translations(translations(l.getTranslations(), false))
-                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null))
+                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
+                        p.getArBuildingCode(), p.getApartment(), null))
                 .features(sorted(l.getFeatures()))
                 .photo(photo)
                 .postedAt(l.getPostedAt())
@@ -192,6 +193,8 @@ public class PropertyMapper {
         property.setDistrictSlug(loc.district());
         property.setCitySlug(loc.city());
         property.setAddress(loc.address());
+        property.setArBuildingCode(loc.arBuildingCode());
+        property.setApartment(loc.apartment());
         property.setLat(loc.coords().lat());
         property.setLng(loc.coords().lng());
     }
@@ -263,7 +266,7 @@ public class PropertyMapper {
 
     private static Location toLocation(Property p) {
         return new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
-                new CoordsDto(p.getLat(), p.getLng()));
+                p.getArBuildingCode(), p.getApartment(), new CoordsDto(p.getLat(), p.getLng()));
     }
 
     private static void applyDetails(Listing listing, PropertyDetails details) {

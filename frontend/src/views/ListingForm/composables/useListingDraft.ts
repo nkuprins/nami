@@ -9,7 +9,8 @@ import { LISTING_WIZARD_STEPS } from './useWizardStepValidity';
 // clamped to at most the Photos step and any completed marks from there on are
 // dropped: everything before Photos is kept, and the user re-adds photos.
 const DRAFT_KEY = 'baltnami:add-listing-draft';
-const DRAFT_VERSION = 1;
+// v2: free-text address replaced by street/building register picks + apartment.
+const DRAFT_VERSION = 2;
 const SAVE_DEBOUNCE_MS = 400;
 const PHOTOS_STEP = LISTING_WIZARD_STEPS.indexOf('photos');
 

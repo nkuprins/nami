@@ -10,7 +10,9 @@ import com.app.backend.entity.Property;
 import com.app.backend.entity.User;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.mapper.PropertyMapper;
+import com.app.backend.dto.address.BuildingAddress;
 import com.app.backend.messaging.ImageProcessingPublisher;
+import com.app.backend.repository.AddressRegistryRepository;
 import com.app.backend.repository.ListingRepository;
 import com.app.backend.repository.PropertyRepository;
 import com.app.backend.repository.UserRepository;
@@ -40,6 +42,7 @@ public class PropertyService {
     private final PropertyRepository propertyRepository;
     private final ListingRepository listingRepository;
     private final UserRepository userRepository;
+    private final AddressRegistryRepository addressRegistryRepository;
     private final PropertyMapper propertyMapper;
     private final MediaCleanupService mediaCleanupService;
     private final MediaUrlValidator mediaUrlValidator;
@@ -56,11 +59,12 @@ public class PropertyService {
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "User not found"));
 
         checkPropertyLimit(owner);
-        checkNoDuplicateProperty(owner, req.location(), Boolean.TRUE.equals(req.confirmedDuplicate()), null);
+        Location location = resolveLocation(req.location());
+        checkNoDuplicateProperty(owner, location, Boolean.TRUE.equals(req.confirmedDuplicate()), null);
 
         Property property = new Property();
         property.setOwner(owner);
-        propertyMapper.applyPropertyLocation(property, req.location());
+        propertyMapper.applyPropertyLocation(property, location);
 
         Listing listing = new Listing();
         listing.setProperty(property);
@@ -88,9 +92,10 @@ public class PropertyService {
     public PropertyDto updateProperty(UUID propertyId, UpdatePropertyRequest req, UUID ownerId) {
         Property property = propertyAccess.loadOwnedProperty(propertyId, ownerId);
 
-        checkNoDuplicateProperty(property.getOwner(), req.location(), true, propertyId);
+        Location location = resolveLocation(req.location());
+        checkNoDuplicateProperty(property.getOwner(), location, true, propertyId);
 
-        propertyMapper.applyPropertyLocation(property, req.location());
+        propertyMapper.applyPropertyLocation(property, location);
         return propertyMapper.toPropertyDto(propertyRepository.save(property));
     }
 
@@ -136,16 +141,52 @@ public class PropertyService {
     }
 
     /**
+     * Anchors a register-linked location to the State Address Register: verifies
+     * the building code and derives the canonical display address from the
+     * register row plus the free-typed apartment. Legacy free-text locations
+     * (no building code) pass through unchanged.
+     */
+    private Location resolveLocation(Location location) {
+        if (location.arBuildingCode() == null) {
+            return location;
+        }
+        BuildingAddress building = addressRegistryRepository.findBuildingAddress(location.arBuildingCode())
+                .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST,
+                        "Unknown address register building code"));
+        String base = building.streetName() != null
+                ? building.streetName() + " " + building.houseName()
+                : "\"" + building.houseName() + "\"";
+        String apartment = trimToNull(location.apartment());
+        return location.toBuilder()
+                .address(apartment != null ? base + " - " + apartment : base)
+                .apartment(apartment)
+                .build();
+    }
+
+    /**
      * Rejects creating (or editing into) a second property at a location the owner
-     * already has. An exact address match is always blocked; a near match (likely
-     * typo or disguised copy) is blocked unless the caller has confirmed it is a
-     * genuinely different property.
+     * already has. Register-linked addresses compare exactly — same building and
+     * same apartment is a duplicate, anything else (other house, other apartment)
+     * is legitimately different. Legacy free-text addresses keep the fuzzy match:
+     * exact is always blocked, a near match (likely typo or disguised copy) is
+     * blocked unless the caller has confirmed it is a genuinely different property.
      */
     private void checkNoDuplicateProperty(User owner, Location location, boolean confirmedDuplicate,
                                           UUID excludeId) {
+        String apartment = normalizedApartment(location.apartment());
         for (Property existing : propertyRepository.findByOwner(owner)) {
-            if (existing.getId().equals(excludeId)
-                    || !existing.getCitySlug().equals(location.city())
+            if (existing.getId().equals(excludeId)) {
+                continue;
+            }
+            if (location.arBuildingCode() != null && existing.getArBuildingCode() != null) {
+                if (location.arBuildingCode().equals(existing.getArBuildingCode())
+                        && apartment.equals(normalizedApartment(existing.getApartment()))) {
+                    throw new ApiException(HttpStatus.CONFLICT, "You already have a property at this address");
+                }
+                continue;
+            }
+            // Legacy path: at least one side is free-text — fall back to fuzzy matching.
+            if (!existing.getCitySlug().equals(location.city())
                     || !existing.getDistrictSlug().equals(location.district())) {
                 continue;
             }
@@ -157,5 +198,27 @@ public class PropertyService {
                         "NEAR_DUPLICATE: this looks very similar to a property you already have");
             }
         }
+    }
+
+    /** Apartment for comparison: normalized so "4", " 4", "dz. 4" and "apt 4" collide. Empty when absent. */
+    private static String normalizedApartment(String apartment) {
+        if (apartment == null) {
+            return "";
+        }
+        String normalized = AddressMatcher.normalize(apartment);
+        for (String unitWord : List.of("dz ", "dzivoklis ", "apt ", "apartment ", "kv ")) {
+            if (normalized.startsWith(unitWord)) {
+                return normalized.substring(unitWord.length());
+            }
+        }
+        return normalized;
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

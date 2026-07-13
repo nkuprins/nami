@@ -5,6 +5,123 @@ import { cityByName, districtSlugByName } from '../data/locations';
 import { PAGE_SIZE, ROOM_COUNT_MAX } from '../types/filter';
 
 const MOCK_OWNER_ID = 'mock-user-1';
+
+// Mirrors backend normalization: fold diacritics, lowercase, alnum-only words.
+function normalizeMockAddress(text: string): string {
+  return text
+    .normalize('NFD')
+    .replace(/\p{M}+/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+// Streets are scoped like the real register mirror: a Rīga district only sees
+// Rīga streets; the grouped "Ādaži & Carnikava" city sees its village's
+// streets plus a rural named house. Unknown cities fall back to a generic set
+// so the picker still works everywhere in mock mode.
+interface MockStreet {
+  kind: 'street' | 'house';
+  code: number;
+  name: string;
+  territory: string;
+  city: string; // city slug the entry belongs to
+  district?: string; // district slug, when scoped narrower than the city
+  lat?: number;
+  lng?: number;
+}
+
+const RIGA_STREET_NAMES = [
+  'Brīvības iela',
+  'Eksporta iela',
+  'Elizabetes iela',
+  'Krišjāņa Barona iela',
+  'Aleksandra Čaka iela',
+  'Krišjāņa Valdemāra iela',
+  'Lāčplēša iela',
+  'Dzirnavu iela',
+  'Ģertrūdes iela',
+  'Tērbatas iela',
+  'Matīsa iela',
+  'Avotu iela',
+  'Skolas iela',
+  'Stabu iela',
+  'Maskavas iela',
+];
+
+const GENERIC_STREET_NAMES = [
+  'Skolas iela',
+  'Dārza iela',
+  'Liepu iela',
+  'Parka iela',
+  'Jūras iela',
+];
+
+const MOCK_STREETS: MockStreet[] = [
+  ...RIGA_STREET_NAMES.map((name, i) => ({
+    kind: 'street' as const,
+    code: 5000 + i,
+    name,
+    territory: 'Rīga',
+    city: 'riga',
+  })),
+  {
+    kind: 'street',
+    code: 5900,
+    name: 'Skolas iela',
+    territory: 'Kalngale',
+    city: 'adazi-&-carnikava',
+    district: 'kalngale',
+  },
+  {
+    kind: 'house',
+    code: 6100,
+    name: 'Vecvagari',
+    territory: 'Kalngale',
+    city: 'adazi-&-carnikava',
+    district: 'kalngale',
+    lat: 57.083,
+    lng: 24.273,
+  },
+  ...GENERIC_STREET_NAMES.map((name, i) => ({
+    kind: 'street' as const,
+    code: 5950 + i,
+    name,
+    territory: '',
+    city: '*',
+  })),
+];
+
+function mockStreetsFor(citySlug: string, districtSlug: string): MockStreet[] {
+  const scoped = MOCK_STREETS.filter(
+    (s) =>
+      s.city === citySlug && (!s.district || s.district === districtSlug)
+  );
+  return scoped.length > 0
+    ? scoped
+    : MOCK_STREETS.filter((s) => s.city === '*');
+}
+
+// Mirrors the backend's match: prefix or word-boundary prefix ("barona" finds
+// "Krišjāņa Barona iela").
+function matchesAddressQuery(name: string, q: string): boolean {
+  if (!q) return true;
+  const norm = normalizeMockAddress(name);
+  return norm.startsWith(q) || norm.includes(` ${q}`);
+}
+
+const MOCK_BUILDINGS = MOCK_STREETS.filter((s) => s.kind === 'street').flatMap(
+  (street) =>
+    ['1', '2', '3', '5', '8', '10', '12', '12 k-1', '14A', '21'].map(
+      (name, i) => ({
+        streetCode: street.code,
+        code: street.code * 100 + i,
+        name,
+        lat: 56.9496 + (street.code % 7) * 0.002 + i * 0.0004,
+        lng: 24.1052 + (street.code % 5) * 0.002 + i * 0.0004,
+      })
+    )
+);
 // Properties owned by the mock user: two multi-listing properties (buy+rent
 // pairs) plus one single-listing property, to exercise the grouping UI.
 const MOCK_OWNED_PROPERTY_IDS = new Set(['prop-001', 'prop-009', 'prop-005']);
@@ -397,6 +514,33 @@ export const handlers = [
       () => new HttpResponse(null, { status: 200 })
     )
   ),
+
+  // --- ADDRESS REGISTER ENDPOINTS ---
+  // A tiny register mirror: the same streets for any district, plus one rural
+  // named house, so the strict street/house pickers work offline.
+  http.get('/api/address/streets', ({ request }) => {
+    const url = new URL(request.url);
+    const city = url.searchParams.get('city') ?? '';
+    const district = url.searchParams.get('district') ?? '';
+    const q = normalizeMockAddress(url.searchParams.get('q') ?? '');
+    const matches = mockStreetsFor(city, district)
+      .filter((s) => matchesAddressQuery(s.name, q))
+      .slice(0, 20)
+      .map(({ city: _city, district: _district, ...option }) => option);
+    return HttpResponse.json(matches);
+  }),
+
+  http.get('/api/address/buildings', ({ request }) => {
+    const url = new URL(request.url);
+    const streetCode = Number(url.searchParams.get('streetCode'));
+    const q = normalizeMockAddress(url.searchParams.get('q') ?? '');
+    const matches = MOCK_BUILDINGS.filter(
+      (b) =>
+        b.streetCode === streetCode &&
+        normalizeMockAddress(b.name).startsWith(q)
+    ).map(({ streetCode: _ignored, ...b }) => b);
+    return HttpResponse.json(matches);
+  }),
 
   // --- PROPERTIES / LISTINGS ENDPOINTS ---
   http.get('/api/properties', ({ request }) => {

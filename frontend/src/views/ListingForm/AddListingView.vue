@@ -12,6 +12,7 @@ import {
   buildStepperSteps,
   LISTING_WIZARD_STEPS,
 } from './composables/useWizardStepValidity';
+import { selectedBuildingCode } from './composables/formHelpers';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import WizardStepper from '../../components/ui/WizardStepper.vue';
 
@@ -94,12 +95,18 @@ watch(
   () =>
     [
       form.address,
+      selectedBuildingCode(form),
+      form.apartment,
       selectedLocation.value?.district,
       selectedLocation.value?.city,
     ] as const,
-  ([address, district, city]) => {
+  ([address, arBuildingCode, apartment, district, city]) => {
     clearTimeout(nudgeTimer);
-    nudgeTimer = setTimeout(() => nudge.check(address, district, city), 400);
+    nudgeTimer = setTimeout(
+      () =>
+        nudge.check({ arBuildingCode, apartment, address, district, city }),
+      400
+    );
   }
 );
 

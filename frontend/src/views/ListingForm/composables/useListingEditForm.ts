@@ -41,10 +41,14 @@ export function useListingEditForm(
   const loadedType = ref<ListingType | ''>('');
 
   // Populated from the loaded listing's shared property location — used to
-  // render the locked Location card and to save a corrected map pin.
+  // render the locked Location card and to save a corrected map pin. The
+  // register linkage (building code + apartment) is carried through untouched
+  // so a pin save never downgrades a structured address to free text.
   const propertyId = ref('');
   const districtDisplay = ref('');
   const cityDisplay = ref('');
+  const arBuildingCode = ref<number | null>(null);
+  const apartment = ref<string | null>(null);
   const savingPin = ref(false);
   const pinSaveError = ref('');
   const siblingListingsCount = ref(1);
@@ -73,6 +77,8 @@ export function useListingEditForm(
       propertyId.value = p.propertyId;
       districtDisplay.value = p.location.district;
       cityDisplay.value = p.location.city;
+      arBuildingCode.value = p.location.arBuildingCode ?? null;
+      apartment.value = p.location.apartment ?? null;
       photoUpload.seed(p.media.photos ?? []);
       planUpload.seed(p.media.plans ?? []);
       loading.value = false;
@@ -102,6 +108,8 @@ export function useListingEditForm(
           district: districtDisplay.value,
           city: cityDisplay.value,
           address: form.address,
+          arBuildingCode: arBuildingCode.value ?? undefined,
+          apartment: apartment.value ?? undefined,
           coords: newCoords,
         },
       });

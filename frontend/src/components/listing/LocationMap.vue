@@ -4,13 +4,19 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import IconSpinner from '../icons/IconSpinner.vue';
 
-const props = defineProps<{
-  address: string;
-  district: string;
-  city: string;
-  modelValue?: { lat: number; lng: number } | null;
-  readonly?: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    address: string;
+    district: string;
+    city: string;
+    modelValue?: { lat: number; lng: number } | null;
+    readonly?: boolean;
+    // False when coordinates come from an authoritative source (the address
+    // register): the pin follows modelValue and Nominatim is never queried.
+    geocode?: boolean;
+  }>(),
+  { geocode: true }
+);
 
 const emit = defineEmits<{
   'update:modelValue': [value: { lat: number; lng: number } | null];
@@ -193,11 +199,24 @@ onMounted(() => {
     if (props.modelValue) {
       placeMarker(props.modelValue.lat, props.modelValue.lng);
       state.value = 'ok';
-    } else if (query.value.trim()) {
+    } else if (props.geocode && query.value.trim()) {
       geocode();
     }
   });
 });
+
+// Follow externally supplied coordinates (a register building was picked).
+watch(
+  () => props.modelValue,
+  (coords) => {
+    if (!map || !coords) return;
+    const current = marker?.getLatLng();
+    if (current && current.lat === coords.lat && current.lng === coords.lng)
+      return;
+    placeMarker(coords.lat, coords.lng);
+    state.value = 'ok';
+  }
+);
 
 onUnmounted(() => {
   if (debounceTimer) clearTimeout(debounceTimer);
@@ -210,7 +229,7 @@ onUnmounted(() => {
 });
 
 watch(query, () => {
-  if (!props.readonly) scheduleGeocode();
+  if (!props.readonly && props.geocode) scheduleGeocode();
 });
 </script>
 

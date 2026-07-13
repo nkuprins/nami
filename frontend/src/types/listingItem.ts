@@ -145,6 +145,10 @@ export interface PropertyLocation {
   district: string; // slug on the wire, display name once translated
   city: string; // slug on the wire, display name once translated
   address: string;
+  // State Address Register building the address was picked from, plus the
+  // free-typed apartment. Absent on legacy free-text addresses.
+  arBuildingCode?: number | null;
+  apartment?: string | null;
   coords: { lat: number; lng: number } | null; // null on list cards
 }
 

@@ -95,11 +95,50 @@ export function setTransactionType(
   }
 }
 
+// The register building the address form resolves to: the picked house number,
+// or the street pick itself when it is a rural named house.
+export function selectedBuildingCode(
+  form: Pick<PropertyFieldsForm, 'street' | 'building'>
+): number | undefined {
+  if (form.building) return form.building.code;
+  if (form.street?.kind === 'house') return form.street.code;
+  return undefined;
+}
+
+// Display address composed from the register picks, mirroring the backend's
+// canonical form: "Brīvības iela 12 - 4", or a quoted rural house name.
+export function composeAddress(
+  form: Pick<PropertyFieldsForm, 'street' | 'building' | 'apartment'>
+): string {
+  if (!form.street) return '';
+  const base =
+    form.street.kind === 'house'
+      ? `"${form.street.name}"`
+      : form.building
+        ? `${form.street.name} ${form.building.name}`
+        : form.street.name;
+  const apartment = form.apartment.trim();
+  return apartment ? `${base} - ${apartment}` : base;
+}
+
+// Official coordinates of the picked building, when the register has them.
+export function registerCoords(
+  form: Pick<PropertyFieldsForm, 'street' | 'building'>
+): { lat: number; lng: number } | null {
+  const source = form.building ?? (form.street?.kind === 'house' ? form.street : null);
+  return source?.lat != null && source.lng != null
+    ? { lat: source.lat, lng: source.lng }
+    : null;
+}
+
 // Empty baseline for the physical/media slice of a form. Spread into the create
 // form (with location), the listing edit form and the add-another-listing form.
 export const INITIAL_PROPERTY_FIELDS: PropertyFieldsForm = {
   propertyKind: 'apartment',
   address: '',
+  street: null,
+  building: null,
+  apartment: '',
   rooms: '',
   bedrooms: '',
   bathrooms: '',
@@ -219,7 +258,10 @@ export function propertyFieldErrors(
   const e: Record<string, string> = {};
   if (opts.requireLocation !== false) {
     if (!opts.hasLocation) e.district = 'Required';
-    if (!form.address.trim()) e.address = 'Required';
+    if (!form.street) e.street = 'Pick a street from the list';
+    // A rural named house is terminal; a street needs its house number picked.
+    else if (form.street.kind === 'street' && !form.building)
+      e.building = 'Pick a house number from the list';
   }
   if (!form.rooms || Number.isNaN(Number(form.rooms)) || Number(form.rooms) < 1)
     e.rooms = 'Enter number of rooms';

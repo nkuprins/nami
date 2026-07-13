@@ -34,3 +34,12 @@ app:
     secure: false
   turnstile:
     secret-key: ""
+  address-register:
+    auto-ingest: false
+    urls:
+      novads: ""
+      pagasts: ""
+      pilseta: ""
+      ciems: ""
+      iela: ""
+      eka: ""

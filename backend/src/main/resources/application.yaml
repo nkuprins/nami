@@ -59,3 +59,14 @@ app:
     secure: ${COOKIE_SECURE:false}
   turnstile:
     secret-key: ${TURNSTILE_SECRET_KEY:}
+  # State Address Register open data (data.gov.lv, CC-BY-4.0). auto-ingest turns
+  # on the weekly refresh and the bootstrap ingest on an empty mirror.
+  address-register:
+    auto-ingest: ${ADDRESS_REGISTER_AUTO_INGEST:false}
+    urls:
+      novads: https://data.gov.lv/dati/dataset/6b06a7e8-dedf-4705-a47b-2a7c51177473/resource/c62c60bb-58d4-4f26-82c0-5b630769f9d1/download/aw_novads.csv
+      pagasts: https://data.gov.lv/dati/dataset/6b06a7e8-dedf-4705-a47b-2a7c51177473/resource/6ba8c905-27a1-443a-b9c6-256a0777425b/download/aw_pagasts.csv
+      pilseta: https://data.gov.lv/dati/dataset/6b06a7e8-dedf-4705-a47b-2a7c51177473/resource/ee02baa4-2bc3-4f77-a6cb-5427a3e9befe/download/aw_pilseta.csv
+      ciems: https://data.gov.lv/dati/dataset/6b06a7e8-dedf-4705-a47b-2a7c51177473/resource/0d3810f4-1ac0-4fba-8b10-0188084a361b/download/aw_ciems.csv
+      iela: https://data.gov.lv/dati/dataset/6b06a7e8-dedf-4705-a47b-2a7c51177473/resource/3c4ab802-76cf-433c-9c1c-89215e28d833/download/aw_iela.csv
+      eka: https://data.gov.lv/dati/dataset/6b06a7e8-dedf-4705-a47b-2a7c51177473/resource/a510737a-18ce-400f-ad4b-04fce5228272/download/aw_eka.csv

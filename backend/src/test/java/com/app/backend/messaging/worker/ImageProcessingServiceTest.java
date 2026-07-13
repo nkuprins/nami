@@ -34,7 +34,7 @@ class ImageProcessingServiceTest {
     private final AppProperties props = new AppProperties(
             null,
             new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"),
-            null, null, null, null, null);
+            null, null, null, null, null, null);
 
     private final ImageProcessingService service = new ImageProcessingService(s3Client, props);
 

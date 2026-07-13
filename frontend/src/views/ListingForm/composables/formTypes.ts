@@ -16,15 +16,21 @@ import type {
   VentilationSystem,
   VentilationType,
 } from '../../../types/listingItem';
+import type { BuildingOption, StreetOption } from '../../../api/addressApi';
 
 // The physical/media fields of a listing, shared by the create form
 // (AddListingView), the listing edit form (EditListingView) and the
 // add-another-listing form (AddListingToPropertyView). Only the create form
-// also collects `address`/`coords` (the shared location); the listing-scoped
-// forms leave them untouched.
+// also collects the address fields (street/building picked from the State
+// Address Register, free-typed apartment, coords); the listing-scoped forms
+// leave them untouched. `address` is the composed display string — derived
+// from the picks in the create form, seeded from the API in the edit form.
 export interface PropertyFieldsForm {
   propertyKind: PropertyKind;
   address: string;
+  street: StreetOption | null;
+  building: BuildingOption | null;
+  apartment: string;
   rooms: string;
   bedrooms: string;
   bathrooms: string;

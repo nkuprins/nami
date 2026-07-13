@@ -17,6 +17,18 @@ export function isExactAddress(a: string, b: string): boolean {
   return normalizeAddress(a) === normalizeAddress(b);
 }
 
+// Mirror of the backend's apartment comparison: "4", " 4", "dz. 4" and "apt 4"
+// all collide. Empty when absent.
+export function normalizeApartment(apartment: string | null | undefined): string {
+  if (!apartment) return '';
+  const normalized = normalizeAddress(apartment);
+  for (const unitWord of ['dz ', 'dzivoklis ', 'apt ', 'apartment ', 'kv ']) {
+    if (normalized.startsWith(unitWord))
+      return normalized.slice(unitWord.length);
+  }
+  return normalized;
+}
+
 export function isNearAddress(a: string, b: string): boolean {
   const na = normalizeAddress(a);
   const nb = normalizeAddress(b);
