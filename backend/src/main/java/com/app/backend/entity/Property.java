@@ -48,6 +48,14 @@ public class Property {
     @Column(name = "ar_building_code")
     private Long arBuildingCode;
 
+    /**
+     * The building's street ({@code address_streets.code}), denormalized off the
+     * building so listing search can filter by street without joining the
+     * register mirror. NULL for legacy addresses and rural houses (no street).
+     */
+    @Column(name = "ar_street_code")
+    private Long arStreetCode;
+
     @Column(name = "apartment")
     private String apartment;
 

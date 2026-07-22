@@ -32,6 +32,7 @@ public record PropertySearchCriteria(
         CommercialType commercialSubtype,
         LandUse landUse,
         Map<String, List<String>> locByCity,
+        List<Long> streetCodes,
         BigDecimal priceMin,
         BigDecimal priceMax,
         List<Integer> rooms,
@@ -73,6 +74,7 @@ public record PropertySearchCriteria(
                 .commercialSubtype(filter.commercialSubtype())
                 .landUse(filter.landUse())
                 .locByCity(locByCity)
+                .streetCodes(filter.street() != null ? filter.street() : List.of())
                 .priceMin(filter.priceMin()).priceMax(filter.priceMax())
                 .rooms(filter.rooms())
                 .bedrooms(filter.bedrooms()).bathrooms(filter.bathrooms())

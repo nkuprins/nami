@@ -6,6 +6,7 @@ import {
   DEFAULT_FILTER_STATE,
   FilterKey,
   type FilterState,
+  type StreetFilter,
 } from '../types/filter';
 import { Category, ListingType } from '../types/listingItem';
 import { categoryProfile } from '../types/categoryRegistry';
@@ -120,6 +121,11 @@ export const useFiltersStore = defineStore('filters', () => {
 
       return [];
     });
+  }
+
+  function setStreets(streets: StreetFilter[]) {
+    logger.info('[FiltersStore] Changed streets:', streets);
+    state.streets = [...streets];
   }
 
   function setPriceRange(min: number | undefined, max: number | undefined) {
@@ -238,6 +244,7 @@ export const useFiltersStore = defineStore('filters', () => {
     setType,
     setKind,
     setLocations,
+    setStreets,
     setPriceRange,
     setVatIncluded,
     setRooms,

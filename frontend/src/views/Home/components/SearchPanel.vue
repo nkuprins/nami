@@ -37,6 +37,7 @@ const {
   setType,
   setKind,
   setLocations,
+  setStreets,
   setPriceRange,
   setVatIncluded,
   setRooms,
@@ -78,20 +79,26 @@ function setLandUse(v: string) {
 }
 
 const locSummary = computed(() => {
-  if (!locations.value.length) return '';
+  const streetNames = state.streets.map((s) => s.name);
 
-  const byCity = new Map<string, string[]>();
-  for (const { city, district } of locations.value) {
-    byCity.set(city, [...(byCity.get(city) ?? []), district]);
+  let base = '';
+  if (locations.value.length) {
+    const byCity = new Map<string, string[]>();
+    for (const { city, district } of locations.value) {
+      byCity.set(city, [...(byCity.get(city) ?? []), district]);
+    }
+
+    // One city: district names are unambiguous. Several cities (or too many
+    // districts to list): show city names with counts instead.
+    if (byCity.size === 1) {
+      const [[city, ds]] = byCity;
+      base = ds.length <= 3 ? ds.join(', ') : `${city} (${ds.length})`;
+    } else {
+      base = [...byCity].map(([city, ds]) => `${city} (${ds.length})`).join(', ');
+    }
   }
 
-  // One city: district names are unambiguous. Several cities (or too many
-  // districts to list): show city names with counts instead.
-  if (byCity.size === 1) {
-    const [[city, ds]] = byCity;
-    return ds.length <= 3 ? ds.join(', ') : `${city} (${ds.length})`;
-  }
-  return [...byCity].map(([city, ds]) => `${city} (${ds.length})`).join(', ');
+  return [base, ...streetNames].filter(Boolean).join(' · ');
 });
 
 const priceSummary = computed(() => {
@@ -237,14 +244,17 @@ const advancedCount = computed(() => {
           class="sm:flex-1"
           :label="t('filters.location')"
           :summary="locSummary"
-          :active="state.loc.length > 0"
+          :active="state.loc.length > 0 || state.streets.length > 0"
           :width="560"
           @clear="locationPopoverRef?.clear()"
         >
           <LocationPopover
             ref="locationPopoverRef"
             :model-value="locations"
+            :streets="state.streets"
+            enable-street
             @update:model-value="setLocations"
+            @update:streets="setStreets"
           />
         </FilterPill>
 

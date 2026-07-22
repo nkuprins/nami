@@ -218,7 +218,7 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
             .price(new Price(r.price(), Boolean.TRUE.equals(r.vatIncluded()) ? true : null))
             .details(details)
             .translations(translations(r))
-            .location(new Location(r.districtSlug(), r.citySlug(), r.address(), null, null, null, null))
+            .location(new Location(r.districtSlug(), r.citySlug(), r.address(), null, null, null, null, null))
             .completion(r.completion())
             .postedAt(r.postedAt())
             .expiresAt(r.expiresAt())

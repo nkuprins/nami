@@ -110,7 +110,7 @@ public class PropertyMapper {
                 .details(details)
                 .translations(translations(l.getTranslations(), false))
                 .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
-                        p.getArBuildingCode(), p.getApartment(), p.getCadastreParcelNr(), null))
+                        p.getArBuildingCode(), null, p.getApartment(), p.getCadastreParcelNr(), null))
                 .features(sorted(l.getFeatures()))
                 .photo(photo)
                 .postedAt(l.getPostedAt())
@@ -216,6 +216,7 @@ public class PropertyMapper {
         property.setCitySlug(loc.city());
         property.setAddress(loc.address());
         property.setArBuildingCode(loc.arBuildingCode());
+        property.setArStreetCode(loc.arStreetCode());
         property.setApartment(loc.apartment());
         property.setCadastreParcelNr(loc.cadastreParcelNr());
         property.setLat(loc.coords().lat());
@@ -289,7 +290,7 @@ public class PropertyMapper {
 
     private static Location toLocation(Property p) {
         return new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
-                p.getArBuildingCode(), p.getApartment(), p.getCadastreParcelNr(),
+                p.getArBuildingCode(), null, p.getApartment(), p.getCadastreParcelNr(),
                 new CoordsDto(p.getLat(), p.getLng()));
     }
 

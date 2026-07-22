@@ -235,6 +235,10 @@ CREATE TABLE properties (
     -- rows created before the register integration (legacy free-text addresses).
     -- No FK: address_buildings is wiped and reloaded on every register refresh.
     ar_building_code  BIGINT,
+    -- The building's street (address_streets.code), denormalized off the building
+    -- so listing search can filter by street without joining the register mirror.
+    -- NULL for legacy addresses and rural houses (no register street).
+    ar_street_code    BIGINT,
     apartment         TEXT,
     -- Cadastral parcel the address/plot was picked from (land & commercial). No FK:
     -- cadastre_parcels is wiped and reloaded on every cadastre refresh.
@@ -249,6 +253,7 @@ CREATE INDEX idx_properties_owner         ON properties (owner_id);
 CREATE INDEX idx_properties_city          ON properties (city_slug);
 CREATE INDEX idx_properties_district      ON properties (district_slug);
 CREATE INDEX idx_properties_city_district ON properties (city_slug, district_slug);
+CREATE INDEX idx_properties_ar_street_code ON properties (ar_street_code);
 
 -- ─────────────────────────────────────────────
 -- Listings (market offer — self-contained)

@@ -2,8 +2,12 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import IconChevron from '../icons/IconChevron.vue';
+import AutocompleteCombobox from '../ui/AutocompleteCombobox.vue';
 import { districtSlugByName, slugify } from '../../data/locations';
 import { Location, LOCATION_MAP } from '../../data/rawLocations';
+import { searchStreets, type StreetOption } from '../../api/addressApi';
+import type { StreetFilter } from '../../types/filter';
+import { logger } from '../../utils/logger';
 
 const { t } = useI18n();
 
@@ -11,12 +15,21 @@ const props = withDefaults(
   defineProps<{
     modelValue: Location[];
     multiple?: boolean;
+    // Search-only: adds a street typeahead, enabled once exactly one district is
+    // picked (the register street search needs a single resolved city+district).
+    enableStreet?: boolean;
+    streets?: StreetFilter[];
   }>(),
   {
     multiple: true,
+    enableStreet: false,
+    streets: () => [],
   }
 );
-const emit = defineEmits<{ 'update:modelValue': [value: Location[]] }>();
+const emit = defineEmits<{
+  'update:modelValue': [value: Location[]];
+  'update:streets': [value: StreetFilter[]];
+}>();
 
 const query = ref('');
 
@@ -107,9 +120,69 @@ function handleSelect(cityName: string, districtName: string) {
   emit('update:modelValue', [...selected.value]);
 }
 
+// ── street typeahead (search only) ──
+// The register street search needs a single resolved city+district, so the
+// picker is live only when exactly one district is selected.
+const singleLocation = computed<Location | null>(() =>
+  selected.value.length === 1 ? selected.value[0] : null
+);
+
+const streetOptions = ref<StreetOption[]>([]);
+const streetLoading = ref(false);
+let streetAbort: AbortController | undefined;
+
+// The current street pick shaped for the combobox (it only reads `name`).
+const streetModel = computed<StreetOption | null>(() => {
+  const s = props.streets[0];
+  return s ? { kind: 'street', code: s.code, name: s.name, territory: '' } : null;
+});
+
+async function onStreetSearch(q: string) {
+  const loc = singleLocation.value;
+  if (!loc) return;
+  streetAbort?.abort();
+  streetAbort = new AbortController();
+  streetLoading.value = true;
+  try {
+    const results = await searchStreets(loc.city, loc.district, q, {
+      signal: streetAbort.signal,
+    });
+    // Rural houses (kind 'house') have no street — drop them from a street filter.
+    streetOptions.value = results.filter((o) => o.kind === 'street');
+    streetLoading.value = false;
+  } catch (e) {
+    if (e instanceof DOMException && e.name === 'AbortError') return;
+    logger.error('street search failed', e);
+    streetOptions.value = [];
+    streetLoading.value = false;
+  }
+}
+
+function onStreetSelect(option: StreetOption | null) {
+  emit(
+    'update:streets',
+    option ? [{ code: option.code, name: option.name }] : []
+  );
+}
+
+// Show the source territory only when it disambiguates (grouped cities).
+function streetSecondary(option: StreetOption): string {
+  const territories = new Set(streetOptions.value.map((o) => o.territory));
+  return territories.size > 1 ? option.territory : '';
+}
+
+// Changing (or losing) the single district invalidates the street pick.
+watch(singleLocation, (next, prev) => {
+  if (next?.city === prev?.city && next?.district === prev?.district) return;
+  streetOptions.value = [];
+  if (props.streets.length) emit('update:streets', []);
+});
+
 function clear() {
   selected.value = [];
   emit('update:modelValue', []);
+  emit('update:streets', []);
+  streetOptions.value = [];
   query.value = '';
 }
 
@@ -194,6 +267,26 @@ defineExpose({ clear });
       <p v-if="grouped.size === 0" class="text-sm text-ink-3 py-2">
         {{ t('filters.nothingMatches', { query }) }}
       </p>
+    </div>
+
+    <div v-if="enableStreet" class="pt-3 border-t border-line">
+      <AutocompleteCombobox
+        id="search-street"
+        :model-value="streetModel"
+        :options="streetOptions"
+        :label="t('filters.street')"
+        :placeholder="
+          singleLocation
+            ? t('filters.streetPlaceholder')
+            : t('filters.streetNeedsDistrict')
+        "
+        :no-results-text="t('filters.streetNoResults')"
+        :disabled="!singleLocation"
+        :loading="streetLoading"
+        :secondary="streetSecondary"
+        @update:model-value="onStreetSelect"
+        @search="onStreetSearch"
+      />
     </div>
 
     <div v-if="multiple" class="pt-3 border-t border-line text-right">

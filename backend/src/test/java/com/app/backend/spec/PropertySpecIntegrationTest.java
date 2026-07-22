@@ -146,6 +146,26 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
+    void filtersByStreetCode_excludesNullStreetRows() {
+        Listing onStreet = TestData.listing(owner);
+        onStreet.getProperty().setArStreetCode(7001L);
+        save(onStreet);
+
+        Listing otherStreet = TestData.listing(owner);
+        otherStreet.getProperty().setArStreetCode(7002L);
+        save(otherStreet);
+
+        Listing noStreet = TestData.listing(owner); // arStreetCode == null (legacy / rural)
+        save(noStreet);
+
+        List<Listing> results = listingRepository.findAll(
+                buildSpec(PropertySearchCriteria.builder().streetCodes(List.of(7001L))));
+
+        assertThat(results).hasSize(1)
+                .allMatch(l -> l.getProperty().getArStreetCode() == 7001L);
+    }
+
+    @Test
     void filtersByPriceRange() {
         Listing cheap = TestData.listing(owner);
         cheap.setPrice(new BigDecimal("50000.00"));

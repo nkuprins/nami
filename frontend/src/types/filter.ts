@@ -21,6 +21,14 @@ import {
 import { SortKey } from './sort';
 import { Location } from '../data/rawLocations';
 
+// A street picked from the State Address Register: its register code (the search
+// key sent to the API) plus its display name (kept in the URL so the pill can
+// re-render on reload without a code→name lookup).
+export interface StreetFilter {
+  code: number;
+  name: string;
+}
+
 export interface FilterState {
   type: ListingType;
   // The category browse tab (apartment/house/new_project/commercial/land/garage).
@@ -28,6 +36,7 @@ export interface FilterState {
   commercialSubtype?: CommercialType;
   landUse?: LandUse;
   loc: Location[];
+  streets: StreetFilter[];
   priceMin?: number;
   priceMax?: number;
   rooms: number[];
@@ -70,6 +79,7 @@ export const ALL_FILTER_KEYS = Object.keys({
   commercialSubtype: 0,
   landUse: 0,
   loc: 0,
+  streets: 0,
   priceMin: 0,
   priceMax: 0,
   rooms: 0,
@@ -109,6 +119,7 @@ export const DEFAULT_FILTER_STATE: FilterState = {
   type: 'buy',
   kind: 'house',
   loc: [],
+  streets: [],
   rooms: [],
   bedrooms: [],
   bathrooms: [],

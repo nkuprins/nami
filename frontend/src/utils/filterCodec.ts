@@ -1,6 +1,6 @@
 import type { LocationQuery } from 'vue-router';
 import { DEFAULT_FILTER_STATE } from '../types/filter';
-import { type FilterState } from '../types/filter';
+import { type FilterState, type StreetFilter } from '../types/filter';
 import {
   BathroomLayout,
   Category,
@@ -109,6 +109,23 @@ const parse = {
       })
       .filter((l): l is Location => l !== undefined);
   },
+
+  // Each entry is `code:name` (the register street code plus its display name).
+  streetList(v: unknown): StreetFilter[] {
+    return parse
+      .list(v)
+      .map((item) => {
+        const colon = item.indexOf(':');
+        if (colon <= 0 || colon >= item.length - 1) return undefined;
+
+        const code = Number(item.slice(0, colon));
+        const name = item.slice(colon + 1).trim();
+        if (!Number.isInteger(code) || code <= 0 || !name) return undefined;
+
+        return { code, name };
+      })
+      .filter((s): s is StreetFilter => s !== undefined);
+  },
 };
 
 export const FilterCodec = {
@@ -136,6 +153,7 @@ export const FilterCodec = {
 
       // Arrays & CSV Collections
       loc: parse.locationList(q.loc),
+      streets: parse.streetList(q.street),
       features: parse.enumList(q.features, KNOWN_FEATURES) as Feature[],
       rooms: parse.numericList(q.rooms),
       bedrooms: parse.numericList(q.bedrooms),
@@ -196,6 +214,10 @@ export const FilterCodec = {
 
     if (state.loc.length) {
       q.loc = state.loc.map((l) => `${l.city}:${l.district}`).join(',');
+    }
+
+    if (state.streets.length) {
+      q.street = state.streets.map((s) => `${s.code}:${s.name}`).join(',');
     }
 
     const listKeys = [

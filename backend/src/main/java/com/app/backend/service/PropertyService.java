@@ -150,7 +150,9 @@ public class PropertyService {
      */
     private Location resolveLocation(Location location) {
         if (location.arBuildingCode() == null) {
-            return location;
+            // Legacy free-text address: no register street. Null any client-sent
+            // street code so it stays a derived-only field.
+            return location.toBuilder().arStreetCode(null).build();
         }
         BuildingAddress building = addressRegistryRepository.findBuildingAddress(location.arBuildingCode())
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST,
@@ -161,6 +163,7 @@ public class PropertyService {
         String apartment = trimToNull(location.apartment());
         return location.toBuilder()
                 .address(apartment != null ? base + " - " + apartment : base)
+                .arStreetCode(building.streetCode())
                 .apartment(apartment)
                 .build();
     }

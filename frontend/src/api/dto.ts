@@ -65,6 +65,7 @@ export function buildParams(f: FilterState): URLSearchParams {
   if (f.commercialSubtype) p.set('commercialSubtype', f.commercialSubtype);
   if (f.landUse) p.set('landUse', f.landUse);
   f.loc.forEach((l) => p.append('loc', `${l.city}:${l.district}`));
+  f.streets.forEach((s) => p.append('street', String(s.code)));
   if (f.priceMin != null) p.set('priceMin', String(f.priceMin));
   if (f.priceMax != null) p.set('priceMax', String(f.priceMax));
   f.rooms.forEach((r) => p.append('rooms', String(r)));

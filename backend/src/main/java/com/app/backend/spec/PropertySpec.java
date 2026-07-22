@@ -58,6 +58,12 @@ public class PropertySpec {
                 predicates.add(cb.or(locPredicates.toArray(new Predicate[0])));
             }
 
+            // Street filter: exact match on the denormalized register street code.
+            // Rows with a null ar_street_code (legacy / rural) are naturally excluded.
+            if (criteria.streetCodes() != null && !criteria.streetCodes().isEmpty()) {
+                predicates.add(p.get(Property_.arStreetCode).in(criteria.streetCodes()));
+            }
+
             if (criteria.priceMin() != null) predicates.add(cb.ge(root.get(Listing_.price), criteria.priceMin()));
             if (criteria.priceMax() != null) predicates.add(cb.le(root.get(Listing_.price), criteria.priceMax()));
 

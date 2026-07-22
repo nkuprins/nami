@@ -35,6 +35,7 @@ public record PropertyFilter(
         CommercialType commercialSubtype,
         LandUse landUse,
         List<String> loc,
+        List<Long> street,
         @DecimalMin("0.01") @DecimalMax("999999999999.99") BigDecimal priceMin,
         @DecimalMin("0.01") @DecimalMax("999999999999.99") BigDecimal priceMax,
         List<Integer> rooms,

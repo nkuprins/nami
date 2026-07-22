@@ -23,6 +23,9 @@ public record Location(
         @NotBlank String city,
         @NotBlank String address,
         Long arBuildingCode,
+        // The building's register street; derived server-side from arBuildingCode,
+        // never trusted from the client. Null on legacy/rural addresses.
+        Long arStreetCode,
         @Size(max = 16) String apartment,
         // Cadastral parcel the plot was picked from (land & commercial); null otherwise.
         @Size(max = 32) String cadastreParcelNr,

@@ -189,19 +189,23 @@ public class AddressRegistryRepository {
 
     public Optional<BuildingAddress> findBuildingAddress(long code) {
         List<BuildingAddress> found = jdbc.query("""
-                SELECT b.code, b.name, s.name AS street_name, t.name AS territory_name, b.lat, b.lng
+                SELECT b.code, b.name, s.name AS street_name, b.street_code, t.name AS territory_name, b.lat, b.lng
                 FROM address_buildings b
                 LEFT JOIN address_streets s ON s.code = b.street_code
                 JOIN address_territories t ON t.code = b.territory_code
                 WHERE b.code = :code
                 """, Map.of("code", code), (rs, i) -> new BuildingAddress(
                 rs.getLong("code"), rs.getString("name"), rs.getString("street_name"),
-                rs.getString("territory_name"),
+                nullableLong(rs.getObject("street_code")), rs.getString("territory_name"),
                 nullableDouble(rs.getObject("lat")), nullableDouble(rs.getObject("lng"))));
         return found.stream().findFirst();
     }
 
     private static Double nullableDouble(Object value) {
         return value instanceof Number n ? n.doubleValue() : null;
+    }
+
+    private static Long nullableLong(Object value) {
+        return value instanceof Number n ? n.longValue() : null;
     }
 }
