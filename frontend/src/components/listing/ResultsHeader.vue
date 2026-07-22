@@ -3,14 +3,18 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useFiltersStore } from '../../stores/filterStore';
 import IconChevron from '../icons/IconChevron.vue';
+import IconGrid from '../icons/IconGrid.vue';
+import IconList from '../icons/IconList.vue';
 import Popover from '../ui/Popover.vue';
 import { useSortOptions } from '../../composables/useSortOptions';
+import { useViewMode } from '../../composables/useViewMode';
 import type { SortKey } from '../../types/sort';
 
 defineProps<{ total: number; loading: boolean }>();
 
 const { t } = useI18n();
 const { state, setSort } = useFiltersStore();
+const { mode, setMode } = useViewMode();
 const sortOptions = useSortOptions();
 
 const open = ref(false);
@@ -47,22 +51,50 @@ function pick(id: SortKey) {
       </p>
     </div>
 
-    <div class="relative sm:mb-1">
-      <button
-        ref="anchor"
-        type="button"
-        @click="open = !open"
-        :aria-expanded="open"
-        class="focus-ring inline-flex items-center gap-3 h-11 px-5 rounded-full border border-line-2 bg-bg hover:border-ink-3 transition-colors text-sm"
+    <div class="flex items-center gap-3 flex-wrap sm:mb-1">
+      <div
+        class="inline-flex items-center h-11 p-1 rounded-full border border-line-2 bg-bg"
+        role="group"
+        :aria-label="t('view.view')"
       >
-        <span class="micro-label">{{ t('sort.sort') }}</span>
-        <span class="text-ink">{{ currentSortLabel }}</span>
-        <span class="size-4 text-ink-2"
-          ><IconChevron :dir="open ? 'up' : 'down'"
-        /></span>
-      </button>
+        <button
+          type="button"
+          @click="setMode('grid')"
+          :aria-pressed="mode === 'grid'"
+          class="focus-ring inline-flex items-center gap-2 h-9 px-3.5 rounded-full text-sm transition-colors"
+          :class="mode === 'grid' ? 'bg-ink text-bg' : 'text-ink-2 hover:text-ink'"
+        >
+          <span class="size-4"><IconGrid /></span>
+          <span>{{ t('view.grid') }}</span>
+        </button>
+        <button
+          type="button"
+          @click="setMode('list')"
+          :aria-pressed="mode === 'list'"
+          class="focus-ring inline-flex items-center gap-2 h-9 px-3.5 rounded-full text-sm transition-colors"
+          :class="mode === 'list' ? 'bg-ink text-bg' : 'text-ink-2 hover:text-ink'"
+        >
+          <span class="size-4"><IconList /></span>
+          <span>{{ t('view.list') }}</span>
+        </button>
+      </div>
 
-      <Popover
+      <div class="relative">
+        <button
+          ref="anchor"
+          type="button"
+          @click="open = !open"
+          :aria-expanded="open"
+          class="focus-ring inline-flex items-center gap-3 h-11 px-5 rounded-full border border-line-2 bg-bg hover:border-ink-3 transition-colors text-sm"
+        >
+          <span class="micro-label">{{ t('sort.sort') }}</span>
+          <span class="text-ink">{{ currentSortLabel }}</span>
+          <span class="size-4 text-ink-2"
+            ><IconChevron :dir="open ? 'up' : 'down'"
+          /></span>
+        </button>
+
+        <Popover
         :open="open"
         :anchor-el="anchor"
         :title="t('sort.sortListings')"
@@ -91,7 +123,8 @@ function pick(id: SortKey) {
             />
           </button>
         </div>
-      </Popover>
+        </Popover>
+      </div>
     </div>
   </div>
 </template>

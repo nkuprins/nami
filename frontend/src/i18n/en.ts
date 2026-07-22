@@ -91,6 +91,11 @@ export default {
     bestPerM2Hint: 'Lowest price per m²',
     largestHint: 'm² descending',
   },
+  view: {
+    view: 'View',
+    grid: 'Grid',
+    list: 'List',
+  },
   results: {
     results: 'Results',
     listing: 'listing',

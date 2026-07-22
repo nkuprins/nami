@@ -91,6 +91,11 @@ export default {
     bestPerM2Hint: 'Наименьшая цена за м²',
     largestHint: 'м² по убыванию',
   },
+  view: {
+    view: 'Вид',
+    grid: 'Сетка',
+    list: 'Список',
+  },
   results: {
     results: 'Результаты',
     listing: 'объявление',

@@ -91,6 +91,11 @@ export default {
     bestPerM2Hint: 'Zemākā cena par m²',
     largestHint: 'm² dilstošā secībā',
   },
+  view: {
+    view: 'Skats',
+    grid: 'Režģis',
+    list: 'Saraksts',
+  },
   results: {
     results: 'Rezultāti',
     listing: 'sludinājums',

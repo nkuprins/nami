@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 import { useFiltersStore } from '../../stores/filterStore';
 import { useListings } from '../../composables/useListings';
+import { useViewMode } from '../../composables/useViewMode';
 import ResultsHeader from '../../components/listing/ResultsHeader.vue';
 import ListingGrid from '../../components/listing/ListingGrid.vue';
 import Pagination from '../../components/listing/Pagination.vue';
@@ -21,6 +22,7 @@ const { items, total, pageCount, loading } = useListings(
   () => state,
   () => searchNonce.value
 );
+const { mode } = useViewMode();
 
 const drawerOpen = ref(false);
 const gridRef = ref<HTMLElement | null>(null);
@@ -55,7 +57,7 @@ function onSearch() {
     <div ref="gridRef" />
     <ResultsHeader :total="total" :loading="loading" />
 
-    <ListingGrid :items="items" :loading="loading">
+    <ListingGrid :items="items" :loading="loading" :view="mode">
       <template #empty>
         <div
           class="rounded-2xl py-24 px-8 text-center bg-surface/60"
