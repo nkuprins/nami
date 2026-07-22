@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmailIgnoreCase(String email);
 
+    Optional<User> findByGoogleSub(String googleSub);
+
     @Query("SELECT u FROM User u WHERE COALESCE(u.lastLoginAt, u.createdAt) < :cutoff AND NOT EXISTS " +
            "(SELECT l FROM Listing l WHERE l.owner = u AND l.status = :status)")
     List<User> findInactiveWithoutActiveListings(

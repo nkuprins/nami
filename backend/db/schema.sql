@@ -72,13 +72,18 @@ CREATE TABLE users (
     name          TEXT        NOT NULL,
     email         TEXT        NOT NULL UNIQUE
                               CHECK (email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
-    password_hash TEXT        NOT NULL
-                              CHECK (char_length(password_hash) >= 60),
+    -- Nullable: social-only accounts (e.g. Google) have no password.
+    password_hash TEXT        NULL
+                              CHECK (password_hash IS NULL OR char_length(password_hash) >= 60),
+    -- Google account subject ('sub' claim); NULL for password-only accounts.
+    google_sub    TEXT        NULL UNIQUE,
     email_verified BOOLEAN     NOT NULL DEFAULT false,
     role          user_role   NOT NULL DEFAULT 'user',
     last_login_at TIMESTAMPTZ NULL,
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Every account must have at least one way to authenticate.
+    CONSTRAINT users_auth_method_present CHECK (password_hash IS NOT NULL OR google_sub IS NOT NULL)
 );
 
 -- Case-insensitive unique email: prevents user@example.com / User@Example.com duplicates

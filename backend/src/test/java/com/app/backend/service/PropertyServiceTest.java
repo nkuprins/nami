@@ -76,7 +76,7 @@ class PropertyServiceTest {
         propertyAccess = new PropertyAccess(propertyRepository, listingRepository);
         AppProperties props = new AppProperties(null,
                 new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"),
-                null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null);
         MediaUrlValidator mediaUrlValidator = new MediaUrlValidator(props);
         CadastreQueryService cadastreQueryService =
                 new CadastreQueryService(cadastreRepository, addressRegistryRepository);

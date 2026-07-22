@@ -10,6 +10,8 @@ import com.app.backend.exception.AuthException;
 import com.app.backend.repository.RefreshTokenRepository;
 import com.app.backend.repository.UserRepository;
 import com.app.backend.security.CookieFactory;
+import com.app.backend.security.GoogleTokenVerifier;
+import com.app.backend.security.GoogleUser;
 import com.app.backend.security.JwtService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final CookieFactory cookieFactory;
+    private final GoogleTokenVerifier googleTokenVerifier;
     private final AppProperties props;
 
     @Transactional
@@ -46,6 +49,36 @@ public class AuthService {
         if (!user.isEmailVerified()) {
             throw new AuthException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED", "Email not verified");
         }
+
+        user.setLastLoginAt(OffsetDateTime.now());
+        setAuthCookies(user, response);
+        return toResponse(user);
+    }
+
+    /**
+     * Sign in (or sign up) with a Google ID token. A first-time Google user is created with a
+     * verified email and no password; an existing local account with the same email is linked to
+     * the Google subject. Either way the caller gets our normal session cookies.
+     */
+    @Transactional
+    public AuthUserResponse loginWithGoogle(String credential, HttpServletResponse response) {
+        GoogleUser googleUser = googleTokenVerifier.verify(credential);
+
+        User user = userRepository.findByGoogleSub(googleUser.sub())
+                .orElseGet(() -> userRepository.findByEmailIgnoreCase(googleUser.email())
+                        .map(existing -> {
+                            existing.setGoogleSub(googleUser.sub());
+                            existing.setEmailVerified(true);
+                            return existing;
+                        })
+                        .orElseGet(() -> {
+                            User created = new User();
+                            created.setName(googleUser.name() != null ? googleUser.name() : googleUser.email());
+                            created.setEmail(googleUser.email());
+                            created.setGoogleSub(googleUser.sub());
+                            created.setEmailVerified(true);
+                            return userRepository.save(created);
+                        }));
 
         user.setLastLoginAt(OffsetDateTime.now());
         setAuthCookies(user, response);

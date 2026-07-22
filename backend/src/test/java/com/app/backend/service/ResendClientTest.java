@@ -19,7 +19,7 @@ class ResendClientTest {
                 new AppProperties.ResendProperties(apiKey, "test@test.local"),
                 "http://localhost:3000",
                 new AppProperties.CookieProperties(false),
-                null, null, null
+                null, null, null, null
         );
     }
 

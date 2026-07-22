@@ -482,6 +482,8 @@ export default {
   auth: {
     signIn: 'Sign in',
     createAccount: 'Create account',
+    or: 'or',
+    continueWithGoogle: 'Continue with Google',
     checkEmail: 'Check your email',
     resetPassword: 'Reset password',
     verificationSent: 'We sent a verification link to',

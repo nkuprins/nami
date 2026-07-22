@@ -92,6 +92,25 @@ export const authApi = {
     }
   },
 
+  async googleSignIn(
+    credential: string
+  ): Promise<{ user: AuthUser | null; error: string | null }> {
+    try {
+      const res = await fetchApi(`/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+      if (res.ok) {
+        return { user: await res.json(), error: null };
+      }
+      return { user: null, error: 'Google sign-in failed. Please try again.' };
+    } catch (e) {
+      logger.error('[authApi] Connection error during Google sign-in:', e);
+      return { user: null, error: 'Something went wrong. Please try again.' };
+    }
+  },
+
   async updateProfile(payload: {
     name?: string;
     email?: string;

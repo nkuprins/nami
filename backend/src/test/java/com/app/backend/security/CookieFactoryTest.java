@@ -16,7 +16,7 @@ class CookieFactoryTest {
                 new AppProperties.ResendProperties("", "test@test.local"),
                 "http://localhost:3000",
                 new AppProperties.CookieProperties(secure),
-                null, null, null
+                null, null, null, null
         );
         return new CookieFactory(props);
     }

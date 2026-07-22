@@ -120,6 +120,20 @@ export const useAuthStore = defineStore('auth', () => {
     return result;
   }
 
+  async function googleSignIn(credential: string): Promise<string | null> {
+    logger.info('[AuthStore] Inbound Google sign-in attempt.');
+    const { user: signedInUser, error } = await authApi.googleSignIn(credential);
+    if (signedInUser) {
+      user.value = signedInUser;
+      logger.info(
+        `[AuthStore] Google sign-in successful. User ID assigned: ${user.value?.id}`
+      );
+      return null;
+    }
+    logger.warn(`[AuthStore] Google sign-in rejected: ${error}`);
+    return error ?? 'Something went wrong. Please try again.';
+  }
+
   async function logout(): Promise<void> {
     logger.info('[AuthStore] Instigating explicit user logout sequence.');
     await authApi.logout();
@@ -194,6 +208,7 @@ export const useAuthStore = defineStore('auth', () => {
     init,
     login,
     signup,
+    googleSignIn,
     logout,
     forgotPassword,
     resetPassword,

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import Drawer from '../ui/Drawer.vue';
 import FormField from '../ui/FormField.vue';
 import TurnstileWidget from '../ui/TurnstileWidget.vue';
+import GoogleSignInButton from './GoogleSignInButton.vue';
 import { useAuthStore } from '../../stores/authStore';
 import {
   MIN_PASSWORD_LENGTH,
@@ -18,7 +19,10 @@ const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 
 const auth = useAuthStore();
-const { login, signup, forgotPassword, resendVerification } = auth;
+const { login, signup, googleSignIn, forgotPassword, resendVerification } =
+  auth;
+
+const googleEnabled = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 type Mode = 'signin' | 'signup' | 'forgot';
 const tab = ref<'signin' | 'signup'>('signin');
@@ -140,6 +144,21 @@ async function submit() {
   }
 }
 
+async function handleGoogleCredential(credential: string) {
+  error.value = '';
+  submitting.value = true;
+  try {
+    const result = await googleSignIn(credential);
+    if (result === null) {
+      close();
+      return;
+    }
+    error.value = result;
+  } finally {
+    submitting.value = false;
+  }
+}
+
 async function handleResend() {
   await resendVerification(unverifiedEmail.value);
   verificationResent.value = true;
@@ -247,6 +266,16 @@ async function handleResend() {
           {{ t('auth.createAccount') }}
         </button>
       </div>
+
+      <!-- Google sign-in -->
+      <template v-if="googleEnabled">
+        <GoogleSignInButton @credential="handleGoogleCredential" />
+        <div class="flex items-center gap-3 text-xs text-ink-3">
+          <span class="h-px flex-1 bg-line"></span>
+          {{ t('auth.or') }}
+          <span class="h-px flex-1 bg-line"></span>
+        </div>
+      </template>
 
       <form class="flex flex-col gap-4" @submit.prevent="submit">
         <FormField

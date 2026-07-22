@@ -483,6 +483,8 @@ export default {
   auth: {
     signIn: 'Войти',
     createAccount: 'Создать аккаунт',
+    or: 'или',
+    continueWithGoogle: 'Продолжить с Google',
     checkEmail: 'Проверьте почту',
     resetPassword: 'Сбросить пароль',
     verificationSent: 'Мы отправили ссылку для подтверждения на',

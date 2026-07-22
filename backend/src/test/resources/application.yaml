@@ -34,6 +34,8 @@ app:
     secure: false
   turnstile:
     secret-key: ""
+  google:
+    client-id: ""
   address-register:
     auto-ingest: false
     urls:

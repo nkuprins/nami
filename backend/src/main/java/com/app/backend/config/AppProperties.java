@@ -11,10 +11,12 @@ public record AppProperties(
         String frontendUrl,
         CookieProperties cookie,
         TurnstileProperties turnstile,
+        GoogleProperties google,
         AddressRegisterProperties addressRegister,
         CadastreProperties cadastre
 ) {
     public record JwtProperties(String secret, long accessTokenTtlSeconds, long refreshTokenTtlSeconds) {}
+    public record GoogleProperties(String clientId) {}
     public record ResendProperties(String apiKey, String from) {}
     public record CookieProperties(boolean secure) {}
     public record TurnstileProperties(String secretKey) {}

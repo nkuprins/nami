@@ -22,7 +22,7 @@ class JwtServiceTest {
                 new AppProperties.ResendProperties("", "test@test.local"),
                 "http://localhost:3000",
                 new AppProperties.CookieProperties(false),
-                null, null, null
+                null, null, null, null
         );
         jwtService = new JwtService(props);
     }
@@ -54,7 +54,7 @@ class JwtServiceTest {
                 new AppProperties.ResendProperties("", "test@test.local"),
                 "http://localhost:3000",
                 new AppProperties.CookieProperties(false),
-                null, null, null
+                null, null, null, null
         );
         JwtService expiredService = new JwtService(expiredProps);
         String token = expiredService.generateAccessToken(UUID.randomUUID());
@@ -72,7 +72,7 @@ class JwtServiceTest {
                 new AppProperties.ResendProperties("", "test@test.local"),
                 "http://localhost:3000",
                 new AppProperties.CookieProperties(false),
-                null, null, null
+                null, null, null, null
         );
         JwtService otherService = new JwtService(otherProps);
         String token = otherService.generateAccessToken(UUID.randomUUID());

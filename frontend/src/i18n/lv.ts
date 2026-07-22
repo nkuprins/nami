@@ -483,6 +483,8 @@ export default {
   auth: {
     signIn: 'Ieiet',
     createAccount: 'Izveidot kontu',
+    or: 'vai',
+    continueWithGoogle: 'Turpināt ar Google',
     checkEmail: 'Pārbaudiet e-pastu',
     resetPassword: 'Atjaunot paroli',
     verificationSent: 'Mēs nosūtījām verifikācijas saiti uz',

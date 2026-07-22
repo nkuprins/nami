@@ -59,6 +59,10 @@ app:
     secure: ${COOKIE_SECURE:false}
   turnstile:
     secret-key: ${TURNSTILE_SECRET_KEY:}
+  # Google Sign-In: OAuth 2.0 Web client ID. Google ID tokens are accepted only
+  # when their 'aud' claim matches this. Blank disables the /api/auth/google endpoint.
+  google:
+    client-id: ${GOOGLE_CLIENT_ID:}
   # State Address Register open data (data.gov.lv, CC-BY-4.0). auto-ingest turns
   # on the weekly refresh and the bootstrap ingest on an empty mirror.
   address-register:
