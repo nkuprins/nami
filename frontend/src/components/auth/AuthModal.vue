@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import Drawer from '../ui/Drawer.vue';
 import FormField from '../ui/FormField.vue';
+import TurnstileWidget from '../ui/TurnstileWidget.vue';
 import { useAuthStore } from '../../stores/authStore';
 import {
   MIN_PASSWORD_LENGTH,
@@ -31,6 +32,10 @@ const verificationResent = ref(false);
 const agreedToTerms = ref(false);
 const termsError = ref(false);
 
+const turnstileEnabled = !!import.meta.env.VITE_TURNSTILE_SITE_KEY;
+const turnstileToken = ref('');
+const turnstileWidget = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+
 const name = ref('');
 const email = ref('');
 const password = ref('');
@@ -47,6 +52,7 @@ function reset() {
   unverifiedEmail.value = '';
   agreedToTerms.value = false;
   termsError.value = false;
+  turnstileToken.value = '';
 }
 
 function close() {
@@ -59,6 +65,7 @@ function switchTab(t: 'signin' | 'signup') {
   mode.value = t;
   error.value = '';
   termsError.value = false;
+  turnstileToken.value = '';
 }
 
 async function submitForgot() {
@@ -101,11 +108,19 @@ async function submitSignup() {
     termsError.value = true;
     return;
   }
-  const result = await signup(name.value, email.value, password.value);
+  const result = await signup(
+    name.value,
+    email.value,
+    password.value,
+    turnstileToken.value
+  );
   if (typeof result === 'object') {
     pendingVerification.value = true;
     return;
   }
+  // The Turnstile token is spent once the backend verifies it; reset the
+  // widget so a retry gets a fresh one.
+  turnstileWidget.value?.reset();
   error.value = result;
 }
 
@@ -335,9 +350,18 @@ async function handleResend() {
         </div>
         <p v-else-if="error" class="text-sm text-warn">{{ error }}</p>
 
+        <TurnstileWidget
+          v-if="turnstileEnabled && tab === 'signup'"
+          ref="turnstileWidget"
+          v-model="turnstileToken"
+        />
+
         <button
           type="submit"
-          :disabled="submitting"
+          :disabled="
+            submitting ||
+            (tab === 'signup' && turnstileEnabled && !turnstileToken)
+          "
           class="h-10 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50"
         >
           {{ tab === 'signin' ? t('auth.signIn') : t('auth.createAccount') }}

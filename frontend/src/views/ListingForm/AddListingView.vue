@@ -40,7 +40,7 @@ const nudge = useDuplicatePropertyNudge();
 
 const turnstileEnabled = !!import.meta.env.VITE_TURNSTILE_SITE_KEY;
 const turnstileToken = ref('');
-const stepPublishRef = ref<InstanceType<typeof StepPublish> | null>(null);
+const stepConfirmRef = ref<InstanceType<typeof StepConfirm> | null>(null);
 
 const {
   form,
@@ -63,7 +63,7 @@ const {
   },
   {
     token: () => turnstileToken.value,
-    reset: () => stepPublishRef.value?.resetTurnstile(),
+    reset: () => stepConfirmRef.value?.resetTurnstile(),
   }
 );
 
@@ -256,11 +256,8 @@ watch(
             data-step="publish"
           >
             <StepPublish
-              ref="stepPublishRef"
               v-model:form="form"
-              v-model:turnstile-token="turnstileToken"
               :field-error="fieldError"
-              :turnstile-enabled="turnstileEnabled"
               @add-phone="addPhone"
               @remove-phone="removePhone"
             />
@@ -271,6 +268,8 @@ watch(
             data-step="confirm"
           >
             <StepConfirm
+              ref="stepConfirmRef"
+              v-model:turnstile-token="turnstileToken"
               :form="form"
               :photos="photoUpload.photos.value"
               :address-line="
@@ -279,6 +278,7 @@ watch(
               :submitting="submitting"
               :submit-error="submitError"
               :rent-listing-warning="rentListingWarning"
+              :turnstile-enabled="turnstileEnabled"
               @edit-step="guardedEditStep"
               @submit="submit"
             />

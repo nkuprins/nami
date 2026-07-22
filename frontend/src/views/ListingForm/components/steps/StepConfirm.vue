@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { usePropertyLabels } from '../../../../composables/usePropertyLabels';
 import { formatPrice } from '../../../../utils/format';
@@ -7,6 +7,7 @@ import type { ListingFormState } from '../../composables/formTypes';
 import type { ListingType } from '../../../../types/listingItem';
 import type { ListingWizardStep } from '../../composables/useWizardStepValidity';
 import IconEdit from '../../../../components/icons/IconEdit.vue';
+import TurnstileWidget from '../../../../components/ui/TurnstileWidget.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -19,14 +20,27 @@ const props = withDefaults(
     // False when the wizard has no Location step to jump back to (e.g. adding
     // a listing to an existing property, where the address is fixed).
     showAddressEdit?: boolean;
+    // False when Turnstile is not configured (local dev) or not required
+    // (adding to an existing property, which the backend doesn't gate).
+    turnstileEnabled?: boolean;
   }>(),
-  { showAddressEdit: true }
+  { showAddressEdit: true, turnstileEnabled: false }
 );
+
+const turnstileToken = defineModel<string>('turnstileToken', { default: '' });
 
 const emit = defineEmits<{
   (e: 'edit-step', step: ListingWizardStep): void;
   (e: 'submit'): void;
 }>();
+
+const turnstileWidget = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+
+function resetTurnstile() {
+  turnstileWidget.value?.reset();
+}
+
+defineExpose({ resetTurnstile });
 
 const { t } = useI18n();
 const { typeLabel, categoryLabel } = usePropertyLabels();
@@ -178,10 +192,16 @@ function priceLine(type: ListingType, amount: string): string {
       {{ t('addListing.rentListingFailed') }}
     </p>
 
+    <TurnstileWidget
+      v-if="turnstileEnabled"
+      ref="turnstileWidget"
+      v-model="turnstileToken"
+    />
+
     <div class="flex items-center gap-4 pt-2">
       <button
         type="button"
-        :disabled="submitting"
+        :disabled="submitting || (turnstileEnabled && !turnstileToken)"
         class="h-11 px-8 rounded-full bg-ink text-bg text-sm font-medium hover:bg-accent-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         @click="emit('submit')"
       >

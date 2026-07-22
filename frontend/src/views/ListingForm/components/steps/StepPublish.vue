@@ -1,35 +1,21 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import PricingSection from '../PricingSection.vue';
 import PhonesSection from '../PhonesSection.vue';
 import FormField from '../../../../components/ui/FormField.vue';
-import TurnstileWidget from '../../../../components/ui/TurnstileWidget.vue';
 import type { ListingFormState } from '../../composables/formTypes';
 
 const { t } = useI18n();
 
 const form = defineModel<ListingFormState>('form', { required: true });
-const turnstileToken = defineModel<string>('turnstileToken', {
-  default: '',
-});
 defineProps<{
   fieldError: (field: string) => string | undefined;
-  turnstileEnabled: boolean;
 }>();
 
 defineEmits<{
   (e: 'add-phone'): void;
   (e: 'remove-phone', index: number): void;
 }>();
-
-const turnstileWidget = ref<InstanceType<typeof TurnstileWidget> | null>(null);
-
-function resetTurnstile() {
-  turnstileWidget.value?.reset();
-}
-
-defineExpose({ resetTurnstile });
 </script>
 
 <template>
@@ -57,10 +43,5 @@ defineExpose({ resetTurnstile });
         {{ t('addListing.websiteUrlHint') }}
       </p>
     </div>
-    <TurnstileWidget
-      v-if="turnstileEnabled"
-      ref="turnstileWidget"
-      v-model="turnstileToken"
-    />
   </div>
 </template>

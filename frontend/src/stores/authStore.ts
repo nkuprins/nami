@@ -102,10 +102,11 @@ export const useAuthStore = defineStore('auth', () => {
   async function signup(
     name: string,
     email: string,
-    password: string
+    password: string,
+    turnstileToken?: string
   ): Promise<{ pendingVerification: true } | string> {
     logger.info(`[AuthStore] Attempting registration for: ${email}`);
-    const result = await authApi.signup(name, email, password);
+    const result = await authApi.signup(name, email, password, turnstileToken);
 
     if (typeof result === 'object' && result.pendingVerification) {
       logger.info(

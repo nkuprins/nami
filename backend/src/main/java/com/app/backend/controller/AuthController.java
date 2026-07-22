@@ -4,7 +4,9 @@ import com.app.backend.dto.export.UserExportDto;
 import com.app.backend.dto.auth.*;
 import com.app.backend.service.AccountService;
 import com.app.backend.service.AuthService;
+import com.app.backend.service.TurnstileService;
 import com.app.backend.service.UserDataExportService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +24,24 @@ public class AuthController {
     private final AuthService authService;
     private final AccountService accountService;
     private final UserDataExportService userDataExportService;
+    private final TurnstileService turnstileService;
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthUserResponse register(@RequestBody @Valid RegisterRequest req) {
+    public AuthUserResponse register(
+            @RequestHeader(value = "X-Turnstile-Token", required = false) String turnstileToken,
+            @RequestBody @Valid RegisterRequest req,
+            HttpServletRequest httpRequest) {
+        turnstileService.verify(turnstileToken, clientIp(httpRequest));
         return accountService.register(req);
+    }
+
+    private static String clientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     @PostMapping("/login")

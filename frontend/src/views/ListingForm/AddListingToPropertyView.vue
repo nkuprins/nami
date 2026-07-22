@@ -176,7 +176,6 @@ function handleTypeChange(type: ListingType | '') {
               <StepPublish
                 v-model:form="form"
                 :field-error="fieldError"
-                :turnstile-enabled="false"
                 @add-phone="addPhone"
                 @remove-phone="removePhone"
               />

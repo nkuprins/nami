@@ -56,12 +56,17 @@ export const authApi = {
   async signup(
     name: string,
     email: string,
-    password: string
+    password: string,
+    turnstileToken?: string
   ): Promise<{ pendingVerification: true } | string> {
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (turnstileToken) headers['X-Turnstile-Token'] = turnstileToken;
       const res = await fetchApi(`/api/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ name, email, password }),
       });
 
