@@ -1,16 +1,27 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { type ListingSummary } from '../../types/listingItem';
 import type { ViewMode } from '../../composables/useViewMode';
 import ListingCard from '../../components/listing/ListingCard.vue';
 import ListingRow from '../../components/listing/ListingRow.vue';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     items: ListingSummary[];
     loading: boolean;
     view?: ViewMode;
+    // Cap columns so cards keep their size in the narrow map-split panel.
+    maxCols?: 2 | 4;
   }>(),
-  { view: 'grid' }
+  { view: 'grid', maxCols: 4 }
+);
+
+// Two columns max keeps cards full-size beside the map; four is the roomy
+// full-width default.
+const gridCols = computed(() =>
+  props.maxCols === 2
+    ? 'grid-cols-1 sm:grid-cols-2'
+    : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
 );
 
 const skeletons = Array.from({ length: 8 });
@@ -23,7 +34,8 @@ const rowSkeletons = Array.from({ length: 6 });
     <template v-if="loading && items.length === 0">
       <div
         v-if="view === 'grid'"
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8"
+        class="grid gap-6 lg:gap-8"
+        :class="gridCols"
       >
         <div
           v-for="(_, i) in skeletons"
@@ -60,8 +72,8 @@ const rowSkeletons = Array.from({ length: 6 });
     <template v-else-if="items.length > 0">
       <div
         v-if="view === 'grid'"
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8"
-        :class="{ 'opacity-60 pointer-events-none': loading }"
+        class="grid gap-6 lg:gap-8"
+        :class="[gridCols, { 'opacity-60 pointer-events-none': loading }]"
       >
         <ListingCard
           v-for="property in items"

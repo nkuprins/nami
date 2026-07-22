@@ -44,6 +44,11 @@ public class PropertyController {
         return listingQueryService.countsByType(type);
     }
 
+    @GetMapping("/map")
+    public List<MapPinDto> mapPins(@Valid PropertyFilter filter) {
+        return listingQueryService.mapPins(filter);
+    }
+
     @GetMapping("/mine")
     public List<PropertyListItemDto> mine(@AuthenticationPrincipal UUID userId) {
         return listingQueryService.listByOwner(userId);

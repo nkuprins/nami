@@ -3,6 +3,7 @@ package com.app.backend.service;
 import com.app.backend.config.CacheConfig;
 import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.request.PropertyFilter;
+import com.app.backend.dto.property.response.MapPinDto;
 import com.app.backend.dto.property.response.PropertyCategoryCountsDto;
 import com.app.backend.dto.property.response.PropertyItemDto;
 import com.app.backend.dto.property.response.PropertyListItemDto;
@@ -56,6 +57,15 @@ public class ListingQueryService {
         PageRequest pageRequest = PageRequest.of(page - 1, PAGE_SIZE, buildSort(sort));
         Page<PropertyListItemDto> result = listingRepository.findAllForList(spec, pageRequest);
         return new PropertyPageResponse(result.getContent(), result.getTotalElements());
+    }
+
+    /** All matching listings as map pins (one per property), honoring the same filters as {@link #list}. */
+    @Cacheable(cacheNames = CacheConfig.PROPERTY_MAP, key = "#filter")
+    @Transactional(readOnly = true)
+    public List<MapPinDto> mapPins(PropertyFilter filter) {
+        PropertySearchCriteria criteria = PropertySearchCriteria.from(filter, parseLocFilter(filter.loc()));
+        Specification<Listing> spec = PropertySpec.build(criteria);
+        return listingRepository.findMapPins(spec);
     }
 
     @Transactional(readOnly = true)

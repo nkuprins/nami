@@ -8,6 +8,7 @@ import IconList from '../icons/IconList.vue';
 import Popover from '../ui/Popover.vue';
 import { useSortOptions } from '../../composables/useSortOptions';
 import { useViewMode } from '../../composables/useViewMode';
+import { useMapView } from '../../composables/useMapView';
 import type { SortKey } from '../../types/sort';
 
 defineProps<{ total: number; loading: boolean }>();
@@ -15,6 +16,7 @@ defineProps<{ total: number; loading: boolean }>();
 const { t } = useI18n();
 const { state, setSort } = useFiltersStore();
 const { mode, setMode } = useViewMode();
+const { state: mapState, toggle: toggleMap } = useMapView();
 const sortOptions = useSortOptions();
 
 const open = ref(false);
@@ -78,6 +80,23 @@ function pick(id: SortKey) {
           <span>{{ t('view.list') }}</span>
         </button>
       </div>
+
+      <button
+        type="button"
+        @click="toggleMap"
+        :aria-pressed="mapState !== 'off'"
+        class="focus-ring inline-flex items-center gap-2 h-11 px-4 rounded-full border transition-colors text-sm"
+        :class="
+          mapState !== 'off'
+            ? 'bg-ink text-bg border-ink'
+            : 'border-line-2 bg-bg text-ink-2 hover:text-ink hover:border-ink-3'
+        "
+      >
+        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 5 3 7v12l6-2 6 2 6-2V5l-6 2-6-2Z" /><path d="M9 5v12M15 7v12" />
+        </svg>
+        <span>{{ t('view.map') }}</span>
+      </button>
 
       <div class="relative">
         <button

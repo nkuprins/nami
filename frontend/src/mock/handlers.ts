@@ -453,7 +453,9 @@ function filterByVat(items: CatalogItem[], params: URLSearchParams) {
   return items.filter((i) => i.price.vatIncluded === true);
 }
 
-function applyFilters(params: URLSearchParams) {
+// Filters + sorts the catalog (no pagination). Shared by the list and map
+// endpoints so both honor exactly the same filters.
+function filterCatalog(params: URLSearchParams): CatalogItem[] {
   let items = dtoCatalog.filter((i) => i.status === 'active');
   items = filterByType(items, params);
   items = filterByKind(items, params);
@@ -491,7 +493,11 @@ function applyFilters(params: URLSearchParams) {
     'm2-desc': (a, b) => (b.details.m2 ?? 0) - (a.details.m2 ?? 0),
   };
   items.sort(sorters[sort] ?? sorters.newest);
+  return items;
+}
 
+function applyFilters(params: URLSearchParams) {
+  const items = filterCatalog(params);
   const total = items.length;
   const page = Number(params.get('page') ?? '1');
   return {
@@ -500,6 +506,29 @@ function applyFilters(params: URLSearchParams) {
       .map(toListItem),
     total,
   };
+}
+
+// Groups the filtered catalog by property → one pin each, cheapest listing as
+// the representative. Coordinates come from the seed (kept on dtoCatalog even
+// though the list projection nulls them).
+function applyMapFilters(params: URLSearchParams) {
+  const byProperty = new Map<string, CatalogItem[]>();
+  for (const item of filterCatalog(params)) {
+    const group = byProperty.get(item.propertyId);
+    if (group) group.push(item);
+    else byProperty.set(item.propertyId, [item]);
+  }
+
+  return [...byProperty.values()].map((group) => {
+    const sorted = [...group].sort((a, b) => a.price.amount - b.price.amount);
+    const first = sorted[0];
+    return {
+      propertyId: first.propertyId,
+      lat: first.location.coords!.lat,
+      lng: first.location.coords!.lng,
+      listings: sorted.map(toListItem),
+    };
+  });
 }
 
 export const handlers = [
@@ -591,6 +620,11 @@ export const handlers = [
   http.get('/api/properties', ({ request }) => {
     const url = new URL(request.url);
     return HttpResponse.json(applyFilters(url.searchParams));
+  }),
+
+  http.get('/api/properties/map', ({ request }) => {
+    const url = new URL(request.url);
+    return HttpResponse.json(applyMapFilters(url.searchParams));
   }),
 
   // Delete a single listing — property and sibling listings survive.

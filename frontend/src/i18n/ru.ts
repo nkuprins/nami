@@ -99,6 +99,13 @@ export default {
     view: 'Вид',
     grid: 'Сетка',
     list: 'Список',
+    map: 'Карта',
+  },
+  map: {
+    fullscreen: 'Полный экран',
+    close: 'Закрыть карту',
+    updating: 'Обновление…',
+    noMatches: 'В этой области нет объявлений',
   },
   results: {
     results: 'Результаты',

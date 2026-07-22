@@ -26,6 +26,7 @@ import type {
 } from '../types/listingItem';
 import type { Locale } from '../i18n';
 import type { FilterState } from '../types/filter';
+import type { MapPin } from '../types/map';
 import { fetchApi } from './fetchApi';
 import {
   toListingSummaryDisplayNames,
@@ -136,6 +137,25 @@ export async function listListings(
     items: data.items.map(toListingSummaryDisplayNames),
     total: data.total,
   };
+}
+
+// All matching pins for the map, in one shot (one pin per property). Honors the
+// same filters as listListings; `sort`/`page` are ignored server-side. The API
+// speaks slugs for city/district (like the list), so map them to display names.
+export async function listMapPins(
+  f: FilterState,
+  options?: { signal?: AbortSignal }
+): Promise<MapPin[]> {
+  const res = await fetchApi(`/api/properties/map?${buildParams(f)}`, {
+    signal: options?.signal,
+  });
+  if (!res.ok) throw new Error(`listMapPins: ${res.status}`);
+  const pins: MapPin[] = await res.json();
+  // Each listing's location uses slugs (like the list) — map to display names.
+  return pins.map((p) => ({
+    ...p,
+    listings: p.listings.map(toListingSummaryDisplayNames),
+  }));
 }
 
 export async function getKindCounts(

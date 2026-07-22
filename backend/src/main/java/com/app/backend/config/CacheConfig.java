@@ -15,6 +15,7 @@ public class CacheConfig {
     public static final String PROPERTY_DETAIL = "propertyDetail";
     public static final String PROPERTY_TRANSLATION = "propertyTranslation";
     public static final String PROPERTY_LIST = "propertyList";
+    public static final String PROPERTY_MAP = "propertyMap";
     public static final String PROPERTY_KIND_COUNTS = "propertyKindCounts";
     public static final String ADDRESS_STREETS = "addressStreets";
     public static final String ADDRESS_BUILDINGS = "addressBuildings";
@@ -31,6 +32,10 @@ public class CacheConfig {
                 .expireAfterWrite(Duration.ofDays(1))
                 .build());
         manager.registerCustomCache(PROPERTY_LIST, Caffeine.newBuilder()
+                .maximumSize(1000)
+                .expireAfterWrite(Duration.ofDays(1))
+                .build());
+        manager.registerCustomCache(PROPERTY_MAP, Caffeine.newBuilder()
                 .maximumSize(1000)
                 .expireAfterWrite(Duration.ofDays(1))
                 .build());

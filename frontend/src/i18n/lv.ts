@@ -99,6 +99,13 @@ export default {
     view: 'Skats',
     grid: 'Režģis',
     list: 'Saraksts',
+    map: 'Karte',
+  },
+  map: {
+    fullscreen: 'Pārslēgt pilnekrānu',
+    close: 'Aizvērt karti',
+    updating: 'Atjaunina…',
+    noMatches: 'Šajā apgabalā nav sludinājumu',
   },
   results: {
     results: 'Rezultāti',

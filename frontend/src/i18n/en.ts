@@ -99,6 +99,13 @@ export default {
     view: 'View',
     grid: 'Grid',
     list: 'List',
+    map: 'Map',
+  },
+  map: {
+    fullscreen: 'Toggle fullscreen',
+    close: 'Close map',
+    updating: 'Updating…',
+    noMatches: 'No listings in this area',
   },
   results: {
     results: 'Results',

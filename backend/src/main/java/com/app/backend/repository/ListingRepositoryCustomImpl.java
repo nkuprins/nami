@@ -4,6 +4,7 @@ import com.app.backend.dto.property.model.LocalizedText;
 import com.app.backend.dto.property.model.Location;
 import com.app.backend.dto.property.model.Price;
 import com.app.backend.dto.property.model.PropertyDetails;
+import com.app.backend.dto.property.response.MapPinDto;
 import com.app.backend.dto.property.response.PropertyListItemDto;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.ListingTranslation;
@@ -65,7 +66,10 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
             List<String> photos,
             String titleLv,
             String titleEn,
-            String titleRu
+            String titleRu,
+            // Property coordinates — used only by the map (findMapPins); the list ignores them.
+            Double lat,
+            Double lng
     ) {}
 
     @Override
@@ -81,36 +85,7 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
         Root<Listing> l = query.from(Listing.class);
         Join<Listing, Property> p = l.join("property", JoinType.INNER);
 
-        query.select(cb.construct(FlatRow.class,
-            l.get("id"),
-            p.get("id"),
-            l.get("owner").get("id"),
-            l.get("listingType"),
-            l.get("propertyCategory"),
-            l.get("newProjectKind"),
-            l.get("commercialSubtype"),
-            l.get("landUse"),
-            l.get("price"),
-            l.get("vatIncluded"),
-            l.get("rooms"),
-            l.get("bedrooms"),
-            l.get("bathrooms"),
-            l.get("m2"),
-            l.get("landM2"),
-            l.get("floor"),
-            l.get("totalFloors"),
-            l.get("yearBuilt"),
-            l.get("completion"),
-            p.get("districtSlug"),
-            p.get("citySlug"),
-            p.get("address"),
-            l.get("postedAt"),
-            l.get("expiresAt"),
-            l.get("photos"),
-            buildTranslationSubquery(query, cb, l, "lv"),
-            buildTranslationSubquery(query, cb, l, "en"),
-            buildTranslationSubquery(query, cb, l, "ru")
-        ));
+        query.select(flatRowSelection(query, cb, l, p));
 
         Predicate predicate = spec.toPredicate(l, query, cb);
         if (predicate != null) {
@@ -138,6 +113,82 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
 
         List<PropertyListItemDto> dtos = rows.stream().map(r -> toDto(r, featuresMap)).toList();
         return new PageImpl<>(dtos, pageable, total);
+    }
+
+    /** The list-card {@link FlatRow} projection, shared by the paginated list and the map (incl. coords). */
+    private CompoundSelection<FlatRow> flatRowSelection(CriteriaQuery<?> query, CriteriaBuilder cb,
+                                                        Root<Listing> l, Join<Listing, Property> p) {
+        return cb.construct(FlatRow.class,
+            l.get("id"),
+            p.get("id"),
+            l.get("owner").get("id"),
+            l.get("listingType"),
+            l.get("propertyCategory"),
+            l.get("newProjectKind"),
+            l.get("commercialSubtype"),
+            l.get("landUse"),
+            l.get("price"),
+            l.get("vatIncluded"),
+            l.get("rooms"),
+            l.get("bedrooms"),
+            l.get("bathrooms"),
+            l.get("m2"),
+            l.get("landM2"),
+            l.get("floor"),
+            l.get("totalFloors"),
+            l.get("yearBuilt"),
+            l.get("completion"),
+            p.get("districtSlug"),
+            p.get("citySlug"),
+            p.get("address"),
+            l.get("postedAt"),
+            l.get("expiresAt"),
+            l.get("photos"),
+            buildTranslationSubquery(query, cb, l, "lv"),
+            buildTranslationSubquery(query, cb, l, "en"),
+            buildTranslationSubquery(query, cb, l, "ru"),
+            p.get("lat"),
+            p.get("lng")
+        );
+    }
+
+    @Override
+    public List<MapPinDto> findMapPins(Specification<Listing> spec) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+
+        CriteriaQuery<FlatRow> query = cb.createQuery(FlatRow.class);
+        Root<Listing> l = query.from(Listing.class);
+        Join<Listing, Property> p = l.join("property", JoinType.INNER);
+
+        query.select(flatRowSelection(query, cb, l, p));
+
+        Predicate predicate = spec.toPredicate(l, query, cb);
+        if (predicate != null) {
+            query.where(predicate);
+        }
+
+        // Unpaged: the map shows every matching listing (grouped into one pin per property).
+        List<FlatRow> rows = em.createQuery(query).getResultList();
+        if (rows.isEmpty()) {
+            return List.of();
+        }
+
+        List<UUID> ids = rows.stream().map(FlatRow::id).toList();
+        Map<UUID, List<PropertyFeature>> featuresMap = fetchFeatures(ids);
+
+        Map<UUID, List<FlatRow>> byProperty = new LinkedHashMap<>();
+        for (FlatRow r : rows) {
+            byProperty.computeIfAbsent(r.propertyId(), _ -> new ArrayList<>()).add(r);
+        }
+
+        List<MapPinDto> pins = new ArrayList<>(byProperty.size());
+        for (List<FlatRow> group : byProperty.values()) {
+            group.sort(Comparator.comparing(FlatRow::price)); // cheapest listing first
+            FlatRow first = group.getFirst();
+            List<PropertyListItemDto> listings = group.stream().map(r -> toDto(r, featuresMap)).toList();
+            pins.add(new MapPinDto(first.propertyId(), first.lat(), first.lng(), listings));
+        }
+        return pins;
     }
 
     private long executeCountQuery(Specification<Listing> spec, CriteriaBuilder cb) {
