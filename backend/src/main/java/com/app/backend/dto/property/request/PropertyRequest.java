@@ -5,7 +5,9 @@ import com.app.backend.dto.property.model.Media;
 import com.app.backend.dto.property.model.PhoneContact;
 import com.app.backend.dto.property.model.Price;
 import com.app.backend.dto.property.model.PropertyDetails;
+import com.app.backend.enums.CommercialType;
 import com.app.backend.enums.Communication;
+import com.app.backend.enums.LandUse;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.ParkingType;
 import com.app.backend.enums.PropertyCategory;
@@ -29,6 +31,15 @@ public interface PropertyRequest {
     ListingType type();
 
     PropertyCategory propertyKind();
+
+    /** apartment|house kind of a new_project listing; null otherwise. */
+    PropertyCategory newProjectKind();
+
+    /** office/warehouse/… subtype of a commercial listing; null otherwise. */
+    CommercialType commercialSubtype();
+
+    /** land-use purpose of a land/commercial listing; null otherwise. */
+    LandUse landUse();
 
     Price price();
 

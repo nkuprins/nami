@@ -2,7 +2,10 @@ import { computed, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
 import {
   KNOWN_TYPES,
+  KNOWN_CATEGORIES,
   KNOWN_KINDS,
+  KNOWN_COMMERCIAL_TYPES,
+  KNOWN_LAND_USE,
   KNOWN_COMPLETION,
   KNOWN_FEATURES,
   KNOWN_HEATING,
@@ -18,6 +21,9 @@ import {
   KNOWN_EXTRAS,
   KNOWN_PARKING,
   type ListingType,
+  type Category,
+  type CommercialType,
+  type LandUse,
   type PropertyKind,
   type PropertyCompletion,
   type Feature,
@@ -108,16 +114,25 @@ export function usePropertyLabels() {
     KNOWN_TYPES.map((id) => ({ id, label: t(`types.${id}`) }))
   );
 
+  // The top-level category browse tabs (apartment/house/new_project/…).
   const categoryOptions = computed(() =>
-    KNOWN_TYPES.map((id: ListingType) => ({
+    KNOWN_CATEGORIES.map((id: Category) => ({
       id,
-      label: t(`categoryTabs.${id}.label`),
-      hint: t(`categoryTabs.${id}.hint`),
+      label: t(`categories.${id}.label`),
+      hint: t(`categories.${id}.hint`),
     }))
   );
 
   const kindOptions = computed(() =>
     KNOWN_KINDS.map((id) => ({ id, label: t(`kinds.${id}`) }))
+  );
+
+  const commercialTypeOptions = computed(() =>
+    KNOWN_COMMERCIAL_TYPES.map((id) => ({ id, label: t(`commercialType.${id}`) }))
+  );
+
+  const landUseOptions = computed(() =>
+    KNOWN_LAND_USE.map((id) => ({ id, label: t(`landUse.${id}`) }))
   );
 
   const completionOptions = computed(() =>
@@ -200,8 +215,20 @@ export function usePropertyLabels() {
     return t(`types.${id}`);
   }
 
+  function categoryLabel(id: Category): string {
+    return t(`categories.${id}.label`);
+  }
+
   function kindLabel(id: PropertyKind): string {
     return t(`kinds.${id}`);
+  }
+
+  function commercialTypeLabel(id: CommercialType): string {
+    return t(`commercialType.${id}`);
+  }
+
+  function landUseLabel(id: LandUse): string {
+    return t(`landUse.${id}`);
   }
 
   function completionLabel(id: PropertyCompletion): string {
@@ -272,6 +299,8 @@ export function usePropertyLabels() {
     typeOptions,
     categoryOptions,
     kindOptions,
+    commercialTypeOptions,
+    landUseOptions,
     completionOptions,
     featureOptions,
     heatingOptions,
@@ -287,7 +316,10 @@ export function usePropertyLabels() {
     extrasOptions,
     parkingOptions,
     typeLabel,
+    categoryLabel,
     kindLabel,
+    commercialTypeLabel,
+    landUseLabel,
     completionLabel,
     featureLabel,
     featureIcon,

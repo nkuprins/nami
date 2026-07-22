@@ -29,7 +29,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { typeLabel, kindLabel } = usePropertyLabels();
+const { typeLabel, categoryLabel } = usePropertyLabels();
 
 const title = computed(
   () => props.form.titleLv || props.form.titleEn || props.form.titleRu || ''
@@ -90,7 +90,7 @@ function priceLine(type: ListingType, amount: string): string {
               typeLabel(form.type as ListingType)
             }}</template>
             <span v-if="form.alsoRent"> + {{ typeLabel('rent') }}</span>
-            · {{ kindLabel(form.propertyKind) }}
+            · {{ categoryLabel(form.propertyKind) }}
           </p>
         </div>
         <button

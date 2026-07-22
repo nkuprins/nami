@@ -1,10 +1,10 @@
 import { ref, toValue, watch, type MaybeRefOrGetter } from 'vue';
-import type { ListingType } from '../types/listingItem';
+import type { CategoryCounts, ListingType } from '../types/listingItem';
 import { getKindCounts } from '../api/listingsApi';
 import { logger } from '../utils/logger';
 
 export function useKindCounts(type: MaybeRefOrGetter<ListingType>) {
-  const counts = ref<{ apartment: number; house: number }>();
+  const counts = ref<CategoryCounts>();
   const loading = ref(true);
 
   watch(

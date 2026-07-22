@@ -1,13 +1,15 @@
 import {
   BathroomLayout,
+  Category,
+  CommercialType,
   Communication,
   EnergyClass,
   Feature,
   HeatingType,
+  LandUse,
   ParkingType,
   PropertyCompletion,
   PropertyExtra,
-  PropertyKind,
   ListingType,
   RoofType,
   SecurityFeature,
@@ -21,7 +23,10 @@ import { Location } from '../data/rawLocations';
 
 export interface FilterState {
   type: ListingType;
-  kind?: PropertyKind;
+  // The category browse tab (apartment/house/new_project/commercial/land/garage).
+  kind?: Category;
+  commercialSubtype?: CommercialType;
+  landUse?: LandUse;
   loc: Location[];
   priceMin?: number;
   priceMax?: number;
@@ -62,6 +67,8 @@ export type FilterKey = keyof FilterState;
 export const ALL_FILTER_KEYS = Object.keys({
   type: 0,
   kind: 0,
+  commercialSubtype: 0,
+  landUse: 0,
   loc: 0,
   priceMin: 0,
   priceMax: 0,

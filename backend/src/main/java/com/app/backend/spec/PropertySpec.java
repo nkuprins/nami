@@ -39,6 +39,14 @@ public class PropertySpec {
                 predicates.add(cb.equal(root.get(Listing_.propertyCategory), criteria.kind()));
             }
 
+            if (criteria.commercialSubtype() != null) {
+                predicates.add(cb.equal(root.get(Listing_.commercialSubtype), criteria.commercialSubtype()));
+            }
+
+            if (criteria.landUse() != null) {
+                predicates.add(cb.equal(root.get(Listing_.landUse), criteria.landUse()));
+            }
+
             if (criteria.locByCity() != null && !criteria.locByCity().isEmpty()) {
                 List<Predicate> locPredicates = new ArrayList<>();
                 for (var e : criteria.locByCity().entrySet()) {

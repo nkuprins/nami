@@ -8,6 +8,8 @@ import com.app.backend.dto.property.response.PropertyListItemDto;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.ListingTranslation;
 import com.app.backend.entity.Property;
+import com.app.backend.enums.CommercialType;
+import com.app.backend.enums.LandUse;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
@@ -41,6 +43,9 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
             UUID ownerId,
             ListingType listingType,
             PropertyCategory propertyCategory,
+            PropertyCategory newProjectKind,
+            CommercialType commercialSubtype,
+            LandUse landUse,
             BigDecimal price,
             Boolean vatIncluded,
             Short rooms,
@@ -82,6 +87,9 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
             l.get("owner").get("id"),
             l.get("listingType"),
             l.get("propertyCategory"),
+            l.get("newProjectKind"),
+            l.get("commercialSubtype"),
+            l.get("landUse"),
             l.get("price"),
             l.get("vatIncluded"),
             l.get("rooms"),
@@ -204,10 +212,13 @@ public class ListingRepositoryCustomImpl implements ListingRepositoryCustom {
             .ownerId(r.ownerId())
             .type(r.listingType())
             .propertyKind(r.propertyCategory())
+            .newProjectKind(r.newProjectKind())
+            .commercialSubtype(r.commercialSubtype())
+            .landUse(r.landUse())
             .price(new Price(r.price(), Boolean.TRUE.equals(r.vatIncluded()) ? true : null))
             .details(details)
             .translations(translations(r))
-            .location(new Location(r.districtSlug(), r.citySlug(), r.address(), null, null, null))
+            .location(new Location(r.districtSlug(), r.citySlug(), r.address(), null, null, null, null))
             .completion(r.completion())
             .postedAt(r.postedAt())
             .expiresAt(r.expiresAt())

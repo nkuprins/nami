@@ -14,6 +14,7 @@ import type {
 import { parseDecimal } from '../../../utils/utils';
 import { requestPresignedUrls, uploadFilesToS3 } from '../../../api/uploadApi';
 import { useAuthStore } from '../../../stores/authStore';
+import { categoryProfile } from '../../../types/categoryRegistry';
 
 // Shared by every create/edit form composable so `touched`-gated field
 // errors behave identically everywhere.
@@ -148,10 +149,14 @@ export function registerCoords(
 // form (with location), the listing edit form and the add-another-listing form.
 export const INITIAL_PROPERTY_FIELDS: PropertyFieldsForm = {
   propertyKind: 'apartment',
+  newProjectKind: '',
+  commercialSubtype: '',
+  landUse: '',
   address: '',
   street: null,
   building: null,
   apartment: '',
+  cadastreParcelNr: '',
   rooms: '',
   bedrooms: '',
   bathrooms: '',
@@ -180,18 +185,26 @@ export const INITIAL_PROPERTY_FIELDS: PropertyFieldsForm = {
 };
 
 export function buildDetails(form: PropertyFieldsForm): PropertyDetails {
+  // Only send fields the category actually carries, so we never trip a backend
+  // CHECK (e.g. rooms on land) — mirrors the CategoryProfile forbidden sets.
+  const profile = categoryProfile(form.propertyKind);
   return {
-    rooms: Number(form.rooms),
+    rooms:
+      profile.rooms !== 'hidden' && form.rooms ? Number(form.rooms) : undefined,
     bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
     bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
     bathroomLayout: form.bathroomLayout || undefined,
-    m2: parseDecimal(form.m2),
+    m2:
+      profile.buildingArea !== 'hidden' && form.m2
+        ? parseDecimal(form.m2)
+        : undefined,
     landM2:
-      form.propertyKind === 'house' && form.landM2
+      profile.plotArea !== 'hidden' && form.landM2
         ? parseDecimal(form.landM2)
         : undefined,
-    floor: form.floor ? Number(form.floor) : undefined,
-    totalFloors: form.totalFloors ? Number(form.totalFloors) : undefined,
+    floor: profile.floors && form.floor ? Number(form.floor) : undefined,
+    totalFloors:
+      profile.floors && form.totalFloors ? Number(form.totalFloors) : undefined,
     yearBuilt: form.yearBuilt ? Number(form.yearBuilt) : undefined,
     heating: form.heating || undefined,
     energyClass: form.energyClass || undefined,
@@ -225,11 +238,15 @@ export function seedPropertyFields(
 ): void {
   const d = listing.details;
   form.propertyKind = listing.propertyKind;
-  form.rooms = String(d.rooms);
+  form.newProjectKind = listing.newProjectKind ?? '';
+  form.commercialSubtype = listing.commercialSubtype ?? '';
+  form.landUse = listing.landUse ?? '';
+  form.cadastreParcelNr = listing.location.cadastreParcelNr ?? '';
+  form.rooms = d.rooms != null ? String(d.rooms) : '';
   form.bedrooms = d.bedrooms != null ? String(d.bedrooms) : '';
   form.bathrooms = d.bathrooms != null ? String(d.bathrooms) : '';
   form.bathroomLayout = d.bathroomLayout ?? '';
-  form.m2 = String(d.m2);
+  form.m2 = d.m2 != null ? String(d.m2) : '';
   form.landM2 = d.landM2 != null ? String(d.landM2) : '';
   form.floor = d.floor != null ? String(d.floor) : '';
   form.totalFloors = d.totalFloors != null ? String(d.totalFloors) : '';
@@ -265,7 +282,7 @@ export async function uploadNewFiles(files: File[]): Promise<string[]> {
 // form, the listing edit form and the add-another-listing form. `requireLocation`
 // is false for the listing-scoped forms, which inherit the property's location.
 export function propertyFieldErrors(
-  form: PropertyFieldsForm,
+  form: PropertyFieldsForm & Pick<ListingFieldsForm, 'completion'>,
   opts: { hasLocation: boolean; hasPhotos: boolean; requireLocation?: boolean }
 ): Record<string, string> {
   const e: Record<string, string> = {};
@@ -276,14 +293,33 @@ export function propertyFieldErrors(
     else if (form.street.kind === 'street' && !form.building)
       e.building = 'Pick a house number from the list';
   }
-  if (!form.rooms || Number.isNaN(Number(form.rooms)) || Number(form.rooms) < 1)
+  // Category-conditional requiredness (mirrors CategoryProfile / DB CHECKs).
+  const profile = categoryProfile(form.propertyKind);
+  if (
+    profile.rooms === 'required' &&
+    (!form.rooms || Number.isNaN(Number(form.rooms)) || Number(form.rooms) < 1)
+  )
     e.rooms = 'Enter number of rooms';
   if (
-    !form.m2 ||
-    Number.isNaN(parseDecimal(form.m2)) ||
-    parseDecimal(form.m2) <= 0
+    profile.buildingArea === 'required' &&
+    (!form.m2 || Number.isNaN(parseDecimal(form.m2)) || parseDecimal(form.m2) <= 0)
   )
     e.m2 = 'Enter area in m²';
+  if (
+    profile.plotArea === 'required' &&
+    (!form.landM2 ||
+      Number.isNaN(parseDecimal(form.landM2)) ||
+      parseDecimal(form.landM2) <= 0)
+  )
+    e.landM2 = 'Enter plot area in m²';
+  if (profile.subtype === 'newProjectKind' && !form.newProjectKind)
+    e.newProjectKind = 'Select apartment or house';
+  if (profile.subtype === 'commercial' && !form.commercialSubtype)
+    e.commercialSubtype = 'Select a commercial type';
+  if (profile.subtype === 'landUse' && !form.landUse)
+    e.landUse = 'Select a land use';
+  if (profile.completion && !form.completion)
+    e.completion = 'Required for new projects';
   if (!opts.hasPhotos) e.photos = 'At least one photo required';
   return e;
 }

@@ -19,10 +19,6 @@ const isRentActive = computed(
 
 function toggleBuy() {
   setTransactionType(form.value, () => {
-    if (form.value.type === 'new_project') {
-      form.value.type = 'buy';
-      return;
-    }
     if (isBuyActive.value) {
       if (form.value.alsoRent) {
         form.value.type = 'rent';
@@ -41,10 +37,6 @@ function toggleBuy() {
 
 function toggleRent() {
   setTransactionType(form.value, () => {
-    if (form.value.type === 'new_project') {
-      form.value.type = 'rent';
-      return;
-    }
     if (isRentActive.value) {
       if (form.value.alsoRent) {
         form.value.alsoRent = false;
@@ -56,13 +48,6 @@ function toggleRent() {
     } else {
       form.value.type = 'rent';
     }
-  });
-}
-
-function selectNewProject() {
-  setTransactionType(form.value, () => {
-    form.value.type = form.value.type === 'new_project' ? '' : 'new_project';
-    form.value.alsoRent = false;
   });
 }
 </script>
@@ -145,46 +130,6 @@ function selectNewProject() {
               t('types.rent')
             }}</span>
           </div>
-
-          <!-- Divider -->
-          <div class="flex items-center gap-2 my-0.5">
-            <div class="h-px flex-1 bg-line" />
-            <span class="text-xs text-ink-3">{{ t('common.or') }}</span>
-            <div class="h-px flex-1 bg-line" />
-          </div>
-
-          <!-- Jaunais projekts -->
-          <div
-            class="flex items-center gap-3 cursor-pointer select-none group w-fit"
-          >
-            <span
-              class="w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-colors"
-              :class="
-                form.type === 'new_project'
-                  ? 'bg-ink border-ink'
-                  : 'bg-bg border-line group-hover:border-ink/50'
-              "
-              @click.prevent="selectNewProject"
-            >
-              <svg
-                v-if="form.type === 'new_project'"
-                class="w-3 h-3 text-bg"
-                viewBox="0 0 12 12"
-                fill="none"
-              >
-                <path
-                  d="M2 6l3 3 5-5"
-                  stroke="currentColor"
-                  stroke-width="1.75"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </span>
-            <span class="text-sm text-ink" @click="selectNewProject">{{
-              t('types.new_project')
-            }}</span>
-          </div>
         </div>
 
         <p v-if="fieldError('type')" class="text-xs text-warn">
@@ -193,9 +138,6 @@ function selectNewProject() {
       </div>
     </section>
 
-    <PropertyKindSection
-      :property-kind="form.propertyKind"
-      @update:property-kind="form.propertyKind = $event"
-    />
+    <PropertyKindSection v-model:form="form" :field-error="fieldError" />
   </div>
 </template>

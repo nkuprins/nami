@@ -3,7 +3,6 @@ package com.app.backend.repository;
 import com.app.backend.entity.Listing;
 import com.app.backend.entity.User;
 import com.app.backend.enums.ListingType;
-import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyStatus;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -37,8 +36,10 @@ public interface ListingRepository extends JpaRepository<Listing, UUID>, JpaSpec
     @Query("SELECT COUNT(l) FROM Listing l WHERE l.property.id = :propertyId")
     long countByPropertyId(@Param("propertyId") UUID propertyId);
 
-    long countByListingTypeAndPropertyCategoryAndStatus(
-            ListingType listingType, PropertyCategory propertyCategory, PropertyStatus status);
+    /** Active-listing counts grouped by category for one transaction type: rows of {@code [PropertyCategory, Long]}. */
+    @Query("SELECT l.propertyCategory, COUNT(l) FROM Listing l "
+            + "WHERE l.listingType = :type AND l.status = :status GROUP BY l.propertyCategory")
+    List<Object[]> countByCategory(@Param("type") ListingType type, @Param("status") PropertyStatus status);
 
     List<Listing> findByPropertyId(UUID propertyId);
 

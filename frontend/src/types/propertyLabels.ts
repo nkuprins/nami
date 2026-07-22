@@ -8,7 +8,6 @@ import type {
 export const TYPES_LABELS: Record<ListingType, string> = {
   buy: 'For sale',
   rent: 'For rent',
-  new_project: 'New project',
 };
 
 export const KIND_LABELS: Record<PropertyKind, string> = {
@@ -56,7 +55,6 @@ export const TYPE_OPTIONS = Object.entries(TYPES_LABELS).map(([id, label]) => ({
 const CATEGORY_META: Record<ListingType, { label: string; hint: string }> = {
   buy: { label: 'Buy', hint: 'For sale' },
   rent: { label: 'Rent', hint: 'Monthly' },
-  new_project: { label: 'New projects', hint: '' },
 };
 export const CATEGORY_OPTIONS = Object.entries(CATEGORY_META).map(
   ([id, meta]) => ({ id: id as ListingType, ...meta })

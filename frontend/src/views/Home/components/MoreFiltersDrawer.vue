@@ -382,7 +382,7 @@ function reset() {
         </div>
       </section>
 
-      <section v-if="state.type === 'new_project'">
+      <section v-if="state.kind === 'new_project'">
         <p class="micro-label mb-3">{{ t('advFilters.completion') }}</p>
         <div class="flex flex-wrap gap-2">
           <button

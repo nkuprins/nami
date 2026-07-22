@@ -8,23 +8,22 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum PropertyCategory implements DbValueEnum {
-    APARTMENT("apartment"),
-    HOUSE("house"),
-    NEW_PROJECT("new_project"),
-    COMMERCIAL("commercial"),
-    LAND("land"),
-    GARAGE("garage");
+public enum CommercialType implements DbValueEnum {
+    OFFICE("office"),
+    WAREHOUSE("warehouse"),
+    RETAIL("retail"),
+    INDUSTRIAL("industrial"),
+    HOSPITALITY("hospitality");
 
     @EnumeratedValue
     @JsonValue
     private final String dbValue;
 
     @JsonCreator
-    public static PropertyCategory fromDbValue(String value) {
-        for (PropertyCategory c : values()) {
+    public static CommercialType fromDbValue(String value) {
+        for (CommercialType c : values()) {
             if (c.dbValue.equals(value)) return c;
         }
-        throw new IllegalArgumentException("Unknown property_category: " + value);
+        throw new IllegalArgumentException("Unknown commercial_type: " + value);
     }
 }

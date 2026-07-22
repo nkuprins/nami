@@ -51,6 +51,14 @@ public class Property {
     @Column(name = "apartment")
     private String apartment;
 
+    /**
+     * Cadastral parcel the plot was picked from (land & commercial listings).
+     * NULL when the address has no linked parcel. No FK: cadastre_parcels is
+     * wiped and reloaded on every cadastre refresh.
+     */
+    @Column(name = "cadastre_parcel_nr")
+    private String cadastreParcelNr;
+
     @Column(name = "lat", nullable = false)
     private Double lat;
 

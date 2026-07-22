@@ -98,6 +98,20 @@ export function useListingForm(
         {
           type: form.type as ListingType,
           propertyKind: form.propertyKind,
+          newProjectKind:
+            form.propertyKind === 'new_project' && form.newProjectKind
+              ? form.newProjectKind
+              : undefined,
+          commercialSubtype:
+            form.propertyKind === 'commercial' && form.commercialSubtype
+              ? form.commercialSubtype
+              : undefined,
+          landUse:
+            (form.propertyKind === 'land' ||
+              form.propertyKind === 'commercial') &&
+            form.landUse
+              ? form.landUse
+              : undefined,
           price: {
             amount: Number(form.price),
             vatIncluded: form.vatIncluded || undefined,
@@ -110,6 +124,7 @@ export function useListingForm(
             address: form.address.trim(),
             arBuildingCode: selectedBuildingCode(form),
             apartment: form.apartment.trim() || undefined,
+            cadastreParcelNr: form.cadastreParcelNr.trim() || undefined,
             coords: form.coords ?? registerCoords(form) ?? DEFAULT_COORDS,
           },
           features: form.features,
@@ -122,7 +137,7 @@ export function useListingForm(
           media: buildMedia(form, photos, plans),
           phones,
           completion:
-            form.type === 'new_project' && form.completion
+            form.propertyKind === 'new_project' && form.completion
               ? form.completion
               : undefined,
           durationMonths: form.durationMonths,

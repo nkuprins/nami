@@ -8,19 +8,21 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ListingType implements DbValueEnum {
-    BUY("buy"),
-    RENT("rent");
+public enum LandUse implements DbValueEnum {
+    RESIDENTIAL("residential"),
+    COMMERCIAL("commercial"),
+    AGRICULTURAL("agricultural"),
+    FOREST("forest");
 
     @EnumeratedValue
     @JsonValue
     private final String dbValue;
 
     @JsonCreator
-    public static ListingType fromDbValue(String value) {
-        for (ListingType t : values()) {
-            if (t.dbValue.equals(value)) return t;
+    public static LandUse fromDbValue(String value) {
+        for (LandUse u : values()) {
+            if (u.dbValue.equals(value)) return u;
         }
-        throw new IllegalArgumentException("Unknown listing_type: " + value);
+        throw new IllegalArgumentException("Unknown land_use: " + value);
     }
 }

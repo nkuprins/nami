@@ -151,8 +151,8 @@ class PropertyServiceCacheTest extends IntegrationTestBase {
         listingQueryService.countsByType(ListingType.BUY);
         listingQueryService.countsByType(ListingType.BUY);
 
-        verify(listingRepository, times(2))
-                .countByListingTypeAndPropertyCategoryAndStatus(any(), any(), any());
+        verify(listingRepository, times(1))
+                .countByCategory(any(), any());
         assertThat(cacheManager.getCache(CacheConfig.PROPERTY_KIND_COUNTS).get(ListingType.BUY)).isNotNull();
     }
 

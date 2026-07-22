@@ -1,5 +1,7 @@
 package com.app.backend.service;
 
+import com.app.backend.entity.Listing;
+import com.app.backend.enums.LandUse;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.repository.AddressRegistryRepository;
 import com.app.backend.repository.CadastreRepository;
@@ -28,12 +30,39 @@ public class CadastreQueryService {
     private final AddressRegistryRepository addressRegistryRepository;
 
     @Transactional(readOnly = true)
-    public PropertyStatus decideStatus(Long arBuildingCode, String apartment, BigDecimal m2, Short yearBuilt) {
-        if (arBuildingCode == null) {
-            return PropertyStatus.ACTIVE;
-        }
-        boolean mismatch = yearMismatch(arBuildingCode, yearBuilt) || areaMismatch(arBuildingCode, apartment, m2);
+    public PropertyStatus decideStatus(Long arBuildingCode, String apartment,
+                                       String cadastreParcelNr, Listing listing) {
+        boolean buildingMismatch = arBuildingCode != null
+                && (yearMismatch(arBuildingCode, listing.getYearBuilt())
+                || areaMismatch(arBuildingCode, apartment, listing.getM2()));
+        boolean mismatch = buildingMismatch || parcelMismatch(cadastreParcelNr, listing);
         return mismatch ? PropertyStatus.PENDING_REVIEW : PropertyStatus.ACTIVE;
+    }
+
+    /**
+     * Cross-checks a land/commercial listing's declared plot area and land-use
+     * purpose against the cadastre parcel it was linked to. Fails open when the
+     * property has no parcel link or the mirror has no record for it.
+     */
+    private boolean parcelMismatch(String cadastreParcelNr, Listing listing) {
+        if (cadastreParcelNr == null || cadastreParcelNr.isBlank()) {
+            return false;
+        }
+        return cadastreRepository.findParcelByCadastreNr(cadastreParcelNr)
+                .map(parcel -> parcelAreaMismatch(listing.getLandM2(), parcel.areaM2())
+                        || landUseMismatch(listing.getLandUse(), parcel.landUse()))
+                .orElse(false);
+    }
+
+    private boolean parcelAreaMismatch(BigDecimal declared, BigDecimal official) {
+        if (declared == null || official == null) {
+            return false;
+        }
+        return relativeDiff(declared, official) > AREA_MISMATCH_RATIO;
+    }
+
+    private boolean landUseMismatch(LandUse declared, LandUse official) {
+        return declared != null && official != null && declared != official;
     }
 
     private boolean yearMismatch(long arBuildingCode, Short yearBuilt) {

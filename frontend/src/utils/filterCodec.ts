@@ -3,18 +3,22 @@ import { DEFAULT_FILTER_STATE } from '../types/filter';
 import { type FilterState } from '../types/filter';
 import {
   BathroomLayout,
+  Category,
+  CommercialType,
   Communication,
   EnergyClass,
   Feature,
   HeatingType,
   KNOWN_BATHROOM_LAYOUT,
+  KNOWN_CATEGORIES,
+  KNOWN_COMMERCIAL_TYPES,
   KNOWN_COMMUNICATIONS,
   KNOWN_COMPLETION,
   KNOWN_ENERGY_CLASS,
   KNOWN_EXTRAS,
   KNOWN_FEATURES,
   KNOWN_HEATING,
-  KNOWN_KINDS,
+  KNOWN_LAND_USE,
   KNOWN_PARKING,
   KNOWN_ROOF,
   KNOWN_SECURITY,
@@ -23,10 +27,10 @@ import {
   KNOWN_TYPES,
   KNOWN_VENTILATION,
   KNOWN_VENTILATION_SYSTEMS,
+  LandUse,
   ParkingType,
   PropertyCompletion,
   PropertyExtra,
-  PropertyKind,
   RoofType,
   SecurityFeature,
   SewageType,
@@ -121,8 +125,14 @@ export const FilterCodec = {
         q.bathroomLayout,
         KNOWN_BATHROOM_LAYOUT
       ) as BathroomLayout | undefined,
-      kind: (parse.optionalEnum(q.kind, KNOWN_KINDS) ?? defaults.kind) as
-        PropertyKind | undefined,
+      kind: (parse.optionalEnum(q.kind, KNOWN_CATEGORIES) ?? defaults.kind) as
+        Category | undefined,
+      commercialSubtype: parse.optionalEnum(
+        q.commercialSubtype,
+        KNOWN_COMMERCIAL_TYPES
+      ) as CommercialType | undefined,
+      landUse: parse.optionalEnum(q.landUse, KNOWN_LAND_USE) as
+        LandUse | undefined,
 
       // Arrays & CSV Collections
       loc: parse.locationList(q.loc),
@@ -181,6 +191,8 @@ export const FilterCodec = {
 
     if (state.type !== defaults.type) q.type = state.type;
     if (state.kind && state.kind !== defaults.kind) q.kind = state.kind;
+    if (state.commercialSubtype) q.commercialSubtype = state.commercialSubtype;
+    if (state.landUse) q.landUse = state.landUse;
 
     if (state.loc.length) {
       q.loc = state.loc.map((l) => `${l.city}:${l.district}`).join(',');

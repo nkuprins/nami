@@ -6,12 +6,12 @@ import { numericInput } from '../../../utils/utils';
 import { formatPriceInput, parsePriceInput } from '../../../utils/format';
 import FormField from '../../../components/ui/FormField.vue';
 import ToggleButtons from '../../../components/ui/ToggleButtons.vue';
-import type { ListingFieldsForm } from '../composables/formTypes';
+import type { ListingFormState } from '../composables/formTypes';
 
 const { t } = useI18n();
 const { completionOptions } = usePropertyLabels();
 
-const form = defineModel<ListingFieldsForm>('form', { required: true });
+const form = defineModel<ListingFormState>('form', { required: true });
 const props = defineProps<{
   fieldError: (field: string) => string | undefined;
   isEdit: boolean;
@@ -170,7 +170,7 @@ const vatCheckboxClass = 'size-4 rounded border-line accent-ink cursor-pointer';
       </div>
     </template>
 
-    <div v-if="form.type === 'new_project'" class="flex flex-col gap-1.5">
+    <div v-if="form.propertyKind === 'new_project'" class="flex flex-col gap-1.5">
       <p class="text-sm font-medium text-ink">
         {{ t('addListing.completionStatus') }}
         <span class="text-warn">*</span>

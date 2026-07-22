@@ -1,4 +1,8 @@
 import type {
+  Category,
+  CategoryCounts,
+  CommercialType,
+  LandUse,
   ListingSummary,
   ListingDetail,
   PropertyDetail,
@@ -48,7 +52,10 @@ export class DuplicatePropertyError extends Error {
 
 export interface CreateListingPayload {
   type: ListingType;
-  propertyKind: PropertyKind;
+  propertyKind: Category;
+  newProjectKind?: PropertyKind;
+  commercialSubtype?: CommercialType;
+  landUse?: LandUse;
   price: PriceInfo;
   details: PropertyDetails;
   translations: Translations;
@@ -71,7 +78,10 @@ export interface CreateListingPayload {
 // whole shape (only the location is inherited from the property).
 export interface AddListingPayload {
   type: ListingType;
-  propertyKind: PropertyKind;
+  propertyKind: Category;
+  newProjectKind?: PropertyKind;
+  commercialSubtype?: CommercialType;
+  landUse?: LandUse;
   price: PriceInfo;
   details: PropertyDetails;
   translations: Translations;
@@ -90,7 +100,10 @@ export interface AddListingPayload {
 
 export interface UpdateListingPayload {
   type: ListingType;
-  propertyKind: PropertyKind;
+  propertyKind: Category;
+  newProjectKind?: PropertyKind;
+  commercialSubtype?: CommercialType;
+  landUse?: LandUse;
   price: PriceInfo;
   details: PropertyDetails;
   translations: Translations;
@@ -128,12 +141,21 @@ export async function listListings(
 export async function getKindCounts(
   type: ListingType,
   options?: { signal?: AbortSignal }
-): Promise<{ apartment: number; house: number }> {
+): Promise<CategoryCounts> {
   const res = await fetchApi(`/api/properties/counts?type=${type}`, {
     signal: options?.signal,
   });
   if (!res.ok) throw new Error(`getKindCounts: ${res.status}`);
-  return res.json();
+  // Backend serialises the new_project count under the camelCase key `newProject`.
+  const raw = await res.json();
+  return {
+    apartment: raw.apartment ?? 0,
+    house: raw.house ?? 0,
+    new_project: raw.newProject ?? 0,
+    commercial: raw.commercial ?? 0,
+    land: raw.land ?? 0,
+    garage: raw.garage ?? 0,
+  };
 }
 
 export async function getMyListings(): Promise<ListingSummary[]> {

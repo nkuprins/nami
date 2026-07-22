@@ -3,7 +3,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import CategoryTabs from './CategoryTabs.vue';
-import PropertyKindTabs from './PropertyKindTabs.vue';
+import TransactionTabs from './TransactionTabs.vue';
 import FilterPill from './FilterPill.vue';
 import LocationPopover from '../../../components/listing/LocationPopover.vue';
 import PricePopover from './popovers/PricePopover.vue';
@@ -15,11 +15,14 @@ import IconRefresh from '../../../components/icons/IconRefresh.vue';
 import { useFiltersStore } from '../../../stores/filterStore';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
 import { useKindCounts } from '../../../composables/useKindCounts';
+import { usePropertyLabels } from '../../../composables/usePropertyLabels';
+import { categoryProfile } from '../../../types/categoryRegistry';
 import { groupFmt } from '../../../utils/format';
 import { roomCountLabel } from '../../../types/filter';
 
 const { t } = useI18n();
 const { locale } = useLocaleRoute();
+const { commercialTypeOptions, landUseOptions } = usePropertyLabels();
 
 const emit = defineEmits<{ search: []; openMore: [] }>();
 
@@ -61,6 +64,18 @@ const landPresets: Array<[number | undefined, number | undefined, string]> = [
 ];
 
 const { counts: kindCounts } = useKindCounts(() => state.type);
+
+// Which conditional pills/selects apply to the selected category.
+const profile = computed(() =>
+  state.kind ? categoryProfile(state.kind) : undefined
+);
+
+function setCommercialSubtype(v: string) {
+  state.commercialSubtype = (v || undefined) as typeof state.commercialSubtype;
+}
+function setLandUse(v: string) {
+  state.landUse = (v || undefined) as typeof state.landUse;
+}
 
 const locSummary = computed(() => {
   if (!locations.value.length) return '';
@@ -178,15 +193,45 @@ const advancedCount = computed(() => {
   <div
     class="bg-bg/97 backdrop-blur-md rounded-2xl shadow-lift border border-line/60 overflow-hidden"
   >
-    <CategoryTabs :model-value="state.type" @update:model-value="setType" />
-
-    <PropertyKindTabs
+    <CategoryTabs
       :model-value="state.kind"
       :counts="kindCounts"
       @update:model-value="setKind"
     />
 
+    <TransactionTabs :model-value="state.type" @update:model-value="setType" />
+
     <div class="p-4 sm:p-5 space-y-3">
+      <!-- Category sub-type selectors -->
+      <div
+        v-if="profile && (profile.subtype === 'commercial' || profile.subtype === 'landUse')"
+        class="flex flex-col sm:flex-row gap-2"
+      >
+        <select
+          v-if="profile.subtype === 'commercial'"
+          :value="state.commercialSubtype ?? ''"
+          @change="setCommercialSubtype(($event.target as HTMLSelectElement).value)"
+          class="focus-ring sm:flex-1 h-13 px-4 rounded-lg border border-line-2 bg-bg text-sm text-ink"
+        >
+          <option value="">{{ t('filters.allCommercialTypes') }}</option>
+          <option v-for="o in commercialTypeOptions" :key="o.id" :value="o.id">
+            {{ o.label }}
+          </option>
+        </select>
+
+        <select
+          v-if="profile.subtype === 'landUse'"
+          :value="state.landUse ?? ''"
+          @change="setLandUse(($event.target as HTMLSelectElement).value)"
+          class="focus-ring sm:flex-1 h-13 px-4 rounded-lg border border-line-2 bg-bg text-sm text-ink"
+        >
+          <option value="">{{ t('filters.allLandUses') }}</option>
+          <option v-for="o in landUseOptions" :key="o.id" :value="o.id">
+            {{ o.label }}
+          </option>
+        </select>
+      </div>
+
       <div class="flex flex-col sm:flex-row gap-2">
         <FilterPill
           class="sm:flex-1"
@@ -225,6 +270,7 @@ const advancedCount = computed(() => {
         </FilterPill>
 
         <FilterPill
+          v-if="!profile || profile.rooms !== 'hidden'"
           class="sm:flex-1"
           :label="t('filters.rooms')"
           :summary="roomsSummary"
@@ -240,6 +286,7 @@ const advancedCount = computed(() => {
 
       <div class="flex flex-col sm:flex-row gap-2">
         <FilterPill
+          v-if="!profile || profile.buildingArea !== 'hidden'"
           class="sm:flex-1"
           :label="t('filters.area')"
           :summary="areaSummary"
@@ -256,7 +303,7 @@ const advancedCount = computed(() => {
         </FilterPill>
 
         <FilterPill
-          v-if="state.kind === 'house'"
+          v-if="profile && profile.plotArea !== 'hidden'"
           class="sm:flex-1"
           :label="t('filters.land')"
           :summary="landSummary"
@@ -273,6 +320,7 @@ const advancedCount = computed(() => {
         </FilterPill>
 
         <FilterPill
+          v-if="!profile || profile.floors"
           class="sm:flex-1"
           :label="t('filters.floor')"
           :summary="floorSummary"

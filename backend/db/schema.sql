@@ -6,8 +6,10 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- ─────────────────────────────────────────────
 -- Enum types
 -- ─────────────────────────────────────────────
-CREATE TYPE listing_type        AS ENUM ('buy', 'rent', 'new_project');
-CREATE TYPE property_category   AS ENUM ('apartment', 'house');
+CREATE TYPE listing_type        AS ENUM ('buy', 'rent');
+CREATE TYPE property_category   AS ENUM ('apartment', 'house', 'new_project', 'commercial', 'land', 'garage');
+CREATE TYPE commercial_type     AS ENUM ('office', 'warehouse', 'retail', 'industrial', 'hospitality');
+CREATE TYPE land_use            AS ENUM ('residential', 'commercial', 'agricultural', 'forest');
 CREATE TYPE property_completion AS ENUM ('ready', 'not_ready');
 CREATE TYPE property_status     AS ENUM ('active', 'inactive', 'pending_review');
 CREATE TYPE user_role           AS ENUM ('user', 'admin');
@@ -198,6 +200,16 @@ CREATE TABLE cadastre_premises (
 
 CREATE INDEX idx_cadastre_premises_ar_code ON cadastre_premises (ar_code);
 
+-- Land parcels: the cadastral source for land / commercial listings. Carries the
+-- parcel's official area and land-use purpose, matched to a property by cadastre_nr.
+CREATE TABLE cadastre_parcels (
+    cadastre_nr TEXT PRIMARY KEY,        -- VZD ParcelCadastreNr
+    area_m2     NUMERIC(12, 2),
+    land_use    land_use                 -- mapped from VZD land-use purpose; NULL if unpublished
+);
+
+CREATE INDEX idx_cadastre_parcels_land_use ON cadastre_parcels (land_use);
+
 -- ─────────────────────────────────────────────
 -- Properties (address registry)
 --
@@ -219,6 +231,9 @@ CREATE TABLE properties (
     -- No FK: address_buildings is wiped and reloaded on every register refresh.
     ar_building_code  BIGINT,
     apartment         TEXT,
+    -- Cadastral parcel the address/plot was picked from (land & commercial). No FK:
+    -- cadastre_parcels is wiped and reloaded on every cadastre refresh.
+    cadastre_parcel_nr TEXT,
     lat               DOUBLE PRECISION  NOT NULL,
     lng               DOUBLE PRECISION  NOT NULL,
 
@@ -243,13 +258,21 @@ CREATE TABLE listings (
     vat_included        BOOLEAN           NOT NULL DEFAULT false,
 
     property_category   property_category NOT NULL,
+    -- Sub-type axis: required per category (see CHECKs below). new_project reuses the
+    -- property_category enum for its apartment|house kind; commercial has its own enum.
+    new_project_kind    property_category,
+    commercial_subtype  commercial_type,
+    -- Land-use purpose for land / commercial; cadastre-sourced (auto-populated / validated).
+    land_use            land_use,
 
-    -- Physical dimensions
-    rooms               SMALLINT          NOT NULL CHECK (rooms > 0),
+    -- Physical dimensions. rooms/m2 are nullable: land & garage have no rooms, land
+    -- has no building area. Presence is gated per-category by CHECKs below + validator.
+    rooms               SMALLINT          CHECK (rooms > 0),
     bedrooms            SMALLINT          CHECK (bedrooms >= 0 AND bedrooms <= rooms),
     bathrooms           SMALLINT          CHECK (bathrooms >= 0),
     bathroom_layout     bathroom_layout,
-    m2                  NUMERIC(6, 2)     NOT NULL CHECK (m2 > 0),
+    m2                  NUMERIC(6, 2)     CHECK (m2 > 0),
+    -- Plot area: houses (garden) and land (parcel size). land_m2 reused for both.
     land_m2             NUMERIC(8, 2)     CHECK (land_m2 > 0),
     floor               SMALLINT          CHECK (floor >= 0),
     total_floors        SMALLINT          CHECK (total_floors > 0),
@@ -283,14 +306,28 @@ CREATE TABLE listings (
     -- left blank on write (see PropertyMapper#applyListingContent).
     phones              JSONB             NOT NULL DEFAULT '[]',
 
-    CONSTRAINT chk_land_m2_apartment
-        CHECK (property_category != 'apartment' OR land_m2 IS NULL),
+    -- Plot area only on houses and land
+    CONSTRAINT chk_land_m2_scope
+        CHECK (property_category IN ('house', 'land') OR land_m2 IS NULL),
     CONSTRAINT chk_floor_requires_total
         CHECK (floor IS NULL OR total_floors IS NOT NULL),
     CONSTRAINT chk_floor_lte_total
         CHECK (floor IS NULL OR floor <= total_floors),
+    -- completion is a new_project-only attribute
     CONSTRAINT chk_completion_new_project_only
-        CHECK (listing_type = 'new_project' OR completion IS NULL)
+        CHECK (property_category = 'new_project' OR completion IS NULL),
+    -- Sub-type presence is category-bound
+    CONSTRAINT chk_new_project_kind
+        CHECK ((property_category = 'new_project') = (new_project_kind IS NOT NULL)
+               AND (new_project_kind IS NULL OR new_project_kind IN ('apartment', 'house'))),
+    CONSTRAINT chk_commercial_subtype
+        CHECK ((property_category = 'commercial') = (commercial_subtype IS NOT NULL)),
+    CONSTRAINT chk_land_use_scope
+        CHECK (land_use IS NULL OR property_category IN ('land', 'commercial')),
+    -- rooms only apply to dwellings and commercial; land & garage have none
+    CONSTRAINT chk_rooms_scope
+        CHECK (property_category IN ('apartment', 'house', 'new_project', 'commercial')
+               OR rooms IS NULL)
 );
 
 CREATE INDEX idx_listings_type_status_price ON listings (listing_type, status, price);

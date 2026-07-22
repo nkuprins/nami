@@ -201,7 +201,7 @@ const price = computed(() =>
     : ''
 );
 const pricePerM2 = computed(() =>
-  listing.value
+  listing.value && listing.value.details.m2
     ? formatPricePerM2(
         listing.value.price.amount / listing.value.details.m2,
         locale.value

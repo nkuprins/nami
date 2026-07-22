@@ -3,7 +3,9 @@ package com.app.backend.service;
 import com.app.backend.config.AppProperties;
 import com.app.backend.dto.cadastre.CadastreBuildingRow;
 import com.app.backend.dto.cadastre.CadastreIngestStats;
+import com.app.backend.dto.cadastre.CadastreParcelRow;
 import com.app.backend.dto.cadastre.CadastrePremiseRow;
+import com.app.backend.enums.LandUse;
 import com.app.backend.repository.CadastreRepository;
 import com.app.backend.util.XmlStream;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,9 @@ public class CadastreIngestService {
     private static final int BATCH_SIZE = 1_000;
     private static final String BUILDING_ITEM = "BuildingItemData";
     private static final String PREMISE_ITEM = "PremiseGroupItemData";
+    // ASSUMPTION: the VZD Parcel (zemes vienība) export element/field names — verify
+    // against the real dataset before enabling parcel ingest in prod (see parseParcel).
+    private static final String PARCEL_ITEM = "ParcelItemData";
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -60,15 +65,18 @@ public class CadastreIngestService {
         try {
             Path buildingZip = download(urls.building(), temp);
             Path premiseGroupZip = download(urls.premiseGroup(), temp);
+            Path parcelZip = download(urls.parcel(), temp);
 
             CadastreIngestStats stats = Objects.requireNonNull(transactionTemplate.execute(tx -> {
                 repository.deleteAll();
                 int buildings = loadBuildings(buildingZip);
                 int premises = loadPremises(premiseGroupZip);
-                return new CadastreIngestStats(buildings, premises);
+                int parcels = loadParcels(parcelZip);
+                return new CadastreIngestStats(buildings, premises, parcels);
             }));
 
-            log.info("Cadastre ingest done: {} buildings, {} premises", stats.buildings(), stats.premises());
+            log.info("Cadastre ingest done: {} buildings, {} premises, {} parcels",
+                    stats.buildings(), stats.premises(), stats.parcels());
             return stats;
         } finally {
             for (Path path : temp) {
@@ -146,6 +154,29 @@ public class CadastreIngestService {
         return total[0];
     }
 
+    private int loadParcels(Path zipPath) {
+        List<CadastreParcelRow> batch = new ArrayList<>(BATCH_SIZE);
+        int[] total = {0};
+        forEachItem(zipPath, PARCEL_ITEM, item -> {
+            String cadastreNr = item.get("ParcelCadastreNr");
+            if (cadastreNr == null || cadastreNr.isBlank()) {
+                return;
+            }
+            batch.add(new CadastreParcelRow(cadastreNr,
+                    parseArea(item.get("ParcelArea")), mapLandUse(item.get("ParcelUsePurpose"))));
+            if (batch.size() == BATCH_SIZE) {
+                repository.insertParcels(List.copyOf(batch));
+                total[0] += batch.size();
+                batch.clear();
+            }
+        });
+        if (!batch.isEmpty()) {
+            repository.insertParcels(List.copyOf(batch));
+            total[0] += batch.size();
+        }
+        return total[0];
+    }
+
     /** Streams every {@code *.xml} entry in the zip, feeding each {@code itemLocalName} element to the consumer. */
     private static void forEachItem(Path zipPath, String itemLocalName, java.util.function.Consumer<Map<String, String>> consumer) {
         try (var in = Files.newInputStream(zipPath); ZipInputStream zis = new ZipInputStream(in)) {
@@ -196,5 +227,31 @@ public class CadastreIngestService {
 
     private static BigDecimal parseArea(String value) {
         return value == null || value.isBlank() ? null : new BigDecimal(value.trim());
+    }
+
+    /**
+     * Maps a VZD parcel use-purpose value to our {@link LandUse} bucket. VZD publishes
+     * a NĪLM ("nekustamā īpašuma lietošanas mērķis") code; the exact code list must be
+     * confirmed against the real dataset. Unknown/absent values map to {@code null},
+     * which makes {@code decideStatus} fail open (no land-use hold). ASSUMPTION.
+     */
+    private static LandUse mapLandUse(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        String v = value.trim().toLowerCase();
+        if (v.contains("dzīvoj") || v.contains("residential") || v.startsWith("00")) {
+            return LandUse.RESIDENTIAL;
+        }
+        if (v.contains("komerc") || v.contains("commercial") || v.startsWith("08")) {
+            return LandUse.COMMERCIAL;
+        }
+        if (v.contains("lauksaimniec") || v.contains("agricultural") || v.startsWith("01")) {
+            return LandUse.AGRICULTURAL;
+        }
+        if (v.contains("mež") || v.contains("forest") || v.startsWith("02")) {
+            return LandUse.FOREST;
+        }
+        return null;
     }
 }

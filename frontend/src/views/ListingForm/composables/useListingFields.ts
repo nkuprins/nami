@@ -101,6 +101,19 @@ export function buildListingBody(
   return {
     type: form.type as ListingType,
     propertyKind: form.propertyKind,
+    newProjectKind:
+      form.propertyKind === 'new_project' && form.newProjectKind
+        ? form.newProjectKind
+        : undefined,
+    commercialSubtype:
+      form.propertyKind === 'commercial' && form.commercialSubtype
+        ? form.commercialSubtype
+        : undefined,
+    landUse:
+      (form.propertyKind === 'land' || form.propertyKind === 'commercial') &&
+      form.landUse
+        ? form.landUse
+        : undefined,
     price: {
       amount: Number(form.price),
       vatIncluded: form.vatIncluded || undefined,
@@ -117,7 +130,7 @@ export function buildListingBody(
     media: buildMedia(form, photos, plans),
     phones: filledPhones(form.phones),
     completion:
-      form.type === 'new_project' && form.completion
+      form.propertyKind === 'new_project' && form.completion
         ? form.completion
         : undefined,
   };
@@ -142,8 +155,7 @@ export function listingFieldErrors(
   if (!form.price || Number(form.price) <= 0) e.price = 'Enter a valid price';
   if (opts.requireRentPrice && (!form.rentPrice || Number(form.rentPrice) <= 0))
     e.rentPrice = 'Enter a valid rent price';
-  if (form.type === 'new_project' && !form.completion)
-    e.completion = 'Required for new projects';
+  // completion requiredness is category-driven — handled in propertyFieldErrors.
 
   const filled = form.phones.filter((p) => p.phone.trim());
   if (filled.length === 0) e.phones = 'At least one phone number required';

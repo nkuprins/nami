@@ -5,6 +5,7 @@ import { numericInput, decimalInput } from '../../../utils/utils';
 import FormField from '../../../components/ui/FormField.vue';
 import ToggleButtons from '../../../components/ui/ToggleButtons.vue';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
+import { categoryProfile } from '../../../types/categoryRegistry';
 
 const { t } = useI18n();
 const {
@@ -25,6 +26,9 @@ import type { PropertyFieldsForm } from '../composables/formTypes';
 
 const form = defineModel<PropertyFieldsForm>('form', { required: true });
 
+// Which physical fields the selected category carries (registry-driven).
+const profile = computed(() => categoryProfile(form.value.propertyKind));
+
 // Shows the explanation for the chosen heating type (e.g. central vs central gas
 // vs gas) below the toggle — the desktop tooltip alone isn't visible on touch.
 const selectedHeatingHint = computed(
@@ -43,29 +47,31 @@ defineProps<{
 
     <div class="grid grid-cols-2 gap-4">
       <FormField
+        v-if="profile.rooms !== 'hidden'"
         id="ap-rooms"
         :label="t('addListing.roomsLabel')"
         v-model="form.rooms"
         :error="fieldError('rooms')"
-        required
+        :required="profile.rooms === 'required'"
         inputmode="numeric"
         placeholder="e.g. 3"
         @beforeinput="numericInput"
       />
 
       <FormField
+        v-if="profile.buildingArea !== 'hidden'"
         id="ap-m2"
         :label="t('addListing.areaLabel')"
         v-model="form.m2"
         :error="fieldError('m2')"
-        required
+        :required="profile.buildingArea === 'required'"
         inputmode="decimal"
         placeholder="e.g. 72.5"
         @beforeinput="decimalInput"
       />
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div v-if="profile.rooms !== 'hidden'" class="grid grid-cols-2 gap-4">
       <FormField
         id="ap-bedrooms"
         :label="t('addListing.bedroomsLabel')"
@@ -85,7 +91,7 @@ defineProps<{
       />
     </div>
 
-    <div class="flex flex-col gap-1.5">
+    <div v-if="profile.rooms !== 'hidden'" class="flex flex-col gap-1.5">
       <p class="text-sm font-medium text-ink">
         {{ t('addListing.bathroomLayoutLabel') }}
       </p>
@@ -99,16 +105,18 @@ defineProps<{
     </div>
 
     <FormField
-      v-if="form.propertyKind === 'house'"
+      v-if="profile.plotArea !== 'hidden'"
       id="ap-land"
       :label="t('addListing.landAreaLabel')"
       v-model="form.landM2"
+      :error="fieldError('landM2')"
+      :required="profile.plotArea === 'required'"
       inputmode="decimal"
       placeholder="e.g. 600"
       @beforeinput="decimalInput"
     />
 
-    <div class="grid grid-cols-2 gap-4">
+    <div v-if="profile.floors" class="grid grid-cols-2 gap-4">
       <FormField
         id="ap-floor"
         :label="t('addListing.floorLabel')"

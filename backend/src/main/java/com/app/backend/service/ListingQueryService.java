@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,11 +70,17 @@ public class ListingQueryService {
     @Cacheable(cacheNames = CacheConfig.PROPERTY_KIND_COUNTS, key = "#type")
     @Transactional(readOnly = true)
     public PropertyCategoryCountsDto countsByType(ListingType type) {
-        long apartment = listingRepository.countByListingTypeAndPropertyCategoryAndStatus(
-                type, PropertyCategory.APARTMENT, PropertyStatus.ACTIVE);
-        long house = listingRepository.countByListingTypeAndPropertyCategoryAndStatus(
-                type, PropertyCategory.HOUSE, PropertyStatus.ACTIVE);
-        return new PropertyCategoryCountsDto(apartment, house);
+        Map<PropertyCategory, Long> counts = new EnumMap<>(PropertyCategory.class);
+        for (Object[] row : listingRepository.countByCategory(type, PropertyStatus.ACTIVE)) {
+            counts.put((PropertyCategory) row[0], (Long) row[1]);
+        }
+        return new PropertyCategoryCountsDto(
+                counts.getOrDefault(PropertyCategory.APARTMENT, 0L),
+                counts.getOrDefault(PropertyCategory.HOUSE, 0L),
+                counts.getOrDefault(PropertyCategory.NEW_PROJECT, 0L),
+                counts.getOrDefault(PropertyCategory.COMMERCIAL, 0L),
+                counts.getOrDefault(PropertyCategory.LAND, 0L),
+                counts.getOrDefault(PropertyCategory.GARAGE, 0L));
     }
 
     @Cacheable(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "{#id, #locale}")

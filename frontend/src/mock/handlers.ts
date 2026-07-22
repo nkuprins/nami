@@ -295,8 +295,14 @@ function filterBySize(items: CatalogItem[], params: URLSearchParams) {
   const landM2Min = params.get('landM2Min');
   const landM2Max = params.get('landM2Max');
   let result = items;
-  if (m2Min) result = result.filter((i) => i.details.m2 >= Number(m2Min));
-  if (m2Max) result = result.filter((i) => i.details.m2 <= Number(m2Max));
+  if (m2Min)
+    result = result.filter(
+      (i) => i.details.m2 != null && i.details.m2 >= Number(m2Min)
+    );
+  if (m2Max)
+    result = result.filter(
+      (i) => i.details.m2 != null && i.details.m2 <= Number(m2Max)
+    );
   // Land area only exists on houses; a null-land listing fails either bound.
   if (landM2Min)
     result = result.filter(
@@ -480,8 +486,9 @@ function applyFilters(params: URLSearchParams) {
     'price-asc': (a, b) => a.price.amount - b.price.amount,
     'price-desc': (a, b) => b.price.amount - a.price.amount,
     'price-per-m2-asc': (a, b) =>
-      a.price.amount / a.details.m2 - b.price.amount / b.details.m2,
-    'm2-desc': (a, b) => b.details.m2 - a.details.m2,
+      a.price.amount / (a.details.m2 || Infinity) -
+      b.price.amount / (b.details.m2 || Infinity),
+    'm2-desc': (a, b) => (b.details.m2 ?? 0) - (a.details.m2 ?? 0),
   };
   items.sort(sorters[sort] ?? sorters.newest);
 
@@ -599,9 +606,15 @@ export const handlers = [
     const type = new URL(request.url).searchParams.get('type');
     let items = dtoCatalog.filter((i) => i.status === 'active');
     if (type) items = items.filter((i) => i.type === type);
+    const countOf = (category: string) =>
+      items.filter((i) => i.propertyKind === category).length;
     return HttpResponse.json({
-      apartment: items.filter((i) => i.propertyKind === 'apartment').length,
-      house: items.filter((i) => i.propertyKind === 'house').length,
+      apartment: countOf('apartment'),
+      house: countOf('house'),
+      newProject: countOf('new_project'),
+      commercial: countOf('commercial'),
+      land: countOf('land'),
+      garage: countOf('garage'),
     });
   }),
 

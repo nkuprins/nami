@@ -1,5 +1,31 @@
-export const KNOWN_TYPES = ['buy', 'rent', 'new_project'] as const;
+// Transaction axis.
+export const KNOWN_TYPES = ['buy', 'rent'] as const;
+// Category axis (top-level browse tabs).
+export const KNOWN_CATEGORIES = [
+  'apartment',
+  'house',
+  'new_project',
+  'commercial',
+  'land',
+  'garage',
+] as const;
+// apartment|house building kind — used as the new_project sub-type.
 export const KNOWN_KINDS = ['apartment', 'house'] as const;
+// commercial sub-type.
+export const KNOWN_COMMERCIAL_TYPES = [
+  'office',
+  'warehouse',
+  'retail',
+  'industrial',
+  'hospitality',
+] as const;
+// land-use purpose (cadastre-sourced).
+export const KNOWN_LAND_USE = [
+  'residential',
+  'commercial',
+  'agricultural',
+  'forest',
+] as const;
 export const KNOWN_COMPLETION = ['ready', 'not_ready'] as const;
 export const KNOWN_FEATURES = [
   'balcony',
@@ -94,8 +120,14 @@ export const KNOWN_PARKING = [
 ] as const;
 
 export type ListingType = (typeof KNOWN_TYPES)[number];
+export type Category = (typeof KNOWN_CATEGORIES)[number];
 export type PropertyKind = (typeof KNOWN_KINDS)[number];
+export type CommercialType = (typeof KNOWN_COMMERCIAL_TYPES)[number];
+export type LandUse = (typeof KNOWN_LAND_USE)[number];
 export type PropertyCompletion = (typeof KNOWN_COMPLETION)[number];
+
+// Active-listing counts per category, for the browse tabs.
+export type CategoryCounts = Record<Category, number>;
 export type Feature = (typeof KNOWN_FEATURES)[number];
 export type HeatingType = (typeof KNOWN_HEATING)[number];
 export type EnergyClass = (typeof KNOWN_ENERGY_CLASS)[number];
@@ -116,11 +148,13 @@ export interface PriceInfo {
 }
 
 export interface PropertyDetails {
-  rooms: number;
+  // rooms/m2 are category-dependent: land & garage have no rooms, land has no
+  // building area. Required-ness is enforced per category (see categoryRegistry).
+  rooms?: number;
   bedrooms?: number;
   bathrooms?: number;
   bathroomLayout?: BathroomLayout;
-  m2: number;
+  m2?: number;
   landM2?: number;
   floor?: number;
   totalFloors?: number;
@@ -149,6 +183,8 @@ export interface PropertyLocation {
   // free-typed apartment. Absent on legacy free-text addresses.
   arBuildingCode?: number | null;
   apartment?: string | null;
+  // Cadastral parcel the plot was picked from (land & commercial); absent otherwise.
+  cadastreParcelNr?: string | null;
   coords: { lat: number; lng: number } | null; // null on list cards
 }
 
@@ -173,7 +209,14 @@ interface ListingBase {
   propertyId: string; // id of the underlying physical property
   ownerId?: string;
   type: ListingType;
-  propertyKind: PropertyKind;
+  // The category (apartment/house/new_project/commercial/land/garage). Field name
+  // kept as `propertyKind` to match the backend wire shape.
+  propertyKind: Category;
+  // Sub-type, present per category: apartment|house for new_project, office/… for
+  // commercial, land-use for land.
+  newProjectKind?: PropertyKind;
+  commercialSubtype?: CommercialType;
+  landUse?: LandUse;
   price: PriceInfo;
   details: PropertyDetails;
   translations: Translations;

@@ -141,10 +141,7 @@ function handleTypeChange(type: ListingType | '') {
                 </p>
               </section>
 
-              <PropertyKindSection
-                :property-kind="form.propertyKind"
-                @update:property-kind="form.propertyKind = $event"
-              />
+              <PropertyKindSection v-model:form="form" :field-error="fieldError" />
             </div>
 
             <div

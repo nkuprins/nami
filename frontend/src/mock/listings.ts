@@ -1,9 +1,12 @@
 import type {
   BathroomLayout,
+  Category,
+  CommercialType,
   Communication,
   EnergyClass,
   Feature,
   HeatingType,
+  LandUse,
   ListingDetail,
   ListingType,
   ParkingType,
@@ -36,7 +39,10 @@ interface RawListing {
   id: string;
   propertyId: string;
   type: ListingType;
-  propertyKind: PropertyKind;
+  propertyKind: Category;
+  newProjectKind?: PropertyKind;
+  commercialSubtype?: CommercialType;
+  landUse?: LandUse;
   titleLv?: string;
   titleEn?: string;
   titleRu?: string;
@@ -94,6 +100,9 @@ function toListingDetail(r: RawListing): ListingDetail {
     propertyId: r.propertyId,
     type: r.type,
     propertyKind: r.propertyKind,
+    newProjectKind: r.newProjectKind,
+    commercialSubtype: r.commercialSubtype,
+    landUse: r.landUse,
     price: { amount: r.price, vatIncluded: r.vatIncluded },
     details: {
       rooms: r.rooms,
@@ -808,8 +817,9 @@ const rawListings: RawListing[] = [
   {
     id: 'lst-022',
     propertyId: 'prop-022',
-    type: 'new_project',
-    propertyKind: 'apartment',
+    type: 'buy',
+    propertyKind: 'new_project',
+    newProjectKind: 'apartment',
     titleLv: 'Kalnciema kvartāls — C ēka',
     titleEn: 'Kalnciema Quarter — Building C',
     descriptionLv:
@@ -839,8 +849,9 @@ const rawListings: RawListing[] = [
   {
     id: 'lst-023',
     propertyId: 'prop-023',
-    type: 'new_project',
-    propertyKind: 'apartment',
+    type: 'buy',
+    propertyKind: 'new_project',
+    newProjectKind: 'apartment',
     titleLv: 'Skanstes upes krasts — 2. tornis',
     titleEn: 'Skanstes Riverside — Tower 2',
     descriptionLv:
@@ -918,8 +929,9 @@ const rawListings: RawListing[] = [
   {
     id: 'lst-024',
     propertyId: 'prop-024',
-    type: 'new_project',
-    propertyKind: 'house',
+    type: 'buy',
+    propertyKind: 'new_project',
+    newProjectKind: 'house',
     titleLv: 'Mežaparka koka mājas — 11. zemesgabals',
     titleEn: 'Mežaparks Wood Houses — Plot 11',
     descriptionLv:

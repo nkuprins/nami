@@ -1,8 +1,10 @@
 package com.app.backend.entity;
 
 import com.app.backend.enums.BathroomLayout;
+import com.app.backend.enums.CommercialType;
 import com.app.backend.enums.Communication;
 import com.app.backend.enums.EnergyClass;
+import com.app.backend.enums.LandUse;
 import com.app.backend.enums.HeatingType;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.ParkingType;
@@ -78,7 +80,25 @@ public class Listing {
     @Column(name = "property_category", nullable = false)
     private PropertyCategory propertyCategory;
 
-    @Column(name = "rooms", nullable = false)
+    // Sub-type axis (see CategoryProfile): new_project's apartment|house kind reuses
+    // the PropertyCategory enum; commercial has its own; land carries a land-use purpose.
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "new_project_kind")
+    private PropertyCategory newProjectKind;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "commercial_subtype")
+    private CommercialType commercialSubtype;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "land_use")
+    private LandUse landUse;
+
+    // Nullable: land & garage have no rooms; land has no building area (see chk_rooms_scope).
+    @Column(name = "rooms")
     private Short rooms;
 
     @Column(name = "bedrooms")
@@ -92,7 +112,7 @@ public class Listing {
     @Column(name = "bathroom_layout")
     private BathroomLayout bathroomLayout;
 
-    @Column(name = "m2", nullable = false, precision = 6, scale = 2)
+    @Column(name = "m2", precision = 6, scale = 2)
     private BigDecimal m2;
 
     @Column(name = "land_m2", precision = 8, scale = 2)

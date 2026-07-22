@@ -48,6 +48,9 @@ public class PropertyMapper {
                 .ownerId(l.getOwner().getId())
                 .type(l.getListingType())
                 .propertyKind(l.getPropertyCategory())
+                .newProjectKind(l.getNewProjectKind())
+                .commercialSubtype(l.getCommercialSubtype())
+                .landUse(l.getLandUse())
                 .price(new Price(l.getPrice(), l.isVatIncluded() ? true : null))
                 .details(toFullDetailsDto(l))
                 .translations(locale == null
@@ -100,11 +103,14 @@ public class PropertyMapper {
                 .ownerId(l.getOwner().getId())
                 .type(l.getListingType())
                 .propertyKind(l.getPropertyCategory())
+                .newProjectKind(l.getNewProjectKind())
+                .commercialSubtype(l.getCommercialSubtype())
+                .landUse(l.getLandUse())
                 .price(new Price(l.getPrice(), l.isVatIncluded() ? true : null))
                 .details(details)
                 .translations(translations(l.getTranslations(), false))
                 .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
-                        p.getArBuildingCode(), p.getApartment(), null))
+                        p.getArBuildingCode(), p.getApartment(), p.getCadastreParcelNr(), null))
                 .features(sorted(l.getFeatures()))
                 .photo(photo)
                 .postedAt(l.getPostedAt())
@@ -175,6 +181,9 @@ public class PropertyMapper {
     public void applyListingContent(Listing listing, PropertyRequest req) {
         listing.setListingType(req.type());
         listing.setPropertyCategory(req.propertyKind());
+        listing.setNewProjectKind(req.newProjectKind());
+        listing.setCommercialSubtype(req.commercialSubtype());
+        listing.setLandUse(req.landUse());
         listing.setPrice(req.price().amount());
         listing.setVatIncluded(Boolean.TRUE.equals(req.price().vatIncluded()));
         listing.setCompletion(req.completion());
@@ -208,6 +217,7 @@ public class PropertyMapper {
         property.setAddress(loc.address());
         property.setArBuildingCode(loc.arBuildingCode());
         property.setApartment(loc.apartment());
+        property.setCadastreParcelNr(loc.cadastreParcelNr());
         property.setLat(loc.coords().lat());
         property.setLng(loc.coords().lng());
     }
@@ -279,7 +289,8 @@ public class PropertyMapper {
 
     private static Location toLocation(Property p) {
         return new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
-                p.getArBuildingCode(), p.getApartment(), new CoordsDto(p.getLat(), p.getLng()));
+                p.getArBuildingCode(), p.getApartment(), p.getCadastreParcelNr(),
+                new CoordsDto(p.getLat(), p.getLng()));
     }
 
     private static void applyDetails(Listing listing, PropertyDetails details) {

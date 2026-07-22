@@ -72,7 +72,8 @@ public class PropertyService {
         propertyMapper.applyListingContent(listing, req);
         mediaUrlValidator.validate(listing.allMediaUrls());
         listing.setStatus(cadastreQueryService.decideStatus(
-                location.arBuildingCode(), location.apartment(), listing.getM2(), listing.getYearBuilt()));
+                location.arBuildingCode(), location.apartment(),
+                location.cadastreParcelNr(), listing));
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
         propertyRepository.save(property);

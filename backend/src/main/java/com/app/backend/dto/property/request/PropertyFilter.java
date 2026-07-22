@@ -1,9 +1,11 @@
 package com.app.backend.dto.property.request;
 
 import com.app.backend.enums.BathroomLayout;
+import com.app.backend.enums.CommercialType;
 import com.app.backend.enums.Communication;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
+import com.app.backend.enums.LandUse;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.ParkingType;
 import com.app.backend.enums.PropertyCategory;
@@ -30,6 +32,8 @@ import java.util.List;
 public record PropertyFilter(
         @NotNull ListingType type,
         PropertyCategory kind,
+        CommercialType commercialSubtype,
+        LandUse landUse,
         List<String> loc,
         @DecimalMin("0.01") @DecimalMax("999999999999.99") BigDecimal priceMin,
         @DecimalMin("0.01") @DecimalMax("999999999999.99") BigDecimal priceMax,

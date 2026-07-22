@@ -2,6 +2,8 @@ package com.app.backend.service;
 
 import com.app.backend.IntegrationTestBase;
 import com.app.backend.dto.cadastre.CadastreIngestStats;
+import com.app.backend.entity.Listing;
+import com.app.backend.enums.LandUse;
 import com.app.backend.enums.PropertyStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,21 @@ class CadastreIntegrationTest extends IntegrationTestBase {
         Path cadastreDir = Path.of("src/test/resources/cadastre").toAbsolutePath();
         registry.add("app.cadastre.urls.building", () -> cadastreDir.resolve("building.zip").toUri());
         registry.add("app.cadastre.urls.premise-group", () -> cadastreDir.resolve("premisegroup.zip").toUri());
+        registry.add("app.cadastre.urls.parcel", () -> cadastreDir.resolve("parcel.zip").toUri());
+    }
+
+    private static Listing building(BigDecimal m2, Short yearBuilt) {
+        Listing l = new Listing();
+        l.setM2(m2);
+        l.setYearBuilt(yearBuilt);
+        return l;
+    }
+
+    private static Listing parcel(BigDecimal landM2, LandUse landUse) {
+        Listing l = new Listing();
+        l.setLandM2(landM2);
+        l.setLandUse(landUse);
+        return l;
     }
 
     @Autowired private AddressRegistryIngestService addressIngestService;
@@ -46,32 +63,55 @@ class CadastreIntegrationTest extends IntegrationTestBase {
         addressIngestService.ingest();
         CadastreIngestStats stats = cadastreIngestService.ingest();
 
-        // 2 buildings in the fixture (one with a VARISCode, one without); 2 premises.
-        assertThat(stats).isEqualTo(new CadastreIngestStats(2, 2));
+        // 2 buildings in the fixture (one with a VARISCode, one without); 2 premises; 2 parcels.
+        assertThat(stats).isEqualTo(new CadastreIngestStats(2, 2, 2));
 
         // No cadastre link at all (legacy free-text address) — fails open.
-        assertThat(cadastreQueryService.decideStatus(null, null, new BigDecimal("999"), (short) 1900))
+        assertThat(cadastreQueryService.decideStatus(null, null, null, building(new BigDecimal("999"), (short) 1900)))
                 .isEqualTo(PropertyStatus.ACTIVE);
 
         // Building 6001: cadastre year is 1985. Within tolerance (5 years) → ACTIVE.
-        assertThat(cadastreQueryService.decideStatus(6001L, null, new BigDecimal("52.8"), (short) 1983))
+        assertThat(cadastreQueryService.decideStatus(6001L, null, null, building(new BigDecimal("52.8"), (short) 1983)))
                 .isEqualTo(PropertyStatus.ACTIVE);
         // Outside tolerance → PENDING_REVIEW.
-        assertThat(cadastreQueryService.decideStatus(6001L, null, new BigDecimal("52.8"), (short) 1950))
+        assertThat(cadastreQueryService.decideStatus(6001L, null, null, building(new BigDecimal("52.8"), (short) 1950)))
                 .isEqualTo(PropertyStatus.PENDING_REVIEW);
 
         // Apartment "1" under building 6001 (VAR code 7001) has cadastre area 52.8 m².
-        assertThat(cadastreQueryService.decideStatus(6001L, "1", new BigDecimal("53.0"), null))
+        assertThat(cadastreQueryService.decideStatus(6001L, "1", null, building(new BigDecimal("53.0"), null)))
                 .isEqualTo(PropertyStatus.ACTIVE); // within 15%
-        assertThat(cadastreQueryService.decideStatus(6001L, "1", new BigDecimal("90.0"), null))
+        assertThat(cadastreQueryService.decideStatus(6001L, "1", null, building(new BigDecimal("90.0"), null)))
                 .isEqualTo(PropertyStatus.PENDING_REVIEW); // way over 15%
 
         // Building 6002 has no VARISCode in the fixture, so it never resolves — fails open.
-        assertThat(cadastreQueryService.decideStatus(6002L, null, new BigDecimal("999"), (short) 1900))
+        assertThat(cadastreQueryService.decideStatus(6002L, null, null, building(new BigDecimal("999"), (short) 1900)))
                 .isEqualTo(PropertyStatus.ACTIVE);
 
         // Unknown apartment under a known building — fails open on the area check alone.
-        assertThat(cadastreQueryService.decideStatus(6001L, "99", new BigDecimal("999"), null))
+        assertThat(cadastreQueryService.decideStatus(6001L, "99", null, building(new BigDecimal("999"), null)))
+                .isEqualTo(PropertyStatus.ACTIVE);
+
+        // ── land parcels ──────────────────────────────────────────
+        // Parcel 21000030512: area 1200 m², use-purpose maps to COMMERCIAL.
+        // Declared plot area and land-use both match → ACTIVE.
+        assertThat(cadastreQueryService.decideStatus(null, null, "21000030512",
+                parcel(new BigDecimal("1200.00"), LandUse.COMMERCIAL)))
+                .isEqualTo(PropertyStatus.ACTIVE);
+        // Plot area way over the 15% tolerance → PENDING_REVIEW.
+        assertThat(cadastreQueryService.decideStatus(null, null, "21000030512",
+                parcel(new BigDecimal("3000.00"), LandUse.COMMERCIAL)))
+                .isEqualTo(PropertyStatus.PENDING_REVIEW);
+        // Declared land-use disagrees with the cadastre → PENDING_REVIEW.
+        assertThat(cadastreQueryService.decideStatus(null, null, "21000030512",
+                parcel(new BigDecimal("1200.00"), LandUse.RESIDENTIAL)))
+                .isEqualTo(PropertyStatus.PENDING_REVIEW);
+        // Unknown parcel number — fails open.
+        assertThat(cadastreQueryService.decideStatus(null, null, "99990000000",
+                parcel(new BigDecimal("1200.00"), LandUse.COMMERCIAL)))
+                .isEqualTo(PropertyStatus.ACTIVE);
+        // No parcel link at all — fails open.
+        assertThat(cadastreQueryService.decideStatus(null, null, null,
+                parcel(new BigDecimal("1200.00"), LandUse.COMMERCIAL)))
                 .isEqualTo(PropertyStatus.ACTIVE);
     }
 }

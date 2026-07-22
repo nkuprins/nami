@@ -5,6 +5,8 @@ import com.app.backend.dto.property.model.Location;
 import com.app.backend.dto.property.model.Media;
 import com.app.backend.dto.property.model.Price;
 import com.app.backend.dto.property.model.PropertyDetails;
+import com.app.backend.enums.CommercialType;
+import com.app.backend.enums.LandUse;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
@@ -25,6 +27,9 @@ public record PropertyListItemDto(
         UUID ownerId,
         ListingType type,
         PropertyCategory propertyKind,
+        PropertyCategory newProjectKind,
+        CommercialType commercialSubtype,
+        LandUse landUse,
         Price price,
         PropertyDetails details,
         Map<String, LocalizedText> translations,

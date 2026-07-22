@@ -1,15 +1,15 @@
 package com.app.backend.validation;
 
+import com.app.backend.category.CategoryField;
+import com.app.backend.category.CategoryProfile;
 import com.app.backend.dto.property.model.LocalizedText;
+import com.app.backend.dto.property.model.PropertyDetails;
 import com.app.backend.dto.property.request.PropertyRequest;
-import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.util.StringUtils;
-
-import java.math.BigDecimal;
 
 public class PropertyRequestValidator implements ConstraintValidator<ValidPropertyRequest, PropertyRequest> {
 
@@ -27,24 +27,29 @@ public class PropertyRequestValidator implements ConstraintValidator<ValidProper
             valid = false;
         }
 
+        // Per-category required/forbidden conditional fields (see CategoryProfile).
+        PropertyCategory category = req.propertyKind();
+        if (category != null) {
+            CategoryProfile profile = CategoryProfile.of(category);
+            for (CategoryField field : CategoryField.values()) {
+                Object value = valueOf(field, req);
+                if (profile.requires(field) && value == null) {
+                    reportField(ctx, field, field.node + " is required for a "
+                            + category.getDbValue() + " listing");
+                    valid = false;
+                } else if (profile.forbids(field) && value != null) {
+                    reportField(ctx, field, field.node + " is not valid for a "
+                            + category.getDbValue() + " listing");
+                    valid = false;
+                }
+            }
+        }
+
         Short yearBuilt = req.details() != null ? req.details().yearBuilt() : null;
         if (req.completion() == PropertyCompletion.NOT_READY && yearBuilt != null) {
             ctx.buildConstraintViolationWithTemplate(
                             "A 'not_ready' new project cannot have a year_built")
                     .addPropertyNode("details").addPropertyNode("yearBuilt").addConstraintViolation();
-            valid = false;
-        }
-
-        if (req.completion() != null && req.type() != ListingType.NEW_PROJECT) {
-            ctx.buildConstraintViolationWithTemplate("completion is only valid for a new_project listing")
-                    .addPropertyNode("completion").addConstraintViolation();
-            valid = false;
-        }
-
-        BigDecimal landM2 = req.details() != null ? req.details().landM2() : null;
-        if (landM2 != null && req.propertyKind() == PropertyCategory.APARTMENT) {
-            ctx.buildConstraintViolationWithTemplate("land_m2 is not valid for an apartment")
-                    .addPropertyNode("details").addPropertyNode("landM2").addConstraintViolation();
             valid = false;
         }
 
@@ -74,5 +79,27 @@ public class PropertyRequestValidator implements ConstraintValidator<ValidProper
 
     private static boolean isComplete(LocalizedText t) {
         return t != null && StringUtils.hasText(t.title()) && StringUtils.hasText(t.description());
+    }
+
+    private static Object valueOf(CategoryField field, PropertyRequest req) {
+        PropertyDetails d = req.details();
+        return switch (field) {
+            case ROOMS -> d == null ? null : d.rooms();
+            case M2 -> d == null ? null : d.m2();
+            case LAND_M2 -> d == null ? null : d.landM2();
+            case LAND_USE -> req.landUse();
+            case NEW_PROJECT_KIND -> req.newProjectKind();
+            case COMMERCIAL_SUBTYPE -> req.commercialSubtype();
+            case COMPLETION -> req.completion();
+        };
+    }
+
+    private static void reportField(ConstraintValidatorContext ctx, CategoryField field, String message) {
+        var builder = ctx.buildConstraintViolationWithTemplate(message);
+        if (field.parentNode != null) {
+            builder.addPropertyNode(field.parentNode).addPropertyNode(field.node).addConstraintViolation();
+        } else {
+            builder.addPropertyNode(field.node).addConstraintViolation();
+        }
     }
 }

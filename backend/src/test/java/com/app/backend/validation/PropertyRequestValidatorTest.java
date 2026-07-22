@@ -2,7 +2,6 @@ package com.app.backend.validation;
 
 import com.app.backend.dto.property.request.CreatePropertyRequest;
 import com.app.backend.dto.property.model.LocalizedText;
-import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import jakarta.validation.ConstraintViolation;
@@ -68,7 +67,8 @@ class PropertyRequestValidatorTest {
     @Test
     void invalid_whenNotReadyHasYearBuilt() {
         CreatePropertyRequest req = createPropertyRequest().toBuilder()
-                .type(ListingType.NEW_PROJECT)
+                .propertyKind(PropertyCategory.NEW_PROJECT)
+                .newProjectKind(PropertyCategory.APARTMENT)
                 .completion(PropertyCompletion.NOT_READY)
                 .build();
 
@@ -79,7 +79,8 @@ class PropertyRequestValidatorTest {
     @Test
     void valid_whenNotReadyWithoutYearBuilt() {
         CreatePropertyRequest req = createPropertyRequest().toBuilder()
-                .type(ListingType.NEW_PROJECT)
+                .propertyKind(PropertyCategory.NEW_PROJECT)
+                .newProjectKind(PropertyCategory.APARTMENT)
                 .completion(PropertyCompletion.NOT_READY)
                 .details(createPropertyRequest().details().toBuilder().yearBuilt(null).build())
                 .build();
@@ -90,7 +91,7 @@ class PropertyRequestValidatorTest {
     @Test
     void invalid_whenCompletionSetOnNonNewProjectListing() {
         CreatePropertyRequest req = createPropertyRequest().toBuilder()
-                .type(ListingType.BUY)
+                .propertyKind(PropertyCategory.APARTMENT)
                 .completion(PropertyCompletion.READY)
                 .build();
 
@@ -101,7 +102,8 @@ class PropertyRequestValidatorTest {
     @Test
     void valid_whenCompletionSetOnNewProjectListing() {
         CreatePropertyRequest req = createPropertyRequest().toBuilder()
-                .type(ListingType.NEW_PROJECT)
+                .propertyKind(PropertyCategory.NEW_PROJECT)
+                .newProjectKind(PropertyCategory.APARTMENT)
                 .completion(PropertyCompletion.READY)
                 .build();
 

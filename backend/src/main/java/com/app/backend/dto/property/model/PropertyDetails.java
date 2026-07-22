@@ -12,7 +12,6 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -27,11 +26,13 @@ import java.math.BigDecimal;
 @Builder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record PropertyDetails(
-        @NotNull @Min(1) Short rooms,
+        // rooms/m2 requiredness is category-dependent (see CategoryProfile); land & garage
+        // omit rooms, land omits building m2. Bounds still apply when a value is present.
+        @Min(1) Short rooms,
         @Min(0) @Max(100) Short bedrooms,
         @Min(0) @Max(100) Short bathrooms,
         BathroomLayout bathroomLayout,
-        @NotNull @DecimalMin("1.00") @DecimalMax("9999.99") @Digits(integer = 4, fraction = 2) BigDecimal m2,
+        @DecimalMin("1.00") @DecimalMax("9999.99") @Digits(integer = 4, fraction = 2) BigDecimal m2,
         @DecimalMin("0.01") @DecimalMax("999999.99") @Digits(integer = 6, fraction = 2) BigDecimal landM2,
         @Min(0) @Max(100) Short floor,
         @Min(1) @Max(100) Short totalFloors,

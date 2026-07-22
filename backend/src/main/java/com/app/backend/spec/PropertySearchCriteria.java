@@ -2,9 +2,11 @@ package com.app.backend.spec;
 
 import com.app.backend.dto.property.request.PropertyFilter;
 import com.app.backend.enums.BathroomLayout;
+import com.app.backend.enums.CommercialType;
 import com.app.backend.enums.Communication;
 import com.app.backend.enums.EnergyClass;
 import com.app.backend.enums.HeatingType;
+import com.app.backend.enums.LandUse;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.ParkingType;
 import com.app.backend.enums.PropertyCategory;
@@ -27,6 +29,8 @@ import java.util.Map;
 public record PropertySearchCriteria(
         ListingType listingType,
         PropertyCategory kind,
+        CommercialType commercialSubtype,
+        LandUse landUse,
         Map<String, List<String>> locByCity,
         BigDecimal priceMin,
         BigDecimal priceMax,
@@ -66,6 +70,8 @@ public record PropertySearchCriteria(
         return PropertySearchCriteria.builder()
                 .listingType(filter.type())
                 .kind(filter.kind())
+                .commercialSubtype(filter.commercialSubtype())
+                .landUse(filter.landUse())
                 .locByCity(locByCity)
                 .priceMin(filter.priceMin()).priceMax(filter.priceMax())
                 .rooms(filter.rooms())

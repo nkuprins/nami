@@ -62,7 +62,8 @@ public class ListingService {
         propertyMapper.applyListingContent(listing, req);
         mediaUrlValidator.validate(listing.allMediaUrls());
         listing.setStatus(cadastreQueryService.decideStatus(
-                property.getArBuildingCode(), property.getApartment(), listing.getM2(), listing.getYearBuilt()));
+                property.getArBuildingCode(), property.getApartment(),
+                property.getCadastreParcelNr(), listing));
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
         Listing saved = listingRepository.save(listing);
@@ -94,7 +95,8 @@ public class ListingService {
         if (listing.getStatus() != PropertyStatus.INACTIVE) {
             Property property = listing.getProperty();
             listing.setStatus(cadastreQueryService.decideStatus(
-                    property.getArBuildingCode(), property.getApartment(), listing.getM2(), listing.getYearBuilt()));
+                    property.getArBuildingCode(), property.getApartment(),
+                    property.getCadastreParcelNr(), listing));
         }
         Listing saved = listingRepository.save(listing);
 
@@ -121,7 +123,8 @@ public class ListingService {
         Property property = listing.getProperty();
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
         listing.setStatus(cadastreQueryService.decideStatus(
-                property.getArBuildingCode(), property.getApartment(), listing.getM2(), listing.getYearBuilt()));
+                property.getArBuildingCode(), property.getApartment(),
+                property.getCadastreParcelNr(), listing));
         listing.setExpiryWarningSent(false);
         return propertyMapper.toDto(listingRepository.save(listing));
     }

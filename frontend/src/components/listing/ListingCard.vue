@@ -23,12 +23,12 @@ const title = computed(() => resolveTitle(props.property, locale.value));
 const price = computed(() =>
   formatPrice(props.property.price.amount, props.property.type, locale.value)
 );
-const pricePerM2 = computed(() =>
-  formatPricePerM2(
-    props.property.price.amount / props.property.details.m2,
-    locale.value
-  )
-);
+const pricePerM2 = computed(() => {
+  const m2 = props.property.details.m2;
+  return m2
+    ? formatPricePerM2(props.property.price.amount / m2, locale.value)
+    : '';
+});
 
 const specRow = computed(() => {
   const { rooms, m2, floor, totalFloors, landM2 } = props.property.details;

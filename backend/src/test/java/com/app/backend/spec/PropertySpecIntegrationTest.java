@@ -211,19 +211,21 @@ class PropertySpecIntegrationTest extends IntegrationTestBase {
     @Test
     void filtersByCompletion_forNewProject() {
         Listing ready = TestData.listing(owner);
-        ready.setListingType(ListingType.NEW_PROJECT);
+        ready.setPropertyCategory(PropertyCategory.NEW_PROJECT);
+        ready.setNewProjectKind(PropertyCategory.APARTMENT);
         ready.setCompletion(PropertyCompletion.READY);
         ready.setYearBuilt(null);
         save(ready);
 
         Listing notReady = TestData.listing(owner);
-        notReady.setListingType(ListingType.NEW_PROJECT);
+        notReady.setPropertyCategory(PropertyCategory.NEW_PROJECT);
+        notReady.setNewProjectKind(PropertyCategory.APARTMENT);
         notReady.setCompletion(PropertyCompletion.NOT_READY);
         notReady.setYearBuilt(null);
         save(notReady);
 
         List<Listing> results = listingRepository.findAll(
-                spec(ListingType.NEW_PROJECT, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                spec(ListingType.BUY, null, null, null, null, null, null, null, null, null, null, null, null, null,
                         PropertyCompletion.READY));
 
         assertThat(results).hasSize(1).allMatch(l -> l.getCompletion() == PropertyCompletion.READY);

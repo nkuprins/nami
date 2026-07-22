@@ -7,9 +7,17 @@ export type ListingWizardStep =
 
 const STEP_MATCHERS: Record<ListingWizardStep, (key: string) => boolean> = {
   location: (k) => k === 'district' || k === 'street' || k === 'building',
-  category: (k) => k === 'type',
+  category: (k) =>
+    k === 'type' ||
+    k === 'newProjectKind' ||
+    k === 'commercialSubtype' ||
+    k === 'landUse',
   description: (k) =>
-    k === 'title' || k === 'description' || k === 'rooms' || k === 'm2',
+    k === 'title' ||
+    k === 'description' ||
+    k === 'rooms' ||
+    k === 'm2' ||
+    k === 'landM2',
   photos: (k) => k === 'photos',
   publish: (k) =>
     k === 'price' ||

@@ -24,5 +24,5 @@ public record AppProperties(
     public record AddressRegisterUrls(String novads, String pagasts, String pilseta,
                                       String ciems, String iela, String eka, String dziv) {}
     public record CadastreProperties(boolean autoIngest, CadastreUrls urls) {}
-    public record CadastreUrls(String building, String premiseGroup) {}
+    public record CadastreUrls(String building, String premiseGroup, String parcel) {}
 }

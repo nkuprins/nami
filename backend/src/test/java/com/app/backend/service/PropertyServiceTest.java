@@ -10,6 +10,7 @@ import com.app.backend.entity.Listing_;
 import com.app.backend.entity.Property;
 import com.app.backend.entity.User;
 import com.app.backend.enums.ListingType;
+import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
 import com.app.backend.enums.PropertyStatus;
@@ -378,7 +379,8 @@ class PropertyServiceTest {
             }).when(propertyMapper).applyListingContent(any(), any());
 
             CreatePropertyRequest req = createPropertyRequest().toBuilder()
-                    .type(ListingType.NEW_PROJECT)
+                    .propertyKind(PropertyCategory.NEW_PROJECT)
+                    .newProjectKind(PropertyCategory.APARTMENT)
                     .completion(PropertyCompletion.READY)
                     .build();
 
@@ -391,7 +393,7 @@ class PropertyServiceTest {
 
         private CreatePropertyRequest registerLinkedRequest(Long buildingCode, String apartment) {
             Location loc = new Location("centre", "riga", "typed by client", buildingCode, apartment,
-                    new CoordsDto(56.9496, 24.1052));
+                    null, new CoordsDto(56.9496, 24.1052));
             return createPropertyRequest().toBuilder().location(loc).build();
         }
 
@@ -965,7 +967,7 @@ class PropertyServiceTest {
                 .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), null))
                 .details(PropertyDetails.builder().rooms(l.getRooms()).m2(l.getM2()).build())
-                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null, null))
+                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null, null, null))
                 .features(List.of())
                 .postedAt(l.getPostedAt())
                 .expiresAt(l.getExpiresAt())
@@ -977,7 +979,7 @@ class PropertyServiceTest {
                 .id(p.getId())
                 .ownerId(p.getOwner().getId())
                 .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null,
-                        coordsOf(p)))
+                        null, coordsOf(p)))
                 .build();
     }
 
@@ -991,7 +993,7 @@ class PropertyServiceTest {
                 .price(new Price(l.getPrice(), null))
                 .details(PropertyDetails.builder().rooms(l.getRooms()).m2(l.getM2()).build())
                 .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null,
-                        coordsOf(p)))
+                        null, coordsOf(p)))
                 .features(List.of())
                 .media(Media.builder().photos(List.of()).build())
                 .postedAt(l.getPostedAt())

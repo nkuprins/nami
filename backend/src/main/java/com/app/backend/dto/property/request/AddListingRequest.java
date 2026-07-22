@@ -5,7 +5,9 @@ import com.app.backend.dto.property.model.Media;
 import com.app.backend.dto.property.model.PhoneContact;
 import com.app.backend.dto.property.model.Price;
 import com.app.backend.dto.property.model.PropertyDetails;
+import com.app.backend.enums.CommercialType;
 import com.app.backend.enums.Communication;
+import com.app.backend.enums.LandUse;
 import com.app.backend.enums.ListingType;
 import com.app.backend.enums.ParkingType;
 import com.app.backend.enums.PropertyCategory;
@@ -35,6 +37,9 @@ import java.util.Map;
 public record AddListingRequest(
         @NotNull ListingType type,
         @NotNull PropertyCategory propertyKind,
+        PropertyCategory newProjectKind,
+        CommercialType commercialSubtype,
+        LandUse landUse,
         @NotNull @Valid Price price,
         @NotNull @Valid PropertyDetails details,
         Map<String, LocalizedText> translations,

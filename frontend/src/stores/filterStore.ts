@@ -7,7 +7,8 @@ import {
   FilterKey,
   type FilterState,
 } from '../types/filter';
-import { ListingType, PropertyKind } from '../types/listingItem';
+import { Category, ListingType } from '../types/listingItem';
+import { categoryProfile } from '../types/categoryRegistry';
 import { logger } from '../utils/logger';
 import { FilterCodec } from '../utils/filterCodec';
 import { SortKey } from '../types/sort';
@@ -69,20 +70,36 @@ export const useFiltersStore = defineStore('filters', () => {
     logger.info(`[FiltersStore] Mode mutation: ${state.type} ➔ ${type}`);
     state.type = type;
     state.page = 1;
-    if (type !== 'new_project') state.completion = undefined;
   }
 
-  function setKind(kind: PropertyKind | undefined) {
-    if (state.kind === kind) return;
-    logger.info(`[FiltersStore] Kind mutation: ${state.kind} ➔ ${kind}`);
-    state.kind = kind;
-    state.page = 1;
-    // Land area only exists on houses; drop a lingering land filter when the
-    // user leaves the house tab so it can't wrongly exclude every apartment.
-    if (kind !== 'house') {
+  // Drops filter values that don't apply to the selected category, so a lingering
+  // filter can't wrongly exclude every listing (e.g. a land-area bound on apartments).
+  function clearInapplicableFilters(kind: Category | undefined) {
+    const profile = kind ? categoryProfile(kind) : undefined;
+    if (!profile || !profile.completion) state.completion = undefined;
+    if (!profile || profile.plotArea === 'hidden') {
       state.landM2Min = undefined;
       state.landM2Max = undefined;
     }
+    if (!profile || profile.rooms === 'hidden') state.rooms = [];
+    if (!profile || !profile.floors) {
+      state.floorMin = undefined;
+      state.floorMax = undefined;
+      state.notGround = undefined;
+      state.notTop = undefined;
+    }
+    if (!profile || profile.subtype !== 'commercial') {
+      state.commercialSubtype = undefined;
+    }
+    if (!profile || profile.subtype !== 'landUse') state.landUse = undefined;
+  }
+
+  function setKind(kind: Category | undefined) {
+    if (state.kind === kind) return;
+    logger.info(`[FiltersStore] Category mutation: ${state.kind} ➔ ${kind}`);
+    state.kind = kind;
+    state.page = 1;
+    clearInapplicableFilters(kind);
   }
 
   function setLocations(humanLocs: Location[]) {

@@ -1,9 +1,12 @@
 import type {
   BathroomLayout,
+  Category,
+  CommercialType,
   Communication,
   EnergyClass,
   Feature,
   HeatingType,
+  LandUse,
   ListingType,
   ParkingType,
   PropertyCompletion,
@@ -26,11 +29,18 @@ import type { BuildingOption, StreetOption } from '../../../api/addressApi';
 // leave them untouched. `address` is the composed display string — derived
 // from the picks in the create form, seeded from the API in the edit form.
 export interface PropertyFieldsForm {
-  propertyKind: PropertyKind;
+  // The category (apartment/house/new_project/commercial/land/garage).
+  propertyKind: Category;
+  // Category sub-type, filled per category.
+  newProjectKind: PropertyKind | '';
+  commercialSubtype: CommercialType | '';
+  landUse: LandUse | '';
   address: string;
   street: StreetOption | null;
   building: BuildingOption | null;
   apartment: string;
+  // Cadastral parcel picked for land/commercial; empty otherwise.
+  cadastreParcelNr: string;
   rooms: string;
   bedrooms: string;
   bathrooms: string;
