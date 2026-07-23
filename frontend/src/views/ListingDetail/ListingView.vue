@@ -69,7 +69,8 @@ const savedStore = useSavedStore();
 const authStore = useAuthStore();
 
 const listing = ref<ListingDetail | null>(null);
-onMounted(async () => {
+
+async function loadListing() {
   listing.value = (await getListing(props.id, locale.value)) ?? null;
   // Suspended listings 404 on the public endpoint; admins can still reach them
   // here to reactivate.
@@ -77,7 +78,23 @@ onMounted(async () => {
     listing.value =
       (await getListingForAdmin(props.id, locale.value)) ?? null;
   }
-});
+}
+
+onMounted(loadListing);
+
+// vue-router reuses this component when navigating between /listing/:id pages,
+// so onMounted won't fire again. Re-fetch (and reset per-listing view state)
+// whenever the id changes.
+watch(
+  () => props.id,
+  () => {
+    listing.value = null;
+    contentLocale.value = locale.value;
+    phoneRevealed.value = false;
+    mediaTab.value = 'photos';
+    loadListing();
+  }
+);
 
 // Non-empty multi-select attribute sets (+ single-select roof), each resolved to
 // display labels for the chip rows below the amenity features.
