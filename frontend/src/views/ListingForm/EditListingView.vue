@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, provide, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import ToggleButtons from '../../components/ui/ToggleButtons.vue';
@@ -8,6 +8,7 @@ import { usePropertyLabels } from '../../composables/usePropertyLabels';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import { usePhotoUpload } from './composables/usePhotoUpload';
 import { useListingEditForm } from './composables/useListingEditForm';
+import { CADASTRE_OFFICIAL_KEY } from './composables/useCadastreAutofill';
 import type { ListingType } from '../../types/listingItem';
 
 import EditContentsRail from './components/edit/EditContentsRail.vue';
@@ -41,6 +42,7 @@ const {
   submit,
   loading,
   loadedType,
+  official,
   districtDisplay,
   cityDisplay,
   savingPin,
@@ -48,6 +50,8 @@ const {
   siblingListingsCount,
   savePin,
 } = useListingEditForm(props.id, photoUpload, planUpload);
+
+provide(CADASTRE_OFFICIAL_KEY, official);
 
 // Editing keeps the transaction type fixed: show only the listing's own type
 // as the single pill (based on the loaded type, so deselecting can't hide it).

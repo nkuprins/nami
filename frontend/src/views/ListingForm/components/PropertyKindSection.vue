@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ToggleButtons from '../../../components/ui/ToggleButtons.vue';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import { categoryProfile } from '../../../types/categoryRegistry';
 import type { Category } from '../../../types/listingItem';
 import type { ListingFormState } from '../composables/formTypes';
+import {
+  CADASTRE_OFFICIAL_KEY,
+  type OfficialFigures,
+} from '../composables/useCadastreAutofill';
 
 const { t } = useI18n();
 const {
@@ -21,6 +25,18 @@ defineProps<{
 }>();
 
 const profile = computed(() => categoryProfile(form.value.propertyKind));
+
+// Official cadastre land-use for the picked parcel (from the listing-form view).
+const official = inject<import('vue').Ref<OfficialFigures>>(
+  CADASTRE_OFFICIAL_KEY,
+  ref({ yearBuilt: null, area: null, landM2: null, landUse: null })
+);
+const landUseHint = computed(() => {
+  const lu = official.value.landUse;
+  if (!lu) return undefined;
+  const label = landUseOptions.value.find((o) => o.id === lu)?.label ?? lu;
+  return t('addListing.official', { value: label });
+});
 
 function setCategory(value: Category) {
   form.value.propertyKind = value;
@@ -85,6 +101,9 @@ function setCategory(value: Category) {
       />
       <p v-if="fieldError('landUse')" class="text-xs text-warn">
         {{ fieldError('landUse') }}
+      </p>
+      <p v-else-if="landUseHint" class="text-xs text-ink-3 leading-tight">
+        {{ landUseHint }}
       </p>
     </div>
   </section>

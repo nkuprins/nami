@@ -19,6 +19,11 @@ import {
   useListingFormControls,
 } from './formHelpers';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
+import {
+  fetchOfficialBuilding,
+  fetchOfficialParcel,
+} from '../../../api/cadastreApi';
+import type { OfficialFigures } from './useCadastreAutofill';
 import type { usePhotoUpload } from './usePhotoUpload';
 
 export type ListingEditFormState = ListingFormState;
@@ -39,6 +44,14 @@ export function useListingEditForm(
   const submitError = ref('');
   const loading = ref(true);
   const loadedType = ref<ListingType | ''>('');
+  // Official cadastre figures for the loaded address — hint-only on edit (fields
+  // are already populated, so nothing is prefilled).
+  const official = ref<OfficialFigures>({
+    yearBuilt: null,
+    area: null,
+    landM2: null,
+    landUse: null,
+  });
 
   // Populated from the loaded listing's shared property location — used to
   // render the locked Location card and to save a corrected map pin. The
@@ -81,6 +94,20 @@ export function useListingEditForm(
       cityDisplay.value = p.location.city;
       arBuildingCode.value = p.location.arBuildingCode ?? null;
       apartment.value = p.location.apartment ?? null;
+      if (p.location.arBuildingCode != null) {
+        fetchOfficialBuilding(p.location.arBuildingCode, p.location.apartment ?? '')
+          .then((b) => {
+            official.value = { ...official.value, yearBuilt: b.yearBuilt, area: b.area };
+          })
+          .catch(() => {});
+      }
+      if (form.cadastreParcelNr) {
+        fetchOfficialParcel(form.cadastreParcelNr)
+          .then((pc) => {
+            official.value = { ...official.value, landM2: pc.areaM2, landUse: pc.landUse };
+          })
+          .catch(() => {});
+      }
       photoUpload.seed(p.media.photos ?? []);
       planUpload.seed(p.media.plans ?? []);
       loading.value = false;
@@ -167,6 +194,7 @@ export function useListingEditForm(
     submit,
     loading,
     loadedType,
+    official,
     propertyId,
     districtDisplay,
     cityDisplay,

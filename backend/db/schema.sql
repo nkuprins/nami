@@ -306,6 +306,9 @@ CREATE TABLE listings (
     completion          property_completion,
 
     status              property_status   NOT NULL DEFAULT 'active',
+    -- True when posted figures positively matched the VZD cadastre (see CadastreQueryService);
+    -- drives the "verified" badge. Never set by admin approval of a mismatch.
+    cadastre_verified   BOOLEAN           NOT NULL DEFAULT false,
     posted_at           TIMESTAMPTZ       NOT NULL DEFAULT now(),
     updated_at          TIMESTAMPTZ       NOT NULL DEFAULT now(),
     expires_at          TIMESTAMPTZ       NOT NULL,

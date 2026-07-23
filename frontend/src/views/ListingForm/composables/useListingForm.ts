@@ -26,6 +26,7 @@ import {
   DuplicatePropertyError,
 } from '../../../api/listingsApi';
 import { useLocaleRoute } from '../../../composables/useLocaleRoute';
+import { useCadastreAutofill } from './useCadastreAutofill';
 import type { usePhotoUpload } from './usePhotoUpload';
 
 const DEFAULT_COORDS = { lat: 56.946, lng: 24.105 };
@@ -58,6 +59,7 @@ export function useListingForm(
   const submitting = ref(false);
   const submitError = ref('');
   const rentListingWarning = ref(false);
+  const official = useCadastreAutofill(form);
 
   const errors = computed(() => ({
     ...listingFieldErrors(form, { requireRentPrice: form.alsoRent }),
@@ -194,5 +196,6 @@ export function useListingForm(
     addPhone,
     removePhone,
     submit,
+    official,
   };
 }

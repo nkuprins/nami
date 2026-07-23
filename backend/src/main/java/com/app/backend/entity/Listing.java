@@ -171,6 +171,11 @@ public class Listing {
     @Column(name = "status", nullable = false)
     private PropertyStatus status;
 
+    // True when the posted figures were positively matched against the VZD cadastre
+    // (something was comparable and it all agreed). Not set by admin approval.
+    @Column(name = "cadastre_verified", nullable = false)
+    private boolean cadastreVerified;
+
     @CreationTimestamp
     @Column(name = "posted_at", nullable = false, updatable = false)
     private OffsetDateTime postedAt;

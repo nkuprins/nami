@@ -1,4 +1,4 @@
-import type { ListingDetail, ListingSummary } from '../types/listingItem';
+import type { ListingDetail, PendingReview } from '../types/listingItem';
 import type { Locale } from '../i18n';
 import { fetchApi } from './fetchApi';
 import {
@@ -6,10 +6,13 @@ import {
   toListingSummaryDisplayNames,
 } from './dto';
 
-export async function getPendingListings(): Promise<ListingSummary[]> {
+export async function getPendingListings(): Promise<PendingReview[]> {
   const res = await fetchApi(`/api/admin/listings/pending`);
   if (!res.ok) throw new Error(`getPendingListings: ${res.status}`);
-  return (await res.json()).map(toListingSummaryDisplayNames);
+  return (await res.json()).map((row: PendingReview) => ({
+    ...row,
+    listing: toListingSummaryDisplayNames(row.listing),
+  }));
 }
 
 export async function approveListing(id: string): Promise<void> {

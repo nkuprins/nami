@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, inject, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { numericInput, decimalInput } from '../../../utils/utils';
 import FormField from '../../../components/ui/FormField.vue';
+import {
+  CADASTRE_OFFICIAL_KEY,
+  type OfficialFigures,
+} from '../composables/useCadastreAutofill';
 import ToggleButtons from '../../../components/ui/ToggleButtons.vue';
 import { usePropertyLabels } from '../../../composables/usePropertyLabels';
 import { categoryProfile } from '../../../types/categoryRegistry';
@@ -37,6 +41,17 @@ const selectedHeatingHint = computed(
 defineProps<{
   fieldError: (field: string) => string | undefined;
 }>();
+
+// Official cadastre figures (from the listing-form view); absent → no hints.
+const official = inject<import('vue').Ref<OfficialFigures>>(
+  CADASTRE_OFFICIAL_KEY,
+  ref({ yearBuilt: null, area: null, landM2: null, landUse: null })
+);
+const officialHint = (value: number | null, unit = '') =>
+  value != null ? t('addListing.official', { value: `${value}${unit}` }) : undefined;
+const areaHint = computed(() => officialHint(official.value.area, ' m²'));
+const yearHint = computed(() => officialHint(official.value.yearBuilt));
+const landAreaHint = computed(() => officialHint(official.value.landM2, ' m²'));
 </script>
 
 <template>
@@ -64,6 +79,7 @@ defineProps<{
         :label="t('addListing.areaLabel')"
         v-model="form.m2"
         :error="fieldError('m2')"
+        :hint="areaHint"
         :required="profile.buildingArea === 'required'"
         inputmode="decimal"
         placeholder="e.g. 72.5"
@@ -110,10 +126,22 @@ defineProps<{
       :label="t('addListing.landAreaLabel')"
       v-model="form.landM2"
       :error="fieldError('landM2')"
+      :hint="landAreaHint"
       :required="profile.plotArea === 'required'"
       inputmode="decimal"
       placeholder="e.g. 600"
       @beforeinput="decimalInput"
+    />
+
+    <FormField
+      v-if="profile.parcel"
+      id="ap-cadastre-parcel"
+      :label="t('addListing.cadastreParcelLabel')"
+      v-model="form.cadastreParcelNr"
+      :hint="t('addListing.cadastreParcelHelp')"
+      inputmode="numeric"
+      maxlength="32"
+      placeholder="e.g. 21000030512"
     />
 
     <div v-if="profile.floors" class="grid grid-cols-2 gap-4">
@@ -140,6 +168,7 @@ defineProps<{
       id="ap-year"
       :label="t('addListing.yearBuiltLabel')"
       v-model="form.yearBuilt"
+      :hint="yearHint"
       inputmode="numeric"
       placeholder="e.g. 2018"
       @beforeinput="numericInput"

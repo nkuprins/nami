@@ -137,6 +137,8 @@ export default {
     videoUnavailableDesc:
       'Šo video nevar ielādēt vai pakalpojuma sniedzējs to ir noņēmis.',
     newListing: 'Jauns sludinājums',
+    verified: 'Pārbaudīts',
+    verifiedHint: 'Platība un celtniecības gads sakrīt ar kadastra reģistru.',
     viewIn: 'Skatīt',
     unavailableInLang: 'Nav pieejams šajā valodā',
     save: 'Saglabāt sludinājumu',
@@ -400,6 +402,10 @@ export default {
     bathroomsLabel: 'Vannas istabas',
     bathroomLayoutLabel: 'Vannas istabas izkārtojums',
     areaLabel: 'Platība (m²)',
+    official: 'reģistrā: {value}',
+    cadastreParcelLabel: 'Kadastra numurs (zemes vienība)',
+    cadastreParcelHelp:
+      'Zemes vienības kadastra numurs, piem. 21000030512. Ļauj pārbaudīt zemesgabalu pret reģistru.',
     landAreaLabel: 'Zemes platība (m²)',
     floorLabel: 'Stāvs',
     totalFloorsLabel: 'Kopā stāvi',

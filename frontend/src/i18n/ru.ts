@@ -138,6 +138,8 @@ export default {
     videoUnavailableDesc:
       'Видео не может быть загружено или удалено провайдером.',
     newListing: 'Новое объявление',
+    verified: 'Проверено',
+    verifiedHint: 'Площадь и год постройки совпадают с кадастровым реестром.',
     viewIn: 'Смотреть на',
     unavailableInLang: 'Недоступно на этом языке',
     save: 'Сохранить',
@@ -401,6 +403,10 @@ export default {
     bathroomsLabel: 'Санузлы',
     bathroomLayoutLabel: 'Тип санузла',
     areaLabel: 'Площадь (м²)',
+    official: 'в реестре: {value}',
+    cadastreParcelLabel: 'Кадастровый номер (участок)',
+    cadastreParcelHelp:
+      'Кадастровый номер земельного участка, напр. 21000030512. Позволяет сверить участок с реестром.',
     landAreaLabel: 'Площадь участка (м²)',
     floorLabel: 'Этаж',
     totalFloorsLabel: 'Всего этажей',

@@ -1,8 +1,10 @@
 package com.app.backend.service;
 
 import com.app.backend.config.CacheConfig;
-import com.app.backend.dto.property.response.PropertyListItemDto;
+import com.app.backend.dto.cadastre.CadastreComparison;
+import com.app.backend.dto.property.response.PendingReviewDto;
 import com.app.backend.entity.Listing;
+import com.app.backend.entity.Property;
 import com.app.backend.enums.PropertyStatus;
 import com.app.backend.exception.ApiException;
 import com.app.backend.mapper.PropertyMapper;
@@ -24,11 +26,17 @@ public class AdminReviewService {
 
     private final ListingRepository listingRepository;
     private final PropertyMapper propertyMapper;
+    private final CadastreQueryService cadastreQueryService;
 
     @Transactional(readOnly = true)
-    public List<PropertyListItemDto> listPending() {
+    public List<PendingReviewDto> listPending() {
         return listingRepository.findByStatusOrderByPostedAtAsc(PropertyStatus.PENDING_REVIEW).stream()
-                .map(propertyMapper::toListDto)
+                .map(listing -> {
+                    Property p = listing.getProperty();
+                    CadastreComparison cadastre = cadastreQueryService.explain(
+                            p.getArBuildingCode(), p.getApartment(), p.getCadastreParcelNr(), listing);
+                    return new PendingReviewDto(propertyMapper.toListDto(listing), cadastre);
+                })
                 .toList();
     }
 

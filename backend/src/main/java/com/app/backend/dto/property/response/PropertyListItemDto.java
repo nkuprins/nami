@@ -38,5 +38,6 @@ public record PropertyListItemDto(
         String photo,
         OffsetDateTime postedAt,
         PropertyCompletion completion,
-        OffsetDateTime expiresAt
+        OffsetDateTime expiresAt,
+        Boolean cadastreVerified
 ) {}

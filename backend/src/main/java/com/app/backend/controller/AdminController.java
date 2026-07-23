@@ -1,7 +1,7 @@
 package com.app.backend.controller;
 
+import com.app.backend.dto.property.response.PendingReviewDto;
 import com.app.backend.dto.property.response.PropertyItemDto;
-import com.app.backend.dto.property.response.PropertyListItemDto;
 import com.app.backend.service.AdminAccess;
 import com.app.backend.service.AdminReviewService;
 import com.app.backend.service.ListingQueryService;
@@ -22,7 +22,7 @@ public class AdminController {
     private final ListingQueryService listingQueryService;
 
     @GetMapping("/listings/pending")
-    public List<PropertyListItemDto> pending(@AuthenticationPrincipal UUID userId) {
+    public List<PendingReviewDto> pending(@AuthenticationPrincipal UUID userId) {
         adminAccess.requireAdmin(userId);
         return adminReviewService.listPending();
     }

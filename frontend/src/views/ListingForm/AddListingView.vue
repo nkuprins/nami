@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import { onBeforeRouteLeave } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { usePhotoUpload } from './composables/usePhotoUpload';
@@ -14,6 +14,7 @@ import {
   type ListingWizardStep,
 } from './composables/useWizardStepValidity';
 import { selectedBuildingCode } from './composables/formHelpers';
+import { CADASTRE_OFFICIAL_KEY } from './composables/useCadastreAutofill';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import WizardStepper from '../../components/ui/WizardStepper.vue';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.vue';
@@ -53,6 +54,7 @@ const {
   addPhone,
   removePhone,
   submit,
+  official,
 } = useListingForm(
   () => selectedLocation.value,
   photoUpload,
@@ -66,6 +68,8 @@ const {
     reset: () => stepConfirmRef.value?.resetTurnstile(),
   }
 );
+
+provide(CADASTRE_OFFICIAL_KEY, official);
 
 const { wizard, handleContinue, handleBack, jumpToStep, handleJump } =
   useWizardNavigation(STEPS, errors, touched);

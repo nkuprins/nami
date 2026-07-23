@@ -1,5 +1,6 @@
 package com.app.backend.service;
 
+import com.app.backend.dto.cadastre.CadastreDecision;
 import com.app.backend.dto.property.request.CreatePropertyRequest;
 import com.app.backend.dto.property.model.Location;
 import com.app.backend.dto.property.response.PropertyDto;
@@ -71,9 +72,11 @@ public class PropertyService {
         listing.setOwner(owner);
         propertyMapper.applyListingContent(listing, req);
         mediaUrlValidator.validate(listing.allMediaUrls());
-        listing.setStatus(cadastreQueryService.decideStatus(
+        CadastreDecision decision = cadastreQueryService.decideStatus(
                 location.arBuildingCode(), location.apartment(),
-                location.cadastreParcelNr(), listing));
+                location.cadastreParcelNr(), listing);
+        listing.setStatus(decision.status());
+        listing.setCadastreVerified(decision.verified());
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
         propertyRepository.save(property);

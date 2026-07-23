@@ -6,6 +6,7 @@ import { resolveTitle } from '../../types/listingItem';
 import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import StatusPill from './StatusPill.vue';
+import VerifiedBadge from './VerifiedBadge.vue';
 import SaveHeart from './SaveHeart.vue';
 import {
   formatFloor,
@@ -79,6 +80,7 @@ const specRow = computed(() => {
 
         <div class="absolute top-3 left-3 z-10 flex items-center gap-1.5">
           <StatusPill :property="property" />
+          <VerifiedBadge v-if="property.cadastreVerified" />
         </div>
 
         <div class="absolute top-3 right-3 z-10">

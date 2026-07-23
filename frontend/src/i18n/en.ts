@@ -137,6 +137,8 @@ export default {
     videoUnavailableDesc:
       'This video cannot be loaded or has been removed by the provider.',
     newListing: 'New listing',
+    verified: 'Verified',
+    verifiedHint: 'Area and build year match the official cadastre register.',
     viewIn: 'View in',
     unavailableInLang: 'Not available in this language',
     save: 'Save listing',
@@ -401,7 +403,11 @@ export default {
     bathroomsLabel: 'Bathrooms',
     bathroomLayoutLabel: 'Bathroom layout',
     areaLabel: 'Area (m²)',
+    official: 'official: {value}',
     landAreaLabel: 'Land area (m²)',
+    cadastreParcelLabel: 'Cadastre number (parcel)',
+    cadastreParcelHelp:
+      'The land unit’s cadastre number, e.g. 21000030512. Lets us verify the plot against the register.',
     floorLabel: 'Floor',
     totalFloorsLabel: 'Total floors',
     yearBuiltLabel: 'Year built',

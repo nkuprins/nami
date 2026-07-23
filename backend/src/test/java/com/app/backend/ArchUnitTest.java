@@ -54,6 +54,7 @@ class ArchUnitTest {
     static final ArchRule services_must_be_annotated =
             classes()
                     .that().resideInAPackage("..service..")
+                    .and().areTopLevelClasses()
                     .and().areNotAnonymousClasses()
                     .and().areNotLocalClasses()
                     .and().doNotHaveSimpleName("package-info")

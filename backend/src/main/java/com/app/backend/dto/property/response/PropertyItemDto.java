@@ -55,5 +55,6 @@ public record PropertyItemDto(
         OffsetDateTime postedAt,
         PropertyCompletion completion,
         OffsetDateTime expiresAt,
-        PropertyStatus status
+        PropertyStatus status,
+        Boolean cadastreVerified
 ) {}

@@ -6,6 +6,7 @@ import { resolveTitle } from '../../types/listingItem';
 import { mediaVariant, onVariantError } from '../../utils/mediaVariant';
 import { useLocaleRoute } from '../../composables/useLocaleRoute';
 import StatusPill from './StatusPill.vue';
+import VerifiedBadge from './VerifiedBadge.vue';
 import SaveHeart from './SaveHeart.vue';
 import {
   formatFloor,
@@ -114,7 +115,7 @@ const specRow = computed(() => {
           </div>
         </div>
 
-        <div class="shrink-0 text-right">
+        <div class="shrink-0 text-right self-stretch flex flex-col">
           <div class="flex items-center justify-end gap-2">
             <p class="display-price text-xl sm:text-2xl text-ink whitespace-nowrap">
               {{ price }}
@@ -132,6 +133,12 @@ const specRow = computed(() => {
           >
             {{ pricePerM2 }}
           </p>
+          <div
+            v-if="property.cadastreVerified"
+            class="mt-auto pt-2 flex justify-end"
+          >
+            <VerifiedBadge />
+          </div>
         </div>
       </div>
     </article>

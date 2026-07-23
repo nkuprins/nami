@@ -1,6 +1,7 @@
 package com.app.backend.service;
 
 import com.app.backend.config.CacheConfig;
+import com.app.backend.dto.cadastre.CadastreDecision;
 import com.app.backend.dto.property.request.AddListingRequest;
 import com.app.backend.dto.property.request.RenewPropertyRequest;
 import com.app.backend.dto.property.request.UpdateListingRequest;
@@ -41,6 +42,15 @@ public class ListingService {
     private final ImageProcessingPublisher imageProcessingPublisher;
     private final CadastreQueryService cadastreQueryService;
 
+    /** Cross-checks the listing against the cadastre mirror and stores both the moderation status and verified flag. */
+    private void applyCadastreStatus(Listing listing, Property property) {
+        CadastreDecision decision = cadastreQueryService.decideStatus(
+                property.getArBuildingCode(), property.getApartment(),
+                property.getCadastreParcelNr(), listing);
+        listing.setStatus(decision.status());
+        listing.setCadastreVerified(decision.verified());
+    }
+
     /** Adds another self-contained listing at an address that already has at least one (e.g. rent one floor of a listed house). */
     @Caching(evict = {
             @CacheEvict(cacheNames = CacheConfig.PROPERTY_LIST, allEntries = true),
@@ -61,9 +71,7 @@ public class ListingService {
         listing.setOwner(property.getOwner());
         propertyMapper.applyListingContent(listing, req);
         mediaUrlValidator.validate(listing.allMediaUrls());
-        listing.setStatus(cadastreQueryService.decideStatus(
-                property.getArBuildingCode(), property.getApartment(),
-                property.getCadastreParcelNr(), listing));
+        applyCadastreStatus(listing, property);
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
 
         Listing saved = listingRepository.save(listing);
@@ -93,10 +101,7 @@ public class ListingService {
         // resurrect a listing that's inactive for an unrelated reason (expiry, admin
         // rejection); those come back only through an explicit renew().
         if (listing.getStatus() != PropertyStatus.INACTIVE) {
-            Property property = listing.getProperty();
-            listing.setStatus(cadastreQueryService.decideStatus(
-                    property.getArBuildingCode(), property.getApartment(),
-                    property.getCadastreParcelNr(), listing));
+            applyCadastreStatus(listing, listing.getProperty());
         }
         Listing saved = listingRepository.save(listing);
 
@@ -120,11 +125,8 @@ public class ListingService {
     @Transactional
     public PropertyItemDto renew(UUID listingId, RenewPropertyRequest req, UUID ownerId) {
         Listing listing = propertyAccess.loadOwnedListing(listingId, ownerId);
-        Property property = listing.getProperty();
         listing.setExpiresAt(OffsetDateTime.now().plusMonths(req.durationMonths()));
-        listing.setStatus(cadastreQueryService.decideStatus(
-                property.getArBuildingCode(), property.getApartment(),
-                property.getCadastreParcelNr(), listing));
+        applyCadastreStatus(listing, listing.getProperty());
         listing.setExpiryWarningSent(false);
         return propertyMapper.toDto(listingRepository.save(listing));
     }

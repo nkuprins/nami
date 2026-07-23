@@ -82,6 +82,4 @@ app:
     urls:
       building: https://data.gov.lv/dati/dataset/be841486-4af9-4d38-aa14-6502a2ddb517/resource/9fe29b57-07cd-4458-b22c-b0b9f2bc8915/download/building.zip
       premise-group: https://data.gov.lv/dati/dataset/be841486-4af9-4d38-aa14-6502a2ddb517/resource/5d8b1cfa-1e67-4b77-a6ac-b4e37eba0d7e/download/premisegroup.zip
-      # TODO(cadastre-parcel): confirm the real VZD "Parcel" (zemes vienība) dataset
-      # resource URL before enabling parcel ingest in prod. Placeholder until verified.
-      parcel: ${CADASTRE_PARCEL_URL:https://data.gov.lv/dati/dataset/be841486-4af9-4d38-aa14-6502a2ddb517/resource/PARCEL-RESOURCE-ID/download/parcel.zip}
+      parcel: ${CADASTRE_PARCEL_URL:https://data.gov.lv/dati/dataset/be841486-4af9-4d38-aa14-6502a2ddb517/resource/1618f19a-c818-4966-8183-a2e3c108597a/download/parcel.zip}

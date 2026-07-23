@@ -38,6 +38,7 @@ import BentoPhotoGrid from './components/BentoPhotoGrid.vue';
 import MobileStickyBar from './components/MobileStickyBar.vue';
 import PhotoLightBox from '../../components/listing/PhotoLightBox.vue';
 import SpecDots from '../../components/listing/SpecDots.vue';
+import VerifiedBadge from '../../components/listing/VerifiedBadge.vue';
 import ConfirmDialog from '../../components/ui/ConfirmDialog.vue';
 import IconShare from '../../components/icons/IconShare.vue';
 import IconLink from '../../components/icons/IconLink.vue';
@@ -385,6 +386,9 @@ function openPlanLightbox(i: number) {
             <p class="mt-1 text-sm text-ink-2">
               {{ listing.location.address }}
             </p>
+            <div v-if="listing.cadastreVerified" class="mt-2">
+              <VerifiedBadge />
+            </div>
             <a
               v-if="websiteUrl"
               :href="websiteUrl"

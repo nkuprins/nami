@@ -231,10 +231,36 @@ interface ListingBase {
   postedAt: string;
   expiresAt?: string;
   completion?: PropertyCompletion;
+  // True when the posted figures positively matched the VZD cadastre; drives the
+  // "verified" badge. Absent/false otherwise (see backend CadastreQueryService).
+  cadastreVerified?: boolean;
 }
 
 export interface ListingSummary extends ListingBase {
   photo: string | null;
+}
+
+// Declared-vs-official cadastre figures for a held listing (admin review queue).
+// `official*` is null when the mirror has no record; each `*Mismatch` is true only
+// when both sides were present and disagreed.
+export interface CadastreComparison {
+  declaredYear: number | null;
+  officialYear: number | null;
+  yearMismatch: boolean;
+  declaredArea: number | null;
+  officialArea: number | null;
+  areaMismatch: boolean;
+  declaredLandM2: number | null;
+  officialLandM2: number | null;
+  landAreaMismatch: boolean;
+  declaredLandUse: LandUse | null;
+  officialLandUse: LandUse | null;
+  landUseMismatch: boolean;
+}
+
+export interface PendingReview {
+  listing: ListingSummary;
+  cadastre: CadastreComparison;
 }
 
 export interface ListingDetail extends ListingBase {

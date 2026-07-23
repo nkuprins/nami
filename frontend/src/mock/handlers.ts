@@ -203,6 +203,8 @@ const mockPendingListingIds = new Set(
 // backend); apartment area is only checked when an apartment number is given.
 const MOCK_OFFICIAL_YEAR_BUILT = 1985;
 const MOCK_OFFICIAL_AREA_M2 = 52.8;
+const MOCK_OFFICIAL_LAND_M2 = 600;
+const MOCK_OFFICIAL_LAND_USE = 'residential';
 const YEAR_MISMATCH_TOLERANCE_YEARS = 5;
 const AREA_MISMATCH_RATIO = 0.15;
 
@@ -221,6 +223,50 @@ function isCadastreMismatch(body: any): boolean {
     if (ratio > AREA_MISMATCH_RATIO) return true;
   }
   return false;
+}
+
+// Declared-vs-official breakdown for the admin review queue (mirrors the backend
+// CadastreComparison), derived from a catalog item's details + the mock officials.
+function mockComparison(item: any) {
+  const d = item.details ?? {};
+  const hasBuilding = item.location?.arBuildingCode != null;
+  const hasApartment = hasBuilding && !!item.location?.apartment;
+  const hasParcel = item.location?.cadastreParcelNr != null;
+  const declaredYear = d.yearBuilt ?? null;
+  const officialYear = hasBuilding ? MOCK_OFFICIAL_YEAR_BUILT : null;
+  const declaredArea = d.m2 ?? null;
+  const officialArea = hasApartment ? MOCK_OFFICIAL_AREA_M2 : null;
+  const declaredLandM2 = d.landM2 ?? null;
+  const officialLandM2 = hasParcel ? MOCK_OFFICIAL_LAND_M2 : null;
+  const declaredLandUse = item.landUse ?? null;
+  const officialLandUse = hasParcel ? MOCK_OFFICIAL_LAND_USE : null;
+  const ratio = (a: number, b: number) => Math.abs(a - b) / b;
+  return {
+    declaredYear,
+    officialYear,
+    yearMismatch:
+      officialYear != null &&
+      declaredYear != null &&
+      Math.abs(declaredYear - officialYear) > YEAR_MISMATCH_TOLERANCE_YEARS,
+    declaredArea,
+    officialArea,
+    areaMismatch:
+      officialArea != null &&
+      declaredArea != null &&
+      ratio(declaredArea, officialArea) > AREA_MISMATCH_RATIO,
+    declaredLandM2,
+    officialLandM2,
+    landAreaMismatch:
+      officialLandM2 != null &&
+      declaredLandM2 != null &&
+      ratio(declaredLandM2, officialLandM2) > AREA_MISMATCH_RATIO,
+    declaredLandUse,
+    officialLandUse,
+    landUseMismatch:
+      officialLandUse != null &&
+      declaredLandUse != null &&
+      declaredLandUse !== officialLandUse,
+  };
 }
 
 const mockSavedIds = new Set<string>();
@@ -616,6 +662,22 @@ export const handlers = [
     return HttpResponse.json(matches);
   }),
 
+  // Official-figures lookup for listing-form auto-fill (area only with an apartment).
+  http.get('/api/cadastre/building', ({ request }) => {
+    const apartment = new URL(request.url).searchParams.get('apartment') ?? '';
+    return HttpResponse.json({
+      yearBuilt: MOCK_OFFICIAL_YEAR_BUILT,
+      area: apartment ? MOCK_OFFICIAL_AREA_M2 : null,
+    });
+  }),
+
+  http.get('/api/cadastre/parcel', () =>
+    HttpResponse.json({
+      areaM2: MOCK_OFFICIAL_LAND_M2,
+      landUse: MOCK_OFFICIAL_LAND_USE,
+    })
+  ),
+
   // --- PROPERTIES / LISTINGS ENDPOINTS ---
   http.get('/api/properties', ({ request }) => {
     const url = new URL(request.url);
@@ -673,7 +735,12 @@ export const handlers = [
   // --- ADMIN ENDPOINTS ---
   http.get('/api/admin/listings/pending', () => {
     const pending = dtoCatalog.filter((i) => mockPendingListingIds.has(i.id));
-    return HttpResponse.json(pending.map(toListItem));
+    return HttpResponse.json(
+      pending.map((item) => ({
+        listing: toListItem(item),
+        cadastre: mockComparison(item),
+      }))
+    );
   }),
 
   http.post('/api/admin/listings/:id/approve', ({ params }) => {
@@ -842,6 +909,8 @@ export const handlers = [
       ownerId: mockUser?.id ?? MOCK_OWNER_ID,
       postedAt: new Date().toISOString(),
       status: mismatch ? 'pending_review' : 'active',
+      // Verified only when there was a cadastre link to match against and it matched.
+      cadastreVerified: !mismatch && body.location?.arBuildingCode != null,
     };
     dtoCatalog.unshift(created);
     logger.debug('[mock] cadastre mismatch check', {

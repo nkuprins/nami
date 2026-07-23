@@ -5,6 +5,8 @@ const props = defineProps<{
   label: string;
   modelValue: string;
   error?: string;
+  // Muted helper line under the field (e.g. the official cadastre value).
+  hint?: string;
   required?: boolean;
   type?: string;
   placeholder?: string;
@@ -39,5 +41,6 @@ function onInput(e: Event) {
       v-bind="$attrs"
     />
     <p v-if="error" class="text-xs text-warn">{{ error }}</p>
+    <p v-else-if="hint" class="text-xs text-ink-3 leading-tight">{{ hint }}</p>
   </div>
 </template>

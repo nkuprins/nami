@@ -145,6 +145,10 @@ function toListingDetail(r: RawListing): ListingDetail {
     postedAt: r.postedAt,
     completion: r.completion,
     status: 'active',
+    // Mock only: show the "verified against cadastre" badge on ~80% of seed
+    // listings (deterministic by id) so the badge is visible in VITE_MOCK mode.
+    cadastreVerified:
+      [...r.id].reduce((sum, c) => sum + c.charCodeAt(0), 0) % 5 !== 0,
   };
 }
 

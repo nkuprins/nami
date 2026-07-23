@@ -13,7 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
@@ -46,9 +48,12 @@ public class CadastreIngestService {
     private static final int BATCH_SIZE = 1_000;
     private static final String BUILDING_ITEM = "BuildingItemData";
     private static final String PREMISE_ITEM = "PremiseGroupItemData";
-    // ASSUMPTION: the VZD Parcel (zemes vienība) export element/field names — verify
-    // against the real dataset before enabling parcel ingest in prod (see parseParcel).
+    // Parcel (zemes vienība) export. Unlike Building/PremiseGroup, a parcel's fields
+    // (ParcelCadastreNr, ParcelArea) sit under ParcelBasicData and its land-use lives in
+    // a *repeating* LandPurposeList/LandPurposeData group — so parcels get a dedicated
+    // parse (loadParcels/readParcel) rather than the flat XmlStream Map view.
     private static final String PARCEL_ITEM = "ParcelItemData";
+    private static final String LAND_PURPOSE = "LandPurposeData";
 
     private static final HttpClient HTTP = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -154,27 +159,123 @@ public class CadastreIngestService {
         return total[0];
     }
 
+    /**
+     * Streams the parcel zip. A parcel carries repeating {@code LandPurposeData} entries
+     * (mixed-use plots), so this reads each {@code ParcelItemData} subtree directly and
+     * keeps the dominant land-use (largest {@code LandPurposeArea}) rather than the flat
+     * last-wins the shared {@link XmlStream} would give.
+     */
     private int loadParcels(Path zipPath) {
         List<CadastreParcelRow> batch = new ArrayList<>(BATCH_SIZE);
-        int[] total = {0};
-        forEachItem(zipPath, PARCEL_ITEM, item -> {
-            String cadastreNr = item.get("ParcelCadastreNr");
-            if (cadastreNr == null || cadastreNr.isBlank()) {
-                return;
+        int total = 0;
+        try (var in = Files.newInputStream(zipPath); ZipInputStream zis = new ZipInputStream(in)) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.isDirectory() || !entry.getName().endsWith(".xml")) {
+                    continue;
+                }
+                XMLStreamReader reader = null;
+                try {
+                    reader = XmlStream.safeReader(nonClosing(zis));
+                    while (reader.hasNext()) {
+                        if (reader.next() == XMLStreamConstants.START_ELEMENT
+                                && reader.getLocalName().equals(PARCEL_ITEM)) {
+                            CadastreParcelRow row = readParcel(reader);
+                            if (row != null) {
+                                batch.add(row);
+                                if (batch.size() == BATCH_SIZE) {
+                                    repository.insertParcels(List.copyOf(batch));
+                                    total += batch.size();
+                                    batch.clear();
+                                }
+                            }
+                        }
+                    }
+                } catch (XMLStreamException e) {
+                    throw new UncheckedIOException(new IOException("Malformed cadastre parcel XML in " + entry.getName(), e));
+                } finally {
+                    if (reader != null) {
+                        try {
+                            reader.close();
+                        } catch (XMLStreamException ignored) {
+                            // reader.close() never touches the shared ZipInputStream (nonClosing wrapper)
+                        }
+                    }
+                }
             }
-            batch.add(new CadastreParcelRow(cadastreNr,
-                    parseArea(item.get("ParcelArea")), mapLandUse(item.get("ParcelUsePurpose"))));
-            if (batch.size() == BATCH_SIZE) {
-                repository.insertParcels(List.copyOf(batch));
-                total[0] += batch.size();
-                batch.clear();
-            }
-        });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         if (!batch.isEmpty()) {
             repository.insertParcels(List.copyOf(batch));
-            total[0] += batch.size();
+            total += batch.size();
         }
-        return total[0];
+        return total;
+    }
+
+    /** Reads one {@code ParcelItemData} subtree (reader is positioned on its start tag), or null if it has no cadastre nr. */
+    private static CadastreParcelRow readParcel(XMLStreamReader reader) throws XMLStreamException {
+        String cadastreNr = null;
+        BigDecimal parcelArea = null;
+        String dominantPurposeId = null;
+        BigDecimal dominantPurposeArea = null;
+        String purposeId = null;
+        BigDecimal purposeArea = null;
+
+        int depth = 1;
+        String leaf = null;
+        StringBuilder text = new StringBuilder();
+        while (depth > 0 && reader.hasNext()) {
+            switch (reader.next()) {
+                case XMLStreamConstants.START_ELEMENT -> {
+                    depth++;
+                    if (reader.getLocalName().equals(LAND_PURPOSE)) {
+                        purposeId = null;
+                        purposeArea = null;
+                    }
+                    leaf = reader.getLocalName();
+                    text.setLength(0);
+                }
+                case XMLStreamConstants.CHARACTERS, XMLStreamConstants.CDATA -> {
+                    if (leaf != null) {
+                        text.append(reader.getText());
+                    }
+                }
+                case XMLStreamConstants.END_ELEMENT -> {
+                    String name = reader.getLocalName();
+                    if (leaf != null && name.equals(leaf)) {
+                        String value = text.toString().trim();
+                        switch (name) {
+                            case "ParcelCadastreNr" -> cadastreNr = value;
+                            case "ParcelArea" -> parcelArea = parseArea(value);
+                            case "LandPurposeKindId" -> purposeId = value;
+                            case "LandPurposeArea" -> purposeArea = parseArea(value);
+                            default -> { /* other leaves ignored */ }
+                        }
+                    }
+                    if (name.equals(LAND_PURPOSE) && purposeId != null && !purposeId.isBlank()
+                            && (dominantPurposeId == null || greater(purposeArea, dominantPurposeArea))) {
+                        dominantPurposeId = purposeId;
+                        dominantPurposeArea = purposeArea;
+                    }
+                    leaf = null;
+                    depth--;
+                }
+                default -> { /* ignore comments, whitespace-only events, etc. */ }
+            }
+        }
+        if (cadastreNr == null || cadastreNr.isBlank()) {
+            return null;
+        }
+        return new CadastreParcelRow(cadastreNr, parcelArea, mapLandUse(dominantPurposeId));
+    }
+
+    /** Whether {@code a} is a larger area than the current best {@code b} (a null area never displaces a known one). */
+    private static boolean greater(BigDecimal a, BigDecimal b) {
+        if (a == null) {
+            return false;
+        }
+        return b == null || a.compareTo(b) > 0;
     }
 
     /** Streams every {@code *.xml} entry in the zip, feeding each {@code itemLocalName} element to the consumer. */
@@ -230,28 +331,25 @@ public class CadastreIngestService {
     }
 
     /**
-     * Maps a VZD parcel use-purpose value to our {@link LandUse} bucket. VZD publishes
-     * a NĪLM ("nekustamā īpašuma lietošanas mērķis") code; the exact code list must be
-     * confirmed against the real dataset. Unknown/absent values map to {@code null},
-     * which makes {@code decideStatus} fail open (no land-use hold). ASSUMPTION.
+     * Maps a VZD NĪLM land-use code (nekustamā īpašuma lietošanas mērķis — the 4-digit
+     * {@code LandPurposeKindId}) to our coarse {@link LandUse} bucket by its group prefix,
+     * verified against the real dataset: {@code 01} agricultural, {@code 02} forest,
+     * {@code 06}/{@code 07} residential (individual + multi-apartment housing), {@code 08}
+     * commercial. Groups outside our four buckets ({@code 03} water, {@code 05} nature,
+     * {@code 09} public, {@code 10} industrial, {@code 11} transport, {@code 12} utilities,
+     * …) and absent values map to {@code null}, which makes {@code decideStatus} fail open
+     * (no land-use hold).
      */
-    private static LandUse mapLandUse(String value) {
-        if (value == null || value.isBlank()) {
+    private static LandUse mapLandUse(String kindId) {
+        if (kindId == null || kindId.length() < 2) {
             return null;
         }
-        String v = value.trim().toLowerCase();
-        if (v.contains("dzīvoj") || v.contains("residential") || v.startsWith("00")) {
-            return LandUse.RESIDENTIAL;
-        }
-        if (v.contains("komerc") || v.contains("commercial") || v.startsWith("08")) {
-            return LandUse.COMMERCIAL;
-        }
-        if (v.contains("lauksaimniec") || v.contains("agricultural") || v.startsWith("01")) {
-            return LandUse.AGRICULTURAL;
-        }
-        if (v.contains("mež") || v.contains("forest") || v.startsWith("02")) {
-            return LandUse.FOREST;
-        }
-        return null;
+        return switch (kindId.substring(0, 2)) {
+            case "01" -> LandUse.AGRICULTURAL;
+            case "02" -> LandUse.FOREST;
+            case "06", "07" -> LandUse.RESIDENTIAL;
+            case "08" -> LandUse.COMMERCIAL;
+            default -> null;
+        };
     }
 }

@@ -26,13 +26,20 @@ public final class XmlStream implements AutoCloseable {
     }
 
     public static XmlStream open(InputStream in, String itemLocalName) throws XMLStreamException {
+        return new XmlStream(safeReader(in), itemLocalName);
+    }
+
+    /**
+     * A StAX reader with DTD/external-entity resolution disabled. Callers that need
+     * the flat {@code Map} view use {@link #open}; callers with a nested/repeating
+     * shape (e.g. parcels) drive this reader directly. Either way the XXE hardening
+     * lives here: the files are fetched over the network and re-parsed each ingest.
+     */
+    public static XMLStreamReader safeReader(InputStream in) throws XMLStreamException {
         XMLInputFactory factory = XMLInputFactory.newFactory();
-        // Defense in depth against XXE: this is government open data, but the
-        // file is fetched over the network and re-parsed on every ingest run.
         factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
         factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-        XMLStreamReader reader = factory.createXMLStreamReader(in);
-        return new XmlStream(reader, itemLocalName);
+        return factory.createXMLStreamReader(in);
     }
 
     /**
