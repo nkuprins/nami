@@ -1,10 +1,13 @@
 package com.app.backend.dto.address;
 
+import lombok.Builder;
+
 /**
  * A register building resolved for property creation: everything needed to
  * derive the canonical address text. {@code streetName} / {@code streetCode}
  * are null for rural houses named directly under their territory.
  */
+@Builder
 public record BuildingAddress(
         long code,
         String houseName,

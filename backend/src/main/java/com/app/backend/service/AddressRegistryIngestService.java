@@ -234,9 +234,15 @@ public class AddressRegistryIngestService {
                     return;
                 }
                 long code = parseLong(csv.col(row, "KODS"));
-                batch.add(new BuildingRow(code, streetCode, territoryCode,
-                        name, AddressMatcher.normalize(name),
-                        parseDouble(csv.col(row, "DD_N")), parseDouble(csv.col(row, "DD_E"))));
+                batch.add(BuildingRow.builder()
+                        .code(code)
+                        .streetCode(streetCode)
+                        .territoryCode(territoryCode)
+                        .name(name)
+                        .normName(AddressMatcher.normalize(name))
+                        .lat(parseDouble(csv.col(row, "DD_N")))
+                        .lng(parseDouble(csv.col(row, "DD_E")))
+                        .build());
                 buildingCodes.add(code);
                 if (batch.size() == BATCH_SIZE) {
                     repository.insertBuildings(List.copyOf(batch));
@@ -307,8 +313,14 @@ public class AddressRegistryIngestService {
     }
 
     private static TerritoryRow territory(long code, int typeCd, String name, String novadsName) {
-        return new TerritoryRow(code, typeCd, name, AddressMatcher.normalize(name),
-                novadsName, novadsName != null ? AddressMatcher.normalize(novadsName) : null);
+        return TerritoryRow.builder()
+                .code(code)
+                .typeCd(typeCd)
+                .name(name)
+                .normName(AddressMatcher.normalize(name))
+                .novadsName(novadsName)
+                .normNovadsName(novadsName != null ? AddressMatcher.normalize(novadsName) : null)
+                .build();
     }
 
     private static <T> List<List<T>> batches(List<T> rows) {

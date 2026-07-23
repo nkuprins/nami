@@ -26,15 +26,14 @@ class EmailServiceTest {
 
     @BeforeEach
     void setUp() {
-        AppProperties props = new AppProperties(
-                new AppProperties.CorsProperties("http://localhost"),
-                new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"),
-                new AppProperties.JwtProperties("secret-32-chars-long-enough-here!", 900, 604800),
-                new AppProperties.ResendProperties("re_key", "test@test.local"),
-                "http://localhost:3000",
-                new AppProperties.CookieProperties(false),
-                null, null, null, null
-        );
+        AppProperties props = AppProperties.builder()
+                .cors(new AppProperties.CorsProperties("http://localhost"))
+                .s3(new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"))
+                .jwt(new AppProperties.JwtProperties("secret-32-chars-long-enough-here!", 900, 604800))
+                .resend(new AppProperties.ResendProperties("re_key", "test@test.local"))
+                .frontendUrl("http://localhost:3000")
+                .cookie(new AppProperties.CookieProperties(false))
+                .build();
         emailService = new EmailService(props, resendClient);
     }
 

@@ -144,7 +144,12 @@ public class AuthService {
     }
 
     private AuthUserResponse toResponse(User user) {
-        return new AuthUserResponse(user.getId(), user.getName(), user.getEmail(), user.isEmailVerified(),
-                user.getRole() == UserRole.ADMIN);
+        return AuthUserResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .emailVerified(user.isEmailVerified())
+                .admin(user.getRole() == UserRole.ADMIN)
+                .build();
     }
 }

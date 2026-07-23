@@ -10,10 +10,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class GoogleTokenVerifierTest {
 
     private GoogleTokenVerifier verifier() {
-        AppProperties props = new AppProperties(
-                null, null, null, null, null, null, null,
-                new AppProperties.GoogleProperties("test-client-id"),
-                null, null);
+        AppProperties props = AppProperties.builder()
+                .google(new AppProperties.GoogleProperties("test-client-id"))
+                .build();
         return new GoogleTokenVerifier(props);
     }
 

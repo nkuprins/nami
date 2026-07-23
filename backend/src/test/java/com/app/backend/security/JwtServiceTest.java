@@ -15,15 +15,14 @@ class JwtServiceTest {
 
     @BeforeEach
     void setUp() {
-        AppProperties props = new AppProperties(
-                new AppProperties.CorsProperties("http://localhost"),
-                new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"),
-                new AppProperties.JwtProperties("test-secret-must-be-at-least-32-characters-long-for-hs256", 900, 604800),
-                new AppProperties.ResendProperties("", "test@test.local"),
-                "http://localhost:3000",
-                new AppProperties.CookieProperties(false),
-                null, null, null, null
-        );
+        AppProperties props = AppProperties.builder()
+                .cors(new AppProperties.CorsProperties("http://localhost"))
+                .s3(new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"))
+                .jwt(new AppProperties.JwtProperties("test-secret-must-be-at-least-32-characters-long-for-hs256", 900, 604800))
+                .resend(new AppProperties.ResendProperties("", "test@test.local"))
+                .frontendUrl("http://localhost:3000")
+                .cookie(new AppProperties.CookieProperties(false))
+                .build();
         jwtService = new JwtService(props);
     }
 
@@ -47,15 +46,14 @@ class JwtServiceTest {
 
     @Test
     void parseUserId_throwsWhenTokenExpired() {
-        AppProperties expiredProps = new AppProperties(
-                new AppProperties.CorsProperties("http://localhost"),
-                new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"),
-                new AppProperties.JwtProperties("test-secret-must-be-at-least-32-characters-long-for-hs256", 0, 0),
-                new AppProperties.ResendProperties("", "test@test.local"),
-                "http://localhost:3000",
-                new AppProperties.CookieProperties(false),
-                null, null, null, null
-        );
+        AppProperties expiredProps = AppProperties.builder()
+                .cors(new AppProperties.CorsProperties("http://localhost"))
+                .s3(new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"))
+                .jwt(new AppProperties.JwtProperties("test-secret-must-be-at-least-32-characters-long-for-hs256", 0, 0))
+                .resend(new AppProperties.ResendProperties("", "test@test.local"))
+                .frontendUrl("http://localhost:3000")
+                .cookie(new AppProperties.CookieProperties(false))
+                .build();
         JwtService expiredService = new JwtService(expiredProps);
         String token = expiredService.generateAccessToken(UUID.randomUUID());
 
@@ -65,15 +63,14 @@ class JwtServiceTest {
 
     @Test
     void parseUserId_throwsWhenSignatureInvalid() {
-        AppProperties otherProps = new AppProperties(
-                new AppProperties.CorsProperties("http://localhost"),
-                new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"),
-                new AppProperties.JwtProperties("different-secret-must-be-at-least-32-characters-long", 900, 604800),
-                new AppProperties.ResendProperties("", "test@test.local"),
-                "http://localhost:3000",
-                new AppProperties.CookieProperties(false),
-                null, null, null, null
-        );
+        AppProperties otherProps = AppProperties.builder()
+                .cors(new AppProperties.CorsProperties("http://localhost"))
+                .s3(new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"))
+                .jwt(new AppProperties.JwtProperties("different-secret-must-be-at-least-32-characters-long", 900, 604800))
+                .resend(new AppProperties.ResendProperties("", "test@test.local"))
+                .frontendUrl("http://localhost:3000")
+                .cookie(new AppProperties.CookieProperties(false))
+                .build();
         JwtService otherService = new JwtService(otherProps);
         String token = otherService.generateAccessToken(UUID.randomUUID());
 

@@ -84,13 +84,14 @@ public class ListingQueryService {
         for (Object[] row : listingRepository.countByCategory(type, PropertyStatus.ACTIVE)) {
             counts.put((PropertyCategory) row[0], (Long) row[1]);
         }
-        return new PropertyCategoryCountsDto(
-                counts.getOrDefault(PropertyCategory.APARTMENT, 0L),
-                counts.getOrDefault(PropertyCategory.HOUSE, 0L),
-                counts.getOrDefault(PropertyCategory.NEW_PROJECT, 0L),
-                counts.getOrDefault(PropertyCategory.COMMERCIAL, 0L),
-                counts.getOrDefault(PropertyCategory.LAND, 0L),
-                counts.getOrDefault(PropertyCategory.GARAGE, 0L));
+        return PropertyCategoryCountsDto.builder()
+                .apartment(counts.getOrDefault(PropertyCategory.APARTMENT, 0L))
+                .house(counts.getOrDefault(PropertyCategory.HOUSE, 0L))
+                .newProject(counts.getOrDefault(PropertyCategory.NEW_PROJECT, 0L))
+                .commercial(counts.getOrDefault(PropertyCategory.COMMERCIAL, 0L))
+                .land(counts.getOrDefault(PropertyCategory.LAND, 0L))
+                .garage(counts.getOrDefault(PropertyCategory.GARAGE, 0L))
+                .build();
     }
 
     @Cacheable(cacheNames = CacheConfig.PROPERTY_DETAIL, key = "{#id, #locale}")

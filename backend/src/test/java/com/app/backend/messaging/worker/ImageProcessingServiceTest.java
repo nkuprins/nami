@@ -31,10 +31,9 @@ import static org.mockito.Mockito.when;
 class ImageProcessingServiceTest {
 
     private final S3Client s3Client = org.mockito.Mockito.mock(S3Client.class);
-    private final AppProperties props = new AppProperties(
-            null,
-            new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"),
-            null, null, null, null, null, null, null, null);
+    private final AppProperties props = AppProperties.builder()
+            .s3(new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"))
+            .build();
 
     private final ImageProcessingService service = new ImageProcessingService(s3Client, props);
 

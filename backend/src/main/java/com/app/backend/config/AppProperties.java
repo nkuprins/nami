@@ -1,7 +1,9 @@
 package com.app.backend.config;
 
+import lombok.Builder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+@Builder
 @ConfigurationProperties("app")
 public record AppProperties(
         CorsProperties cors,

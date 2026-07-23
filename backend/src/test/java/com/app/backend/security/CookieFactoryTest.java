@@ -9,15 +9,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CookieFactoryTest {
 
     private CookieFactory factory(boolean secure) {
-        AppProperties props = new AppProperties(
-                new AppProperties.CorsProperties("http://localhost"),
-                new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"),
-                new AppProperties.JwtProperties("secret-32chars-long-enough-for-hmac", 900, 604800),
-                new AppProperties.ResendProperties("", "test@test.local"),
-                "http://localhost:3000",
-                new AppProperties.CookieProperties(secure),
-                null, null, null, null
-        );
+        AppProperties props = AppProperties.builder()
+                .cors(new AppProperties.CorsProperties("http://localhost"))
+                .s3(new AppProperties.S3Properties("bucket", "us-east-1", 5, "https://cdn.test"))
+                .jwt(new AppProperties.JwtProperties("secret-32chars-long-enough-for-hmac", 900, 604800))
+                .resend(new AppProperties.ResendProperties("", "test@test.local"))
+                .frontendUrl("http://localhost:3000")
+                .cookie(new AppProperties.CookieProperties(secure))
+                .build();
         return new CookieFactory(props);
     }
 

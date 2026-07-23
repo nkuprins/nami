@@ -74,9 +74,9 @@ class PropertyServiceTest {
     @BeforeEach
     void initTransactionSync() {
         propertyAccess = new PropertyAccess(propertyRepository, listingRepository);
-        AppProperties props = new AppProperties(null,
-                new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"),
-                null, null, null, null, null, null, null, null);
+        AppProperties props = AppProperties.builder()
+                .s3(new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local"))
+                .build();
         MediaUrlValidator mediaUrlValidator = new MediaUrlValidator(props);
         CadastreQueryService cadastreQueryService =
                 new CadastreQueryService(cadastreRepository, addressRegistryRepository);
@@ -394,15 +394,28 @@ class PropertyServiceTest {
         private static final long STREET_CODE = 7001L;
 
         private CreatePropertyRequest registerLinkedRequest(Long buildingCode, String apartment) {
-            Location loc = new Location("centre", "riga", "typed by client", buildingCode, null, apartment,
-                    null, new CoordsDto(56.9496, 24.1052));
+            Location loc = Location.builder()
+                    .district("centre")
+                    .city("riga")
+                    .address("typed by client")
+                    .arBuildingCode(buildingCode)
+                    .apartment(apartment)
+                    .coords(new CoordsDto(56.9496, 24.1052))
+                    .build();
             return createPropertyRequest().toBuilder().location(loc).build();
         }
 
         private void stubBuilding(long code, String houseName, String streetName) {
             when(addressRegistryRepository.findBuildingAddress(code)).thenReturn(Optional.of(
-                    new BuildingAddress(code, houseName, streetName,
-                            streetName != null ? STREET_CODE : null, "Rīga", 56.95, 24.11)));
+                    BuildingAddress.builder()
+                            .code(code)
+                            .houseName(houseName)
+                            .streetName(streetName)
+                            .streetCode(streetName != null ? STREET_CODE : null)
+                            .territoryName("Rīga")
+                            .lat(56.95)
+                            .lng(24.11)
+                            .build()));
         }
 
         private Property structuredProperty(User owner, long buildingCode, String apartment) {
@@ -549,7 +562,13 @@ class PropertyServiceTest {
             User owner = user();
             when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
             when(addressRegistryRepository.findBuildingAddress(6006L)).thenReturn(Optional.of(
-                    new BuildingAddress(6006L, "Riņņi", null, null, "Skultes pag.", 57.35, 24.42)));
+                    BuildingAddress.builder()
+                            .code(6006L)
+                            .houseName("Riņņi")
+                            .territoryName("Skultes pag.")
+                            .lat(57.35)
+                            .lng(24.42)
+                            .build()));
             when(propertyRepository.save(any())).thenAnswer(inv -> {
                 Property p = inv.getArgument(0);
                 p.setId(UUID.randomUUID());
@@ -971,7 +990,11 @@ class PropertyServiceTest {
                 .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), null))
                 .details(PropertyDetails.builder().rooms(l.getRooms()).m2(l.getM2()).build())
-                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null, null, null, null))
+                .location(Location.builder()
+                        .district(p.getDistrictSlug())
+                        .city(p.getCitySlug())
+                        .address(p.getAddress())
+                        .build())
                 .features(List.of())
                 .postedAt(l.getPostedAt())
                 .expiresAt(l.getExpiresAt())
@@ -982,8 +1005,12 @@ class PropertyServiceTest {
         return PropertyDto.builder()
                 .id(p.getId())
                 .ownerId(p.getOwner().getId())
-                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null,
-                        null, null, coordsOf(p)))
+                .location(Location.builder()
+                        .district(p.getDistrictSlug())
+                        .city(p.getCitySlug())
+                        .address(p.getAddress())
+                        .coords(coordsOf(p))
+                        .build())
                 .build();
     }
 
@@ -996,8 +1023,12 @@ class PropertyServiceTest {
                 .propertyKind(l.getPropertyCategory())
                 .price(new Price(l.getPrice(), null))
                 .details(PropertyDetails.builder().rooms(l.getRooms()).m2(l.getM2()).build())
-                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(), null, null,
-                        null, null, coordsOf(p)))
+                .location(Location.builder()
+                        .district(p.getDistrictSlug())
+                        .city(p.getCitySlug())
+                        .address(p.getAddress())
+                        .coords(coordsOf(p))
+                        .build())
                 .features(List.of())
                 .media(Media.builder().photos(List.of()).build())
                 .postedAt(l.getPostedAt())

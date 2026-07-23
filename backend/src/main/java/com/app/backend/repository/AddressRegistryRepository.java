@@ -126,9 +126,14 @@ public class AddressRegistryRepository {
         return jdbc.query("""
                 SELECT code, type_cd, name, norm_name, novads_name, norm_novads_name
                 FROM address_territories WHERE norm_name = :name
-                """, Map.of("name", normName), (rs, i) -> new TerritoryRow(
-                rs.getLong("code"), rs.getInt("type_cd"), rs.getString("name"),
-                rs.getString("norm_name"), rs.getString("novads_name"), rs.getString("norm_novads_name")));
+                """, Map.of("name", normName), (rs, i) -> TerritoryRow.builder()
+                .code(rs.getLong("code"))
+                .typeCd(rs.getInt("type_cd"))
+                .name(rs.getString("name"))
+                .normName(rs.getString("norm_name"))
+                .novadsName(rs.getString("novads_name"))
+                .normNovadsName(rs.getString("norm_novads_name"))
+                .build());
     }
 
     /** Streets in the given territories whose normalized name starts with (or has a word starting with) the query. */
@@ -194,10 +199,15 @@ public class AddressRegistryRepository {
                 LEFT JOIN address_streets s ON s.code = b.street_code
                 JOIN address_territories t ON t.code = b.territory_code
                 WHERE b.code = :code
-                """, Map.of("code", code), (rs, i) -> new BuildingAddress(
-                rs.getLong("code"), rs.getString("name"), rs.getString("street_name"),
-                nullableLong(rs.getObject("street_code")), rs.getString("territory_name"),
-                nullableDouble(rs.getObject("lat")), nullableDouble(rs.getObject("lng"))));
+                """, Map.of("code", code), (rs, i) -> BuildingAddress.builder()
+                .code(rs.getLong("code"))
+                .houseName(rs.getString("name"))
+                .streetName(rs.getString("street_name"))
+                .streetCode(nullableLong(rs.getObject("street_code")))
+                .territoryName(rs.getString("territory_name"))
+                .lat(nullableDouble(rs.getObject("lat")))
+                .lng(nullableDouble(rs.getObject("lng")))
+                .build());
         return found.stream().findFirst();
     }
 

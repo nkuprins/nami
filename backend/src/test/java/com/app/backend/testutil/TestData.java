@@ -174,8 +174,12 @@ public final class TestData {
                 .translations(Map.of(
                         "lv", new LocalizedText("Testa dzīvoklis", "Apraksts latviski"),
                         "en", new LocalizedText("Test Apartment", "Description in English")))
-                .location(new Location("centre", "riga", "Main Street 10", null, null, null, null,
-                        new CoordsDto(56.9496, 24.1052)))
+                .location(Location.builder()
+                        .district("centre")
+                        .city("riga")
+                        .address("Main Street 10")
+                        .coords(new CoordsDto(56.9496, 24.1052))
+                        .build())
                 .features(List.of(PropertyFeature.BALCONY, PropertyFeature.PARKING))
                 .media(Media.builder().photos(List.of("https://cdn.test.local/uploads/p1.jpg")).build())
                 .phones(List.of(new PhoneContact("+37120000000", "Test User", "test@example.com")))
@@ -212,8 +216,12 @@ public final class TestData {
 
     public static UpdatePropertyRequest updatePropertyRequest() {
         return UpdatePropertyRequest.builder()
-                .location(new Location("centre", "riga", "Main Street 10", null, null, null, null,
-                        new CoordsDto(56.9496, 24.1052)))
+                .location(Location.builder()
+                        .district("centre")
+                        .city("riga")
+                        .address("Main Street 10")
+                        .coords(new CoordsDto(56.9496, 24.1052))
+                        .build())
                 .build();
     }
 

@@ -109,8 +109,14 @@ public class PropertyMapper {
                 .price(new Price(l.getPrice(), l.isVatIncluded() ? true : null))
                 .details(details)
                 .translations(translations(l.getTranslations(), false))
-                .location(new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
-                        p.getArBuildingCode(), null, p.getApartment(), p.getCadastreParcelNr(), null))
+                .location(Location.builder()
+                        .district(p.getDistrictSlug())
+                        .city(p.getCitySlug())
+                        .address(p.getAddress())
+                        .arBuildingCode(p.getArBuildingCode())
+                        .apartment(p.getApartment())
+                        .cadastreParcelNr(p.getCadastreParcelNr())
+                        .build())
                 .features(sorted(l.getFeatures()))
                 .photo(photo)
                 .postedAt(l.getPostedAt())
@@ -289,9 +295,15 @@ public class PropertyMapper {
     }
 
     private static Location toLocation(Property p) {
-        return new Location(p.getDistrictSlug(), p.getCitySlug(), p.getAddress(),
-                p.getArBuildingCode(), null, p.getApartment(), p.getCadastreParcelNr(),
-                new CoordsDto(p.getLat(), p.getLng()));
+        return Location.builder()
+                .district(p.getDistrictSlug())
+                .city(p.getCitySlug())
+                .address(p.getAddress())
+                .arBuildingCode(p.getArBuildingCode())
+                .apartment(p.getApartment())
+                .cadastreParcelNr(p.getCadastreParcelNr())
+                .coords(new CoordsDto(p.getLat(), p.getLng()))
+                .build();
     }
 
     private static void applyDetails(Listing listing, PropertyDetails details) {

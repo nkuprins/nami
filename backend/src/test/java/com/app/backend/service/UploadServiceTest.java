@@ -40,7 +40,7 @@ class UploadServiceTest {
     @BeforeEach
     void setUp() {
         AppProperties.S3Properties s3 = new AppProperties.S3Properties("test-bucket", "us-east-1", 5, "https://cdn.test.local");
-        AppProperties props = new AppProperties(null, s3, null, null, null, null, null, null, null, null);
+        AppProperties props = AppProperties.builder().s3(s3).build();
         ReflectionTestUtils.setField(uploadService, "props", props);
     }
 
