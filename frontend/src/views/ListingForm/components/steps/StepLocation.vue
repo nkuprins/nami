@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LocationSection from '../LocationSection.vue';
+import CadastreSection from '../CadastreSection.vue';
 import DuplicateNudgeCard from '../../../../components/listing/DuplicateNudgeCard.vue';
 import type { PropertyFieldsForm } from '../../composables/formTypes';
 import type { Location } from '../../../../data/rawLocations';
@@ -36,6 +37,7 @@ defineEmits<{
       @update:is-open="$emit('update:isOpen', $event)"
       @select="$emit('select', $event)"
     />
+    <CadastreSection v-model:form="form" />
     <DuplicateNudgeCard
       :match-kind="matchKind"
       :match="match"

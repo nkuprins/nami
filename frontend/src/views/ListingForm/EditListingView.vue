@@ -13,6 +13,7 @@ import type { ListingType } from '../../types/listingItem';
 
 import EditContentsRail from './components/edit/EditContentsRail.vue';
 import LocationLockedSection from './components/edit/LocationLockedSection.vue';
+import CadastreSection from './components/CadastreSection.vue';
 import BasicInfoSection from './components/BasicInfoSection.vue';
 import PricingSection from './components/PricingSection.vue';
 import PropertyKindSection from './components/PropertyKindSection.vue';
@@ -122,7 +123,7 @@ onMounted(async () => {
         >
           <div
             id="location"
-            class="rounded-xl border p-6 transition-shadow"
+            class="rounded-xl border p-6 transition-shadow flex flex-col gap-8"
             :class="
               highlightedSection === 'location'
                 ? 'border-accent-2 ring-2 ring-accent-2/25'
@@ -141,6 +142,7 @@ onMounted(async () => {
               @update:coords="form.coords = $event"
               @save-pin="savePin(form.coords!)"
             />
+            <CadastreSection v-model:form="form" />
           </div>
 
           <div

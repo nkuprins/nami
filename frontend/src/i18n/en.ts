@@ -408,6 +408,10 @@ export default {
     cadastreParcelLabel: 'Cadastre number (parcel)',
     cadastreParcelHelp:
       'The land unit’s cadastre number, e.g. 21000030512. Lets us verify the plot against the register.',
+    cadastreSection: 'Cadastre',
+    cadastreMatched: 'Matched against the cadastre register',
+    cadastreEmpty:
+      'We’ll show the official cadastre figures here once your property is matched against the register.',
     floorLabel: 'Floor',
     totalFloorsLabel: 'Total floors',
     yearBuiltLabel: 'Year built',

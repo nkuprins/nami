@@ -45,7 +45,7 @@ export const CATEGORY_PROFILES: Record<Category, CategoryProfile> = {
     plotArea: 'optional',
     floors: true,
     completion: false,
-    parcel: false,
+    parcel: true,
   },
   new_project: {
     subtype: 'newProjectKind',

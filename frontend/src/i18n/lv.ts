@@ -406,6 +406,10 @@ export default {
     cadastreParcelLabel: 'Kadastra numurs (zemes vienība)',
     cadastreParcelHelp:
       'Zemes vienības kadastra numurs, piem. 21000030512. Ļauj pārbaudīt zemesgabalu pret reģistru.',
+    cadastreSection: 'Kadastrs',
+    cadastreMatched: 'Salīdzināts ar kadastra reģistru',
+    cadastreEmpty:
+      'Oficiālie kadastra dati parādīsies šeit, kad īpašums būs salīdzināts ar reģistru.',
     landAreaLabel: 'Zemes platība (m²)',
     floorLabel: 'Stāvs',
     totalFloorsLabel: 'Kopā stāvi',

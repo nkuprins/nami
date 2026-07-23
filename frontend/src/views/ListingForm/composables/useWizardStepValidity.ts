@@ -40,8 +40,8 @@ export function stepHasErrors(
 // add-another-listing form omits 'location' (it inherits the property's
 // location), so each view derives its own STEPS from this single source.
 export const LISTING_WIZARD_STEPS: readonly ListingWizardStep[] = [
-  'location',
   'category',
+  'location',
   'description',
   'photos',
   'publish',

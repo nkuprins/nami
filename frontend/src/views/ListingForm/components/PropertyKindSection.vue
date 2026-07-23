@@ -45,6 +45,17 @@ function setCategory(value: Category) {
   if (p.subtype !== 'newProjectKind') form.value.newProjectKind = '';
   if (p.subtype !== 'commercial') form.value.commercialSubtype = '';
   if (p.subtype !== 'landUse') form.value.landUse = '';
+  // Categories without a parcel (apartment/new_project/garage) mustn't carry a
+  // stale parcel number into the draft; clearing it also resets the parcel-based
+  // official figures via the autofill watcher.
+  if (!p.parcel) form.value.cadastreParcelNr = '';
+  // Land has no building, so building-derived figures (auto-filled from the
+  // address) mustn't leak into the draft — yearBuilt in particular is submitted
+  // ungated, which would save a neighbouring building's year on a plot.
+  if (p.buildingArea === 'hidden') {
+    form.value.yearBuilt = '';
+    form.value.m2 = '';
+  }
 }
 </script>
 

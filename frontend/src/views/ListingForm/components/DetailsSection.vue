@@ -133,17 +133,6 @@ const landAreaHint = computed(() => officialHint(official.value.landM2, ' m²'))
       @beforeinput="decimalInput"
     />
 
-    <FormField
-      v-if="profile.parcel"
-      id="ap-cadastre-parcel"
-      :label="t('addListing.cadastreParcelLabel')"
-      v-model="form.cadastreParcelNr"
-      :hint="t('addListing.cadastreParcelHelp')"
-      inputmode="numeric"
-      maxlength="32"
-      placeholder="e.g. 21000030512"
-    />
-
     <div v-if="profile.floors" class="grid grid-cols-2 gap-4">
       <FormField
         id="ap-floor"
@@ -165,6 +154,7 @@ const landAreaHint = computed(() => officialHint(official.value.landM2, ' m²'))
     </div>
 
     <FormField
+      v-if="profile.buildingArea !== 'hidden'"
       id="ap-year"
       :label="t('addListing.yearBuiltLabel')"
       v-model="form.yearBuilt"

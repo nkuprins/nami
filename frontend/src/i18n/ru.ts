@@ -407,6 +407,10 @@ export default {
     cadastreParcelLabel: 'Кадастровый номер (участок)',
     cadastreParcelHelp:
       'Кадастровый номер земельного участка, напр. 21000030512. Позволяет сверить участок с реестром.',
+    cadastreSection: 'Кадастр',
+    cadastreMatched: 'Сверено с кадастровым реестром',
+    cadastreEmpty:
+      'Официальные кадастровые данные появятся здесь после сопоставления объекта с реестром.',
     landAreaLabel: 'Площадь участка (м²)',
     floorLabel: 'Этаж',
     totalFloorsLabel: 'Всего этажей',

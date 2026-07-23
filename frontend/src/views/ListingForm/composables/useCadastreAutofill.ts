@@ -2,6 +2,7 @@ import { ref, watch, type InjectionKey, type Ref } from 'vue';
 import type { LandUse } from '../../../types/listingItem';
 import type { ListingFormState } from './formTypes';
 import { selectedBuildingCode } from './formHelpers';
+import { categoryProfile } from '../../../types/categoryRegistry';
 import {
   fetchOfficialBuilding,
   fetchOfficialParcel,
@@ -58,10 +59,19 @@ export function useCadastreAutofill(form: ListingFormState): Ref<OfficialFigures
 
   let buildingTimer: ReturnType<typeof setTimeout> | undefined;
   watch(
-    () => [selectedBuildingCode(form), form.apartment.trim()] as const,
-    ([code, apartment]) => {
+    () =>
+      [
+        selectedBuildingCode(form),
+        form.apartment.trim(),
+        categoryProfile(form.propertyKind).buildingArea === 'hidden',
+      ] as const,
+    ([code, apartment, noBuilding]) => {
       clearTimeout(buildingTimer);
-      if (code == null) {
+      // Land carries no building of its own: the address may resolve to a
+      // building at that street number, but its year/area belong to that
+      // building, not to the plot being sold. Skip the lookup entirely so we
+      // neither show nor auto-fill a building's figures on a land listing.
+      if (noBuilding || code == null) {
         official.value = { ...official.value, yearBuilt: null, area: null };
         return;
       }
