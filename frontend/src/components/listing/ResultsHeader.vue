@@ -16,7 +16,12 @@ defineProps<{ total: number; loading: boolean }>();
 const { t } = useI18n();
 const { state, setSort } = useFiltersStore();
 const { mode, setMode } = useViewMode();
-const { state: mapState, toggle: toggleMap } = useMapView();
+const { state: mapState, toggle: toggleMap, open: openMap } = useMapView();
+
+function selectList() {
+  setMode('list');
+  openMap();
+}
 const sortOptions = useSortOptions();
 
 const open = ref(false);
@@ -71,7 +76,7 @@ function pick(id: SortKey) {
         </button>
         <button
           type="button"
-          @click="setMode('list')"
+          @click="selectList"
           :aria-pressed="mode === 'list'"
           class="focus-ring inline-flex items-center gap-2 h-9 px-3.5 rounded-full text-sm transition-colors"
           :class="mode === 'list' ? 'bg-ink text-bg' : 'text-ink-2 hover:text-ink'"
