@@ -355,6 +355,10 @@ export default {
     clearDraftConfirmDesc:
       'This will discard everything you entered and start the form over.',
     clearDraftConfirmLabel: 'Clear draft',
+    reviewTitle: 'Your listing is under review',
+    reviewDesc:
+      "Some details didn't match the official cadastre, so our team will take a quick look before it goes live. You can track its status in My Properties.",
+    reviewConfirm: 'Got it',
     submitError: 'Something went wrong. Please try again.',
     basicInfo: 'Basic info',
     titleLabel: 'Title',
@@ -587,6 +591,7 @@ export default {
     escToClose: 'Esc to close',
     expiresOn: 'Expires {date}',
     expired: 'Expired',
+    underReview: 'Under review',
     renew: 'Renew',
     renewListing: 'Renew listing',
     renewListingDesc: 'Choose how long to keep this listing active.',

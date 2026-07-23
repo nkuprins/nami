@@ -11,6 +11,7 @@ import com.app.backend.enums.ListingType;
 import com.app.backend.enums.PropertyCategory;
 import com.app.backend.enums.PropertyCompletion;
 import com.app.backend.enums.PropertyFeature;
+import com.app.backend.enums.PropertyStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 
@@ -39,5 +40,6 @@ public record PropertyListItemDto(
         OffsetDateTime postedAt,
         PropertyCompletion completion,
         OffsetDateTime expiresAt,
+        PropertyStatus status,
         Boolean cadastreVerified
 ) {}

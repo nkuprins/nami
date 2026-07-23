@@ -231,6 +231,7 @@ interface ListingBase {
   postedAt: string;
   expiresAt?: string;
   completion?: PropertyCompletion;
+  status?: 'active' | 'inactive' | 'pending_review';
   // True when the posted figures positively matched the VZD cadastre; drives the
   // "verified" badge. Absent/false otherwise (see backend CadastreQueryService).
   cadastreVerified?: boolean;

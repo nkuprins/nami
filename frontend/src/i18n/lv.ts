@@ -355,6 +355,10 @@ export default {
     clearDraftConfirmDesc:
       'Tiks dzēsta visa ievadītā informācija un forma sāksies no jauna.',
     clearDraftConfirmLabel: 'Notīrīt melnrakstu',
+    reviewTitle: 'Jūsu sludinājums tiek pārbaudīts',
+    reviewDesc:
+      'Daži dati neatbilda oficiālajam kadastram, tāpēc mūsu komanda tos ātri pārbaudīs pirms publicēšanas. Statusu varat sekot sadaļā “Mani īpašumi”.',
+    reviewConfirm: 'Sapratu',
     submitError: 'Kaut kas nogāja greizi. Lūdzu, mēģiniet vēlreiz.',
     basicInfo: 'Pamatinformācija',
     titleLabel: 'Nosaukums',
@@ -588,6 +592,7 @@ export default {
     escToClose: 'Esc, lai aizvērtu',
     expiresOn: 'Beidzas {date}',
     expired: 'Beidzies',
+    underReview: 'Tiek pārbaudīts',
     renew: 'Pagarināt',
     renewListing: 'Pagarināt sludinājumu',
     renewListingDesc: 'Izvēlieties, cik ilgi šis sludinājums būs aktīvs.',

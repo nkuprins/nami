@@ -130,6 +130,9 @@ const registeredNames = new Map<string, string>();
 
 const dtoCatalog = mockListings.map((item) => ({
   ...item,
+  // Keep one owned listing under admin review so the "under review" indicator
+  // in My Properties is visible in VITE_MOCK mode.
+  status: item.id === 'lst-005' ? ('pending_review' as const) : item.status,
   ownerId: MOCK_OWNED_PROPERTY_IDS.has(item.propertyId)
     ? MOCK_OWNER_ID
     : `other-user-${item.propertyId}`,

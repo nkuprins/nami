@@ -59,6 +59,10 @@ export function useListingForm(
   const submitting = ref(false);
   const submitError = ref('');
   const rentListingWarning = ref(false);
+  // A cadastre mismatch sends the listing to admin review instead of going live.
+  // We hold on the form and let the view surface a "under review" popup rather
+  // than redirect to the public page (which won't show a non-active listing).
+  const pendingReview = ref(false);
   const official = useCadastreAutofill(form);
 
   const errors = computed(() => ({
@@ -167,6 +171,13 @@ export function useListingForm(
         }
       }
 
+      if (created.status === 'pending_review') {
+        // Stay on the form (submitting stays true, so the eventual navigation
+        // still clears the draft); the view shows the review popup.
+        pendingReview.value = true;
+        return;
+      }
+
       await localePush(`/listing/${created.id}`);
     } catch (e) {
       // The Turnstile token is spent once the backend verifies it; reset the
@@ -189,6 +200,7 @@ export function useListingForm(
     submitting,
     submitError,
     rentListingWarning,
+    pendingReview,
     errors,
     isValid,
     fieldError,

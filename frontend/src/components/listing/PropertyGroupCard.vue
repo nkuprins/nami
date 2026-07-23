@@ -183,7 +183,13 @@ function requestDeleteListing(id: string) {
               class="flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[0.6875rem] uppercase tracking-[0.14em]"
             >
               <span class="text-ink-2">{{ typeLabel(item.type) }}</span>
-              <span v-if="isExpired(item)" class="text-warn font-medium">
+              <span
+                v-if="item.status === 'pending_review'"
+                class="text-accent-2 font-medium"
+              >
+                {{ t('drawers.underReview') }}
+              </span>
+              <span v-else-if="isExpired(item)" class="text-warn font-medium">
                 {{ t('drawers.expired') }}
               </span>
               <span v-else-if="item.expiresAt" class="text-ink-3">

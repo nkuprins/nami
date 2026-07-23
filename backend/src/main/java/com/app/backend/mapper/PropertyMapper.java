@@ -123,6 +123,7 @@ public class PropertyMapper {
                 .postedAt(l.getPostedAt())
                 .completion(l.getCompletion())
                 .expiresAt(l.getExpiresAt())
+                .status(l.getStatus())
                 .cadastreVerified(l.isCadastreVerified() ? true : null)
                 .build();
     }

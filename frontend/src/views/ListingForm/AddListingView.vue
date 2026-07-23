@@ -49,6 +49,7 @@ const {
   submitting,
   submitError,
   rentListingWarning,
+  pendingReview,
   errors,
   fieldError,
   addPhone,
@@ -87,6 +88,13 @@ const confirmingClearDraft = ref(false);
 function clearDraft() {
   draft.clear();
   window.location.reload();
+}
+
+// A submitted listing whose figures don't match the cadastre is held for admin
+// review. Acknowledging the popup leaves the form for home — `submitting` is
+// still true, so onBeforeRouteLeave clears the draft on the way out.
+function dismissReview() {
+  localePush('/');
 }
 
 // The only hard block on Continue itself (nothing more to reveal by clicking —
@@ -191,6 +199,16 @@ watch(
       danger
       @update:open="confirmingClearDraft = false"
       @confirm="clearDraft"
+    />
+
+    <ConfirmDialog
+      :open="pendingReview"
+      :title="t('addListing.reviewTitle')"
+      :description="t('addListing.reviewDesc')"
+      :confirm-label="t('addListing.reviewConfirm')"
+      hide-cancel
+      @update:open="dismissReview"
+      @confirm="dismissReview"
     />
 
     <div class="flex flex-col md:flex-row gap-6 md:gap-10 items-start">

@@ -6,6 +6,7 @@ defineProps<{
   confirmLabel?: string;
   cancelLabel?: string;
   danger?: boolean;
+  hideCancel?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -43,6 +44,7 @@ const emit = defineEmits<{
 
           <div class="flex gap-2 justify-end">
             <button
+              v-if="!hideCancel"
               class="focus-ring h-9 px-4 rounded-full border border-line-2 text-sm text-ink-2 hover:bg-surface hover:border-ink-3 transition-colors"
               @click="emit('update:open', false)"
             >
