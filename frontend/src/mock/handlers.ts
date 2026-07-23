@@ -229,11 +229,16 @@ function isCadastreMismatch(body: any): boolean {
 // CadastreComparison), derived from a catalog item's details + the mock officials.
 function mockComparison(item: any) {
   const d = item.details ?? {};
-  const hasBuilding = item.location?.arBuildingCode != null;
-  const hasApartment = hasBuilding && !!item.location?.apartment;
-  const hasParcel = item.location?.cadastreParcelNr != null;
+  // A listing only lands in the review queue because it resolved to a cadastre
+  // building and something didn't match, so always surface the building-level
+  // figures. Apartment area is compared for apartments; land figures only when
+  // the listing declares a plot (houses/land). The seed data carries no
+  // arBuildingCode/parcel location fields, so deriving linkage from the listing
+  // shape is what makes the breakdown appear at all.
+  const hasApartment = item.propertyKind === 'apartment';
+  const hasParcel = d.landM2 != null || item.landUse != null;
   const declaredYear = d.yearBuilt ?? null;
-  const officialYear = hasBuilding ? MOCK_OFFICIAL_YEAR_BUILT : null;
+  const officialYear = MOCK_OFFICIAL_YEAR_BUILT;
   const declaredArea = d.m2 ?? null;
   const officialArea = hasApartment ? MOCK_OFFICIAL_AREA_M2 : null;
   const declaredLandM2 = d.landM2 ?? null;
