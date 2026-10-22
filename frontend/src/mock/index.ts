@@ -12,6 +12,6 @@ export function installMock(): Promise<ServiceWorkerRegistration | undefined> {
     document.cookie = 'has_session=1; path=/';
   }
   return worker.start({
-    onUnhandledRequest: 'bypass',
+    onUnhandledFrame: 'bypass',
   });
 }
