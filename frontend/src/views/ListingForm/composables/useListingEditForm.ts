@@ -88,7 +88,7 @@ export function useListingEditForm(
       planUpload.seed(p.media.plans ?? []);
       loading.value = false;
 
-      loadSiblingListingsCount(p.propertyId);
+      void loadSiblingListingsCount(p.propertyId);
     })
     .catch(() => {
       localePush('/');
