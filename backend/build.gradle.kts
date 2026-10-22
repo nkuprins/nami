@@ -7,19 +7,19 @@ plugins {
 }
 
 lombok {
-    version = "1.18.46"
+    version = "1.18.48"
 }
 
 group = "com.app"
 version = "0.0.1-SNAPSHOT"
 description = "backend"
 
-val thumbnailatorVersion = "0.4.20"
-val jjwtVersion = "0.12.6"
+val thumbnailatorVersion = "0.4.21"
+val jjwtVersion = "0.12.7"
 val bucket4jVersion = "8.10.1"
-val awsSdkBomVersion = "2.30.17"
-val instancioVersion = "5.4.0"
-val archunitVersion = "1.4.2"
+val awsSdkBomVersion = "2.57.2"
+val instancioVersion = "5.6.0"
+val archunitVersion = "1.5.1"
 
 java {
     toolchain {
