@@ -56,10 +56,11 @@ function open(i: number) {
 <template>
   <div>
     <div class="grid grid-cols-3 md:grid-cols-5 gap-1.5">
-      <div
+      <button
         v-for="(tile, i) in tiles"
         :key="tile.type === 'photo' ? `photo-${tile.index}` : 'video'"
-        class="relative overflow-hidden rounded-lg bg-surface group aspect-square"
+        type="button"
+        class="focus-ring relative overflow-hidden rounded-lg bg-surface group aspect-square"
         :class="tile.type === 'photo' ? 'cursor-zoom-in' : 'cursor-pointer'"
         @click="tile.type === 'photo' ? open(tile.index) : emit('play-video')"
       >
@@ -71,14 +72,14 @@ function open(i: number) {
             loading="lazy"
             @error="(e) => onVariantError(e, tile.src)"
           />
-          <div
+          <span
             v-if="tile.overlay"
             class="absolute inset-0 bg-ink/60 backdrop-blur-sm flex items-center justify-center"
           >
             <span class="text-cream text-xl font-semibold tabular"
               >+{{ tile.overlay }}</span
             >
-          </div>
+          </span>
         </template>
         <template v-else>
           <img
@@ -88,22 +89,22 @@ function open(i: number) {
             class="size-full object-cover transition-transform duration-300 group-hover:scale-[1.04]"
             loading="lazy"
           />
-          <div
+          <span
             v-else
             class="absolute inset-0 bg-linear-to-br from-surface via-bg to-cream"
           />
-          <div
+          <span
             class="absolute inset-0 bg-black/25 transition-opacity group-hover:bg-black/30"
           />
-          <div class="absolute inset-0 flex items-center justify-center">
+          <span class="absolute inset-0 flex items-center justify-center">
             <span
               class="flex size-10 items-center justify-center rounded-full bg-white/90 text-ink shadow-lg transition-transform group-hover:scale-105"
             >
               <IconPlayer />
             </span>
-          </div>
+          </span>
         </template>
-      </div>
+      </button>
     </div>
 
     <PhotoLightBox

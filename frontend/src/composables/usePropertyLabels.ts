@@ -39,6 +39,14 @@ const FEATURE_META: Record<
   basement: { icon: IconStairsDown, category: 'building' },
 };
 
+function featureIcon(id: Feature): Component {
+  return FEATURE_META[id].icon;
+}
+
+function featureCategory(id: Feature): FeatureCategory {
+  return FEATURE_META[id].category;
+}
+
 export function usePropertyLabels() {
   const { t } = useI18n();
 
@@ -101,14 +109,6 @@ export function usePropertyLabels() {
 
   function featureLabel(id: Feature): string {
     return t(`features.${id}`);
-  }
-
-  function featureIcon(id: Feature): Component {
-    return FEATURE_META[id].icon;
-  }
-
-  function featureCategory(id: Feature): FeatureCategory {
-    return FEATURE_META[id].category;
   }
 
   function heatingLabel(id: HeatingType): string {

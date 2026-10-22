@@ -49,6 +49,17 @@ export function useListingEditForm(
   const pinSaveError = ref('');
   const siblingListingsCount = ref(1);
 
+  async function loadSiblingListingsCount(id: string) {
+    try {
+      const all = await getMyListings();
+      siblingListingsCount.value = all.filter(
+        (l) => l.propertyId === id
+      ).length;
+    } catch {
+      siblingListingsCount.value = 1;
+    }
+  }
+
   getListing(listingId)
     .then((p) => {
       if (!p) {
@@ -77,15 +88,7 @@ export function useListingEditForm(
       planUpload.seed(p.media.plans ?? []);
       loading.value = false;
 
-      getMyListings()
-        .then((all) => {
-          siblingListingsCount.value = all.filter(
-            (l) => l.propertyId === p.propertyId
-          ).length;
-        })
-        .catch(() => {
-          siblingListingsCount.value = 1;
-        });
+      loadSiblingListingsCount(p.propertyId);
     })
     .catch(() => {
       localePush('/');

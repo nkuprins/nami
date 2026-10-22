@@ -182,11 +182,10 @@ onBeforeUnmount(() => {
       <div
         v-if="open"
         class="fixed inset-0 z-[45] flex flex-col md:items-center md:justify-center md:p-6"
-        @click="close"
+        @click.self="close"
       >
         <div
           class="flex flex-col w-full h-full md:h-auto md:max-w-3xl md:max-h-[85vh] md:rounded-2xl md:shadow-lift md:border md:border-line bg-bg overflow-hidden"
-          @click.stop
         >
           <header
             class="flex items-center gap-3 px-4 md:px-6 h-14 md:h-16 border-b border-line shrink-0"

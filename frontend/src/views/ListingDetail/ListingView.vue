@@ -352,15 +352,20 @@ function openPlanLightbox(i: number) {
               v-else-if="mediaTab === 'plans' && listing.media.plans?.length"
               class="grid grid-cols-2 sm:grid-cols-3 gap-2"
             >
-              <img
+              <button
                 v-for="(url, i) in listing.media.plans"
                 :key="i"
-                :src="mediaVariant(url, 'card')"
-                class="w-full rounded-lg object-contain bg-surface cursor-pointer"
-                :alt="`${t('listing.plans')} ${i + 1}`"
+                type="button"
+                class="focus-ring rounded-lg"
                 @click="openPlanLightbox(i)"
-                @error="(e) => onVariantError(e, url)"
-              />
+              >
+                <img
+                  :src="mediaVariant(url, 'card')"
+                  class="w-full rounded-lg object-contain bg-surface cursor-pointer"
+                  :alt="`${t('listing.plans')} ${i + 1}`"
+                  @error="(e) => onVariantError(e, url)"
+                />
+              </button>
             </div>
 
             <VideoPlayer

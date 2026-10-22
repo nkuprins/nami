@@ -8,8 +8,8 @@ let refreshPromise: Promise<boolean> | null = null;
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 function readCookie(name: string): string | null {
-  const match = document.cookie.match(
-    new RegExp('(?:^|; )' + name + '=([^;]*)')
+  const match = new RegExp('(?:^|; )' + name + '=([^;]*)').exec(
+    document.cookie
   );
   return match ? decodeURIComponent(match[1]) : null;
 }

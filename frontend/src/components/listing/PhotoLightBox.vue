@@ -124,6 +124,16 @@ function onKey(e: KeyboardEvent) {
   if (e.key === 'ArrowLeft' && scale.value <= 1) prev();
 }
 
+function handleImageKey() {
+  if (scale.value > 1) {
+    resetZoom();
+  } else {
+    scale.value = 2;
+    panX.value = 0;
+    panY.value = 0;
+  }
+}
+
 function handleImageClick(e: MouseEvent) {
   if (didDrag()) return;
 
@@ -233,7 +243,11 @@ onBeforeUnmount(() => {
                 transition: pinching ? 'none' : 'transform 0.2s ease',
               }"
               draggable="false"
+              tabindex="0"
+              role="button"
               @click="handleImageClick"
+              @keydown.enter.prevent="handleImageKey"
+              @keydown.space.prevent="handleImageKey"
               @load="computeImageLayout"
             />
           </Transition>

@@ -63,12 +63,16 @@ function handleTouchEnd() {
   touchEndX = 0;
 }
 
+function openLightbox() {
+  if (props.zoomable) lightboxOpen.value = true;
+}
+
 function handleClick() {
   if (didSwipe) {
     didSwipe = false;
     return;
   }
-  if (props.zoomable) lightboxOpen.value = true;
+  openLightbox();
 }
 </script>
 
@@ -76,9 +80,12 @@ function handleClick() {
   <section
     :class="[
       'relative size-full overflow-hidden bg-surface group/carousel touch-pan-y',
-      zoomable && 'cursor-zoom-in',
+      zoomable && 'cursor-zoom-in focus-ring',
     ]"
+    :tabindex="zoomable ? 0 : undefined"
     @click="handleClick"
+    @keydown.enter.self.prevent="openLightbox"
+    @keydown.space.self.prevent="openLightbox"
     @touchstart="handleTouchStart"
     @touchmove="handleTouchMove"
     @touchend="handleTouchEnd"
