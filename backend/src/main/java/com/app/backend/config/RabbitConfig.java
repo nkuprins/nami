@@ -55,6 +55,6 @@ public class RabbitConfig {
 
     @Bean
     MessageConverter jsonMessageConverter() {
-        return new JacksonJsonMessageConverter();
+        return new JacksonJsonMessageConverter("com.app.backend.messaging");
     }
 }
