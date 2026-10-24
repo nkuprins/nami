@@ -1,6 +1,14 @@
 # Baltnami
 
-Open-source real estate marketplace for Latvia
+Public edition of the Baltnami real estate marketplace for Latvia
+
+## About This Repository
+
+This is the public edition of Baltnami, released under the [AGPL-3.0](LICENSE). It is the version deployed at [baltnami.id.lv](https://baltnami.id.lv).
+
+Commercial development of Baltnami is handled separately by the Baltnami project team, which may offer a commercial edition in the future. No commercial edition is available yet.
+
+Pull requests are not accepted at this time. To report a bug, open an issue; for security issues, see [SECURITY.md](SECURITY.md).
 
 ## Tech Stack
 
