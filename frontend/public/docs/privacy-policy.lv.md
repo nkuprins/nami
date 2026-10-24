@@ -1,12 +1,12 @@
 # Privātuma politika
 
-_Pēdējo reizi atjaunināta: [DATE]_
+_Pēdējo reizi atjaunināta: 2026. gada 25. oktobris_
 
 ---
 
 ## 1. Ievads
 
-Šī privātuma politika skaidro, kā Baltnami projekta komanda ("mēs", "mūs" vai "mūsu"), pārvaldot [WEBSITE_URL] platformu ("Baltnami"), vāc, izmanto, uzglabā un aizsargā Jūsu personas datus. Mēs apņemamies ievērot Eiropas Parlamenta un Padomes Regulu (ES) 2016/679 ("VDAR") un Latvijas Republikas likumus.
+Šī privātuma politika skaidro, kā Baltnami projekta komanda ("mēs", "mūs" vai "mūsu"), pārvaldot baltnami.id.lv platformu ("Baltnami"), vāc, izmanto, uzglabā un aizsargā Jūsu personas datus. Mēs apņemamies ievērot Eiropas Parlamenta un Padomes Regulu (ES) 2016/679 ("VDAR") un Latvijas Republikas likumus.
 
 Mēs vācam tikai tos datus, kas nepieciešami mūsu pakalpojumu sniegšanai, un neizmantojam izsekošanas tehnoloģijas vai trešo pušu reklāmas.
 
@@ -17,7 +17,7 @@ Mēs vācam tikai tos datus, kas nepieciešami mūsu pakalpojumu sniegšanai, un
 Par visu platformā apstrādāto personas datu pārzini ir:
 
 **Baltnami projekta komanda**
-E-pasts: nikita.kuprins@gmail.com
+E-pasts: support@baltnami.id.lv
 
 Ar privātuma jautājumiem varat sazināties ar mums, izmantojot iepriekš norādīto adresi.
 
@@ -165,7 +165,7 @@ Kā datu subjektam Jums ir šādas tiesības:
 
 **7.7 Tiesības atsaukt piekrišanu** — Mēs nepamatojam nevienu apstrādi ar piekrišanu; visa apstrāde pamatojas uz līguma izpildi vai leģitīmajām interesēm.
 
-Lai īstenotu jebkuras no šīm tiesībām, sazinieties ar mums: nikita.kuprins@gmail.com. Mēs atbildēsim 30 dienu laikā.
+Lai īstenotu jebkuras no šīm tiesībām, sazinieties ar mums: support@baltnami.id.lv. Mēs atbildēsim 30 dienu laikā.
 
 ---
 
@@ -207,4 +207,4 @@ Mēs varam atjaunināt šo politiku, attīstoties platformai vai mainoties tiesi
 
 ## 12. Kontaktinformācija
 
-Ar visiem ar privātumu saistītiem jautājumiem: nikita.kuprins@gmail.com
+Ar visiem ar privātumu saistītiem jautājumiem: support@baltnami.id.lv

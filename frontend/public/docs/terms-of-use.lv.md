@@ -1,12 +1,12 @@
 # Lietošanas noteikumi
 
-_Pēdējo reizi atjaunināti: [DATE]_
+_Pēdējo reizi atjaunināti: 2026. gada 25. oktobris_
 
 ---
 
 ## 1. Noteikumu akceptēšana
 
-Piekļūstot [WEBSITE_URL] ("Baltnami", "Platforma", "mēs", "mūs") vai izmantojot to, Jūs piekrītat šiem Lietošanas noteikumiem ("Noteikumi"). Ja nepiekrītat, nelietojiet Platformu.
+Piekļūstot baltnami.id.lv ("Baltnami", "Platforma", "mēs", "mūs") vai izmantojot to, Jūs piekrītat šiem Lietošanas noteikumiem ("Noteikumi"). Ja nepiekrītat, nelietojiet Platformu.
 
 Šie Noteikumi veido saistošu vienošanos starp Jums un Baltnami projekta komandu, kas pārvalda šo Platformu.
 
@@ -28,7 +28,7 @@ Jums jābūt vismaz 18 gadus vecam un jābūt pilnai rīcībspējai, lai noslēg
 
 **4.1** Jums jāreģistrējas ar derīgu e-pasta adresi un paroli, kas ir vismaz 15 rakstzīmes gara. Jūs esat atbildīgs par savu pieteikšanās datu konfidencialitātes saglabāšanu.
 
-**4.2** Jūs esat atbildīgs par visu darbību, kas veikta caur Jūsu kontu. Nekavējoties paziņojiet mums uz nikita.kuprins@gmail.com, ja aizdodat nesankcionētu piekļuvi.
+**4.2** Jūs esat atbildīgs par visu darbību, kas veikta caur Jūsu kontu. Nekavējoties paziņojiet mums uz support@baltnami.id.lv, ja aizdodat nesankcionētu piekļuvi.
 
 **4.3** Reģistrācijas laikā jāsniedz precīza un patiesa informācija. Citas personas vai struktūras uzdošanās ir aizliegta.
 
@@ -106,7 +106,7 @@ Mūsu kopējā kumulatīvā atbildība par jebkādu prasību, kas rodas no šiem
 
 ## 10. Apturēšana un izbeigšana
 
-Mēs varam apturēt vai izbeigt Jūsu kontu bez iepriekšēja brīdinājuma, ja Jūs pārkāpjat šos Noteikumus, iesaistāties krāpnieciskā darbībā vai ja mums to pieprasa likums. Jūs varat pārsūdzēt apturēšanu, sazinoties ar nikita.kuprins@gmail.com 14 dienu laikā.
+Mēs varam apturēt vai izbeigt Jūsu kontu bez iepriekšēja brīdinājuma, ja Jūs pārkāpjat šos Noteikumus, iesaistāties krāpnieciskā darbībā vai ja mums to pieprasa likums. Jūs varat pārsūdzēt apturēšanu, sazinoties ar support@baltnami.id.lv 14 dienu laikā.
 
 ---
 
@@ -126,4 +126,4 @@ Mēs varam jebkurā laikā grozīt šos Noteikumus. Par būtiskām izmaiņām re
 
 ## 13. Kontaktinformācija
 
-Ar visiem jautājumiem: nikita.kuprins@gmail.com
+Ar visiem jautājumiem: support@baltnami.id.lv

@@ -1,12 +1,12 @@
 # Privacy Policy
 
-_Last updated: [DATE]_
+_Last updated: 25 October 2026_
 
 ---
 
 ## 1. Introduction
 
-This Privacy Policy explains how the Baltnami project team ("we", "us", or "our"), operating the [WEBSITE_URL] platform ("Baltnami"), collects, uses, stores, and protects your personal data. We are committed to complying with the General Data Protection Regulation (EU) 2016/679 ("GDPR") and the laws of the Republic of Latvia.
+This Privacy Policy explains how the Baltnami project team ("we", "us", or "our"), operating the baltnami.id.lv platform ("Baltnami"), collects, uses, stores, and protects your personal data. We are committed to complying with the General Data Protection Regulation (EU) 2016/679 ("GDPR") and the laws of the Republic of Latvia.
 
 We collect only the data necessary to provide our service and do not use tracking technologies or third-party advertising.
 
@@ -17,7 +17,7 @@ We collect only the data necessary to provide our service and do not use trackin
 The data controller for all personal data processed through this platform is:
 
 **Baltnami project team**
-Email: nikita.kuprins@gmail.com
+Email: support@baltnami.id.lv
 
 You may contact us at the address above for any privacy-related requests or questions.
 
@@ -165,7 +165,7 @@ As a data subject under the GDPR, you have the following rights:
 
 **7.7 Right to Withdraw Consent** — We do not rely on consent as a legal basis for any processing; all processing is based on contract performance or legitimate interest.
 
-To exercise any of these rights, contact us at nikita.kuprins@gmail.com. We will respond within 30 days.
+To exercise any of these rights, contact us at support@baltnami.id.lv. We will respond within 30 days.
 
 ---
 
@@ -207,4 +207,4 @@ We may update this policy as our platform evolves or legal requirements change. 
 
 ## 12. Contact
 
-For all privacy-related inquiries: nikita.kuprins@gmail.com
+For all privacy-related inquiries: support@baltnami.id.lv

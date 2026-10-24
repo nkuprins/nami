@@ -1,12 +1,12 @@
 # Terms of Use
 
-_Last updated: [DATE]_
+_Last updated: 25 October 2026_
 
 ---
 
 ## 1. Acceptance of Terms
 
-By accessing or using [WEBSITE_URL] ("Baltnami", "the Platform", "we", "us"), you agree to be bound by these Terms of Use ("Terms"). If you do not agree, do not use the Platform.
+By accessing or using baltnami.id.lv ("Baltnami", "the Platform", "we", "us"), you agree to be bound by these Terms of Use ("Terms"). If you do not agree, do not use the Platform.
 
 These Terms constitute a binding agreement between you and the Baltnami project team, which operates this Platform.
 
@@ -28,7 +28,7 @@ You must be at least 18 years old and have full legal capacity to enter into bin
 
 **4.1** You must register with a valid email address and a password of at least 15 characters. You are responsible for maintaining the confidentiality of your credentials.
 
-**4.2** You are responsible for all activity conducted through your account. Notify us immediately at nikita.kuprins@gmail.com if you suspect unauthorised access.
+**4.2** You are responsible for all activity conducted through your account. Notify us immediately at support@baltnami.id.lv if you suspect unauthorised access.
 
 **4.3** You must provide accurate and truthful information during registration. Impersonating another person or entity is prohibited.
 
@@ -106,7 +106,7 @@ Our total aggregate liability for any claim arising under these Terms shall not 
 
 ## 10. Suspension and Termination
 
-We may suspend or terminate your account without notice if you violate these Terms, engage in fraudulent activity, or if we are required to do so by law. You may appeal a suspension by contacting nikita.kuprins@gmail.com within 14 days.
+We may suspend or terminate your account without notice if you violate these Terms, engage in fraudulent activity, or if we are required to do so by law. You may appeal a suspension by contacting support@baltnami.id.lv within 14 days.
 
 ---
 
@@ -126,4 +126,4 @@ We may amend these Terms at any time. Material changes will be communicated via 
 
 ## 13. Contact
 
-For all inquiries: nikita.kuprins@gmail.com
+For all inquiries: support@baltnami.id.lv
