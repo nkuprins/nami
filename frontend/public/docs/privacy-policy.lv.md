@@ -6,7 +6,7 @@ _Pēdējo reizi atjaunināta: [DATE]_
 
 ## 1. Ievads
 
-Šī privātuma politika skaidro, kā Nikita Kuprins ("mēs", "mūs" vai "mūsu"), pārvaldot [WEBSITE_URL] platformu ("Baltnami"), vāc, izmanto, uzglabā un aizsargā Jūsu personas datus. Mēs apņemamies ievērot Eiropas Parlamenta un Padomes Regulu (ES) 2016/679 ("VDAR") un Latvijas Republikas likumus.
+Šī privātuma politika skaidro, kā Baltnami projekta komanda ("mēs", "mūs" vai "mūsu"), pārvaldot [WEBSITE_URL] platformu ("Baltnami"), vāc, izmanto, uzglabā un aizsargā Jūsu personas datus. Mēs apņemamies ievērot Eiropas Parlamenta un Padomes Regulu (ES) 2016/679 ("VDAR") un Latvijas Republikas likumus.
 
 Mēs vācam tikai tos datus, kas nepieciešami mūsu pakalpojumu sniegšanai, un neizmantojam izsekošanas tehnoloģijas vai trešo pušu reklāmas.
 
@@ -16,7 +16,7 @@ Mēs vācam tikai tos datus, kas nepieciešami mūsu pakalpojumu sniegšanai, un
 
 Par visu platformā apstrādāto personas datu pārzini ir:
 
-**Nikita Kuprins**
+**Baltnami projekta komanda**
 E-pasts: nikita.kuprins@gmail.com
 
 Ar privātuma jautājumiem varat sazināties ar mums, izmantojot iepriekš norādīto adresi.

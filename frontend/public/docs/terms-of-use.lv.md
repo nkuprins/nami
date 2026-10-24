@@ -8,7 +8,7 @@ _Pēdējo reizi atjaunināti: [DATE]_
 
 Piekļūstot [WEBSITE_URL] ("Baltnami", "Platforma", "mēs", "mūs") vai izmantojot to, Jūs piekrītat šiem Lietošanas noteikumiem ("Noteikumi"). Ja nepiekrītat, nelietojiet Platformu.
 
-Šie Noteikumi veido saistošu vienošanos starp Jums un Nikita Kuprins, privātpersonu, kas pārvalda šo Platformu.
+Šie Noteikumi veido saistošu vienošanos starp Jums un Baltnami projekta komandu, kas pārvalda šo Platformu.
 
 ---
 
@@ -71,7 +71,7 @@ Jūs piekrītat nedarīt sekojošo:
 
 ## 7. Intelektuālais īpašums
 
-**7.1** Platformas dizains, kods un lietotāju neģenerētais saturs ir Nikita Kuprins īpašums.
+**7.1** Platformas dizains, kods un lietotāju neģenerētais saturs ir Baltnami projekta komandas īpašums.
 
 **7.2** Augšupielādējot fotoattēlus, grīdas plānus vai tekstu Platformā, Jūs piešķirat mums neekskluzīvu, visā pasaulē spēkā esošu, bezatlīdzības licenci uzglabāt, attēlot un izplatīt šo saturu tikai Platformas darbības nodrošināšanas nolūkos (ieskaitot CDN piegādi). Šī licence beidzas, dzēšot saturu vai kontu.
 

@@ -8,7 +8,7 @@ _Last updated: [DATE]_
 
 By accessing or using [WEBSITE_URL] ("Baltnami", "the Platform", "we", "us"), you agree to be bound by these Terms of Use ("Terms"). If you do not agree, do not use the Platform.
 
-These Terms constitute a binding agreement between you and Nikita Kuprins, the individual operating this Platform.
+These Terms constitute a binding agreement between you and the Baltnami project team, which operates this Platform.
 
 ---
 
@@ -71,7 +71,7 @@ You agree not to:
 
 ## 7. Intellectual Property
 
-**7.1** The Platform's design, code, and non-user-generated content are the property of Nikita Kuprins.
+**7.1** The Platform's design, code, and non-user-generated content are the property of the Baltnami project team.
 
 **7.2** By uploading photos, floor plans, or text to the Platform, you grant us a non-exclusive, worldwide, royalty-free licence to store, display, and distribute that content solely for the purpose of operating the Platform (including CDN delivery). This licence terminates when you delete the content or your account.
 
