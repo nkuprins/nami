@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability, please **do not** open a public GitHub issue.
 
-Report it privately by emailing **nikita.kuprins@gmail.com** with:
+Report it privately by emailing **support@baltnami.id.lv** with:
 - A description of the vulnerability
 - Steps to reproduce
 - Potential impact
