@@ -1,9 +1,9 @@
 plugins {
     java
     jacoco
-    id("org.springframework.boot") version "4.1.1"
+    id("org.springframework.boot") version "4.1.2"
     id("io.spring.dependency-management") version "1.1.7"
-    id("io.freefair.lombok") version "9.8.2"
+    id("io.freefair.lombok") version "9.8.3"
 }
 
 lombok {
@@ -17,8 +17,8 @@ description = "backend"
 val thumbnailatorVersion = "0.4.21"
 val jjwtVersion = "0.13.0"
 val bucket4jVersion = "8.10.1"
-val awsSdkBomVersion = "2.57.2"
-val instancioVersion = "6.1.0"
+val awsSdkBomVersion = "2.57.11"
+val instancioVersion = "6.2.1"
 val archunitVersion = "1.5.1"
 
 java {
