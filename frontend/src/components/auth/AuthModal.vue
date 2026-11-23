@@ -152,8 +152,7 @@ async function handleResend() {
     >
       <p>
         {{ t('auth.verificationSent') }}
-        <span class="text-ink font-medium">{{ email }}</span
-        >.
+        <span class="text-ink font-medium">{{ email }}</span>.
       </p>
       <p>{{ t('auth.clickToActivate') }}</p>
       <button
